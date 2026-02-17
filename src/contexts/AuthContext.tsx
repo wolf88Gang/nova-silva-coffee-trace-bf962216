@@ -1,194 +1,151 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Session } from "@supabase/supabase-js";
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { UserRole } from '@/types';
 
-// ── Types ──────────────────────────────────────────────
-export type AppRole = "cooperativa" | "exportador" | "productor" | "tecnico" | "certificadora" | "admin";
-
-export interface AppUser {
+interface User {
   id: string;
   email: string;
   name: string;
-  role: AppRole;
-  organizationName: string;
-  organizationId?: string;
-  productorId?: string;
+  role: UserRole;
+  organizationName?: string;
 }
 
 interface AuthContextType {
-  user: AppUser | null;
+  user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, name: string, role: UserRole, organizationName?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  hasRole: (role: AppRole) => boolean;
-  loginAsDemo: (role: AppRole) => void;
+  isLoading: boolean;
+  hasRole: (role: UserRole) => boolean;
+  loginAsDemo: (role: UserRole) => void;
 }
 
-// ── Demo users (testing only) ──────────────────────────
-const DEMO_USERS: Record<AppRole, AppUser> = {
-  cooperativa: {
-    id: "demo-cooperativa",
-    email: "demo.cooperativa@novasilva.com",
-    name: "María García",
-    role: "cooperativa",
-    organizationName: "Cooperativa Café de la Selva",
-  },
-  exportador: {
-    id: "demo-exportador",
-    email: "demo.exportador@novasilva.com",
-    name: "Carlos Mendoza",
-    role: "exportador",
-    organizationName: "Exportadora Sol de América",
-  },
-  productor: {
-    id: "demo-productor",
-    email: "demo.productor@novasilva.com",
-    name: "Juan Pérez",
-    role: "productor",
-    organizationName: "Finca El Mirador",
-  },
-  tecnico: {
-    id: "demo-tecnico",
-    email: "demo.tecnico@novasilva.com",
-    name: "Pedro Técnico",
-    role: "tecnico",
-    organizationName: "Cooperativa Café de la Selva",
-  },
-  certificadora: {
-    id: "demo-certificadora",
-    email: "demo.certificadora@novasilva.com",
-    name: "Ana Certificadora",
-    role: "certificadora",
-    organizationName: "CertifiCafé Internacional",
-  },
-  admin: {
-    id: "demo-admin",
-    email: "demo.admin@novasilva.com",
-    name: "Admin Nova Silva",
-    role: "admin",
-    organizationName: "Nova Silva Platform",
-  },
+const DEMO_USERS: Partial<Record<UserRole, { email: string; name: string; organizationName: string }>> = {
+  cooperativa: { email: 'demo.cooperativa@novasilva.com', name: 'María García', organizationName: 'Cooperativa Café de la Selva' },
+  exportador: { email: 'demo.exportador@novasilva.com', name: 'Carlos Mendoza', organizationName: 'Exportadora Sol de América' },
+  certificadora: { email: 'demo.certificadora@novasilva.com', name: 'Ana Certificadora', organizationName: 'CertifiCafé Internacional' },
+  productor: { email: 'demo.productor@novasilva.com', name: 'Juan Pérez', organizationName: 'Finca El Mirador' },
+  tecnico: { email: 'demo.tecnico@novasilva.com', name: 'Pedro Técnico', organizationName: 'Cooperativa Café de la Selva' },
+  admin: { email: 'demo.admin@novasilva.com', name: 'Admin Nova Silva', organizationName: 'Nova Silva Platform' },
 };
 
-// ── Context ────────────────────────────────────────────
+export { DEMO_USERS };
+export type { User as AppUser, UserRole as AppRole };
+
+async function getUserProfile(userId: string) {
+  const { data, error } = await supabase.from('profiles').select('name, organization_name').eq('user_id', userId).maybeSingle();
+  if (error) { console.error('Error fetching profile:', error); return null; }
+  return data ? { name: data.name, organizationName: data.organization_name } : null;
+}
+
+async function getUserRole(userId: string): Promise<UserRole | null> {
+  const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', userId).maybeSingle();
+  if (error) { console.error('Error fetching role:', error); return null; }
+  return data?.role as UserRole || null;
+}
+
+async function buildUserFromSession(session: Session): Promise<User | null> {
+  const supabaseUser = session.user;
+  const [profile, role] = await Promise.all([getUserProfile(supabaseUser.id), getUserRole(supabaseUser.id)]);
+
+  if (!role) {
+    const metadataRole = supabaseUser.user_metadata?.role as UserRole;
+    if (!metadataRole) { console.error('No role found for user'); return null; }
+    return {
+      id: supabaseUser.id, email: supabaseUser.email || '',
+      name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
+      role: metadataRole,
+      organizationName: profile?.organizationName || supabaseUser.user_metadata?.organization_name || undefined,
+    };
+  }
+
+  return {
+    id: supabaseUser.id, email: supabaseUser.email || '',
+    name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
+    role, organizationName: profile?.organizationName || undefined,
+  };
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AppUser | null>(null);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Build AppUser from Supabase session
-  const buildAppUser = useCallback(async (sess: Session): Promise<AppUser | null> => {
-    const uid = sess.user.id;
-    const email = sess.user.email ?? "";
-
-    // Fetch profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("name, organization_name, organization_id, productor_id")
-      .eq("user_id", uid)
-      .single();
-
-    // Fetch role
-    const { data: roleRow } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .single();
-
-    if (!roleRow) return null;
-
-    return {
-      id: uid,
-      email,
-      name: profile?.name ?? email,
-      role: roleRow.role as AppRole,
-      organizationName: profile?.organization_name ?? "",
-      organizationId: profile?.organization_id ?? undefined,
-      productorId: profile?.productor_id ?? undefined,
-    };
-  }, []);
-
-  // Listen to auth changes
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, sess) => {
-        setSession(sess);
-        if (sess) {
-          const appUser = await buildAppUser(sess);
-          setUser(appUser);
-        } else {
-          setUser(null);
-        }
-        setIsLoading(false);
-      }
-    );
-
-    // Initial session
     supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
       setSession(sess);
-      if (sess) {
-        const appUser = await buildAppUser(sess);
-        setUser(appUser);
-      }
+      if (sess) { const u = await buildUserFromSession(sess); setUser(u); }
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [buildAppUser]);
-
-  const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  };
-
-  const signUp = async (email: string, password: string, name: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name }, emailRedirectTo: window.location.origin },
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
+      setSession(sess ?? null);
+      if (event === 'SIGNED_IN' && sess) {
+        setTimeout(async () => {
+          const u = await buildUserFromSession(sess);
+          setUser(u); setIsLoading(false);
+        }, 0);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null); setIsLoading(false);
+      }
     });
-    if (error) throw error;
-  };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-  };
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const hasRole = (role: AppRole) => user?.role === role;
+  const signUp = useCallback(async (email: string, password: string, name: string, role: UserRole, organizationName?: string) => {
+    setIsLoading(true);
+    try {
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { name, role, organization_name: organizationName || null }, emailRedirectTo: `${window.location.origin}/` }
+      });
+      if (signUpError) { setIsLoading(false); return { success: false, error: signUpError.message }; }
+      if (!authData.user) { setIsLoading(false); return { success: false, error: 'No se pudo crear el usuario' }; }
+      setIsLoading(false);
+      return { success: true };
+    } catch {
+      setIsLoading(false); return { success: false, error: 'Error al crear cuenta' };
+    }
+  }, []);
 
-  const loginAsDemo = (role: AppRole) => {
-    setUser(DEMO_USERS[role]);
+  const login = useCallback(async (email: string, password: string) => {
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setIsLoading(false); return { success: false, error: error.message }; }
+    return { success: true };
+  }, []);
+
+  const logout = useCallback(async () => { await supabase.auth.signOut(); setUser(null); setSession(null); }, []);
+  const hasRole = useCallback((role: UserRole): boolean => user?.role === role, [user]);
+
+  const loginAsDemo = useCallback((role: UserRole) => {
+    const demo = DEMO_USERS[role];
+    if (!demo) return;
+    setUser({
+      id: `demo-${role}`,
+      email: demo.email,
+      name: demo.name,
+      role,
+      organizationName: demo.organizationName,
+    });
     setIsLoading(false);
-  };
+  }, []);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        signUp,
-        logout,
-        hasRole,
-        loginAsDemo,
-      }}
-    >
+    <AuthContext.Provider value={{ user, session, isAuthenticated: !!user, login, signUp, logout, isLoading, hasRole, loginAsDemo }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = (): AuthContextType => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
-};
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
+}

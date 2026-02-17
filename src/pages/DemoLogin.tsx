@@ -1,59 +1,84 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth, AppRole } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Leaf, Users, Truck, TreePine, Wrench, ShieldCheck, Settings } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth, DEMO_USERS } from '@/contexts/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Leaf, Building2, Truck, ShieldCheck, Sprout, Wrench, Settings } from 'lucide-react';
+import { UserRole } from '@/types';
+import { ORGANIZATION_TYPE_LABELS } from '@/lib/roles';
 
-const ROLES: { role: AppRole; label: string; icon: React.ElementType; desc: string }[] = [
-  { role: "cooperativa", label: "Cooperativa", icon: Users, desc: "Gestión de productores, acopio y finanzas" },
-  { role: "exportador", label: "Exportador", icon: Truck, desc: "Gestión comercial y proveedores" },
-  { role: "productor", label: "Productor", icon: TreePine, desc: "Producción, sanidad y sostenibilidad" },
-  { role: "tecnico", label: "Técnico", icon: Wrench, desc: "Visitas y diagnósticos de campo" },
-  { role: "certificadora", label: "Certificadora", icon: ShieldCheck, desc: "Panel de auditoría" },
-  { role: "admin", label: "Administrador", icon: Settings, desc: "Administración de plataforma" },
-];
+const ROLE_ICONS: Record<UserRole, React.ElementType> = {
+  cooperativa: Building2,
+  exportador: Truck,
+  certificadora: ShieldCheck,
+  productor: Sprout,
+  tecnico: Wrench,
+  admin: Settings,
+};
 
-const DemoLogin: React.FC = () => {
+const ROLE_REDIRECTS: Record<UserRole, string> = {
+  cooperativa: '/cooperativa/dashboard',
+  exportador: '/exportador/dashboard',
+  certificadora: '/certificadora/dashboard',
+  productor: '/productor/dashboard',
+  tecnico: '/tecnico/dashboard',
+  admin: '/admin',
+};
+
+const DemoLogin = () => {
   const { loginAsDemo } = useAuth();
   const navigate = useNavigate();
 
-  const handleDemo = (role: AppRole) => {
+  const handleDemo = (role: UserRole) => {
     loginAsDemo(role);
-    navigate(role === "admin" ? "/admin" : `/${role}/dashboard`);
+    navigate(ROLE_REDIRECTS[role]);
   };
 
+  const roles = Object.keys(DEMO_USERS) as UserRole[];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-      <div className="w-full max-w-2xl space-y-6">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center">
-            <div className="rounded-full bg-primary/10 p-3">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-4xl">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 rounded-full bg-primary/10">
               <Leaf className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Acceso Demo — Nova Silva</h1>
-          <p className="text-muted-foreground">Selecciona un rol para explorar la plataforma</p>
+          <h1 className="text-3xl font-bold text-foreground">Nova Silva — Demo</h1>
+          <p className="text-muted-foreground mt-2">Selecciona un rol para explorar la plataforma</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {ROLES.map(({ role, label, icon: Icon, desc }) => (
-            <Card key={role} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => handleDemo(role)}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-primary/10 p-2">
-                    <Icon className="h-5 w-5 text-primary" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {roles.map((role) => {
+            const demo = DEMO_USERS[role];
+            if (!demo) return null;
+            const Icon = ROLE_ICONS[role];
+            return (
+              <Card key={role} className="cursor-pointer hover:shadow-lg transition-shadow border-border hover:border-accent/50" onClick={() => handleDemo(role)}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-accent/10">
+                      <Icon className="h-5 w-5 text-accent" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{ORGANIZATION_TYPE_LABELS[role]}</CardTitle>
+                      <CardDescription className="text-xs">{demo.name}</CardDescription>
+                    </div>
                   </div>
-                  <CardTitle className="text-base">{label}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>{desc}</CardDescription>
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground">{demo.organizationName}</p>
+                  <Button variant="outline" size="sm" className="w-full mt-3">
+                    Ingresar como {ORGANIZATION_TYPE_LABELS[role]}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-        <div className="text-center">
-          <Button variant="outline" onClick={() => navigate("/login")}>Ir al login real</Button>
+        <div className="text-center mt-6">
+          <Button variant="link" onClick={() => navigate('/login')}>
+            Ir al login real →
+          </Button>
         </div>
       </div>
     </div>

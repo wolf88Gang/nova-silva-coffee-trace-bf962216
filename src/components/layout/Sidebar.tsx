@@ -1,35 +1,127 @@
-import React, { useState } from "react";
-import { NavLink } from "@/components/NavLink";
-import { useAuth } from "@/contexts/AuthContext";
-import { NAV_BY_ROLE, ACCOUNT_NAV } from "@/config/navigation";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Leaf, LogOut, ChevronDown, Menu, X, Sun, Moon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
+import { NotificacionesBell } from './NotificacionesBell';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import {
+  Leaf, LogOut, ChevronDown, X,
+  LayoutDashboard, Users, Package, Settings, Truck,
+  Coffee, DollarSign, Megaphone, Award, HeartHandshake,
+  Stethoscope, Sprout, MessageSquare, Building2, MapPin,
+  CalendarCheck, Search, ClipboardList
+} from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
+import { UserRole } from '@/types';
 
-const ThemeToggle: React.FC = () => {
-  const [dark, setDark] = React.useState(() => document.documentElement.classList.contains("dark"));
-  const toggle = () => {
-    document.documentElement.classList.toggle("dark");
-    setDark(!dark);
-  };
-  return (
-    <button onClick={toggle} className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground">
-      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </button>
-  );
+interface NavItemDef { title: string; url: string; icon: LucideIcon; }
+
+const cooperativaNav: NavItemDef[] = [
+  { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
+  { title: 'Productoras/es', url: '/cooperativa/productores-hub', icon: Users },
+  { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
+  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
+  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
+  { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: Megaphone },
+  { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Coffee },
+  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: HeartHandshake },
+  { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Award },
+  { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Users },
+];
+
+const exportadorNav: NavItemDef[] = [
+  { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
+  { title: 'Gestión de Café', url: '/exportador/cafe', icon: Coffee },
+  { title: 'Red de Proveedores', url: '/exportador/socios', icon: Building2 },
+  { title: 'Gestión Comercial', url: '/exportador/comercial', icon: Truck },
+  { title: 'Nova Cup', url: '/exportador/calidad', icon: Coffee },
+  { title: 'Administración', url: '/exportador/admin', icon: Settings },
+  { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
+];
+
+const productorNav: NavItemDef[] = [
+  { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
+  { title: 'Producción', url: '/productor/produccion', icon: Sprout },
+  { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Stethoscope },
+  { title: 'Finanzas', url: '/productor/finanzas-hub', icon: DollarSign },
+  { title: 'Sostenibilidad', url: '/productor/sostenibilidad', icon: Sprout },
+  { title: 'Comunidad', url: '/productor/comunidad', icon: Users },
+];
+
+const tecnicoNav: NavItemDef[] = [
+  { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
+  { title: 'Plan de Visitas', url: '/tecnico/visitas', icon: CalendarCheck },
+  { title: 'Diagnósticos', url: '/tecnico/diagnosticos', icon: Search },
+  { title: 'Áreas Productivas', url: '/tecnico/productores', icon: MapPin },
+  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: HeartHandshake },
+];
+
+const certificadoraNav: NavItemDef[] = [
+  { title: 'Panel de Auditoría', url: '/certificadora/dashboard', icon: LayoutDashboard },
+];
+
+const adminNav: NavItemDef[] = [
+  { title: 'Panel Admin', url: '/admin', icon: LayoutDashboard },
+  { title: 'Directorio Clientes', url: '/admin/directorio', icon: Building2 },
+  { title: 'Platform Admin', url: '/admin/platform', icon: Settings },
+  { title: 'Architect View', url: '/admin/architect', icon: ClipboardList },
+];
+
+const NAV_BY_ROLE: Record<UserRole, NavItemDef[]> = {
+  cooperativa: cooperativaNav,
+  exportador: exportadorNav,
+  productor: productorNav,
+  tecnico: tecnicoNav,
+  certificadora: certificadoraNav,
+  admin: adminNav,
 };
 
-const AppSidebar: React.FC = () => {
+const accountNav: NavItemDef[] = [
+  { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
+  { title: 'Mi plan', url: '/mi-plan', icon: DollarSign },
+  { title: 'Directorio', url: '/directorio/cooperativas', icon: Building2 },
+  { title: 'Acerca de', url: '/acerca', icon: Leaf },
+];
+
+function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void }) {
+  return (
+    <NavLink
+      to={item.url}
+      onClick={onClick}
+      className={({ isActive }) => cn(
+        'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+        isActive
+          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-orange-500/20 font-medium'
+          : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+      )}
+    >
+      <item.icon className="h-4 w-4 shrink-0" />
+      <span>{item.title}</span>
+    </NavLink>
+  );
+}
+
+interface SidebarProps { isOpen: boolean; onClose: () => void; }
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
 
   if (!user) return null;
 
   const navItems = NAV_BY_ROLE[user.role] ?? [];
-  const linkClass = "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors hover:bg-sidebar-accent";
-  const activeClass = "bg-sidebar-accent text-sidebar-primary font-medium";
+
+  const handleLogout = async () => {
+    await logout();
+    if (user.id.startsWith('demo-')) {
+      navigate('/demo');
+    } else {
+      navigate('/login');
+    }
+  };
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
@@ -40,8 +132,9 @@ const AppSidebar: React.FC = () => {
           <span className="font-bold text-lg text-sidebar-foreground">Nova Silva</span>
         </div>
         <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <button className="lg:hidden p-1.5 text-sidebar-foreground" onClick={() => setMobileOpen(false)}>
+          <ThemeToggle className="text-sidebar-foreground/70 hover:text-sidebar-foreground" />
+          <NotificacionesBell />
+          <button className="lg:hidden p-1.5 text-sidebar-foreground" onClick={onClose}>
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -59,16 +152,7 @@ const AppSidebar: React.FC = () => {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
         {navItems.map((item) => (
-          <NavLink
-            key={item.url}
-            to={item.url}
-            className={linkClass}
-            activeClassName={activeClass}
-            onClick={() => setMobileOpen(false)}
-          >
-            <item.icon className="h-4 w-4 shrink-0" />
-            <span>{item.title}</span>
-          </NavLink>
+          <NavItemLink key={item.url} item={item} onClick={onClose} />
         ))}
       </nav>
 
@@ -80,17 +164,8 @@ const AppSidebar: React.FC = () => {
             <ChevronDown className={cn("h-4 w-4 transition-transform", accountOpen && "rotate-180")} />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1 mt-1">
-            {ACCOUNT_NAV.map((item) => (
-              <NavLink
-                key={item.url}
-                to={item.url}
-                className={linkClass}
-                activeClassName={activeClass}
-                onClick={() => setMobileOpen(false)}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                <span>{item.title}</span>
-              </NavLink>
+            {accountNav.map((item) => (
+              <NavItemLink key={item.url} item={item} onClick={onClose} />
             ))}
           </CollapsibleContent>
         </Collapsible>
@@ -98,7 +173,7 @@ const AppSidebar: React.FC = () => {
 
       {/* Logout */}
       <div className="px-3 py-3 border-t border-sidebar-border">
-        <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent" onClick={logout}>
+        <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent" onClick={handleLogout}>
           <LogOut className="h-4 w-4" />
           Cerrar sesión
         </Button>
@@ -108,30 +183,22 @@ const AppSidebar: React.FC = () => {
 
   return (
     <>
-      {/* Mobile trigger */}
-      <button
-        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-md bg-card border border-border shadow-sm"
-        onClick={() => setMobileOpen(true)}
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
       {/* Mobile overlay */}
-      {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setMobileOpen(false)} />
+      {isOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       )}
 
       {/* Sidebar */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-40 h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-transform lg:translate-x-0",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {sidebarContent}
       </aside>
     </>
   );
-};
+}
 
-export default AppSidebar;
+export default Sidebar;
