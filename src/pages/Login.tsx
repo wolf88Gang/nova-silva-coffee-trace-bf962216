@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Leaf, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import logoNovasilva from '@/assets/logo-novasilva.png';
+import bgCoffee from '@/assets/bg-coffee-cherries.jpg';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -29,13 +31,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      <div className="absolute inset-0 z-0">
+        <img src={bgCoffee} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-background/85 backdrop-blur-sm" />
+      </div>
+      <Card className="w-full max-w-md relative z-10 shadow-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Leaf className="h-8 w-8 text-primary" />
-            </div>
+            <img src={logoNovasilva} alt="Nova Silva" className="h-16 w-16 object-contain" />
           </div>
           <CardTitle className="text-2xl">Nova Silva</CardTitle>
           <CardDescription>Inicia sesión en tu cuenta</CardDescription>

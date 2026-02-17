@@ -2,9 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, DEMO_USERS } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Leaf, Building2, Truck, ShieldCheck, Sprout, Wrench, Settings } from 'lucide-react';
+import { Building2, Truck, ShieldCheck, Sprout, Wrench, Settings } from 'lucide-react';
 import { UserRole } from '@/types';
 import { ORGANIZATION_TYPE_LABELS } from '@/lib/roles';
+import logoNovasilva from '@/assets/logo-novasilva.png';
+import bgAerial from '@/assets/bg-aerial-farm.jpg';
 
 const ROLE_ICONS: Record<UserRole, React.ElementType> = {
   cooperativa: Building2,
@@ -36,13 +38,15 @@ const DemoLogin = () => {
   const roles = Object.keys(DEMO_USERS) as UserRole[];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-4xl">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      <div className="absolute inset-0 z-0">
+        <img src={bgAerial} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+      </div>
+      <div className="w-full max-w-4xl relative z-10">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Leaf className="h-8 w-8 text-primary" />
-            </div>
+            <img src={logoNovasilva} alt="Nova Silva" className="h-16 w-16 object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Nova Silva — Demo</h1>
           <p className="text-muted-foreground mt-2">Selecciona un rol para explorar la plataforma</p>
