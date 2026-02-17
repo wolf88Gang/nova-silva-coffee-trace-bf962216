@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
@@ -128,7 +129,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <Leaf className="h-6 w-6 text-accent" />
+          <img src={logoNovasilva} alt="Nova Silva" className="h-8 w-8 object-contain" />
           <span className="font-bold text-lg text-sidebar-foreground">Nova Silva</span>
         </div>
         <div className="flex items-center gap-1">
