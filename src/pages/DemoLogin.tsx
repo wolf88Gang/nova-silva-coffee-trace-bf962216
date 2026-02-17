@@ -1,90 +1,159 @@
-import { useNavigate } from 'react-router-dom';
-import { useAuth, DEMO_USERS } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Building2, Truck, ShieldCheck, Sprout, Wrench, Settings } from 'lucide-react';
+import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
-import { ORGANIZATION_TYPE_LABELS } from '@/lib/roles';
 import logoNovasilva from '@/assets/logo-novasilva.png';
-import bgAerial from '@/assets/bg-aerial-farm.jpg';
+import bgTerraces from '@/assets/bg-terraces.jpg';
 
-const ROLE_ICONS: Record<UserRole, React.ElementType> = {
-  cooperativa: Building2,
-  exportador: Truck,
-  certificadora: ShieldCheck,
-  productor: Sprout,
-  tecnico: Wrench,
-  admin: Settings,
-};
+const SUPABASE_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
 
-const ROLE_REDIRECTS: Record<UserRole, string> = {
+interface DemoRole {
+  role: UserRole;
+  email: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+}
+
+const DEMO_ROLES: DemoRole[] = [
+  { role: 'productor', email: 'demo.productor@novasilva.com', label: 'Productor', description: 'Agricultor de café', icon: Sprout },
+  { role: 'tecnico', email: 'demo.tecnico@novasilva.com', label: 'Técnico', description: 'Asistente técnico de campo', icon: Wrench },
+  { role: 'cooperativa', email: 'demo.cooperativa@novasilva.com', label: 'Cooperativa', description: 'Gestión de cooperativa', icon: Building2 },
+  { role: 'exportador', email: 'demo.exportador@novasilva.com', label: 'Exportador', description: 'Exportadora con EUDR', icon: Truck },
+  { role: 'certificadora', email: 'demo.certificadora@novasilva.com', label: 'Certificadora', description: 'Auditoría y certificación', icon: ShieldCheck },
+];
+
+const ROLE_REDIRECTS: Record<string, string> = {
   cooperativa: '/cooperativa/dashboard',
   exportador: '/exportador/dashboard',
   certificadora: '/certificadora/dashboard',
   productor: '/productor/dashboard',
   tecnico: '/tecnico/dashboard',
-  admin: '/admin',
 };
 
 const DemoLogin = () => {
-  const { loginAsDemo } = useAuth();
+  const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleDemo = (role: UserRole) => {
-    loginAsDemo(role);
-    navigate(ROLE_REDIRECTS[role]);
+  const handleDemoLogin = async (demoRole: DemoRole) => {
+    setLoadingRole(demoRole.role);
+    try {
+      // Step 1: Ensure demo user exists via edge function
+      const ensureRes = await fetch(`${SUPABASE_URL}/functions/v1/ensure-demo-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ role: demoRole.role }),
+      });
+
+      if (!ensureRes.ok) {
+        const errData = await ensureRes.text();
+        console.error('ensure-demo-user error:', ensureRes.status, errData);
+        toast({ title: 'Error', description: 'No se pudo preparar el usuario demo. Intenta de nuevo.', variant: 'destructive' });
+        setLoadingRole(null);
+        return;
+      }
+
+      // Step 2: Sign in with password
+      const { error } = await supabase.auth.signInWithPassword({
+        email: demoRole.email,
+        password: 'demo123456',
+      });
+
+      if (error) {
+        toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
+        setLoadingRole(null);
+        return;
+      }
+
+      // Step 3: Redirect
+      navigate(ROLE_REDIRECTS[demoRole.role] || '/');
+    } catch (err) {
+      console.error('Demo login error:', err);
+      toast({ title: 'Error', description: 'Error de conexión. Intenta de nuevo.', variant: 'destructive' });
+      setLoadingRole(null);
+    }
   };
 
-  const roles = Object.keys(DEMO_USERS) as UserRole[];
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
+    <div className="min-h-screen relative flex flex-col">
+      {/* Background */}
       <div className="absolute inset-0 z-0">
-        <img src={bgAerial} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+        <img src={bgTerraces} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90" />
       </div>
-      <div className="w-full max-w-4xl relative z-10">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <img src={logoNovasilva} alt="Nova Silva" className="h-16 w-16 object-contain" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">Nova Silva — Demo</h1>
-          <p className="text-muted-foreground mt-2">Selecciona un rol para explorar la plataforma</p>
+
+      {/* Header */}
+      <header className="relative z-10 flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-3">
+          <img src={logoNovasilva} alt="Nova Silva" className="h-10 w-10 object-contain" />
+          <span className="text-white font-bold text-lg">Nova Silva</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {roles.map((role) => {
-            const demo = DEMO_USERS[role];
-            if (!demo) return null;
-            const Icon = ROLE_ICONS[role];
+        <Link to="/login" className="text-white/60 hover:text-white text-sm transition-colors">
+          Ir al login →
+        </Link>
+      </header>
+
+      {/* Content */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-12">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-6">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[hsl(var(--accent-orange))]" />
+          </span>
+          <span className="text-white/80 text-xs font-medium">Entorno de Demostración</span>
+        </div>
+
+        {/* Hero */}
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white text-center mb-3 max-w-3xl leading-tight">
+          Plataforma de Diligencia{' '}
+          <span className="text-[hsl(var(--accent-orange))]">Debida Digital</span>
+        </h1>
+        <p className="text-white/50 text-center mb-10 max-w-xl text-sm sm:text-base">
+          Selecciona un rol para explorar la plataforma de trazabilidad de café
+        </p>
+
+        {/* Role grid — 5 columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full max-w-5xl">
+          {DEMO_ROLES.map((dr) => {
+            const Icon = dr.icon;
+            const isLoading = loadingRole === dr.role;
+            const isDisabled = loadingRole !== null;
             return (
-              <Card key={role} className="cursor-pointer hover:shadow-lg transition-shadow border-border hover:border-accent/50" onClick={() => handleDemo(role)}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-accent/10">
-                      <Icon className="h-5 w-5 text-accent" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{ORGANIZATION_TYPE_LABELS[role]}</CardTitle>
-                      <CardDescription className="text-xs">{demo.name}</CardDescription>
-                    </div>
+              <button
+                key={dr.role}
+                onClick={() => handleDemoLogin(dr)}
+                disabled={isDisabled}
+                className="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 text-left hover:bg-white/15 hover:border-[hsl(var(--accent-orange))]/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-lg bg-[hsl(var(--accent-orange))]/15 group-hover:bg-[hsl(var(--accent-orange))]/25 transition-colors">
+                    <Icon className="h-5 w-5 text-[hsl(var(--accent-orange))]" />
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-xs text-muted-foreground">{demo.organizationName}</p>
-                  <Button variant="outline" size="sm" className="w-full mt-3">
-                    Ingresar como {ORGANIZATION_TYPE_LABELS[role]}
-                  </Button>
-                </CardContent>
-              </Card>
+                  {isLoading && <Loader2 className="h-4 w-4 animate-spin text-white/60" />}
+                </div>
+                <h3 className="text-white font-semibold text-sm mb-1">{dr.label}</h3>
+                <p className="text-white/40 text-xs">{dr.description}</p>
+              </button>
             );
           })}
         </div>
-        <div className="text-center mt-6">
-          <Button variant="link" onClick={() => navigate('/login')}>
-            Ir al login real →
-          </Button>
+
+        {/* Footer links */}
+        <div className="mt-10 flex flex-col items-center gap-2">
+          <p className="text-white/30 text-xs">
+            Contraseña demo: <code className="text-white/50">demo123456</code>
+          </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
