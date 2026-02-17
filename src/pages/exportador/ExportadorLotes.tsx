@@ -1,0 +1,47 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Package } from 'lucide-react';
+import { DEMO_LOTES_COMERCIALES } from '@/lib/demo-data';
+
+const estadoBadge = (estado: string) => {
+  const map: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    en_formacion: { label: 'En formación', variant: 'secondary' },
+    listo: { label: 'Listo', variant: 'default' },
+    en_transito: { label: 'En tránsito', variant: 'outline' },
+    entregado: { label: 'Entregado', variant: 'default' },
+  };
+  const { label, variant } = map[estado] ?? map.en_formacion;
+  return <Badge variant={variant}>{label}</Badge>;
+};
+
+export default function ExportadorLotes() {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> Lotes Comerciales</CardTitle></CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="border-b border-border text-left text-muted-foreground">
+                <th className="pb-2 pr-4">Código ICO</th><th className="pb-2 pr-4">Origen</th><th className="pb-2 pr-4">Sacos</th><th className="pb-2 pr-4">Tipo</th><th className="pb-2 pr-4">SCA</th><th className="pb-2 pr-4">EUDR</th><th className="pb-2">Estado</th>
+              </tr></thead>
+              <tbody>
+                {DEMO_LOTES_COMERCIALES.map((l) => (
+                  <tr key={l.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
+                    <td className="py-3 pr-4 font-medium text-foreground">{l.codigoICO}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{l.origen}</td>
+                    <td className="py-3 pr-4 text-foreground">{l.pesoSacos}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{l.tipoCafe}</td>
+                    <td className="py-3 pr-4 font-medium text-foreground">{l.puntajeSCA}</td>
+                    <td className="py-3 pr-4"><Badge variant={l.estadoEUDR === 'compliant' ? 'default' : 'secondary'}>{l.estadoEUDR === 'compliant' ? 'Cumple' : 'Pendiente'}</Badge></td>
+                    <td className="py-3">{estadoBadge(l.estado)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
