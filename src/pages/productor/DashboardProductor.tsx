@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Sprout, MapPin, Wallet, Leaf, Bell, ArrowRight, TrendingUp } from 'lucide-react';
+import { MapPin, Wallet, Leaf, Bell, ArrowRight, Truck } from 'lucide-react';
 import { getProductorStats } from '@/lib/demo-data';
 
 export default function DashboardProductor() {
@@ -11,12 +11,12 @@ export default function DashboardProductor() {
   const navigate = useNavigate();
 
   const kpis = [
-    { label: 'Parcelas', value: stats.parcelas, icon: MapPin, route: '/productor/produccion' },
-    { label: 'Hectáreas', value: `${stats.hectareas} ha`, icon: Sprout },
-    { label: 'Última entrega', value: stats.ultimaEntrega, icon: TrendingUp },
-    { label: 'Créditos activos', value: stats.creditosActivos, icon: Wallet, route: '/productor/finanzas-hub' },
-    { label: 'Puntaje VITAL', value: `${stats.puntajeVITAL}/100`, icon: Leaf, route: '/productor/sostenibilidad' },
-    { label: 'Avisos no leídos', value: stats.avisosNoLeidos, icon: Bell, route: '/productor/comunidad' },
+    { label: 'Parcelas', value: stats.parcelas, icon: MapPin, route: '/productor/finca' },
+    { label: 'Hectáreas', value: `${stats.hectareas} ha`, icon: MapPin },
+    { label: 'Última entrega', value: stats.ultimaEntrega, icon: Truck, route: '/productor/entregas' },
+    { label: 'Créditos activos', value: stats.creditosActivos, icon: Wallet, route: '/productor/creditos' },
+    { label: 'Puntaje VITAL', value: `${stats.puntajeVITAL}/100`, icon: Leaf, route: '/productor/vital' },
+    { label: 'Avisos no leídos', value: stats.avisosNoLeidos, icon: Bell, route: '/productor/avisos' },
   ];
 
   return (
@@ -65,7 +65,7 @@ export default function DashboardProductor() {
                 </div>
               ))}
             </div>
-            <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => navigate('/productor/comunidad')}>Ver todos <ArrowRight className="h-3 w-3 ml-1" /></Button>
+            <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => navigate('/productor/avisos')}>Ver todos <ArrowRight className="h-3 w-3 ml-1" /></Button>
           </CardContent>
         </Card>
       </div>

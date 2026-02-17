@@ -11,55 +11,71 @@ import {
   Leaf, LogOut, ChevronDown, X,
   LayoutDashboard, Users, Package, Boxes, Wallet,
   Coffee, MessageSquare, Building2, MapPin,
-  CalendarCheck, Search, ShieldCheck, Shield,
-  ClipboardList, Wrench, Stethoscope, Sprout
+  Calendar, ShieldCheck, Shield, Ship, FileText,
+  ClipboardList, Stethoscope, Sprout, Bell, Truck,
+  Settings, CheckCircle, Award, Map
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 
-const cooperativaNav: NavItemDef[] = [
-  { title: 'Panel principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
-  { title: 'Productores', url: '/cooperativa/productores-hub', icon: Users },
-  { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
-  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Boxes },
-  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: Wallet },
-  { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
-  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: ShieldCheck },
-  { title: 'Usuarios y permisos', url: '/cooperativa/usuarios', icon: Shield },
-];
-
-const exportadorNav: NavItemDef[] = [
-  { title: 'Panel principal', url: '/exportador/dashboard', icon: LayoutDashboard },
-  { title: 'Gestión de Café', url: '/exportador/cafe', icon: Coffee },
-  { title: 'Red de Socios', url: '/exportador/socios', icon: Building2 },
-  { title: 'Gestión Comercial', url: '/exportador/comercial', icon: ClipboardList },
-  { title: 'Administración', url: '/exportador/admin', icon: Wallet },
-  { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
-];
-
+// ── PRODUCTOR (Banco §1) ──
 const productorNav: NavItemDef[] = [
   { title: 'Panel principal', url: '/productor/dashboard', icon: LayoutDashboard },
-  { title: 'Producción', url: '/productor/produccion', icon: Sprout },
-  { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Stethoscope },
-  { title: 'Finanzas', url: '/productor/finanzas-hub', icon: Wallet },
-  { title: 'Sostenibilidad', url: '/productor/sostenibilidad', icon: ShieldCheck },
-  { title: 'Comunidad', url: '/productor/comunidad', icon: MessageSquare },
+  { title: 'Mi Finca', url: '/productor/finca', icon: MapPin },
+  { title: 'Entregas', url: '/productor/entregas', icon: Truck },
+  { title: 'Créditos', url: '/productor/creditos', icon: Wallet },
+  { title: 'Protocolo VITAL', url: '/productor/vital', icon: Leaf },
+  { title: 'Avisos', url: '/productor/avisos', icon: Bell },
 ];
 
+// ── TÉCNICO (Banco §2) ──
 const tecnicoNav: NavItemDef[] = [
   { title: 'Panel principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
-  { title: 'Plan de visitas', url: '/tecnico/visitas', icon: ClipboardList },
-  { title: 'Diagnósticos', url: '/tecnico/diagnosticos', icon: Stethoscope },
-  { title: 'Productores asignados', url: '/tecnico/productores', icon: Users },
-  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: ShieldCheck },
+  { title: 'Productores', url: '/tecnico/productores', icon: Users },
+  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: Leaf },
+  { title: 'Parcelas', url: '/tecnico/parcelas', icon: Map },
+  { title: 'Agenda', url: '/tecnico/agenda', icon: Calendar },
 ];
 
+// ── COOPERATIVA (Banco §3) ──
+const cooperativaNav: NavItemDef[] = [
+  { title: 'Panel principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
+  { title: 'Productores', url: '/cooperativa/productores', icon: Users },
+  { title: 'Lotes de Acopio', url: '/cooperativa/lotes-acopio', icon: Package },
+  { title: 'Operaciones Hub', url: '/cooperativa/operaciones', icon: Boxes },
+  { title: 'Créditos', url: '/cooperativa/creditos', icon: Wallet },
+  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Leaf },
+  { title: 'Exportadores', url: '/cooperativa/exportadores', icon: Ship },
+  { title: 'Avisos', url: '/cooperativa/avisos', icon: Bell },
+  { title: 'Configuración', url: '/cooperativa/configuracion', icon: Settings },
+];
+
+// ── EXPORTADOR (Banco §4) ──
+const exportadorNav: NavItemDef[] = [
+  { title: 'Panel principal', url: '/exportador/dashboard', icon: LayoutDashboard },
+  { title: 'Proveedores', url: '/exportador/proveedores', icon: Users },
+  { title: 'Lotes Comerciales', url: '/exportador/lotes', icon: Package },
+  { title: 'Contratos', url: '/exportador/contratos', icon: FileText },
+  { title: 'EUDR', url: '/exportador/eudr', icon: ShieldCheck },
+  { title: 'Embarques', url: '/exportador/embarques', icon: Ship },
+  { title: 'Clientes', url: '/exportador/clientes', icon: Building2 },
+  { title: 'Calidad', url: '/exportador/calidad', icon: Award },
+  { title: 'Configuración', url: '/exportador/configuracion', icon: Settings },
+];
+
+// ── CERTIFICADORA (Banco §5) ──
 const certificadoraNav: NavItemDef[] = [
   { title: 'Panel principal', url: '/certificadora/dashboard', icon: LayoutDashboard },
+  { title: 'Auditorías', url: '/certificadora/auditorias', icon: ClipboardList },
+  { title: 'Organizaciones', url: '/certificadora/orgs', icon: Building2 },
+  { title: 'Verificaciones', url: '/certificadora/verificar', icon: CheckCircle },
+  { title: 'Reportes', url: '/certificadora/reportes', icon: FileText },
+  { title: 'Configuración', url: '/certificadora/config', icon: Settings },
 ];
 
+// ── ADMIN ──
 const adminNav: NavItemDef[] = [
   { title: 'Panel de Administración', url: '/admin', icon: Shield },
   { title: 'Directorio de clientes', url: '/admin/directorio', icon: Building2 },
