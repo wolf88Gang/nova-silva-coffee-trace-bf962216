@@ -8,8 +8,6 @@ import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgTerraces from '@/assets/bg-terraces.jpg';
 
-const SUPABASE_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
 
 interface DemoRole {
   role: UserRole;
@@ -43,32 +41,23 @@ const DemoLogin = () => {
   const handleDemoLogin = async (demoRole: DemoRole) => {
     setLoadingRole(demoRole.role);
     try {
-      // Step 1: Ensure demo user exists via edge function
-      const ensureRes = await fetch(`${SUPABASE_URL}/functions/v1/ensure-demo-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ role: demoRole.role }),
+      // Step 1: Try to ensure demo user exists via edge function
+      const { error: ensureError } = await supabase.functions.invoke('ensure-demo-user', {
+        body: { role: demoRole.role },
       });
 
-      if (!ensureRes.ok) {
-        const errData = await ensureRes.text();
-        console.error('ensure-demo-user error:', ensureRes.status, errData);
-        toast({ title: 'Error', description: 'No se pudo preparar el usuario demo. Intenta de nuevo.', variant: 'destructive' });
-        setLoadingRole(null);
-        return;
+      if (ensureError) {
+        console.warn('ensure-demo-user warning (will try login anyway):', ensureError);
       }
 
-      // Step 2: Sign in with password
+      // Step 2: Sign in with password (works if user already exists)
       const { error } = await supabase.auth.signInWithPassword({
         email: demoRole.email,
         password: 'demo123456',
       });
 
       if (error) {
-        toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
+        toast({ title: 'Error de autenticación', description: `${error.message}. Verifica que la edge function ensure-demo-user esté desplegada correctamente.`, variant: 'destructive' });
         setLoadingRole(null);
         return;
       }
