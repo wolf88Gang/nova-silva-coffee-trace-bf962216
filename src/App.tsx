@@ -15,6 +15,15 @@ import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import NotFound from "./pages/NotFound";
 import PlaceholderPage from "./pages/PlaceholderPage";
 
+// Public pages
+import HomePage from "./pages/public/HomePage";
+import NosotrosPage from "./pages/public/NosotrosPage";
+import SolucionesPage from "./pages/public/SolucionesPage";
+import CumplimientoPage from "./pages/public/CumplimientoPage";
+import PlanClimaPage from "./pages/public/PlanClimaPage";
+import ImpactoPage from "./pages/public/ImpactoPage";
+import ContactoPage from "./pages/public/ContactoPage";
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
 });
@@ -25,7 +34,6 @@ const PageLoader = () => (
   </div>
 );
 
-// Helper to wrap a placeholder in DashboardLayout with role
 const RP = ({ role, title }: { role?: any; title?: string }) => (
   <DashboardLayout requiredRole={role}>
     <PlaceholderPage title={title} />
@@ -41,13 +49,28 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              {/* Public */}
-              <Route path="/" element={<RoleBasedRedirect />} />
+              {/* Public website */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/nosotros" element={<NosotrosPage />} />
+              <Route path="/soluciones" element={<SolucionesPage />} />
+              <Route path="/cumplimiento-y-certificaciones" element={<CumplimientoPage />} />
+              <Route path="/plan-clima" element={<PlanClimaPage />} />
+              <Route path="/impacto" element={<ImpactoPage />} />
+              <Route path="/contacto" element={<ContactoPage />} />
+
+              {/* Redirects from old routes */}
+              <Route path="/plataforma" element={<Navigate to="/soluciones" replace />} />
+              <Route path="/planes" element={<Navigate to="/soluciones#planes-resumen" replace />} />
+              <Route path="/eudr" element={<Navigate to="/cumplimiento-y-certificaciones#eudr" replace />} />
+              <Route path="/clima" element={<Navigate to="/plan-clima" replace />} />
+              <Route path="/acerca" element={<Navigate to="/nosotros" replace />} />
+
+              {/* Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/demo" element={<DemoLogin />} />
               <Route path="/registro" element={<Register />} />
+              <Route path="/app" element={<RoleBasedRedirect />} />
               <Route path="/directorio/cooperativas" element={<PlaceholderPage title="Directorio de Cooperativas" />} />
-              <Route path="/acerca" element={<PlaceholderPage title="Acerca de Nova Silva" />} />
 
               {/* Shared auth pages */}
               <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />
