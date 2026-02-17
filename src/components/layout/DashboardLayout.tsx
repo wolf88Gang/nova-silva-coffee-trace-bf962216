@@ -38,13 +38,16 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
     <div className="min-h-screen bg-background">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:ml-64">
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+        {/* Fixed mobile header */}
+        <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-30 flex items-center px-4">
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="font-semibold text-foreground">Nova Silva</span>
+          <span className="ml-2 font-medium text-foreground">{user?.organizationName || 'Nova Silva'}</span>
         </header>
-        <main className="p-4 md:p-6 lg:p-8">
+        {/* Spacer for fixed mobile header */}
+        <div className="lg:hidden h-14" />
+        <main className="p-4 md:p-6 lg:p-8 animate-fade-in">
           {children}
         </main>
       </div>

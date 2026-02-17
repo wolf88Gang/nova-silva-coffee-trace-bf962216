@@ -9,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   Leaf, LogOut, ChevronDown, X,
-  LayoutDashboard, Users, Package, Settings, Truck,
-  Coffee, DollarSign, Megaphone, Award, HeartHandshake,
-  Stethoscope, Sprout, MessageSquare, Building2, MapPin,
-  CalendarCheck, Search, ClipboardList
+  LayoutDashboard, Users, Package, Boxes, Wallet,
+  Coffee, MessageSquare, Building2, MapPin,
+  CalendarCheck, Search, ShieldCheck, Shield,
+  ClipboardList, Wrench, Stethoscope, Sprout
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
@@ -20,54 +20,51 @@ import { UserRole } from '@/types';
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 
 const cooperativaNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
-  { title: 'Productoras/es', url: '/cooperativa/productores-hub', icon: Users },
+  { title: 'Panel principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
+  { title: 'Productores', url: '/cooperativa/productores-hub', icon: Users },
   { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
-  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
-  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
-  { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: Megaphone },
-  { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Coffee },
-  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: HeartHandshake },
-  { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Award },
-  { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Users },
+  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Boxes },
+  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: Wallet },
+  { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
+  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: ShieldCheck },
+  { title: 'Usuarios y permisos', url: '/cooperativa/usuarios', icon: Shield },
 ];
 
 const exportadorNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
+  { title: 'Panel principal', url: '/exportador/dashboard', icon: LayoutDashboard },
   { title: 'Gestión de Café', url: '/exportador/cafe', icon: Coffee },
-  { title: 'Red de Proveedores', url: '/exportador/socios', icon: Building2 },
-  { title: 'Gestión Comercial', url: '/exportador/comercial', icon: Truck },
-  { title: 'Nova Cup', url: '/exportador/calidad', icon: Coffee },
-  { title: 'Administración', url: '/exportador/admin', icon: Settings },
+  { title: 'Red de Socios', url: '/exportador/socios', icon: Building2 },
+  { title: 'Gestión Comercial', url: '/exportador/comercial', icon: ClipboardList },
+  { title: 'Administración', url: '/exportador/admin', icon: Wallet },
   { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
 ];
 
 const productorNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
+  { title: 'Panel principal', url: '/productor/dashboard', icon: LayoutDashboard },
   { title: 'Producción', url: '/productor/produccion', icon: Sprout },
   { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Stethoscope },
-  { title: 'Finanzas', url: '/productor/finanzas-hub', icon: DollarSign },
-  { title: 'Sostenibilidad', url: '/productor/sostenibilidad', icon: Sprout },
-  { title: 'Comunidad', url: '/productor/comunidad', icon: Users },
+  { title: 'Finanzas', url: '/productor/finanzas-hub', icon: Wallet },
+  { title: 'Sostenibilidad', url: '/productor/sostenibilidad', icon: ShieldCheck },
+  { title: 'Comunidad', url: '/productor/comunidad', icon: MessageSquare },
 ];
 
 const tecnicoNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
-  { title: 'Plan de Visitas', url: '/tecnico/visitas', icon: CalendarCheck },
-  { title: 'Diagnósticos', url: '/tecnico/diagnosticos', icon: Search },
-  { title: 'Áreas Productivas', url: '/tecnico/productores', icon: MapPin },
-  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: HeartHandshake },
+  { title: 'Panel principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
+  { title: 'Plan de visitas', url: '/tecnico/visitas', icon: ClipboardList },
+  { title: 'Diagnósticos', url: '/tecnico/diagnosticos', icon: Stethoscope },
+  { title: 'Productores asignados', url: '/tecnico/productores', icon: Users },
+  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: ShieldCheck },
 ];
 
 const certificadoraNav: NavItemDef[] = [
-  { title: 'Panel de Auditoría', url: '/certificadora/dashboard', icon: LayoutDashboard },
+  { title: 'Panel principal', url: '/certificadora/dashboard', icon: LayoutDashboard },
 ];
 
 const adminNav: NavItemDef[] = [
-  { title: 'Panel Admin', url: '/admin', icon: LayoutDashboard },
-  { title: 'Directorio Clientes', url: '/admin/directorio', icon: Building2 },
-  { title: 'Platform Admin', url: '/admin/platform', icon: Settings },
-  { title: 'Architect View', url: '/admin/architect', icon: ClipboardList },
+  { title: 'Panel de Administración', url: '/admin', icon: Shield },
+  { title: 'Directorio de clientes', url: '/admin/directorio', icon: Building2 },
+  { title: 'Platform Admin', url: '/admin/platform', icon: Building2 },
+  { title: 'Architect View', url: '/admin/architect', icon: Shield },
 ];
 
 const NAV_BY_ROLE: Record<UserRole, NavItemDef[]> = {
@@ -81,7 +78,7 @@ const NAV_BY_ROLE: Record<UserRole, NavItemDef[]> = {
 
 const accountNav: NavItemDef[] = [
   { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
-  { title: 'Mi plan', url: '/mi-plan', icon: DollarSign },
+  { title: 'Mi plan', url: '/mi-plan', icon: Wallet },
   { title: 'Directorio', url: '/directorio/cooperativas', icon: Building2 },
   { title: 'Acerca de', url: '/acerca', icon: Leaf },
 ];
@@ -186,13 +183,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       )}
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-transform lg:translate-x-0",
+          "fixed top-0 left-0 z-50 h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-transform duration-300 ease-in-out lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
