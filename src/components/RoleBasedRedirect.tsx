@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppRole } from "@/contexts/AuthContext";
+import { UserRole } from "@/types";
 
-const ROLE_REDIRECTS: Record<AppRole, string> = {
+const ROLE_REDIRECTS: Record<UserRole, string> = {
   cooperativa: "/cooperativa/dashboard",
   exportador: "/exportador/dashboard",
   productor: "/productor/dashboard",
@@ -19,7 +19,7 @@ const RoleBasedRedirect: React.FC = () => {
   React.useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated || !user) {
-      navigate("/login");
+      navigate("/demo");
       return;
     }
     navigate(ROLE_REDIRECTS[user.role] ?? "/login");
