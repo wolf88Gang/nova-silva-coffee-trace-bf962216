@@ -27,6 +27,8 @@ const productorNav: NavItemDef[] = [
   { title: 'Entregas', url: '/productor/entregas', icon: Truck },
   { title: 'Créditos', url: '/productor/creditos', icon: Wallet },
   { title: 'Protocolo VITAL', url: '/productor/vital', icon: Leaf },
+  { title: 'Diagnóstico CLIMA', url: '/productor/clima', icon: Stethoscope },
+  { title: 'Jornales', url: '/productor/jornales', icon: ClipboardList },
   { title: 'Avisos', url: '/productor/avisos', icon: Bell },
 ];
 
@@ -47,8 +49,9 @@ const cooperativaNav: NavItemDef[] = [
   { title: 'Operaciones Hub', url: '/cooperativa/operaciones', icon: Boxes },
   { title: 'Créditos', url: '/cooperativa/creditos', icon: Wallet },
   { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Leaf },
-  { title: 'Exportadores', url: '/cooperativa/exportadores', icon: Ship },
-  { title: 'Avisos', url: '/cooperativa/avisos', icon: Bell },
+  { title: 'CLIMA', url: '/cooperativa/clima', icon: Stethoscope },
+  { title: 'Diagnóstico Org', url: '/cooperativa/diagnostico', icon: ClipboardList },
+  { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
   { title: 'Configuración', url: '/cooperativa/configuracion', icon: Settings },
 ];
 

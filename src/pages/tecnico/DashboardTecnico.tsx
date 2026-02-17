@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Users, ClipboardList, Stethoscope, Calendar, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Users, ClipboardList, Stethoscope, Calendar, AlertTriangle, ArrowRight, Leaf } from 'lucide-react';
 import { getTecnicoStats, DEMO_VISITAS, DEMO_PRODUCTORES } from '@/lib/demo-data';
 
 export default function DashboardTecnico() {
