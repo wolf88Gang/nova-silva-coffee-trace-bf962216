@@ -11,9 +11,10 @@
     --card-foreground: 210 25% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 210 25% 12%;
-    --primary: 205 25% 45%;
+    --primary: 120 55% 23%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 205 30% 55%;
+    --primary-glow: 120 45% 30%;
+    --accent-orange: 25 75% 55%;
     --secondary: 210 20% 96%;
     --secondary-foreground: 210 25% 18%;
     --muted: 210 16% 94%;
@@ -30,24 +31,24 @@
     --input: 210 14% 86%;
     --ring: 25 75% 55%;
     --radius: 0.75rem;
-    --sidebar-background: 210 18% 14%;
+    --sidebar-background: 120 55% 18%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 205 25% 45%;
+    --sidebar-primary: 25 75% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 16% 22%;
+    --sidebar-accent: 120 40% 25%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 210 14% 28%;
+    --sidebar-border: 120 35% 28%;
     --sidebar-ring: 25 75% 55%;
-    --sidebar-muted: 210 10% 70%;
-    --chart-1: 205 30% 50%;
+    --sidebar-muted: 120 10% 70%;
+    --chart-1: 120 55% 30%;
     --chart-2: 25 75% 55%;
-    --chart-3: 205 20% 60%;
+    --chart-3: 120 35% 45%;
     --chart-4: 30 65% 60%;
-    --chart-5: 210 15% 55%;
+    --chart-5: 145 55% 45%;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.12);
     --shadow-glow: 0 0 30px hsl(25 75% 55% / 0.18);
-    --shadow-glow-primary: 0 0 30px hsl(205 25% 45% / 0.18);
+    --shadow-glow-primary: 0 0 30px hsl(120 55% 23% / 0.18);
     --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.08);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.10);
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.14), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
@@ -66,9 +67,10 @@
     --card-foreground: 210 10% 98%;
     --popover: 210 18% 18%;
     --popover-foreground: 210 10% 98%;
-    --primary: 205 25% 45%;
+    --primary: 120 55% 23%;
     --primary-foreground: 210 10% 98%;
-    --primary-glow: 205 30% 50%;
+    --primary-glow: 120 45% 30%;
+    --accent-orange: 25 75% 55%;
     --secondary: 210 16% 20%;
     --secondary-foreground: 210 10% 95%;
     --muted: 210 14% 24%;
@@ -87,7 +89,7 @@
     --radius: 0.75rem;
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.30);
     --shadow-glow: 0 0 30px hsl(25 75% 55% / 0.20);
-    --shadow-glow-primary: 0 0 30px hsl(205 25% 45% / 0.20);
+    --shadow-glow-primary: 0 0 30px hsl(120 55% 23% / 0.20);
   }
 }
 
