@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Construction } from 'lucide-react';
 
+// Minimal placeholder for pages that exist in the nav but aren't fully built yet
 export default function PlaceholderPage({ title }: { title?: string }) {
   const location = useLocation();
   const displayTitle = title || location.pathname.split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Página';
@@ -16,7 +17,7 @@ export default function PlaceholderPage({ title }: { title?: string }) {
           <CardTitle className="capitalize">{displayTitle}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Esta sección se encuentra en desarrollo.</p>
+          <p className="text-muted-foreground">Módulo en implementación. Los datos se conectarán próximamente.</p>
         </CardContent>
       </Card>
     </div>
