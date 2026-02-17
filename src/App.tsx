@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +24,23 @@ import PlanClimaPage from "./pages/public/PlanClimaPage";
 import ImpactoPage from "./pages/public/ImpactoPage";
 import ContactoPage from "./pages/public/ContactoPage";
 
+// Cooperativa pages
+import DashboardCooperativa from "./pages/cooperativa/DashboardCooperativa";
+import ProductoresHub from "./pages/cooperativa/ProductoresHub";
+import AcopioHub from "./pages/cooperativa/AcopioHub";
+import OperacionesHub from "./pages/cooperativa/OperacionesHub";
+import FinanzasHub from "./pages/cooperativa/FinanzasHub";
+import ComunicacionHub from "./pages/cooperativa/ComunicacionHub";
+import VitalCooperativa from "./pages/cooperativa/VitalCooperativa";
+import UsuariosOrg from "./pages/cooperativa/UsuariosOrg";
+
+// Other role dashboards
+import DashboardProductor from "./pages/productor/DashboardProductor";
+import DashboardTecnico from "./pages/tecnico/DashboardTecnico";
+import DashboardExportador from "./pages/exportador/DashboardExportador";
+import DashboardCertificadora from "./pages/certificadora/DashboardCertificadora";
+import AdminPanel from "./pages/admin/AdminPanel";
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
 });
@@ -34,6 +51,7 @@ const PageLoader = () => (
   </div>
 );
 
+// Shorthand for dashboard-wrapped placeholder pages
 const RP = ({ role, title }: { role?: any; title?: string }) => (
   <DashboardLayout requiredRole={role}>
     <PlaceholderPage title={title} />
@@ -70,28 +88,30 @@ const App = () => (
               <Route path="/demo" element={<DemoLogin />} />
               <Route path="/registro" element={<Register />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
-              <Route path="/directorio/cooperativas" element={<PlaceholderPage title="Directorio de Cooperativas" />} />
 
               {/* Shared auth pages */}
               <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />
               <Route path="/mi-plan" element={<DashboardLayout><PlaceholderPage title="Mi Plan" /></DashboardLayout>} />
+              <Route path="/directorio/cooperativas" element={<DashboardLayout><PlaceholderPage title="Directorio de Cooperativas" /></DashboardLayout>} />
 
-              {/* Cooperativa */}
-              <Route path="/cooperativa/dashboard" element={<RP role="cooperativa" title="Panel Principal — Cooperativa" />} />
-              <Route path="/cooperativa/productores-hub" element={<RP role="cooperativa" title="Productoras/es" />} />
+              {/* ── COOPERATIVA ── */}
+              <Route path="/cooperativa" element={<Navigate to="/cooperativa/dashboard" replace />} />
+              <Route path="/cooperativa/dashboard" element={<DashboardLayout requiredRole="cooperativa"><DashboardCooperativa /></DashboardLayout>} />
+              <Route path="/cooperativa/productores-hub" element={<DashboardLayout requiredRole="cooperativa"><ProductoresHub /></DashboardLayout>} />
               <Route path="/cooperativa/productores-hub/nuevo" element={<RP role="cooperativa" title="Nuevo Productor" />} />
               <Route path="/cooperativa/productores-hub/:id" element={<RP role="cooperativa" title="Detalle Productor" />} />
-              <Route path="/cooperativa/acopio" element={<RP role="cooperativa" title="Acopio y Comercial" />} />
-              <Route path="/cooperativa/operaciones" element={<RP role="cooperativa" title="Operaciones" />} />
-              <Route path="/cooperativa/finanzas-hub" element={<RP role="cooperativa" title="Finanzas" />} />
-              <Route path="/cooperativa/comunicacion" element={<RP role="cooperativa" title="Comunicación" />} />
-              <Route path="/cooperativa/calidad" element={<RP role="cooperativa" title="Nova Cup" />} />
-              <Route path="/cooperativa/vital" element={<RP role="cooperativa" title="Protocolo VITAL" />} />
+              <Route path="/cooperativa/acopio" element={<DashboardLayout requiredRole="cooperativa"><AcopioHub /></DashboardLayout>} />
+              <Route path="/cooperativa/operaciones" element={<DashboardLayout requiredRole="cooperativa"><OperacionesHub /></DashboardLayout>} />
+              <Route path="/cooperativa/finanzas-hub" element={<DashboardLayout requiredRole="cooperativa"><FinanzasHub /></DashboardLayout>} />
+              <Route path="/cooperativa/comunicacion" element={<DashboardLayout requiredRole="cooperativa"><ComunicacionHub /></DashboardLayout>} />
+              <Route path="/cooperativa/vital" element={<DashboardLayout requiredRole="cooperativa"><VitalCooperativa /></DashboardLayout>} />
+              <Route path="/cooperativa/usuarios" element={<DashboardLayout requiredRole="cooperativa"><UsuariosOrg /></DashboardLayout>} />
+              <Route path="/cooperativa/calidad" element={<RP role="cooperativa" title="Nova Cup — Calidad" />} />
               <Route path="/cooperativa/inclusion" element={<RP role="cooperativa" title="Inclusión y Equidad" />} />
-              <Route path="/cooperativa/usuarios" element={<RP role="cooperativa" title="Usuarios y Permisos" />} />
 
-              {/* Exportador */}
-              <Route path="/exportador/dashboard" element={<RP role="exportador" title="Panel Principal — Exportador" />} />
+              {/* ── EXPORTADOR ── */}
+              <Route path="/exportador" element={<Navigate to="/exportador/dashboard" replace />} />
+              <Route path="/exportador/dashboard" element={<DashboardLayout requiredRole="exportador"><DashboardExportador /></DashboardLayout>} />
               <Route path="/exportador/cafe" element={<RP role="exportador" title="Gestión de Café" />} />
               <Route path="/exportador/socios" element={<RP role="exportador" title="Red de Proveedores" />} />
               <Route path="/exportador/comercial" element={<RP role="exportador" title="Gestión Comercial" />} />
@@ -99,26 +119,29 @@ const App = () => (
               <Route path="/exportador/admin" element={<RP role="exportador" title="Administración" />} />
               <Route path="/exportador/mensajes" element={<RP role="exportador" title="Mensajes" />} />
 
-              {/* Productor */}
-              <Route path="/productor/dashboard" element={<RP role="productor" title="Panel Principal — Productor" />} />
+              {/* ── PRODUCTOR ── */}
+              <Route path="/productor" element={<Navigate to="/productor/dashboard" replace />} />
+              <Route path="/productor/dashboard" element={<DashboardLayout requiredRole="productor"><DashboardProductor /></DashboardLayout>} />
               <Route path="/productor/produccion" element={<RP role="productor" title="Producción" />} />
               <Route path="/productor/sanidad" element={<RP role="productor" title="Sanidad Vegetal" />} />
               <Route path="/productor/finanzas-hub" element={<RP role="productor" title="Finanzas" />} />
               <Route path="/productor/sostenibilidad" element={<RP role="productor" title="Sostenibilidad" />} />
               <Route path="/productor/comunidad" element={<RP role="productor" title="Comunidad" />} />
 
-              {/* Técnico */}
-              <Route path="/tecnico/dashboard" element={<RP role="tecnico" title="Panel Principal — Técnico" />} />
+              {/* ── TÉCNICO ── */}
+              <Route path="/tecnico" element={<Navigate to="/tecnico/dashboard" replace />} />
+              <Route path="/tecnico/dashboard" element={<DashboardLayout requiredRole="tecnico"><DashboardTecnico /></DashboardLayout>} />
               <Route path="/tecnico/visitas" element={<RP role="tecnico" title="Plan de Visitas" />} />
               <Route path="/tecnico/diagnosticos" element={<RP role="tecnico" title="Diagnósticos" />} />
-              <Route path="/tecnico/productores" element={<RP role="tecnico" title="Áreas Productivas" />} />
+              <Route path="/tecnico/productores" element={<RP role="tecnico" title="Productores Asignados" />} />
               <Route path="/tecnico/vital" element={<RP role="tecnico" title="Protocolo VITAL" />} />
 
-              {/* Certificadora */}
-              <Route path="/certificadora/dashboard" element={<RP role="certificadora" title="Panel de Auditoría" />} />
+              {/* ── CERTIFICADORA ── */}
+              <Route path="/certificadora" element={<Navigate to="/certificadora/dashboard" replace />} />
+              <Route path="/certificadora/dashboard" element={<DashboardLayout requiredRole="certificadora"><DashboardCertificadora /></DashboardLayout>} />
 
-              {/* Admin */}
-              <Route path="/admin" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Panel de Administración" /></DashboardLayout></RequireAdmin>} />
+              {/* ── ADMIN ── */}
+              <Route path="/admin" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminPanel /></DashboardLayout></RequireAdmin>} />
               <Route path="/admin/directorio" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Directorio de Clientes" /></DashboardLayout></RequireAdmin>} />
               <Route path="/admin/platform" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Platform Admin" /></DashboardLayout></RequireAdmin>} />
               <Route path="/admin/architect" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Architect View" /></DashboardLayout></RequireAdmin>} />
