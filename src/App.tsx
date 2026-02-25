@@ -33,10 +33,8 @@ import FinanzasHub from "./pages/cooperativa/FinanzasHub";
 import ComunicacionHub from "./pages/cooperativa/ComunicacionHub";
 import VitalCooperativa from "./pages/cooperativa/VitalCooperativa";
 import UsuariosOrg from "./pages/cooperativa/UsuariosOrg";
-import ClimaDashboard from "./pages/cooperativa/ClimaDashboard";
-import DiagnosticoOrg from "./pages/cooperativa/DiagnosticoOrg";
-import ExportadoresHub from "./pages/cooperativa/ExportadoresHub";
-import AvisosCooperativa from "./pages/cooperativa/AvisosCooperativa";
+import CalidadHub from "./pages/cooperativa/CalidadHub";
+import InclusionEquidad from "./pages/cooperativa/InclusionEquidad";
 
 // Productor pages
 import DashboardProductor from "./pages/productor/DashboardProductor";
@@ -45,8 +43,6 @@ import Entregas from "./pages/productor/Entregas";
 import Creditos from "./pages/productor/Creditos";
 import VitalProductor from "./pages/productor/VitalProductor";
 import Avisos from "./pages/productor/Avisos";
-import ClimaProductor from "./pages/productor/ClimaProductor";
-import JornalesDashboard from "./pages/productor/JornalesDashboard";
 
 // Técnico pages
 import DashboardTecnico from "./pages/tecnico/DashboardTecnico";
@@ -85,7 +81,6 @@ const PageLoader = () => (
   </div>
 );
 
-// Shorthand for dashboard-wrapped placeholder pages
 const RP = ({ role, title }: { role?: any; title?: string }) => (
   <DashboardLayout requiredRole={role}>
     <PlaceholderPage title={title} />
@@ -110,73 +105,70 @@ const App = () => (
               <Route path="/impacto" element={<ImpactoPage />} />
               <Route path="/contacto" element={<ContactoPage />} />
 
-              {/* Redirects from old routes */}
-              <Route path="/plataforma" element={<Navigate to="/soluciones" replace />} />
-              <Route path="/planes" element={<Navigate to="/soluciones#planes-resumen" replace />} />
-              <Route path="/eudr" element={<Navigate to="/cumplimiento-y-certificaciones#eudr" replace />} />
-              <Route path="/clima" element={<Navigate to="/plan-clima" replace />} />
-              <Route path="/acerca" element={<Navigate to="/nosotros" replace />} />
-
               {/* Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/demo" element={<DemoLogin />} />
               <Route path="/registro" element={<Register />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
 
-              {/* Shared auth pages */}
+              {/* Shared */}
               <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />
               <Route path="/mi-plan" element={<DashboardLayout><PlaceholderPage title="Mi Plan" /></DashboardLayout>} />
-              <Route path="/directorio/cooperativas" element={<DashboardLayout><PlaceholderPage title="Directorio de Cooperativas" /></DashboardLayout>} />
 
               {/* ── COOPERATIVA ── */}
               <Route path="/cooperativa" element={<Navigate to="/cooperativa/dashboard" replace />} />
               <Route path="/cooperativa/dashboard" element={<DashboardLayout requiredRole="cooperativa"><DashboardCooperativa /></DashboardLayout>} />
-              <Route path="/cooperativa/productores" element={<DashboardLayout requiredRole="cooperativa"><ProductoresHub /></DashboardLayout>} />
-              <Route path="/cooperativa/lotes-acopio" element={<DashboardLayout requiredRole="cooperativa"><AcopioHub /></DashboardLayout>} />
+              <Route path="/cooperativa/productores-hub" element={<DashboardLayout requiredRole="cooperativa"><ProductoresHub /></DashboardLayout>} />
+              <Route path="/cooperativa/acopio" element={<DashboardLayout requiredRole="cooperativa"><AcopioHub /></DashboardLayout>} />
               <Route path="/cooperativa/operaciones" element={<DashboardLayout requiredRole="cooperativa"><OperacionesHub /></DashboardLayout>} />
-              <Route path="/cooperativa/creditos" element={<DashboardLayout requiredRole="cooperativa"><FinanzasHub /></DashboardLayout>} />
+              <Route path="/cooperativa/finanzas-hub" element={<DashboardLayout requiredRole="cooperativa"><FinanzasHub /></DashboardLayout>} />
+              <Route path="/cooperativa/comunicacion" element={<DashboardLayout requiredRole="cooperativa"><ComunicacionHub /></DashboardLayout>} />
+              <Route path="/cooperativa/calidad" element={<DashboardLayout requiredRole="cooperativa"><CalidadHub /></DashboardLayout>} />
               <Route path="/cooperativa/vital" element={<DashboardLayout requiredRole="cooperativa"><VitalCooperativa /></DashboardLayout>} />
-              <Route path="/cooperativa/exportadores" element={<DashboardLayout requiredRole="cooperativa"><ExportadoresHub /></DashboardLayout>} />
-              <Route path="/cooperativa/avisos" element={<DashboardLayout requiredRole="cooperativa"><AvisosCooperativa /></DashboardLayout>} />
-              <Route path="/cooperativa/clima" element={<DashboardLayout requiredRole="cooperativa"><ClimaDashboard /></DashboardLayout>} />
-              <Route path="/cooperativa/diagnostico" element={<DashboardLayout requiredRole="cooperativa"><DiagnosticoOrg /></DashboardLayout>} />
-              <Route path="/cooperativa/comunicacion" element={<Navigate to="/cooperativa/avisos" replace />} />
-              <Route path="/cooperativa/configuracion" element={<DashboardLayout requiredRole="cooperativa"><UsuariosOrg /></DashboardLayout>} />
-              {/* Legacy cooperativa routes */}
-              <Route path="/cooperativa/productores-hub" element={<Navigate to="/cooperativa/productores" replace />} />
-              <Route path="/cooperativa/acopio" element={<Navigate to="/cooperativa/lotes-acopio" replace />} />
-              <Route path="/cooperativa/finanzas-hub" element={<Navigate to="/cooperativa/creditos" replace />} />
+              <Route path="/cooperativa/inclusion" element={<DashboardLayout requiredRole="cooperativa"><InclusionEquidad /></DashboardLayout>} />
+              <Route path="/cooperativa/usuarios" element={<DashboardLayout requiredRole="cooperativa"><UsuariosOrg /></DashboardLayout>} />
+              {/* Legacy cooperativa redirects */}
+              <Route path="/cooperativa/productores" element={<Navigate to="/cooperativa/productores-hub" replace />} />
+              <Route path="/cooperativa/lotes-acopio" element={<Navigate to="/cooperativa/acopio" replace />} />
+              <Route path="/cooperativa/creditos" element={<Navigate to="/cooperativa/finanzas-hub" replace />} />
+              <Route path="/cooperativa/configuracion" element={<Navigate to="/cooperativa/usuarios" replace />} />
+              <Route path="/cooperativa/exportadores" element={<Navigate to="/cooperativa/acopio" replace />} />
+              <Route path="/cooperativa/avisos" element={<Navigate to="/cooperativa/comunicacion" replace />} />
 
               {/* ── PRODUCTOR ── */}
               <Route path="/productor" element={<Navigate to="/productor/dashboard" replace />} />
               <Route path="/productor/dashboard" element={<DashboardLayout requiredRole="productor"><DashboardProductor /></DashboardLayout>} />
               <Route path="/productor/finca" element={<DashboardLayout requiredRole="productor"><MiFinca /></DashboardLayout>} />
-              <Route path="/productor/entregas" element={<DashboardLayout requiredRole="productor"><Entregas /></DashboardLayout>} />
-              <Route path="/productor/creditos" element={<DashboardLayout requiredRole="productor"><Creditos /></DashboardLayout>} />
+              <Route path="/productor/sanidad" element={<RP role="productor" title="Sanidad Vegetal" />} />
+              <Route path="/productor/finanzas" element={<DashboardLayout requiredRole="productor"><Creditos /></DashboardLayout>} />
               <Route path="/productor/vital" element={<DashboardLayout requiredRole="productor"><VitalProductor /></DashboardLayout>} />
-              <Route path="/productor/clima" element={<DashboardLayout requiredRole="productor"><ClimaProductor /></DashboardLayout>} />
-              <Route path="/productor/jornales" element={<DashboardLayout requiredRole="productor"><JornalesDashboard /></DashboardLayout>} />
               <Route path="/productor/avisos" element={<DashboardLayout requiredRole="productor"><Avisos /></DashboardLayout>} />
+              {/* Legacy productor redirects */}
+              <Route path="/productor/entregas" element={<Navigate to="/productor/finca" replace />} />
+              <Route path="/productor/creditos" element={<Navigate to="/productor/finanzas" replace />} />
 
               {/* ── TÉCNICO ── */}
               <Route path="/tecnico" element={<Navigate to="/tecnico/dashboard" replace />} />
               <Route path="/tecnico/dashboard" element={<DashboardLayout requiredRole="tecnico"><DashboardTecnico /></DashboardLayout>} />
-              <Route path="/tecnico/productores" element={<DashboardLayout requiredRole="tecnico"><TecnicoProductores /></DashboardLayout>} />
-              <Route path="/tecnico/vital" element={<DashboardLayout requiredRole="tecnico"><TecnicoVital /></DashboardLayout>} />
-              <Route path="/tecnico/parcelas" element={<DashboardLayout requiredRole="tecnico"><TecnicoParcelas /></DashboardLayout>} />
               <Route path="/tecnico/agenda" element={<DashboardLayout requiredRole="tecnico"><TecnicoAgenda /></DashboardLayout>} />
+              <Route path="/tecnico/diagnosticos" element={<DashboardLayout requiredRole="tecnico"><TecnicoProductores /></DashboardLayout>} />
+              <Route path="/tecnico/parcelas" element={<DashboardLayout requiredRole="tecnico"><TecnicoParcelas /></DashboardLayout>} />
+              <Route path="/tecnico/vital" element={<DashboardLayout requiredRole="tecnico"><TecnicoVital /></DashboardLayout>} />
+              {/* Legacy tecnico redirects */}
+              <Route path="/tecnico/productores" element={<Navigate to="/tecnico/diagnosticos" replace />} />
 
               {/* ── EXPORTADOR ── */}
               <Route path="/exportador" element={<Navigate to="/exportador/dashboard" replace />} />
               <Route path="/exportador/dashboard" element={<DashboardLayout requiredRole="exportador"><DashboardExportador /></DashboardLayout>} />
-              <Route path="/exportador/proveedores" element={<DashboardLayout requiredRole="exportador"><ExportadorProveedores /></DashboardLayout>} />
               <Route path="/exportador/lotes" element={<DashboardLayout requiredRole="exportador"><ExportadorLotes /></DashboardLayout>} />
+              <Route path="/exportador/proveedores" element={<DashboardLayout requiredRole="exportador"><ExportadorProveedores /></DashboardLayout>} />
               <Route path="/exportador/contratos" element={<DashboardLayout requiredRole="exportador"><ExportadorContratos /></DashboardLayout>} />
               <Route path="/exportador/eudr" element={<DashboardLayout requiredRole="exportador"><ExportadorEUDR /></DashboardLayout>} />
               <Route path="/exportador/embarques" element={<DashboardLayout requiredRole="exportador"><ExportadorEmbarques /></DashboardLayout>} />
               <Route path="/exportador/clientes" element={<DashboardLayout requiredRole="exportador"><ExportadorClientes /></DashboardLayout>} />
               <Route path="/exportador/calidad" element={<DashboardLayout requiredRole="exportador"><ExportadorCalidad /></DashboardLayout>} />
-              <Route path="/exportador/configuracion" element={<RP role="exportador" title="Configuración" />} />
+              <Route path="/exportador/configuracion" element={<RP role="exportador" title="Administración" />} />
+              <Route path="/exportador/mensajes" element={<RP role="exportador" title="Mensajes" />} />
 
               {/* ── CERTIFICADORA ── */}
               <Route path="/certificadora" element={<Navigate to="/certificadora/dashboard" replace />} />
@@ -185,13 +177,10 @@ const App = () => (
               <Route path="/certificadora/orgs" element={<DashboardLayout requiredRole="certificadora"><CertificadoraOrgs /></DashboardLayout>} />
               <Route path="/certificadora/verificar" element={<DashboardLayout requiredRole="certificadora"><CertificadoraVerificar /></DashboardLayout>} />
               <Route path="/certificadora/reportes" element={<DashboardLayout requiredRole="certificadora"><CertificadoraReportes /></DashboardLayout>} />
-              <Route path="/certificadora/config" element={<RP role="certificadora" title="Configuración" />} />
 
               {/* ── ADMIN ── */}
               <Route path="/admin" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminPanel /></DashboardLayout></RequireAdmin>} />
               <Route path="/admin/directorio" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Directorio de Clientes" /></DashboardLayout></RequireAdmin>} />
-              <Route path="/admin/platform" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Platform Admin" /></DashboardLayout></RequireAdmin>} />
-              <Route path="/admin/architect" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Architect View" /></DashboardLayout></RequireAdmin>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

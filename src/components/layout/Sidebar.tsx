@@ -10,77 +10,73 @@ import { cn } from '@/lib/utils';
 import {
   Leaf, LogOut, ChevronDown, X,
   LayoutDashboard, Users, Package, Boxes, Wallet,
-  Coffee, MessageSquare, Building2, MapPin,
-  Calendar, ShieldCheck, Shield, Ship, FileText,
-  ClipboardList, Stethoscope, Sprout, Bell, Truck,
-  Settings, CheckCircle, Award, Map
+  MessageSquare, Building2, MapPin,
+  Calendar, ShieldCheck, Shield, FileText,
+  Stethoscope, Sprout, Settings, Map,
+  FlaskConical, HeartHandshake, Bug, Coffee
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 
-// ── PRODUCTOR (Banco §1) ──
-const productorNav: NavItemDef[] = [
-  { title: 'Dashboard', url: '/productor/dashboard', icon: LayoutDashboard },
-  { title: 'Mi Finca', url: '/productor/finca', icon: MapPin },
-  { title: 'Entregas', url: '/productor/entregas', icon: Truck },
-  { title: 'Créditos', url: '/productor/creditos', icon: Wallet },
-  { title: 'Protocolo VITAL', url: '/productor/vital', icon: Leaf },
-  { title: 'Avisos', url: '/productor/avisos', icon: Bell },
-];
-
-// ── TÉCNICO (Banco §2) ──
-const tecnicoNav: NavItemDef[] = [
-  { title: 'Dashboard', url: '/tecnico/dashboard', icon: LayoutDashboard },
-  { title: 'Productores', url: '/tecnico/productores', icon: Users },
-  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: Leaf },
-  { title: 'Parcelas', url: '/tecnico/parcelas', icon: Map },
-  { title: 'Agenda', url: '/tecnico/agenda', icon: Calendar },
-];
-
-// ── COOPERATIVA (Banco §3) ──
+// ── COOPERATIVA ──
 const cooperativaNav: NavItemDef[] = [
-  { title: 'Dashboard', url: '/cooperativa/dashboard', icon: LayoutDashboard },
-  { title: 'Productores', url: '/cooperativa/productores', icon: Users },
-  { title: 'Lotes de Acopio', url: '/cooperativa/lotes-acopio', icon: Package },
-  { title: 'Operaciones Hub', url: '/cooperativa/operaciones', icon: Boxes },
-  { title: 'Créditos', url: '/cooperativa/creditos', icon: Wallet },
-  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Leaf },
-  { title: 'Exportadores', url: '/cooperativa/exportadores', icon: Ship },
-  { title: 'Avisos', url: '/cooperativa/avisos', icon: Bell },
-  { title: 'Configuración', url: '/cooperativa/configuracion', icon: Settings },
+  { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
+  { title: 'Productoras/es', url: '/cooperativa/productores-hub', icon: Users },
+  { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
+  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Boxes },
+  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: Wallet },
+  { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
+  { title: 'Nova Cup', url: '/cooperativa/calidad', icon: FlaskConical },
+  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: ShieldCheck },
+  { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: HeartHandshake },
+  { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Shield },
 ];
 
-// ── EXPORTADOR (Banco §4) ──
+// ── PRODUCTOR ──
+const productorNav: NavItemDef[] = [
+  { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
+  { title: 'Producción', url: '/productor/finca', icon: Sprout },
+  { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Bug },
+  { title: 'Finanzas', url: '/productor/finanzas', icon: Wallet },
+  { title: 'Sostenibilidad', url: '/productor/vital', icon: Leaf },
+  { title: 'Comunidad', url: '/productor/avisos', icon: MessageSquare },
+];
+
+// ── TÉCNICO ──
+const tecnicoNav: NavItemDef[] = [
+  { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
+  { title: 'Plan de Visitas', url: '/tecnico/agenda', icon: Calendar },
+  { title: 'Diagnósticos', url: '/tecnico/diagnosticos', icon: Stethoscope },
+  { title: 'Áreas Productivas Asignadas', url: '/tecnico/parcelas', icon: Map },
+  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: ShieldCheck },
+];
+
+// ── EXPORTADOR ──
 const exportadorNav: NavItemDef[] = [
-  { title: 'Dashboard', url: '/exportador/dashboard', icon: LayoutDashboard },
-  { title: 'Proveedores', url: '/exportador/proveedores', icon: Users },
-  { title: 'Lotes Comerciales', url: '/exportador/lotes', icon: Package },
-  { title: 'Contratos', url: '/exportador/contratos', icon: FileText },
-  { title: 'EUDR', url: '/exportador/eudr', icon: ShieldCheck },
-  { title: 'Embarques', url: '/exportador/embarques', icon: Ship },
-  { title: 'Clientes', url: '/exportador/clientes', icon: Building2 },
-  { title: 'Calidad', url: '/exportador/calidad', icon: Award },
-  { title: 'Configuración', url: '/exportador/configuracion', icon: Settings },
+  { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
+  { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee },
+  { title: 'Red de Proveedores', url: '/exportador/proveedores', icon: Users },
+  { title: 'Gestión Comercial', url: '/exportador/contratos', icon: FileText },
+  { title: 'Nova Cup', url: '/exportador/calidad', icon: FlaskConical },
+  { title: 'Administración', url: '/exportador/configuracion', icon: Settings },
+  { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
 ];
 
-// ── CERTIFICADORA (Banco §5) ──
+// ── CERTIFICADORA ──
 const certificadoraNav: NavItemDef[] = [
-  { title: 'Dashboard', url: '/certificadora/dashboard', icon: LayoutDashboard },
-  { title: 'Auditorías', url: '/certificadora/auditorias', icon: ClipboardList },
+  { title: 'Panel Principal', url: '/certificadora/dashboard', icon: LayoutDashboard },
+  { title: 'Auditorías', url: '/certificadora/auditorias', icon: FileText },
   { title: 'Organizaciones', url: '/certificadora/orgs', icon: Building2 },
-  { title: 'Verificaciones', url: '/certificadora/verificar', icon: CheckCircle },
+  { title: 'Verificaciones', url: '/certificadora/verificar', icon: ShieldCheck },
   { title: 'Reportes', url: '/certificadora/reportes', icon: FileText },
-  { title: 'Configuración', url: '/certificadora/config', icon: Settings },
 ];
 
 // ── ADMIN ──
 const adminNav: NavItemDef[] = [
   { title: 'Panel de Administración', url: '/admin', icon: Shield },
-  { title: 'Directorio de clientes', url: '/admin/directorio', icon: Building2 },
-  { title: 'Platform Admin', url: '/admin/platform', icon: Building2 },
-  { title: 'Architect View', url: '/admin/architect', icon: Shield },
+  { title: 'Directorio de Clientes', url: '/admin/directorio', icon: Building2 },
 ];
 
 const NAV_BY_ROLE: Record<UserRole, NavItemDef[]> = {
@@ -95,8 +91,6 @@ const NAV_BY_ROLE: Record<UserRole, NavItemDef[]> = {
 const accountNav: NavItemDef[] = [
   { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
   { title: 'Mi plan', url: '/mi-plan', icon: Wallet },
-  { title: 'Directorio', url: '/directorio/cooperativas', icon: Building2 },
-  { title: 'Acerca de', url: '/acerca', icon: Leaf },
 ];
 
 function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void }) {
@@ -173,7 +167,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Account section */}
       <div className="border-t border-sidebar-border px-3 py-2">
         <Collapsible open={accountOpen} onOpenChange={setAccountOpen}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground uppercase tracking-wider text-xs">
             Mi cuenta
             <ChevronDown className={cn("h-4 w-4 transition-transform", accountOpen && "rotate-180")} />
           </CollapsibleTrigger>
@@ -197,12 +191,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       )}
-
-      {/* Sidebar */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-50 h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-transform duration-300 ease-in-out lg:translate-x-0",
