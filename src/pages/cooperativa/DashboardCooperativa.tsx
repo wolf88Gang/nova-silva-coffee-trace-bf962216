@@ -7,7 +7,8 @@ import {
   Users, MapPin, Package, Wallet, ShieldCheck, AlertTriangle,
   TrendingUp, Leaf, ArrowRight
 } from 'lucide-react';
-import { getCooperativaStats, DEMO_ALERTAS, DEMO_ENTREGAS } from '@/lib/demo-data';
+import { getCooperativaStats, DEMO_ALERTAS, DEMO_ENTREGAS, DEMO_LOTES_ACOPIO } from '@/lib/demo-data';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const nivelColor = (nivel: string) => {
   if (nivel === 'rojo') return 'destructive';
@@ -27,6 +28,12 @@ export default function DashboardCooperativa() {
     { label: 'Créditos activos', value: `₡${stats.creditosActivos.toLocaleString()}`, icon: Wallet, route: '/cooperativa/creditos' },
     { label: 'EUDR Compliance', value: `${stats.eudrCompliance}%`, icon: ShieldCheck },
   ];
+
+  const volumeData = DEMO_LOTES_ACOPIO.map(l => ({
+    name: l.codigo.split('-').pop(),
+    qq: l.pesoQQ,
+    productores: l.productores,
+  }));
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -50,6 +57,28 @@ export default function DashboardCooperativa() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Volume chart */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Package className="h-4 w-4 text-primary" />
+              Volumen por lote (QQ)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={volumeData}>
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
+                <Bar dataKey="qq" name="Quintales" radius={[4,4,0,0]}>
+                  {volumeData.map((_, i) => <Cell key={i} fill="hsl(var(--primary))" />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
         {/* VITAL Summary */}
         <Card>
           <CardHeader className="pb-3">
@@ -68,13 +97,13 @@ export default function DashboardCooperativa() {
               <div className="rounded bg-destructive/10 text-destructive p-1.5">
                 <p className="font-bold">1</p><p>Crítico</p>
               </div>
-              <div className="rounded bg-yellow-500/10 text-yellow-600 p-1.5">
+              <div className="rounded bg-accent/10 text-accent-foreground p-1.5">
                 <p className="font-bold">1</p><p>Desarrollo</p>
               </div>
               <div className="rounded bg-primary/10 text-primary p-1.5">
                 <p className="font-bold">4</p><p>Sostenible</p>
               </div>
-              <div className="rounded bg-emerald-500/10 text-emerald-600 p-1.5">
+              <div className="rounded bg-primary/20 text-primary p-1.5">
                 <p className="font-bold">2</p><p>Ejemplar</p>
               </div>
             </div>
@@ -83,7 +112,9 @@ export default function DashboardCooperativa() {
             </Button>
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid md:grid-cols-2 gap-6">
         {/* Alertas */}
         <Card>
           <CardHeader className="pb-3">
@@ -107,52 +138,50 @@ export default function DashboardCooperativa() {
             ))}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Últimas entregas */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              Últimas entregas
-            </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/cooperativa/lotes-acopio')}>
-              Ver todo <ArrowRight className="h-3 w-3 ml-1" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground text-left">
-                  <th className="py-2 font-medium">Productor</th>
-                  <th className="py-2 font-medium">Fecha</th>
-                  <th className="py-2 font-medium">Peso (kg)</th>
-                  <th className="py-2 font-medium">Tipo</th>
-                  <th className="py-2 font-medium">Estado pago</th>
-                </tr>
-              </thead>
-              <tbody>
-                {DEMO_ENTREGAS.slice(0, 5).map((e) => (
-                  <tr key={e.id} className="border-b last:border-0">
-                    <td className="py-2 text-foreground font-medium">{e.productorNombre}</td>
-                    <td className="py-2 text-muted-foreground">{e.fecha}</td>
-                    <td className="py-2">{e.pesoKg}</td>
-                    <td className="py-2">{e.tipoCafe}</td>
-                    <td className="py-2">
-                      <Badge variant={e.estadoPago === 'pagado' ? 'default' : e.estadoPago === 'pendiente' ? 'secondary' : 'outline'}>
-                        {e.estadoPago}
-                      </Badge>
-                    </td>
+        {/* Últimas entregas */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                Últimas entregas
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/cooperativa/lotes-acopio')}>
+                Ver todo <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-muted-foreground text-left">
+                    <th className="py-2 font-medium">Productor</th>
+                    <th className="py-2 font-medium">Fecha</th>
+                    <th className="py-2 font-medium">Peso (kg)</th>
+                    <th className="py-2 font-medium">Pago</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                </thead>
+                <tbody>
+                  {DEMO_ENTREGAS.slice(0, 4).map((e) => (
+                    <tr key={e.id} className="border-b last:border-0">
+                      <td className="py-2 text-foreground font-medium">{e.productorNombre}</td>
+                      <td className="py-2 text-muted-foreground">{e.fecha}</td>
+                      <td className="py-2">{e.pesoKg}</td>
+                      <td className="py-2">
+                        <Badge variant={e.estadoPago === 'pagado' ? 'default' : e.estadoPago === 'pendiente' ? 'secondary' : 'outline'}>
+                          {e.estadoPago}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
