@@ -3,7 +3,7 @@ import { PublicLayout } from '@/components/public/PublicLayout';
 import { Sprout, BarChart3, ArrowRight, CheckCircle, Thermometer, Droplets, TreePine, Users, Lightbulb } from 'lucide-react';
 
 const components = [
-  { icon: Thermometer, letter: 'C', title: 'Contexto', desc: 'Análisis de la exposición climática del territorio: temperatura, precipitación, eventos extremos, altitud y microclima.' },
+  { icon: Thermometer, letter: 'C', title: 'Contexto', desc: 'Análisis de la exposición territorial: temperatura, precipitación, eventos extremos, altitud y microclima.' },
   { icon: BarChart3, letter: 'L', title: 'Línea base', desc: 'Evaluación de la situación actual de la finca: productividad, prácticas de manejo, infraestructura y capacidades del productor.' },
   { icon: Lightbulb, letter: 'I', title: 'Intervenciones', desc: 'Plan de mejora con acciones priorizadas: renovación de cafetales, sombra, manejo de agua, diversificación de ingresos.' },
   { icon: Sprout, letter: 'M', title: 'Monitoreo', desc: 'Seguimiento de indicadores clave con dashboards automatizados: avance de acciones, cambios en scoring, evidencias fotográficas.' },
@@ -49,7 +49,7 @@ export default function PlanClimaPage() {
       </section>
 
       {/* 5 componentes */}
-      <section id="componentes-clima" className="py-20 md:py-28 bg-muted/50">
+      <section id="componentes-vital" className="py-20 md:py-28 bg-muted/50">
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-12">Los cinco componentes</h2>
           <div className="space-y-6 max-w-3xl mx-auto">
@@ -69,7 +69,7 @@ export default function PlanClimaPage() {
       </section>
 
       {/* Beneficios */}
-      <section id="beneficios-plan-clima" className="py-20 md:py-28">
+      <section id="beneficios-vital" className="py-20 md:py-28">
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-12">Beneficios del Protocolo VITAL</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -100,7 +100,7 @@ export default function PlanClimaPage() {
       </section>
 
       {/* Integración dashboard */}
-      <section id="integracion-dashboard-clima" className="py-20 md:py-28 bg-muted/50">
+      <section id="integracion-dashboard-vital" className="py-20 md:py-28 bg-muted/50">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <div className="flex flex-col lg:flex-row gap-8 items-center">
             <div className="flex-1 space-y-4">
@@ -122,7 +122,7 @@ export default function PlanClimaPage() {
       </section>
 
       {/* CTA */}
-      <section id="cta-propuesta-clima" className="py-16 bg-primary text-primary-foreground">
+      <section id="cta-propuesta-vital" className="py-16 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 lg:px-8 text-center space-y-4">
           <h2 className="text-2xl font-bold">Solicite una propuesta personalizada del Protocolo VITAL</h2>
           <NavLink to="/contacto#form-contacto-demo" className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-semibold hover:bg-accent/90 transition-colors shadow-lg">
