@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users, Package, Shield, AlertTriangle } from 'lucide-react';
+import { useOrgContext } from '@/hooks/useOrgContext';
+import { getSociosLabel } from '@/lib/org-terminology';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const entregas6m = [
@@ -40,14 +42,15 @@ const pagoVariant = (p: string) => {
   return 'outline';
 };
 
-const kpis = [
-  { label: 'Productores Activos', value: '247', sub: '+12 este trimestre', icon: Users, color: 'text-primary' },
-  { label: 'Entregas del Mes', value: '18,450 kg', sub: '↑ 8% vs mes anterior', icon: Package, color: 'text-accent' },
-  { label: 'Protocolo VITAL Promedio', value: '72/100', sub: 'Nivel 3 - Resiliente', icon: Shield, color: 'text-emerald-600' },
-  { label: 'Alertas Activas', value: '3', sub: '1 crítica, 2 moderadas', icon: AlertTriangle, color: 'text-destructive' },
-];
-
 export default function DashboardCooperativaContent() {
+  const { orgTipo } = useOrgContext();
+  const sociosLabel = getSociosLabel(orgTipo);
+  const kpis = [
+    { label: `${sociosLabel} Activos`, value: '247', sub: '+12 este trimestre', icon: Users, color: 'text-primary' },
+    { label: 'Entregas del Mes', value: '18,450 kg', sub: '↑ 8% vs mes anterior', icon: Package, color: 'text-accent' },
+    { label: 'Protocolo VITAL Promedio', value: '72/100', sub: 'Nivel 3 - Resiliente', icon: Shield, color: 'text-emerald-600' },
+    { label: 'Alertas Activas', value: '3', sub: '1 crítica, 2 moderadas', icon: AlertTriangle, color: 'text-destructive' },
+  ];
   return (
     <div className="space-y-6 animate-fade-in">
       {/* KPIs */}

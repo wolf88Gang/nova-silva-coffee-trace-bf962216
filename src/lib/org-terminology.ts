@@ -16,3 +16,10 @@ export function getProductoresLabel(tipo: OrgTipo | null | undefined): string {
   if (tipo === 'cooperativa') return 'Socios';
   return 'Productores';
 }
+
+/** Singular para botones: "Nuevo socio", "Nuevo proveedor", "Nuevo productor" */
+export function getSociosLabelSingular(tipo: OrgTipo | null | undefined): string {
+  if (!tipo) return 'productor';
+  if (tipo === 'cooperativa') return 'socio';
+  return 'proveedor';
+}

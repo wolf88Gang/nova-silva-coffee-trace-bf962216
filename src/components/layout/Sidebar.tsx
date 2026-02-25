@@ -2,6 +2,8 @@ import { useState } from 'react';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrgContext } from '@/hooks/useOrgContext';
+import { getSociosLabel } from '@/lib/org-terminology';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { NotificacionesBell } from './NotificacionesBell';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -20,10 +22,10 @@ import { UserRole } from '@/types';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 
-// ── COOPERATIVA (8 items exactos) ──
-const cooperativaNav: NavItemDef[] = [
+// ── COOPERATIVA (título dinámico según org.tipo) ──
+const getCooperativaNav = (orgTipo: string | null): NavItemDef[] => [
   { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
-  { title: 'Productoras/es', url: '/cooperativa/productores-hub', icon: Users },
+  { title: getSociosLabel(orgTipo), url: '/cooperativa/productores-hub', icon: Users },
   { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
   { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
   { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
@@ -79,14 +81,14 @@ const adminNav: NavItemDef[] = [
   { title: 'Directorio de Clientes', url: '/admin/directorio', icon: Building2 },
 ];
 
-const NAV_BY_ROLE: Record<UserRole, NavItemDef[]> = {
-  cooperativa: cooperativaNav,
+const getNavByRole = (orgTipo: string | null): Record<UserRole, NavItemDef[]> => ({
+  cooperativa: getCooperativaNav(orgTipo),
   exportador: exportadorNav,
   productor: productorNav,
   tecnico: tecnicoNav,
   certificadora: certificadoraNav,
   admin: adminNav,
-};
+});
 
 const accountNav: NavItemDef[] = [
   { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
@@ -115,12 +117,13 @@ interface SidebarProps { isOpen: boolean; onClose: () => void; }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { orgTipo } = useOrgContext();
   const navigate = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
 
   if (!user) return null;
 
-  const navItems = NAV_BY_ROLE[user.role] ?? [];
+  const navItems = getNavByRole(orgTipo)[user.role] ?? [];
 
   const handleLogout = async () => {
     await logout();

@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEMO_PRODUCTORES } from '@/lib/demo-data';
 import { Users, Search, Plus, Download } from 'lucide-react';
+import { useOrgContext } from '@/hooks/useOrgContext';
+import { getSociosLabel, getSociosLabelSingular } from '@/lib/org-terminology';
 
 const eudrBadge = (s: string) => {
   if (s === 'compliant') return <Badge variant="default">Compliant</Badge>;
@@ -21,9 +23,11 @@ const vitalColor = (v: number) => {
 };
 
 export default function ProductoresHub() {
+  const { orgTipo } = useOrgContext();
   const [search, setSearch] = useState('');
   const [comunidad, setComunidad] = useState('todas');
 
+  const label = getSociosLabel(orgTipo);
   const comunidades = [...new Set(DEMO_PRODUCTORES.map(p => p.comunidad))];
   const filtered = DEMO_PRODUCTORES.filter(p => {
     const matchSearch = p.nombre.toLowerCase().includes(search.toLowerCase()) || p.cedula.includes(search);
@@ -34,9 +38,9 @@ export default function ProductoresHub() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Productores</h1>
+        <h1 className="text-2xl font-bold text-foreground">{label}</h1>
         <div className="flex gap-2">
-          <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nuevo productor</Button>
+          <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nuevo {getSociosLabelSingular(orgTipo)}</Button>
           <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-1" /> Exportar</Button>
         </div>
       </div>
