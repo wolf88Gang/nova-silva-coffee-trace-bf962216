@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck } from 'lucide-react';
@@ -35,13 +36,24 @@ const ROLE_REDIRECTS: Record<string, string> = {
 
 const DemoLogin = () => {
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
+  const pendingRedirect = useRef<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated, user } = useAuth();
+
+  // Navigate once auth state is ready after login
+  useEffect(() => {
+    if (isAuthenticated && user && pendingRedirect.current) {
+      const dest = pendingRedirect.current;
+      pendingRedirect.current = null;
+      setLoadingRole(null);
+      navigate(dest);
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleDemoLogin = async (demoRole: DemoRole) => {
     setLoadingRole(demoRole.role);
     try {
-      // Step 1: Try to ensure demo user exists via edge function
       console.log('Calling ensure-demo-user with role:', demoRole.role);
       const { data, error: ensureError } = await supabase.functions.invoke('ensure-demo-user', {
         body: { role: demoRole.role },
@@ -54,22 +66,25 @@ const DemoLogin = () => {
         console.warn('ensure-demo-user warning (will try login anyway):', ensureError);
       }
 
-      // Step 2: Sign in with password (works if user already exists)
+      // Set pending redirect BEFORE signing in so useEffect catches the auth change
+      pendingRedirect.current = ROLE_REDIRECTS[demoRole.role] || '/';
+
       const { error } = await supabase.auth.signInWithPassword({
         email: demoRole.email,
         password: 'demo123456',
       });
 
       if (error) {
+        pendingRedirect.current = null;
         toast({ title: 'Error de autenticación', description: `${error.message}. Verifica que la edge function ensure-demo-user esté desplegada correctamente.`, variant: 'destructive' });
         setLoadingRole(null);
         return;
       }
 
-      // Step 3: Redirect
-      navigate(ROLE_REDIRECTS[demoRole.role] || '/');
+      // Navigation will happen via useEffect when isAuthenticated becomes true
     } catch (err) {
       console.error('Demo login error:', err);
+      pendingRedirect.current = null;
       toast({ title: 'Error', description: 'Error de conexión. Intenta de nuevo.', variant: 'destructive' });
       setLoadingRole(null);
     }
