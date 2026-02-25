@@ -8,7 +8,7 @@ import {
 const principles = [
   { icon: Eye, title: 'Transparencia verificable', desc: 'Datos y evidencias diseñados para ser auditables, con trazabilidad clara desde la captura en campo hasta los reportes y las huellas digitales en blockchain.' },
   { icon: Shield, title: 'Soberanía de datos', desc: 'La propiedad de los datos permanece en las cooperativas y productores; Nova Silva actúa como infraestructura de gestión y verificación.' },
-  { icon: TrendingUp, title: 'Impacto social y ambiental medible', desc: 'Los indicadores y dashboards CLIMA se orientan a medir vulnerabilidad, adaptación y resultados concretos.' },
+  { icon: TrendingUp, title: 'Impacto social y ambiental medible', desc: 'Los indicadores y dashboards VITAL se orientan a medir vulnerabilidad, adaptación y resultados concretos.' },
   { icon: Wifi, title: 'Accesibilidad digital para zonas rurales', desc: 'Compromiso con soluciones offline-first, alfabetización digital y reducción de brechas de acceso.' },
   { icon: Scale, title: 'Escalabilidad sin perder control técnico', desc: 'Arquitectura modular y gobernanza de datos que permiten crecer sin perder precisión ni claridad.' },
   { icon: Award, title: 'Cumplimiento como ventaja competitiva', desc: 'El cumplimiento se utiliza para abrir mercados y fortalecer cadenas de valor, no solo para pasar auditorías.' },

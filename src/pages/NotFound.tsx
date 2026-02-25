@@ -22,7 +22,7 @@ const NotFound = () => {
             </NavLink>
           </div>
           <div className="flex flex-wrap justify-center gap-3 text-sm">
-            {[{l:'Soluciones',t:'/soluciones'},{l:'Plan CLIMA',t:'/plan-clima'},{l:'Impacto',t:'/impacto'}].map(i=>(
+            {[{l:'Soluciones',t:'/soluciones'},{l:'Protocolo VITAL',t:'/plan-clima'},{l:'Impacto',t:'/impacto'}].map(i=>(
               <NavLink key={i.t} to={i.t} className="text-accent hover:underline">{i.l}</NavLink>
             ))}
           </div>

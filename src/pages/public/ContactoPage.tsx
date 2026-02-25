@@ -26,7 +26,7 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 const interesOptions = [
   'Trazabilidad y cumplimiento EUDR',
-  'Plan CLIMA y resiliencia',
+  'Protocolo VITAL y resiliencia',
   'Blockchain Integrity',
   'GIS Satélite / NDVI',
   'Plataforma completa',

@@ -17,7 +17,7 @@ export default function ClimaDashboard() {
     <div className="space-y-6 animate-fade-in">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-children">
         <Card><CardContent className="pt-4 pb-3 px-4">
-          <div className="flex items-center gap-2 mb-1"><Stethoscope className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Cobertura CLIMA</span></div>
+          <div className="flex items-center gap-2 mb-1"><Stethoscope className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Cobertura VITAL</span></div>
           <p className="text-2xl font-bold text-foreground">{cobertura}%</p>
           <Progress value={cobertura} className="h-2 mt-2" />
         </CardContent></Card>
@@ -32,7 +32,7 @@ export default function ClimaDashboard() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope className="h-5 w-5 text-primary" /> Distribución de Riesgo CLIMA</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope className="h-5 w-5 text-primary" /> Distribución de Riesgo VITAL</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-3">
             {riesgoData.map((r) => (

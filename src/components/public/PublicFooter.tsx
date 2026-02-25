@@ -7,7 +7,7 @@ const footerLinks = [
   { label: 'Nosotros', to: '/nosotros' },
   { label: 'Soluciones', to: '/soluciones' },
   { label: 'Cumplimiento EUDR', to: '/cumplimiento-y-certificaciones#eudr' },
-  { label: 'Plan CLIMA', to: '/plan-clima' },
+  { label: 'Protocolo VITAL', to: '/plan-clima' },
   { label: 'Impacto', to: '/impacto' },
   { label: 'Contacto', to: '/contacto' },
 ];

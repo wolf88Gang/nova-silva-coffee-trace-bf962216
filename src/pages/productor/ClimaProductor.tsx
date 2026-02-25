@@ -26,7 +26,7 @@ export default function ClimaProductor() {
   return (
     <div className="space-y-6 animate-fade-in">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope className="h-5 w-5 text-primary" /> Diagnóstico CLIMA</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope className="h-5 w-5 text-primary" /> Protocolo VITAL</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <Badge variant={riesgoLabel === 'Bajo' ? 'default' : riesgoLabel === 'Medio' ? 'secondary' : 'destructive'}>Riesgo {riesgoLabel}</Badge>
@@ -55,7 +55,7 @@ export default function ClimaProductor() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-accent" /> Plan CLIMA Personal</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-accent" /> Plan de Acción VITAL</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {planAcciones.map((a, i) => (
             <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
