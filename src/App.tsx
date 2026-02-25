@@ -39,8 +39,10 @@ import InclusionEquidad from "./pages/cooperativa/InclusionEquidad";
 // Productor pages
 import DashboardProductor from "./pages/productor/DashboardProductor";
 import MiFinca from "./pages/productor/MiFinca";
-import Entregas from "./pages/productor/Entregas";
-import Creditos from "./pages/productor/Creditos";
+import ProduccionHub from "./pages/productor/ProduccionHub";
+import SanidadHub from "./pages/productor/SanidadHub";
+import SostenibilidadHub from "./pages/productor/SostenibilidadHub";
+import FinanzasProductor from "./pages/productor/FinanzasProductor";
 import VitalProductor from "./pages/productor/VitalProductor";
 import Avisos from "./pages/productor/Avisos";
 
@@ -139,13 +141,15 @@ const App = () => (
               {/* ── PRODUCTOR ── */}
               <Route path="/productor" element={<Navigate to="/productor/dashboard" replace />} />
               <Route path="/productor/dashboard" element={<DashboardLayout requiredRole="productor"><DashboardProductor /></DashboardLayout>} />
-              <Route path="/productor/finca" element={<DashboardLayout requiredRole="productor"><MiFinca /></DashboardLayout>} />
-              <Route path="/productor/sanidad" element={<RP role="productor" title="Sanidad Vegetal" />} />
-              <Route path="/productor/finanzas" element={<DashboardLayout requiredRole="productor"><Creditos /></DashboardLayout>} />
+              <Route path="/productor/produccion" element={<DashboardLayout requiredRole="productor"><ProduccionHub /></DashboardLayout>} />
+              <Route path="/productor/sanidad" element={<DashboardLayout requiredRole="productor"><SanidadHub /></DashboardLayout>} />
+              <Route path="/productor/finanzas" element={<DashboardLayout requiredRole="productor"><FinanzasProductor /></DashboardLayout>} />
+              <Route path="/productor/sostenibilidad" element={<DashboardLayout requiredRole="productor"><SostenibilidadHub /></DashboardLayout>} />
               <Route path="/productor/vital" element={<DashboardLayout requiredRole="productor"><VitalProductor /></DashboardLayout>} />
               <Route path="/productor/avisos" element={<DashboardLayout requiredRole="productor"><Avisos /></DashboardLayout>} />
               {/* Legacy productor redirects */}
-              <Route path="/productor/entregas" element={<Navigate to="/productor/finca" replace />} />
+              <Route path="/productor/finca" element={<Navigate to="/productor/produccion" replace />} />
+              <Route path="/productor/entregas" element={<Navigate to="/productor/produccion" replace />} />
               <Route path="/productor/creditos" element={<Navigate to="/productor/finanzas" replace />} />
 
               {/* ── TÉCNICO ── */}
