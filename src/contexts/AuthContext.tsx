@@ -9,6 +9,7 @@ interface User {
   name: string;
   role: UserRole;
   organizationName?: string;
+  organizationId?: string;
 }
 
 interface AuthContextType {
@@ -36,9 +37,9 @@ export { DEMO_USERS };
 export type { User as AppUser, UserRole as AppRole };
 
 async function getUserProfile(userId: string) {
-  const { data, error } = await supabase.from('profiles').select('name, organization_name').eq('user_id', userId).maybeSingle();
+  const { data, error } = await supabase.from('profiles').select('name, organization_name, organization_id').eq('user_id', userId).maybeSingle();
   if (error) { console.error('Error fetching profile:', error); return null; }
-  return data ? { name: data.name, organizationName: data.organization_name } : null;
+  return data ? { name: data.name, organizationName: data.organization_name, organizationId: data.organization_id } : null;
 }
 
 async function getUserRole(userId: string): Promise<UserRole | null> {
@@ -59,6 +60,7 @@ async function buildUserFromSession(session: Session): Promise<User | null> {
       name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
       role: metadataRole,
       organizationName: profile?.organizationName || supabaseUser.user_metadata?.organization_name || undefined,
+      organizationId: profile?.organizationId || undefined,
     };
   }
 
@@ -66,6 +68,7 @@ async function buildUserFromSession(session: Session): Promise<User | null> {
     id: supabaseUser.id, email: supabaseUser.email || '',
     name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
     role, organizationName: profile?.organizationName || undefined,
+    organizationId: profile?.organizationId || undefined,
   };
 }
 
