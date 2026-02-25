@@ -9,57 +9,55 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   Leaf, LogOut, ChevronDown, X,
-  LayoutDashboard, Users, Package, Boxes, Wallet,
-  MessageSquare, Building2, MapPin,
+  LayoutDashboard, Users, Package, Wallet,
+  MessageSquare, Building2,
   Calendar, ShieldCheck, Shield, FileText,
-  Stethoscope, Sprout, Settings, Map,
-  FlaskConical, HeartHandshake, Bug, Coffee
+  Sprout, Settings, Map, Award, DollarSign,
+  Bug, Coffee
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 
-// ── COOPERATIVA ──
+// ── COOPERATIVA (8 items exactos) ──
 const cooperativaNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
   { title: 'Productoras/es', url: '/cooperativa/productores-hub', icon: Users },
   { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
-  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Boxes },
-  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: Wallet },
+  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
+  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
   { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
-  { title: 'Nova Cup', url: '/cooperativa/calidad', icon: FlaskConical },
-  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: ShieldCheck },
-  { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: HeartHandshake },
-  { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Shield },
+  { title: 'Calidad / Nova Cup', url: '/cooperativa/calidad', icon: Award },
+  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield },
 ];
 
-// ── PRODUCTOR ──
+// ── PRODUCTOR (6 items) ──
 const productorNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
   { title: 'Producción', url: '/productor/finca', icon: Sprout },
   { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Bug },
-  { title: 'Finanzas', url: '/productor/finanzas', icon: Wallet },
+  { title: 'Finanzas', url: '/productor/finanzas', icon: DollarSign },
   { title: 'Sostenibilidad', url: '/productor/vital', icon: Leaf },
   { title: 'Comunidad', url: '/productor/avisos', icon: MessageSquare },
 ];
 
-// ── TÉCNICO ──
+// ── TÉCNICO (5 items) ──
 const tecnicoNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
-  { title: 'Plan de Visitas', url: '/tecnico/agenda', icon: Calendar },
-  { title: 'Diagnósticos', url: '/tecnico/diagnosticos', icon: Stethoscope },
-  { title: 'Áreas Productivas Asignadas', url: '/tecnico/parcelas', icon: Map },
-  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: ShieldCheck },
+  { title: 'Productores Asignados', url: '/tecnico/productores', icon: Users },
+  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: Shield },
+  { title: 'Parcelas y Mapas', url: '/tecnico/parcelas', icon: Map },
+  { title: 'Agenda', url: '/tecnico/agenda', icon: Calendar },
 ];
 
-// ── EXPORTADOR ──
+// ── EXPORTADOR (7 items) ──
 const exportadorNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
   { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee },
   { title: 'Red de Proveedores', url: '/exportador/proveedores', icon: Users },
   { title: 'Gestión Comercial', url: '/exportador/contratos', icon: FileText },
-  { title: 'Nova Cup', url: '/exportador/calidad', icon: FlaskConical },
+  { title: 'Nova Cup', url: '/exportador/calidad', icon: Award },
   { title: 'Administración', url: '/exportador/configuracion', icon: Settings },
   { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
 ];
