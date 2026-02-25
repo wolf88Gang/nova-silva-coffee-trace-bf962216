@@ -37,10 +37,10 @@ const cooperativaNav: NavItemDef[] = [
 // ── PRODUCTOR (6 items) ──
 const productorNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
-  { title: 'Producción', url: '/productor/finca', icon: Sprout },
+  { title: 'Producción', url: '/productor/produccion', icon: Sprout },
   { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Bug },
   { title: 'Finanzas', url: '/productor/finanzas', icon: DollarSign },
-  { title: 'Sostenibilidad', url: '/productor/vital', icon: Leaf },
+  { title: 'Sostenibilidad', url: '/productor/sostenibilidad', icon: Leaf },
   { title: 'Comunidad', url: '/productor/avisos', icon: MessageSquare },
 ];
 
