@@ -20,11 +20,11 @@ export default function DashboardCooperativa() {
   const navigate = useNavigate();
 
   const kpis = [
-    { label: 'Productores activos', value: stats.totalProductores, icon: Users, route: '/cooperativa/productores-hub' },
+    { label: 'Productores activos', value: stats.totalProductores, icon: Users, route: '/cooperativa/productores' },
     { label: 'Hectáreas bajo gestión', value: `${stats.hectareasTotales.toFixed(1)} ha`, icon: MapPin },
-    { label: 'Volumen acopiado', value: `${stats.volumenAcopiado} QQ`, icon: Package, route: '/cooperativa/acopio' },
-    { label: 'Lotes en proceso', value: stats.lotesEnProceso, icon: Package, route: '/cooperativa/acopio' },
-    { label: 'Créditos activos', value: `₡${stats.creditosActivos.toLocaleString()}`, icon: Wallet, route: '/cooperativa/finanzas-hub' },
+    { label: 'Volumen acopiado', value: `${stats.volumenAcopiado} QQ`, icon: Package, route: '/cooperativa/lotes-acopio' },
+    { label: 'Lotes en proceso', value: stats.lotesEnProceso, icon: Package, route: '/cooperativa/lotes-acopio' },
+    { label: 'Créditos activos', value: `₡${stats.creditosActivos.toLocaleString()}`, icon: Wallet, route: '/cooperativa/creditos' },
     { label: 'EUDR Compliance', value: `${stats.eudrCompliance}%`, icon: ShieldCheck },
   ];
 
@@ -117,7 +117,7 @@ export default function DashboardCooperativa() {
               <TrendingUp className="h-4 w-4 text-primary" />
               Últimas entregas
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/cooperativa/acopio')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/cooperativa/lotes-acopio')}>
               Ver todo <ArrowRight className="h-3 w-3 ml-1" />
             </Button>
           </div>

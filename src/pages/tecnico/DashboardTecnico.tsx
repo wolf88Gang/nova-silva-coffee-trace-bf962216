@@ -13,7 +13,7 @@ export default function DashboardTecnico() {
     { label: 'Productores asignados', value: stats.productoresAsignados, icon: Users, route: '/tecnico/productores' },
     { label: 'Evaluaciones pendientes', value: stats.evaluacionesPendientes, icon: ClipboardList, route: '/tecnico/vital' },
     { label: 'Completadas (mes)', value: stats.evaluacionesCompletadas, icon: Stethoscope },
-    { label: 'Visitas hoy', value: stats.visitasHoy, icon: Calendar, route: '/tecnico/visitas' },
+    { label: 'Visitas hoy', value: stats.visitasHoy, icon: Calendar, route: '/tecnico/agenda' },
     { label: 'Bajo VITAL (<50)', value: stats.productoresBajoVITAL, icon: AlertTriangle },
   ];
 
@@ -38,7 +38,7 @@ export default function DashboardTecnico() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-foreground flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> Visitas programadas hoy</h3>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/tecnico/visitas')}>Ver todo <ArrowRight className="h-3 w-3 ml-1" /></Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/tecnico/agenda')}>Ver todo <ArrowRight className="h-3 w-3 ml-1" /></Button>
             </div>
             <div className="space-y-2">
               {DEMO_VISITAS.filter(v => v.fecha === '2026-02-17').map(v => (
