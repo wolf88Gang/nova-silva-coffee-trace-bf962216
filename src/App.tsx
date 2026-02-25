@@ -35,6 +35,8 @@ import VitalCooperativa from "./pages/cooperativa/VitalCooperativa";
 import UsuariosOrg from "./pages/cooperativa/UsuariosOrg";
 import ClimaDashboard from "./pages/cooperativa/ClimaDashboard";
 import DiagnosticoOrg from "./pages/cooperativa/DiagnosticoOrg";
+import ExportadoresHub from "./pages/cooperativa/ExportadoresHub";
+import AvisosCooperativa from "./pages/cooperativa/AvisosCooperativa";
 
 // Productor pages
 import DashboardProductor from "./pages/productor/DashboardProductor";
@@ -134,9 +136,11 @@ const App = () => (
               <Route path="/cooperativa/operaciones" element={<DashboardLayout requiredRole="cooperativa"><OperacionesHub /></DashboardLayout>} />
               <Route path="/cooperativa/creditos" element={<DashboardLayout requiredRole="cooperativa"><FinanzasHub /></DashboardLayout>} />
               <Route path="/cooperativa/vital" element={<DashboardLayout requiredRole="cooperativa"><VitalCooperativa /></DashboardLayout>} />
+              <Route path="/cooperativa/exportadores" element={<DashboardLayout requiredRole="cooperativa"><ExportadoresHub /></DashboardLayout>} />
+              <Route path="/cooperativa/avisos" element={<DashboardLayout requiredRole="cooperativa"><AvisosCooperativa /></DashboardLayout>} />
               <Route path="/cooperativa/clima" element={<DashboardLayout requiredRole="cooperativa"><ClimaDashboard /></DashboardLayout>} />
               <Route path="/cooperativa/diagnostico" element={<DashboardLayout requiredRole="cooperativa"><DiagnosticoOrg /></DashboardLayout>} />
-              <Route path="/cooperativa/comunicacion" element={<DashboardLayout requiredRole="cooperativa"><ComunicacionHub /></DashboardLayout>} />
+              <Route path="/cooperativa/comunicacion" element={<Navigate to="/cooperativa/avisos" replace />} />
               <Route path="/cooperativa/configuracion" element={<DashboardLayout requiredRole="cooperativa"><UsuariosOrg /></DashboardLayout>} />
               {/* Legacy cooperativa routes */}
               <Route path="/cooperativa/productores-hub" element={<Navigate to="/cooperativa/productores" replace />} />
