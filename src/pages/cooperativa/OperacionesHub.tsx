@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Clock, Boxes, Wrench } from 'lucide-react';
+import { Shield, Clock, Boxes, AlertTriangle, Bug, CloudRain, Bell, BarChart3, MapPin } from 'lucide-react';
 import { DEMO_ALERTAS } from '@/lib/demo-data';
 
 export default function OperacionesHub() {
@@ -10,33 +11,132 @@ export default function OperacionesHub() {
       <h1 className="text-2xl font-bold text-foreground">Operaciones</h1>
 
       <Tabs defaultValue="monitor">
-        <TabsList>
+        <TabsList className="w-full sm:w-auto overflow-x-auto">
           <TabsTrigger value="monitor"><Shield className="h-4 w-4 mr-1" /> Nova Guard</TabsTrigger>
           <TabsTrigger value="jornales"><Clock className="h-4 w-4 mr-1" /> Jornales</TabsTrigger>
           <TabsTrigger value="inventario"><Boxes className="h-4 w-4 mr-1" /> Inventario</TabsTrigger>
         </TabsList>
 
+        {/* ── Nova Guard ── */}
         <TabsContent value="monitor" className="mt-4 space-y-4">
-          <div className="grid md:grid-cols-3 gap-4">
-            <Card className="border-destructive/30">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" /> Monitor Nova Guard
+              </h2>
+              <p className="text-sm text-muted-foreground">Centro de comando fitosanitario regional</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="border-primary text-primary">● Sistema activo</Badge>
+              <span className="text-xs text-muted-foreground">Última actualización: Hace 5 min</span>
+            </div>
+          </div>
+
+          {/* Incidence cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="border-primary/30">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground">Alertas rojas</p>
-                <p className="text-2xl font-bold text-destructive">{DEMO_ALERTAS.filter(a => a.nivel === 'rojo').length}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Bug className="h-5 w-5 text-primary" />
+                    <span className="font-bold text-foreground">Roya</span>
+                  </div>
+                  <Badge variant="outline" className="text-primary border-primary">Bajo</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">Incidencia controlada</p>
+                <p className="text-3xl font-bold text-primary mt-1">2% <span className="text-sm font-normal text-muted-foreground">incidencia</span></p>
               </CardContent>
             </Card>
-            <Card className="border-yellow-500/30">
+
+            <Card className="border-destructive/50">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground">Alertas ámbar</p>
-                <p className="text-2xl font-bold text-yellow-600">{DEMO_ALERTAS.filter(a => a.nivel === 'ambar').length}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Bug className="h-5 w-5 text-destructive" />
+                    <span className="font-bold text-foreground">Broca</span>
+                  </div>
+                  <Badge variant="destructive">⚠ ALERTA</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">ALERTA DE VUELO en Zona Norte</p>
+                <p className="text-3xl font-bold text-destructive mt-1">15% <span className="text-sm font-normal text-muted-foreground">incidencia</span></p>
               </CardContent>
             </Card>
-            <Card>
+
+            <Card className="border-accent/30">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground">Zonas monitoreadas</p>
-                <p className="text-2xl font-bold text-foreground">3</p>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CloudRain className="h-5 w-5 text-accent" />
+                    <span className="font-bold text-foreground">Clima</span>
+                  </div>
+                  <Badge className="bg-accent text-accent-foreground">Humedad Alta</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">Favorable para hongos</p>
+                <p className="text-sm text-muted-foreground mt-1">⚡ Condiciones favorables para hongos</p>
               </CardContent>
             </Card>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Map placeholder */}
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-destructive" /> Mapa de Incidencias
+                  </CardTitle>
+                  <Badge variant="secondary">⚡ 8 reportes en 24h</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">Haz clic en un pin para ver detalles</p>
+              </CardHeader>
+              <CardContent>
+                <div className="w-full h-64 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">Mapa interactivo — requiere integración Leaflet</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Active alert + demand */}
+            <div className="space-y-4">
+              <Card className="border-l-4 border-l-destructive">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive" /> Alerta Activa
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="p-3 rounded-md bg-muted/50">
+                    <p className="font-medium text-foreground">Brote de Broca en Zona Norte</p>
+                    <p className="text-xs text-muted-foreground mt-1">Detectado por <strong>5 productores</strong> en las últimas 24 horas. Incidencia promedio del 15%.</p>
+                  </div>
+                  <Button className="w-full" size="sm">
+                    <Bell className="h-4 w-4 mr-1" /> Emitir Alerta Push a Zona Norte
+                  </Button>
+                  <Button variant="outline" className="w-full justify-between" size="sm">
+                    Verificar Stock de Beauveria <span>›</span>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-primary">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-primary" /> Proyección de Demanda
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground mb-2">Basado en alertas activas en la zona</p>
+                  <div className="flex items-center justify-between p-2 rounded bg-muted/50">
+                    <span className="text-sm font-medium text-foreground">Beauveria bassiana</span>
+                    <Badge variant="destructive">⚠ Stock Crítico</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Phytosanitary alerts list */}
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-base">Alertas fitosanitarias</CardTitle></CardHeader>
             <CardContent className="space-y-2">
@@ -50,6 +150,7 @@ export default function OperacionesHub() {
           </Card>
         </TabsContent>
 
+        {/* ── Jornales ── */}
         <TabsContent value="jornales" className="mt-4">
           <Card>
             <CardHeader><CardTitle className="text-base">Registro de jornales</CardTitle></CardHeader>
@@ -80,6 +181,7 @@ export default function OperacionesHub() {
           </Card>
         </TabsContent>
 
+        {/* ── Inventario ── */}
         <TabsContent value="inventario" className="mt-4">
           <Card>
             <CardHeader><CardTitle className="text-base">Inventario de insumos</CardTitle></CardHeader>
@@ -93,6 +195,7 @@ export default function OperacionesHub() {
                     {[
                       { producto: 'Fertilizante 18-5-15', cat: 'Fertilizantes', stock: 45, unidad: 'sacos', bajo: false },
                       { producto: 'Cobre orgánico', cat: 'Agroquímicos', stock: 12, unidad: 'litros', bajo: true },
+                      { producto: 'Beauveria bassiana', cat: 'Biocontrol', stock: 3, unidad: 'litros', bajo: true },
                       { producto: 'Machetes', cat: 'Herramientas', stock: 8, unidad: 'unidades', bajo: false },
                       { producto: 'Sacos de yute', cat: 'Insumos', stock: 200, unidad: 'unidades', bajo: false },
                     ].map((item, i) => (
