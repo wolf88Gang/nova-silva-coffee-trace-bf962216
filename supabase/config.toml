@@ -1,0 +1,4 @@
+# Configuración para Edge Functions
+# ensure-demo-user: debe ser invocable sin sesión (usuario anónimo en /demo)
+[functions.ensure-demo-user]
+verify_jwt = false

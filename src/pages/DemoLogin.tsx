@@ -42,9 +42,13 @@ const DemoLogin = () => {
     setLoadingRole(demoRole.role);
     try {
       // Step 1: Try to ensure demo user exists via edge function
-      const { error: ensureError } = await supabase.functions.invoke('ensure-demo-user', {
+      console.log('Calling ensure-demo-user with role:', demoRole.role);
+      const { data, error: ensureError } = await supabase.functions.invoke('ensure-demo-user', {
         body: { role: demoRole.role },
       });
+
+      console.log('Response data:', data);
+      console.log('Response error:', ensureError);
 
       if (ensureError) {
         console.warn('ensure-demo-user warning (will try login anyway):', ensureError);
