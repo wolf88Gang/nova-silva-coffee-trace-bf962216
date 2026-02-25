@@ -87,6 +87,15 @@
     --input: 210 14% 28%;
     --ring: 25 75% 55%;
     --radius: 0.75rem;
+    --sidebar-background: 210 18% 14%;
+    --sidebar-foreground: 210 10% 85%;
+    --sidebar-primary: 25 75% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 14% 22%;
+    --sidebar-accent-foreground: 210 10% 90%;
+    --sidebar-border: 210 14% 22%;
+    --sidebar-ring: 25 75% 55%;
+    --sidebar-muted: 210 10% 50%;
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.30);
     --shadow-glow: 0 0 30px hsl(25 75% 55% / 0.20);
     --shadow-glow-primary: 0 0 30px hsl(120 55% 23% / 0.20);

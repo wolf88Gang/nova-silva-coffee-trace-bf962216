@@ -37,7 +37,7 @@ export default function PlanClimaPage() {
       </section>
 
       {/* Qué es */}
-      <section id="que-es-plan-clima" className="py-20 md:py-28">
+      <section id="que-es" className="py-20 md:py-28">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl text-center space-y-4">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             Contexto, Línea base, Intervenciones, Monitoreo, Acompañamiento

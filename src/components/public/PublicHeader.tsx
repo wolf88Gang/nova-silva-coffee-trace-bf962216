@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { label: 'Nosotros', to: '/nosotros' },
   { label: 'Soluciones', to: '/soluciones' },
   { label: 'Cumplimiento', to: '/cumplimiento-y-certificaciones' },
-  { label: 'Protocolo VITAL', to: '/plan-clima' },
+  { label: 'Protocolo VITAL', to: '/protocolo-vital' },
   { label: 'Impacto', to: '/impacto' },
   { label: 'Contacto', to: '/contacto' },
 ];

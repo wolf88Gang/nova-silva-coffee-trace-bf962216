@@ -28,8 +28,10 @@ const cooperativaNav: NavItemDef[] = [
   { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
   { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
   { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
-  { title: 'Calidad / Nova Cup', url: '/cooperativa/calidad', icon: Award },
+  { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award },
   { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield },
+  { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users },
+  { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
 ];
 
 // ── PRODUCTOR (6 items) ──
