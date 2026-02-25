@@ -8,7 +8,7 @@ import {
 import bgTerraces from '@/assets/bg-terraces.jpg';
 
 const modules = [
-  { icon: Sprout, title: 'Plan CLIMA', desc: 'Diagnóstico de resiliencia climática basado en IPCC con scoring y plan de mejora.', anchor: '/soluciones#modulo-clima-plan' },
+  { icon: Sprout, title: 'Protocolo VITAL', desc: 'Diagnóstico de vulnerabilidad y resiliencia climática con scoring y plan de mejora.', anchor: '/soluciones#modulo-protocolo-vital' },
   { icon: Shield, title: 'Trazabilidad EUDR', desc: 'Registro georreferenciado con validación satelital y reportes para certificadoras.', anchor: '/soluciones#modulo-trazabilidad-eudr' },
   { icon: Lock, title: 'Blockchain Integrity', desc: 'Huellas digitales SHA-256 en blockchain pública para evidencia a prueba de manipulación.', anchor: '/soluciones#modulo-blockchain-integrity' },
   { icon: Globe2, title: 'GIS Satélite / NDVI', desc: 'Análisis satelital de cobertura vegetal y detección de cambios en uso de suelo.', anchor: '/soluciones#modulo-gis-ndvi' },
@@ -25,7 +25,7 @@ const benefits = [
 const steps = [
   { num: '01', title: 'Captura en campo', desc: 'Datos de productores, parcelas y entregas registrados desde dispositivos móviles.' },
   { num: '02', title: 'Validación geoespacial', desc: 'Cruce con imágenes satelitales y registro de huella digital en blockchain.' },
-  { num: '03', title: 'Análisis CLIMA', desc: 'Evaluación de resiliencia climática con scoring por finca y plan de mejora.' },
+  { num: '03', title: 'Protocolo VITAL', desc: 'Evaluación de vulnerabilidad climática con scoring por finca y plan de mejora.' },
   { num: '04', title: 'Reportes auditoría', desc: 'Paquetes de debida diligencia listos para EUDR, Rainforest y certificadoras.' },
 ];
 
@@ -187,7 +187,7 @@ export default function HomePage() {
             {[
               { name: 'Nova Lite', desc: 'Registro digital básico de productores, parcelas y entregas con georreferenciación.', price: 'Desde $400/mes' },
               { name: 'Nova Smart', desc: 'Trazabilidad completa, monitoreo satelital NDVI, reportes EUDR y blockchain integrity.', price: 'Desde $800/mes', featured: true },
-              { name: 'Nova Plus', desc: 'Todo Smart más Plan CLIMA, IA Coach, governance avanzada y soporte premium.', price: 'Desde $1,500/mes' },
+              { name: 'Nova Plus', desc: 'Todo Smart más Protocolo VITAL, IA Coach, governance avanzada y soporte premium.', price: 'Desde $1,500/mes' },
             ].map((plan) => (
               <div key={plan.name} className={`p-6 rounded-xl border shadow-sm ${plan.featured ? 'bg-primary text-primary-foreground border-primary ring-2 ring-accent' : 'bg-card border-border'}`}>
                 <h3 className={`font-bold text-lg mb-2 ${plan.featured ? '' : 'text-foreground'}`}>{plan.name}</h3>

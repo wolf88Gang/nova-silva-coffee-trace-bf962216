@@ -151,11 +151,11 @@ const App = () => (
               <Route path="/tecnico" element={<Navigate to="/tecnico/dashboard" replace />} />
               <Route path="/tecnico/dashboard" element={<DashboardLayout requiredRole="tecnico"><DashboardTecnico /></DashboardLayout>} />
               <Route path="/tecnico/agenda" element={<DashboardLayout requiredRole="tecnico"><TecnicoAgenda /></DashboardLayout>} />
-              <Route path="/tecnico/diagnosticos" element={<DashboardLayout requiredRole="tecnico"><TecnicoProductores /></DashboardLayout>} />
+              <Route path="/tecnico/productores" element={<DashboardLayout requiredRole="tecnico"><TecnicoProductores /></DashboardLayout>} />
               <Route path="/tecnico/parcelas" element={<DashboardLayout requiredRole="tecnico"><TecnicoParcelas /></DashboardLayout>} />
               <Route path="/tecnico/vital" element={<DashboardLayout requiredRole="tecnico"><TecnicoVital /></DashboardLayout>} />
               {/* Legacy tecnico redirects */}
-              <Route path="/tecnico/productores" element={<Navigate to="/tecnico/diagnosticos" replace />} />
+              <Route path="/tecnico/diagnosticos" element={<Navigate to="/tecnico/vital" replace />} />
 
               {/* ── EXPORTADOR ── */}
               <Route path="/exportador" element={<Navigate to="/exportador/dashboard" replace />} />

@@ -25,7 +25,7 @@ export const ORGANIZATION_TYPE_DESCRIPTIONS: Record<OrganizationType, string> = 
   exportador: 'Empresa exportadora con obligaciones de debida diligencia EUDR',
   certificadora: 'Organismo certificador o auditor con acceso de solo lectura',
   productor: 'Productor individual o finca con venta directa',
-  tecnico: 'Técnico de campo con acceso restringido a visitas, diagnósticos y productores asignados',
+  tecnico: 'Técnico de campo con acceso restringido a visitas, Protocolo VITAL y productores asignados',
   admin: 'Administrador interno de Nova Silva con acceso a configuración del sistema',
 };
 

@@ -29,7 +29,7 @@ export default function PlanClimaPage() {
     <PublicLayout>
       <section className="pt-28 pb-16 md:pt-36 md:pb-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Plan CLIMA</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Protocolo VITAL</h1>
           <p className="text-primary-foreground/80 text-lg">
             Metodología de diagnóstico de resiliencia climática para cooperativas y productores, integrada con herramientas digitales de monitoreo y reporte.
           </p>
@@ -43,7 +43,7 @@ export default function PlanClimaPage() {
             Contexto, Línea base, Intervenciones, Monitoreo, Acompañamiento
           </h2>
           <p className="text-muted-foreground text-lg">
-            El Plan CLIMA evalúa la capacidad adaptativa de cada finca frente al cambio climático, generando un índice de solidez (0.0–1.0) y un plan de mejora con acciones concretas y seguimiento continuo.
+            El Protocolo VITAL evalúa la capacidad adaptativa de cada finca frente al cambio climático, generando un índice de solidez (0.0–1.0) y un plan de mejora con acciones concretas y seguimiento continuo.
           </p>
         </div>
       </section>
@@ -71,7 +71,7 @@ export default function PlanClimaPage() {
       {/* Beneficios */}
       <section id="beneficios-plan-clima" className="py-20 md:py-28">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-12">Beneficios del Plan CLIMA</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-12">Beneficios del Protocolo VITAL</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground text-lg">Para cooperativas</h3>
@@ -106,9 +106,9 @@ export default function PlanClimaPage() {
             <div className="flex-1 space-y-4">
               <h2 className="text-2xl font-bold text-foreground">Integración con la plataforma digital</h2>
               <p className="text-muted-foreground">
-                El diagnóstico CLIMA se integra directamente con los módulos de trazabilidad, cumplimiento y finanzas de Nova Silva, permitiendo una visión unificada de riesgo, producción y cumplimiento.
+                El diagnóstico VITAL se integra directamente con los módulos de trazabilidad, cumplimiento y finanzas de Nova Silva, permitiendo una visión unificada de riesgo, producción y cumplimiento.
               </p>
-              <NavLink to="/soluciones#modulo-clima-plan" className="inline-flex items-center gap-2 text-accent font-medium hover:underline">
+              <NavLink to="/soluciones#modulo-protocolo-vital" className="inline-flex items-center gap-2 text-accent font-medium hover:underline">
                 Ver indicadores en la plataforma <ArrowRight className="h-4 w-4" />
               </NavLink>
             </div>
@@ -124,9 +124,9 @@ export default function PlanClimaPage() {
       {/* CTA */}
       <section id="cta-propuesta-clima" className="py-16 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 lg:px-8 text-center space-y-4">
-          <h2 className="text-2xl font-bold">Solicite una propuesta personalizada del Plan CLIMA</h2>
+          <h2 className="text-2xl font-bold">Solicite una propuesta personalizada del Protocolo VITAL</h2>
           <NavLink to="/contacto#form-contacto-demo" className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-accent text-white font-semibold hover:bg-accent/90 transition-colors shadow-lg">
-            Solicitar propuesta Plan CLIMA <ArrowRight className="h-4 w-4" />
+            Solicitar propuesta Protocolo VITAL <ArrowRight className="h-4 w-4" />
           </NavLink>
         </div>
       </section>

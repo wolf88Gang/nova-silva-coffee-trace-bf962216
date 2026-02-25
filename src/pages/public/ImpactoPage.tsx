@@ -24,7 +24,7 @@ const cases = [
   },
   {
     title: 'Proyecto climático GIZ en Guatemala',
-    desc: 'Implementación del Plan CLIMA para diagnóstico de resiliencia en 200 fincas con seguimiento satelital NDVI.',
+    desc: 'Implementación del Protocolo VITAL para diagnóstico de resiliencia en 200 fincas con seguimiento satelital NDVI.',
     result: 'Reportes de impacto climático con evidencia verificable para informes de donantes.',
   },
 ];
