@@ -10,7 +10,7 @@ const modules = [
     id: 'modulo-protocolo-vital', icon: Sprout, title: 'Protocolo VITAL',
     desc: 'Sistema de diagnóstico de vulnerabilidad y capacidad adaptativa para productores y organizaciones cafetaleras, basado en el marco IPCC (Exposición, Sensibilidad, Capacidad Adaptativa).',
     features: ['100 preguntas para productores en 6 bloques temáticos', '58 preguntas para diagnóstico organizacional', 'Scoring en escala 0.0–1.0 con 4 niveles de madurez', 'Plan de acciones correctivas con seguimiento'],
-    cta: { label: 'Conocer el Protocolo VITAL', to: '/plan-clima#que-es-plan-clima' },
+    cta: { label: 'Conocer el Protocolo VITAL', to: '/protocolo-vital#que-es' },
   },
   {
     id: 'modulo-trazabilidad-eudr', icon: Shield, title: 'Trazabilidad EUDR y Certificaciones',
@@ -30,7 +30,7 @@ const modules = [
   },
   {
     id: 'modulo-ia-coach', icon: Cpu, title: 'IA Coach',
-    desc: 'Asistente inteligente que brinda recomendaciones agronómicas basadas en datos de campo, clima y diagnósticos VITAL.',
+    desc: 'Asistente inteligente que brinda recomendaciones agronómicas basadas en datos de campo, condiciones ambientales y diagnósticos del Protocolo VITAL.',
     features: ['Interpretaciones automáticas de diagnósticos', 'Recomendaciones de manejo por finca', 'Análisis de evidencias fotográficas', 'Respuestas a preguntas técnicas'],
   },
   {

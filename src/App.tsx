@@ -20,7 +20,7 @@ import HomePage from "./pages/public/HomePage";
 import NosotrosPage from "./pages/public/NosotrosPage";
 import SolucionesPage from "./pages/public/SolucionesPage";
 import CumplimientoPage from "./pages/public/CumplimientoPage";
-import PlanClimaPage from "./pages/public/PlanClimaPage";
+import ProtocoloVitalPage from "./pages/public/PlanClimaPage";
 import ImpactoPage from "./pages/public/ImpactoPage";
 import ContactoPage from "./pages/public/ContactoPage";
 
@@ -101,7 +101,8 @@ const App = () => (
               <Route path="/nosotros" element={<NosotrosPage />} />
               <Route path="/soluciones" element={<SolucionesPage />} />
               <Route path="/cumplimiento-y-certificaciones" element={<CumplimientoPage />} />
-              <Route path="/plan-clima" element={<PlanClimaPage />} />
+              <Route path="/protocolo-vital" element={<ProtocoloVitalPage />} />
+              <Route path="/plan-clima" element={<Navigate to="/protocolo-vital" replace />} />
               <Route path="/impacto" element={<ImpactoPage />} />
               <Route path="/contacto" element={<ContactoPage />} />
 
