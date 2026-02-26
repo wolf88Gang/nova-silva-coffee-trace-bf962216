@@ -1,6 +1,6 @@
 /**
  * DEV ONLY: Tenant context inspector.
- * Shows organizationId, productorId, role, orgTipo and runs test queries.
+ * Shows organizationId, productorId, role, orgTipo, activeModules and runs test queries.
  * Only renders in development mode.
  */
 import { useState } from 'react';
@@ -18,12 +18,11 @@ interface QueryResult {
 }
 
 export function DevTenantInspector() {
-  const { organizationId, productorId, role, orgTipo, orgName, isReady } = useOrgContext();
+  const { organizationId, productorId, role, orgTipo, orgName, activeModules, isReady } = useOrgContext();
   const [expanded, setExpanded] = useState(false);
   const [queryResults, setQueryResults] = useState<QueryResult[]>([]);
   const [testing, setTesting] = useState(false);
 
-  // Only render in development
   if (import.meta.env.PROD) return null;
 
   const runTestQueries = async () => {
@@ -31,26 +30,24 @@ export function DevTenantInspector() {
     setTesting(true);
     const results: QueryResult[] = [];
 
-    // Test 1: productores filtered by cooperativa_id
     try {
       const { count, error } = await supabase
         .from('productores')
         .select('*', { count: 'exact', head: true })
         .eq('cooperativa_id', organizationId);
-      results.push({ table: 'productores (cooperativa_id)', count: count ?? 0, error: error?.message ?? null });
+      results.push({ table: 'productores', count: count ?? 0, error: error?.message ?? null });
     } catch (e: any) {
-      results.push({ table: 'productores (cooperativa_id)', count: null, error: e.message });
+      results.push({ table: 'productores', count: null, error: e.message });
     }
 
-    // Test 2: entregas filtered by cooperativa_id
     try {
       const { count, error } = await supabase
         .from('entregas')
         .select('*', { count: 'exact', head: true })
         .eq('cooperativa_id', organizationId);
-      results.push({ table: 'entregas (cooperativa_id)', count: count ?? 0, error: error?.message ?? null });
+      results.push({ table: 'entregas', count: count ?? 0, error: error?.message ?? null });
     } catch (e: any) {
-      results.push({ table: 'entregas (cooperativa_id)', count: null, error: e.message });
+      results.push({ table: 'entregas', count: null, error: e.message });
     }
 
     setQueryResults(results);
@@ -91,6 +88,16 @@ export function DevTenantInspector() {
 
               <span className="text-muted-foreground">ProductorId:</span>
               <code className="text-foreground bg-muted px-1 rounded truncate text-[9px]">{productorId ?? '—'}</code>
+            </div>
+
+            {/* Active modules */}
+            <div className="pt-1">
+              <span className="text-muted-foreground text-[10px] uppercase tracking-wider">Módulos activos:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {activeModules.map(m => (
+                  <Badge key={m} variant="outline" className="text-[9px] h-4 px-1.5">{m}</Badge>
+                ))}
+              </div>
             </div>
 
             <Button

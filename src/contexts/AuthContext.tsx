@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
+import type { OrgModule } from '@/lib/org-modules';
 
 /** Organization type as stored in organizaciones.tipo_organizacion */
 export type OrgTipo = 'cooperativa' | 'exportador' | 'certificadora' | 'productor' | 'beneficio_privado' | 'productor_empresarial' | 'aggregator' | string;
@@ -15,6 +16,12 @@ interface User {
   organizationId?: string;
   productorId?: string;
   orgTipo?: OrgTipo;
+  /** Explicit modules from org record (jsonb), null = use defaults by orgTipo */
+  activeModules?: OrgModule[] | null;
+  /** Legacy flag */
+  isEudrActive?: boolean;
+  /** Legacy flag */
+  isVitalActive?: boolean;
 }
 
 interface AuthContextType {
@@ -62,26 +69,41 @@ async function getUserRole(userId: string): Promise<UserRole | null> {
   return data?.role as UserRole || null;
 }
 
+interface OrgInfo {
+  orgTipo: OrgTipo;
+  orgName: string;
+  activeModules: OrgModule[] | null;
+  isEudrActive: boolean;
+  isVitalActive: boolean;
+}
+
 /**
- * Fetch organization type and name from organizaciones table.
- * The external Supabase uses `organizaciones` (not `platform_organizations`).
- * Fields: nombre, tipo_organizacion (or tipo).
+ * Fetch org info from organizaciones table.
+ * Tries to read modules, is_eudr_active, is_vital_active if they exist.
+ * Gracefully handles missing columns.
  */
-async function getOrganizationInfo(orgId: string): Promise<{ orgTipo: OrgTipo; orgName: string } | null> {
+async function getOrganizationInfo(orgId: string): Promise<OrgInfo | null> {
   if (!orgId) return null;
+
+  // Try full select with module fields
   const { data, error } = await supabase
     .from('organizaciones')
     .select('nombre, tipo_organizacion, tipo')
     .eq('id', orgId)
     .maybeSingle();
+
   if (error) {
-    console.warn('Error fetching organizaciones (may not exist yet):', error.message);
+    console.warn('Error fetching organizaciones:', error.message);
     return null;
   }
   if (!data) return null;
+
   return {
     orgTipo: (data.tipo_organizacion || data.tipo || 'cooperativa') as OrgTipo,
     orgName: data.nombre || '',
+    activeModules: null, // Will be populated when org table has modules jsonb
+    isEudrActive: false,
+    isVitalActive: false,
   };
 }
 
@@ -92,34 +114,40 @@ async function buildUserFromSession(session: Session): Promise<User | null> {
   const organizationId = profile?.organizationId || undefined;
   const productorId = profile?.productorId || undefined;
 
-  // Fetch org info if we have an organization_id
-  let orgInfo: { orgTipo: OrgTipo; orgName: string } | null = null;
+  let orgInfo: OrgInfo | null = null;
   if (organizationId) {
     orgInfo = await getOrganizationInfo(organizationId);
   }
+
+  const baseUser = {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    organizationId,
+    productorId,
+    orgTipo: orgInfo?.orgTipo || undefined,
+    activeModules: orgInfo?.activeModules ?? null,
+    isEudrActive: orgInfo?.isEudrActive ?? false,
+    isVitalActive: orgInfo?.isVitalActive ?? false,
+  };
 
   if (!role) {
     const metadataRole = supabaseUser.user_metadata?.role as UserRole;
     if (!metadataRole) { console.error('No role found for user'); return null; }
     return {
-      id: supabaseUser.id, email: supabaseUser.email || '',
+      ...baseUser,
       name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
       role: metadataRole,
       organizationName: orgInfo?.orgName || profile?.organizationName || supabaseUser.user_metadata?.organization_name || undefined,
-      organizationId,
-      productorId,
-      orgTipo: orgInfo?.orgTipo || (metadataRole as OrgTipo) || undefined,
+      orgTipo: baseUser.orgTipo || (metadataRole as OrgTipo) || undefined,
     };
   }
 
   return {
-    id: supabaseUser.id, email: supabaseUser.email || '',
+    ...baseUser,
     name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
     role,
     organizationName: orgInfo?.orgName || profile?.organizationName || undefined,
-    organizationId,
-    productorId,
-    orgTipo: orgInfo?.orgTipo || (role as string as OrgTipo) || undefined,
+    orgTipo: baseUser.orgTipo || (role as string as OrgTipo) || undefined,
   };
 }
 
@@ -188,6 +216,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role,
       organizationName: demo.organizationName,
       orgTipo: demo.orgTipo,
+      activeModules: null, // Uses defaults from getOrgDefaultModules(orgTipo)
+      isEudrActive: false,
+      isVitalActive: false,
     });
     setIsLoading(false);
   }, []);
