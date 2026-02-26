@@ -21,7 +21,7 @@ interface DemoRole {
 const DEMO_ROLES: DemoRole[] = [
   { role: 'productor', email: 'demo.productor@novasilva.com', label: 'Productor', description: 'Agricultor de café', icon: Sprout },
   { role: 'tecnico', email: 'demo.tecnico@novasilva.com', label: 'Técnico', description: 'Asistente técnico de campo', icon: Wrench },
-  { role: 'cooperativa', email: 'demo.cooperativa@novasilva.com', label: 'Cooperativa', description: 'Gestión de cooperativa', icon: Building2 },
+  { role: 'cooperativa', email: 'demo.cooperativa@novasilva.com', label: 'Cooperativa', description: 'Gestión de organización', icon: Building2 },
   { role: 'exportador', email: 'demo.exportador@novasilva.com', label: 'Exportador', description: 'Exportadora con EUDR', icon: Truck },
   { role: 'certificadora', email: 'demo.certificadora@novasilva.com', label: 'Certificadora', description: 'Auditoría y certificación', icon: ShieldCheck },
 ];

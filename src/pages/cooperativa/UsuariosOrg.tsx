@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Shield, Users, Plus, Settings } from 'lucide-react';
 
 const usuarios = [
-  { id: '1', nombre: 'María García', email: 'maria@cooperativa.com', rol: 'admin', estado: 'activo' },
-  { id: '2', nombre: 'Roberto Flores', email: 'roberto@cooperativa.com', rol: 'warehouse', estado: 'activo' },
-  { id: '3', nombre: 'Sandra Paz', email: 'sandra@cooperativa.com', rol: 'compliance', estado: 'activo' },
-  { id: '4', nombre: 'Carlos Mejía', email: 'carlos@cooperativa.com', rol: 'field_tech', estado: 'activo' },
-  { id: '5', nombre: 'Ana Torres', email: 'ana@cooperativa.com', rol: 'viewer', estado: 'inactivo' },
+  { id: '1', nombre: 'María García', email: 'maria@organizacion.com', rol: 'admin', estado: 'activo' },
+  { id: '2', nombre: 'Roberto Flores', email: 'roberto@organizacion.com', rol: 'warehouse', estado: 'activo' },
+  { id: '3', nombre: 'Sandra Paz', email: 'sandra@organizacion.com', rol: 'compliance', estado: 'activo' },
+  { id: '4', nombre: 'Carlos Mejía', email: 'carlos@organizacion.com', rol: 'field_tech', estado: 'activo' },
+  { id: '5', nombre: 'Ana Torres', email: 'ana@organizacion.com', rol: 'viewer', estado: 'inactivo' },
 ];
 
 const rolLabel: Record<string, string> = { admin: 'Administrador', field_tech: 'Técnico', warehouse: 'Acopio', compliance: 'Cumplimiento', viewer: 'Consulta' };
