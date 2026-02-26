@@ -9,7 +9,10 @@ export interface User {
   email: string;
   name: string;
   role: import('@/lib/roles').UserRole;
-  organizationName: string;
+  organizationName?: string;
+  organizationId?: string;
+  productorId?: string;
+  orgTipo?: string;
 }
 
 export interface Productor {

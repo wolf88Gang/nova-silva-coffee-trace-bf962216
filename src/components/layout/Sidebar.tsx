@@ -2,6 +2,8 @@ import { useState } from 'react';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrgContext } from '@/hooks/useOrgContext';
+import { getActorsNavLabel, getOrgTypeLabel } from '@/lib/org-terminology';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { NotificacionesBell } from './NotificacionesBell';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -20,21 +22,22 @@ import { UserRole } from '@/types';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 
-// ── COOPERATIVA (8 items exactos) ──
-const cooperativaNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
-  { title: 'Productoras/es', url: '/cooperativa/productores-hub', icon: Users },
-  { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
-  { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
-  { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
-  { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
-  { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award },
-  { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield },
-  { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users },
-  { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
-];
+// Navigation configs per role — titles that depend on orgTipo are replaced dynamically
+function getCooperativaNav(actorsLabel: string): NavItemDef[] {
+  return [
+    { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
+    { title: actorsLabel, url: '/cooperativa/productores-hub', icon: Users },
+    { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
+    { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
+    { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
+    { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
+    { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award },
+    { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield },
+    { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users },
+    { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
+  ];
+}
 
-// ── PRODUCTOR (6 items) ──
 const productorNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
   { title: 'Producción', url: '/productor/produccion', icon: Sprout },
@@ -44,7 +47,6 @@ const productorNav: NavItemDef[] = [
   { title: 'Comunidad', url: '/productor/avisos', icon: MessageSquare },
 ];
 
-// ── TÉCNICO (5 items) ──
 const tecnicoNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
   { title: 'Productores Asignados', url: '/tecnico/productores', icon: Users },
@@ -53,18 +55,18 @@ const tecnicoNav: NavItemDef[] = [
   { title: 'Agenda', url: '/tecnico/agenda', icon: Calendar },
 ];
 
-// ── EXPORTADOR (7 items) ──
-const exportadorNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
-  { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee },
-  { title: 'Red de Proveedores', url: '/exportador/proveedores', icon: Users },
-  { title: 'Gestión Comercial', url: '/exportador/contratos', icon: FileText },
-  { title: 'Nova Cup', url: '/exportador/calidad', icon: Award },
-  { title: 'Administración', url: '/exportador/configuracion', icon: Settings },
-  { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
-];
+function getExportadorNav(actorsLabel: string): NavItemDef[] {
+  return [
+    { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
+    { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee },
+    { title: actorsLabel, url: '/exportador/proveedores', icon: Users },
+    { title: 'Gestión Comercial', url: '/exportador/contratos', icon: FileText },
+    { title: 'Nova Cup', url: '/exportador/calidad', icon: Award },
+    { title: 'Administración', url: '/exportador/configuracion', icon: Settings },
+    { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
+  ];
+}
 
-// ── CERTIFICADORA ──
 const certificadoraNav: NavItemDef[] = [
   { title: 'Panel Principal', url: '/certificadora/dashboard', icon: LayoutDashboard },
   { title: 'Auditorías', url: '/certificadora/auditorias', icon: FileText },
@@ -73,20 +75,23 @@ const certificadoraNav: NavItemDef[] = [
   { title: 'Reportes', url: '/certificadora/reportes', icon: FileText },
 ];
 
-// ── ADMIN ──
 const adminNav: NavItemDef[] = [
   { title: 'Panel de Administración', url: '/admin', icon: Shield },
   { title: 'Directorio de Clientes', url: '/admin/directorio', icon: Building2 },
 ];
 
-const NAV_BY_ROLE: Record<UserRole, NavItemDef[]> = {
-  cooperativa: cooperativaNav,
-  exportador: exportadorNav,
-  productor: productorNav,
-  tecnico: tecnicoNav,
-  certificadora: certificadoraNav,
-  admin: adminNav,
-};
+function getNavByRole(role: UserRole, orgTipo: string | null | undefined): NavItemDef[] {
+  const actorsLabel = getActorsNavLabel(orgTipo);
+  switch (role) {
+    case 'cooperativa': return getCooperativaNav(actorsLabel);
+    case 'exportador': return getExportadorNav(actorsLabel);
+    case 'productor': return productorNav;
+    case 'tecnico': return tecnicoNav;
+    case 'certificadora': return certificadoraNav;
+    case 'admin': return adminNav;
+    default: return [];
+  }
+}
 
 const accountNav: NavItemDef[] = [
   { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
@@ -115,12 +120,14 @@ interface SidebarProps { isOpen: boolean; onClose: () => void; }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { orgTipo } = useOrgContext();
   const navigate = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
 
   if (!user) return null;
 
-  const navItems = NAV_BY_ROLE[user.role] ?? [];
+  const navItems = getNavByRole(user.role, orgTipo);
+  const orgTypeDisplay = getOrgTypeLabel(orgTipo);
 
   const handleLogout = async () => {
     await logout();
@@ -153,7 +160,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <p className="text-xs text-sidebar-foreground/70 truncate">{user.organizationName}</p>
         <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
         <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-sidebar-accent text-sidebar-accent-foreground capitalize">
-          {user.role}
+          {orgTypeDisplay}
         </span>
       </div>
 
