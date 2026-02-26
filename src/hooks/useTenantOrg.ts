@@ -1,11 +1,9 @@
 /**
- * Hook to obtain tenant_org_id for the current user.
- * Used for filtering queries by tenant (organizations.id).
- *
- * In Fase 1: resolves from usuarios_org or profile; fallback to cooperativa_id for legacy.
+ * @deprecated Use useOrgContext() from '@/hooks/useOrgContext' instead.
+ * This hook is kept only for backward compatibility during migration.
+ * It returns null tenantOrgId — all callers should migrate to useOrgContext().
  */
-import { useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrgContext } from '@/hooks/useOrgContext';
 
 export interface TenantOrgState {
   tenantOrgId: string | null;
@@ -13,36 +11,13 @@ export interface TenantOrgState {
   error: Error | null;
 }
 
-/**
- * Returns the tenant organization ID for the current user.
- * Fetches from usuarios_org where user_id = auth.uid() and estado = 'activo'.
- * Admin users may have access to multiple tenants; this returns the primary one.
- *
- * TODO: When usuarios_org is wired, replace mock with real query:
- *   const { data } = await supabase.from('usuarios_org').select('organization_id').eq('user_id', userId).eq('estado','activo').limit(1).single();
- */
+/** @deprecated Use useOrgContext().organizationId instead */
 export function useTenantOrg(): TenantOrgState {
-  const { session } = useAuth();
-
-  return useMemo(() => {
-    if (!session?.user?.id) {
-      return { tenantOrgId: null, isLoading: false, error: null };
-    }
-    // Placeholder: fetch from usuarios_org when wired:
-    // const { data } = await supabase.from('usuarios_org')
-    //   .select('organization_id').eq('user_id', session.user.id).eq('estado','activo').limit(1).single();
-    return {
-      tenantOrgId: null,
-      isLoading: false,
-      error: null,
-    };
-  }, [session?.user?.id]);
+  const { organizationId, isLoading } = useOrgContext();
+  return { tenantOrgId: organizationId, isLoading, error: null };
 }
 
-/**
- * Helper for queries: use tenant_org_id when available, else cooperativa_id (legacy).
- * Usage: .eq('tenant_org_id', tenantOrgId ?? cooperativaId)
- */
+/** @deprecated Use organizationId from useOrgContext() directly */
 export function tenantFilter(
   tenantOrgId: string | null | undefined,
   legacyCooperativaId: string | null | undefined

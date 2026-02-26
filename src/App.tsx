@@ -7,6 +7,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { ModuleGuard } from "@/components/auth/ModuleGuard";
+import { assertSupabaseHost } from "@/lib/assertSupabaseHost";
+
+// Dev-only: verify Supabase points to external project
+assertSupabaseHost();
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -131,8 +136,8 @@ const App = () => (
               <Route path="/cooperativa/finanzas-hub" element={<DashboardLayout requiredRole="cooperativa"><FinanzasHub /></DashboardLayout>} />
               <Route path="/cooperativa/comunicacion" element={<DashboardLayout requiredRole="cooperativa"><ComunicacionHub /></DashboardLayout>} />
               <Route path="/cooperativa/calidad" element={<DashboardLayout requiredRole="cooperativa"><CalidadHub /></DashboardLayout>} />
-              <Route path="/cooperativa/vital" element={<DashboardLayout requiredRole="cooperativa"><VitalCooperativa /></DashboardLayout>} />
-              <Route path="/cooperativa/inclusion" element={<DashboardLayout requiredRole="cooperativa"><InclusionEquidad /></DashboardLayout>} />
+              <Route path="/cooperativa/vital" element={<DashboardLayout requiredRole="cooperativa"><ModuleGuard module="vital"><VitalCooperativa /></ModuleGuard></DashboardLayout>} />
+              <Route path="/cooperativa/inclusion" element={<DashboardLayout requiredRole="cooperativa"><ModuleGuard module="inclusion"><InclusionEquidad /></ModuleGuard></DashboardLayout>} />
               <Route path="/cooperativa/usuarios" element={<DashboardLayout requiredRole="cooperativa"><UsuariosOrg /></DashboardLayout>} />
               {/* Legacy cooperativa redirects */}
               <Route path="/cooperativa/productores" element={<Navigate to="/cooperativa/productores-hub" replace />} />
@@ -149,7 +154,7 @@ const App = () => (
               <Route path="/productor/sanidad" element={<DashboardLayout requiredRole="productor"><SanidadHub /></DashboardLayout>} />
               <Route path="/productor/finanzas" element={<DashboardLayout requiredRole="productor"><FinanzasProductor /></DashboardLayout>} />
               <Route path="/productor/sostenibilidad" element={<DashboardLayout requiredRole="productor"><SostenibilidadHub /></DashboardLayout>} />
-              <Route path="/productor/vital" element={<DashboardLayout requiredRole="productor"><VitalProductor /></DashboardLayout>} />
+              <Route path="/productor/vital" element={<DashboardLayout requiredRole="productor"><ModuleGuard module="vital"><VitalProductor /></ModuleGuard></DashboardLayout>} />
               <Route path="/productor/avisos" element={<DashboardLayout requiredRole="productor"><Avisos /></DashboardLayout>} />
               {/* Legacy productor redirects */}
               <Route path="/productor/finca" element={<Navigate to="/productor/produccion" replace />} />
@@ -162,7 +167,7 @@ const App = () => (
               <Route path="/tecnico/agenda" element={<DashboardLayout requiredRole="tecnico"><TecnicoAgenda /></DashboardLayout>} />
               <Route path="/tecnico/productores" element={<DashboardLayout requiredRole="tecnico"><TecnicoProductores /></DashboardLayout>} />
               <Route path="/tecnico/parcelas" element={<DashboardLayout requiredRole="tecnico"><TecnicoParcelas /></DashboardLayout>} />
-              <Route path="/tecnico/vital" element={<DashboardLayout requiredRole="tecnico"><TecnicoVital /></DashboardLayout>} />
+              <Route path="/tecnico/vital" element={<DashboardLayout requiredRole="tecnico"><ModuleGuard module="vital"><TecnicoVital /></ModuleGuard></DashboardLayout>} />
               {/* Legacy tecnico redirects */}
               <Route path="/tecnico/diagnosticos" element={<Navigate to="/tecnico/vital" replace />} />
 
@@ -172,7 +177,7 @@ const App = () => (
               <Route path="/exportador/lotes" element={<DashboardLayout requiredRole="exportador"><ExportadorLotes /></DashboardLayout>} />
               <Route path="/exportador/proveedores" element={<DashboardLayout requiredRole="exportador"><ExportadorProveedores /></DashboardLayout>} />
               <Route path="/exportador/contratos" element={<DashboardLayout requiredRole="exportador"><ExportadorContratos /></DashboardLayout>} />
-              <Route path="/exportador/eudr" element={<DashboardLayout requiredRole="exportador"><ExportadorEUDR /></DashboardLayout>} />
+              <Route path="/exportador/eudr" element={<DashboardLayout requiredRole="exportador"><ModuleGuard module="eudr"><ExportadorEUDR /></ModuleGuard></DashboardLayout>} />
               <Route path="/exportador/embarques" element={<DashboardLayout requiredRole="exportador"><ExportadorEmbarques /></DashboardLayout>} />
               <Route path="/exportador/clientes" element={<DashboardLayout requiredRole="exportador"><ExportadorClientes /></DashboardLayout>} />
               <Route path="/exportador/calidad" element={<DashboardLayout requiredRole="exportador"><ExportadorCalidad /></DashboardLayout>} />

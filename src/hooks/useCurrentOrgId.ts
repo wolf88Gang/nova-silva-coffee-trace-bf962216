@@ -1,11 +1,8 @@
 /**
- * Hook para obtener organization_id del usuario actual.
- * Lee de user.organizationId (cargado desde profiles en AuthContext).
- * Usar para filtrar queries por tenant.
- *
- * Fallback: si organization_id es null, usar cooperativa_id durante transición.
+ * @deprecated Use useOrgContext() from '@/hooks/useOrgContext' instead.
+ * Kept for backward compatibility. Delegates to useOrgContext internally.
  */
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrgContext } from '@/hooks/useOrgContext';
 
 export interface CurrentOrgState {
   organizationId: string | null;
@@ -13,29 +10,16 @@ export interface CurrentOrgState {
   error: Error | null;
 }
 
+/** @deprecated Use useOrgContext().organizationId */
 export function useCurrentOrgId(): CurrentOrgState {
-  const { user, isLoading: authLoading } = useAuth();
-  return {
-    organizationId: user?.organizationId ?? null,
-    isLoading: authLoading,
-    error: null,
-  };
+  const { organizationId, isLoading } = useOrgContext();
+  return { organizationId, isLoading, error: null };
 }
 
-/**
- * Valor para filtrar queries. Preferir organization_id; fallback cooperativa_id durante transición.
- */
+/** @deprecated Use organizationId from useOrgContext() directly */
 export function getOrgFilterValue(
   organizationId: string | null | undefined,
   legacyCooperativaId: string | null | undefined
 ): string | null {
   return organizationId ?? legacyCooperativaId ?? null;
 }
-
-/**
- * Ejemplo de query:
- * const { organizationId } = useCurrentOrgId();
- * const orgId = getOrgFilterValue(organizationId, legacyCooperativaId);
- * let q = supabase.from('productores').select('*');
- * if (orgId) q = q.or(`organization_id.eq.${orgId},cooperativa_id.eq.${orgId}`); // fallback legacy
- */
