@@ -20,7 +20,7 @@ export default function InclusionEquidad() {
   return (
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Inclusión y Equidad</h1>
-      <p className="text-sm text-muted-foreground">Indicadores y acciones de inclusión social en la cooperativa</p>
+      <p className="text-sm text-muted-foreground">Indicadores y acciones de inclusión social en la organización</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
         {indicadores.map((ind) => (
