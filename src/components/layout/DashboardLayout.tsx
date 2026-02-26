@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { ActorProvider } from '@/contexts/ActorContext';
 import { Sidebar } from './Sidebar';
 import { UserRole } from '@/types';
 import { Menu } from 'lucide-react';
@@ -36,24 +37,24 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:ml-64">
-        {/* Fixed mobile header */}
-        <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-30 flex items-center px-4">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-5 w-5" />
-          </Button>
-          <span className="ml-2 font-medium text-foreground">{user?.organizationName || 'Nova Silva'}</span>
-        </header>
-        {/* Spacer for fixed mobile header */}
-        <div className="lg:hidden h-14" />
-        <main className="p-4 md:p-6 lg:p-8 animate-fade-in">
-          {children}
-        </main>
+    <ActorProvider>
+      <div className="min-h-screen bg-background">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="lg:ml-64">
+          <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-30 flex items-center px-4">
+            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
+              <Menu className="h-5 w-5" />
+            </Button>
+            <span className="ml-2 font-medium text-foreground">{user?.organizationName || 'Nova Silva'}</span>
+          </header>
+          <div className="lg:hidden h-14" />
+          <main className="p-4 md:p-6 lg:p-8 animate-fade-in">
+            {children}
+          </main>
+        </div>
+        <DevTenantInspector />
       </div>
-      <DevTenantInspector />
-    </div>
+    </ActorProvider>
   );
 }
 
