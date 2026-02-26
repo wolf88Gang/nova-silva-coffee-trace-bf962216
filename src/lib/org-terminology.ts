@@ -50,6 +50,39 @@ export function getNewActorLabel(tipo: OrgTipo | null | undefined): string {
   return `Nuevo ${singular}`;
 }
 
+// ── Actor kind ──
+
+export type ActorKind = 'socio' | 'proveedor' | 'unidad_propia' | 'auditado';
+
+export function getActorKind(tipo: OrgTipo | null | undefined): ActorKind {
+  if (!tipo) return 'socio';
+  switch (tipo) {
+    case 'cooperativa': return 'socio';
+    case 'exportador':
+    case 'beneficio_privado':
+    case 'aggregator': return 'proveedor';
+    case 'productor':
+    case 'productor_empresarial': return 'unidad_propia';
+    case 'certificadora': return 'auditado';
+    default: return 'socio';
+  }
+}
+
+/** Empty state message for actors list */
+export function getActorsEmptyState(tipo: OrgTipo | null | undefined): string {
+  if (!tipo) return 'No hay actores registrados';
+  switch (tipo) {
+    case 'cooperativa': return 'No hay socios registrados. Agrega tu primer socio para comenzar.';
+    case 'exportador':
+    case 'beneficio_privado':
+    case 'aggregator': return 'No hay proveedores registrados. Agrega tu primer proveedor.';
+    case 'productor':
+    case 'productor_empresarial': return 'No tienes unidades productivas registradas.';
+    case 'certificadora': return 'No hay productores auditados registrados.';
+    default: return 'No hay actores registrados.';
+  }
+}
+
 // ── Legacy aliases (backward compat) ──
 
 /** @deprecated Use getActorsLabel instead */
