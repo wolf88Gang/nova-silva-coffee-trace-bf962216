@@ -61,7 +61,10 @@ export default function OrganizationDashboard() {
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Puedes comenzar creando tu primer {actorLabels.singular.toLowerCase()} para empezar a gestionar tu operación.
             </p>
-            <Button onClick={() => navigate('/cooperativa/productores-hub')}>
+            <Button onClick={() => {
+              const actorsRoute = role === 'exportador' ? '/exportador/proveedores' : '/cooperativa/productores-hub';
+              navigate(actorsRoute);
+            }}>
               <PlusCircle className="h-4 w-4 mr-1.5" />
               Crear primer {actorLabels.singular.toLowerCase()}
             </Button>
