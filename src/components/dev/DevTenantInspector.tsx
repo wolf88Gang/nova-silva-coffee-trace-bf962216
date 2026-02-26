@@ -8,7 +8,7 @@
  * 4. Cross-Org Access Test — attempts cross-tenant reads
  * 5. Module Simulator — toggle modules off for testing
  * 6. Profile Visibility Check — confirms RLS on profiles
- * 7. Multi-Tenant Integrity — counts per cooperativa_id
+ * 7. Multi-Tenant Integrity — counts per organization_id
  * 8. Query Log — last 10 queries with filter warnings
  * 
  * Only renders in DEV or for role=admin. Never in production builds.

@@ -17,10 +17,10 @@ export interface User {
 
 export interface Productor {
   id: string;
-  /** @deprecated Use organizationId. Legacy durante Fase 1. */
+  /** Tenant organization. RLS filter by this field. */
+  organizationId: string;
+  /** @deprecated Legacy. Do not use in UI or queries. */
   cooperativaId?: string;
-  /** Tenant organization. Filtrado y RLS por este campo. */
-  organizationId?: string;
   nombre: string;
   cedula: string;
   telefono?: string;
@@ -31,8 +31,8 @@ export interface Productor {
 export interface Parcela {
   id: string;
   productorId: string;
-  /** Tenant org. RLS por organization_id. */
-  organizationId?: string;
+  /** Tenant org. RLS by organization_id. */
+  organizationId: string;
   nombre: string;
   coordenadas: { lat: string; lng: string };
   areaCultivo: number;
