@@ -22,7 +22,7 @@ export default function ExportadorProveedores() {
   return (
     <div className="space-y-6 animate-fade-in">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Cooperativas Proveedoras</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Red de Proveedores</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {proveedores.map((p) => (
             <div key={p.id} className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors">
