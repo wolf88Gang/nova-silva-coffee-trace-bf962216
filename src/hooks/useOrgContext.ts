@@ -65,23 +65,9 @@ export function useOrgContext(): OrgContext {
 }
 
 /**
- * @deprecated Use applyOrgFilter() from '@/lib/orgFilter' instead.
- * Kept for backward compatibility during migration.
+ * @deprecated Legacy helper. Use applyOrgFilter() from '@/lib/orgFilter' instead.
+ * Always returns 'organization_id' now that ORG_ID_ONLY is active.
  */
-export function getTenantColumn(tableName: string): string {
-  // When ORG_ID_ONLY is true, always return 'organization_id'
-  // For now, maintain legacy mapping
-  const ORG_ID_TABLES = [
-    'contratos', 'finance_transactions', 'finance_categories',
-    'creditos_productor', 'labor_campaigns', 'certificaciones',
-    'blockchain_anchors', 'reclamos_postventa', 'org_people',
-  ];
-  const ORGANIZACION_ID_TABLES = [
-    'equipos_organizacion', 'inventario_insumos_org',
-    'cataciones', 'muestras_calidad', 'insumos_organizacion',
-  ];
-
-  if (ORG_ID_TABLES.includes(tableName)) return 'organization_id';
-  if (ORGANIZACION_ID_TABLES.includes(tableName)) return 'organizacion_id';
-  return 'cooperativa_id';
+export function getTenantColumn(_tableName: string): string {
+  return 'organization_id';
 }
