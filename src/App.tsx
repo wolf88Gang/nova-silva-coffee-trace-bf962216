@@ -72,6 +72,7 @@ import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
 
 // Admin
 import AdminPanel from "./pages/admin/AdminPanel";
+import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
@@ -113,6 +114,9 @@ const App = () => (
               <Route path="/demo" element={<DemoLogin />} />
               <Route path="/registro" element={<Register />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
+
+              {/* Onboarding */}
+              <Route path="/onboarding/organization" element={<OnboardingOrganization />} />
 
               {/* Shared */}
               <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />

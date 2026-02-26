@@ -22,6 +22,13 @@ const RoleBasedRedirect: React.FC = () => {
       navigate("/demo");
       return;
     }
+
+    // If user has no organization, redirect to onboarding
+    if (!user.organizationId && !user.id.startsWith('demo-')) {
+      navigate("/onboarding/organization");
+      return;
+    }
+
     navigate(ROLE_REDIRECTS[user.role] ?? "/login");
   }, [isLoading, isAuthenticated, user, navigate]);
 
