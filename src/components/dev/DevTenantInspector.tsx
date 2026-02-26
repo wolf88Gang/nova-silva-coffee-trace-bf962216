@@ -6,10 +6,11 @@
 import { useState } from 'react';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { supabase } from '@/integrations/supabase/client';
+import { isDemoContext } from '@/lib/demoSeed';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bug, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bug, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 
 interface QueryResult {
   table: string;
@@ -100,15 +101,32 @@ export function DevTenantInspector() {
               </div>
             </div>
 
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full text-xs h-7 mt-2"
-              onClick={runTestQueries}
-              disabled={testing || !organizationId}
-            >
-              {testing ? 'Testing…' : 'Run Test Queries'}
-            </Button>
+            <div className="flex gap-1.5 mt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 text-xs h-7"
+                onClick={runTestQueries}
+                disabled={testing || !organizationId}
+              >
+                {testing ? 'Testing…' : 'Run Test Queries'}
+              </Button>
+
+              {isDemoContext(orgName, organizationId) && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="text-xs h-7 gap-1"
+                  onClick={() => {
+                    if (confirm('¿Resetear datos demo? (Solo borra datos en memoria, no afecta BD)')) {
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3 w-3" /> Reset
+                </Button>
+              )}
+            </div>
 
             {queryResults.length > 0 && (
               <div className="space-y-1 mt-1">
