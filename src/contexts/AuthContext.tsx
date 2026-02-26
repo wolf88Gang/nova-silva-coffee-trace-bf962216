@@ -3,6 +3,9 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
 
+/** Organization type as stored in organizaciones.tipo_organizacion */
+export type OrgTipo = 'cooperativa' | 'exportador' | 'certificadora' | 'productor' | 'beneficio_privado' | 'productor_empresarial' | 'aggregator' | string;
+
 interface User {
   id: string;
   email: string;
@@ -10,6 +13,8 @@ interface User {
   role: UserRole;
   organizationName?: string;
   organizationId?: string;
+  productorId?: string;
+  orgTipo?: OrgTipo;
 }
 
 interface AuthContextType {
@@ -24,22 +29,31 @@ interface AuthContextType {
   loginAsDemo: (role: UserRole) => void;
 }
 
-const DEMO_USERS: Partial<Record<UserRole, { email: string; name: string; organizationName: string }>> = {
-  cooperativa: { email: 'demo.cooperativa@novasilva.com', name: 'María García', organizationName: 'Cooperativa Café de la Selva' },
-  exportador: { email: 'demo.exportador@novasilva.com', name: 'Carlos Mendoza', organizationName: 'Exportadora Sol de América' },
-  certificadora: { email: 'demo.certificadora@novasilva.com', name: 'Ana Certificadora', organizationName: 'CertifiCafé Internacional' },
-  productor: { email: 'demo.productor@novasilva.com', name: 'Juan Pérez', organizationName: 'Finca El Mirador' },
-  tecnico: { email: 'demo.tecnico@novasilva.com', name: 'Pedro Técnico', organizationName: 'Cooperativa Café de la Selva' },
-  admin: { email: 'demo.admin@novasilva.com', name: 'Admin Nova Silva', organizationName: 'Nova Silva Platform' },
+const DEMO_USERS: Partial<Record<UserRole, { email: string; name: string; organizationName: string; orgTipo: OrgTipo }>> = {
+  cooperativa: { email: 'demo.cooperativa@novasilva.com', name: 'María García', organizationName: 'Cooperativa Café de la Selva', orgTipo: 'cooperativa' },
+  exportador: { email: 'demo.exportador@novasilva.com', name: 'Carlos Mendoza', organizationName: 'Exportadora Sol de América', orgTipo: 'exportador' },
+  certificadora: { email: 'demo.certificadora@novasilva.com', name: 'Ana Certificadora', organizationName: 'CertifiCafé Internacional', orgTipo: 'certificadora' },
+  productor: { email: 'demo.productor@novasilva.com', name: 'Juan Pérez', organizationName: 'Finca El Mirador', orgTipo: 'productor' },
+  tecnico: { email: 'demo.tecnico@novasilva.com', name: 'Pedro Técnico', organizationName: 'Cooperativa Café de la Selva', orgTipo: 'cooperativa' },
+  admin: { email: 'demo.admin@novasilva.com', name: 'Admin Nova Silva', organizationName: 'Nova Silva Platform', orgTipo: 'admin' },
 };
 
 export { DEMO_USERS };
 export type { User as AppUser, UserRole as AppRole };
 
 async function getUserProfile(userId: string) {
-  const { data, error } = await supabase.from('profiles').select('name, organization_name, organization_id').eq('user_id', userId).maybeSingle();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('name, organization_name, organization_id, productor_id')
+    .eq('user_id', userId)
+    .maybeSingle();
   if (error) { console.error('Error fetching profile:', error); return null; }
-  return data ? { name: data.name, organizationName: data.organization_name, organizationId: data.organization_id } : null;
+  return data ? {
+    name: data.name,
+    organizationName: data.organization_name,
+    organizationId: data.organization_id,
+    productorId: data.productor_id,
+  } : null;
 }
 
 async function getUserRole(userId: string): Promise<UserRole | null> {
@@ -48,9 +62,41 @@ async function getUserRole(userId: string): Promise<UserRole | null> {
   return data?.role as UserRole || null;
 }
 
+/**
+ * Fetch organization type and name from organizaciones table.
+ * The external Supabase uses `organizaciones` (not `platform_organizations`).
+ * Fields: nombre, tipo_organizacion (or tipo).
+ */
+async function getOrganizationInfo(orgId: string): Promise<{ orgTipo: OrgTipo; orgName: string } | null> {
+  if (!orgId) return null;
+  const { data, error } = await supabase
+    .from('organizaciones')
+    .select('nombre, tipo_organizacion, tipo')
+    .eq('id', orgId)
+    .maybeSingle();
+  if (error) {
+    console.warn('Error fetching organizaciones (may not exist yet):', error.message);
+    return null;
+  }
+  if (!data) return null;
+  return {
+    orgTipo: (data.tipo_organizacion || data.tipo || 'cooperativa') as OrgTipo,
+    orgName: data.nombre || '',
+  };
+}
+
 async function buildUserFromSession(session: Session): Promise<User | null> {
   const supabaseUser = session.user;
   const [profile, role] = await Promise.all([getUserProfile(supabaseUser.id), getUserRole(supabaseUser.id)]);
+
+  const organizationId = profile?.organizationId || undefined;
+  const productorId = profile?.productorId || undefined;
+
+  // Fetch org info if we have an organization_id
+  let orgInfo: { orgTipo: OrgTipo; orgName: string } | null = null;
+  if (organizationId) {
+    orgInfo = await getOrganizationInfo(organizationId);
+  }
 
   if (!role) {
     const metadataRole = supabaseUser.user_metadata?.role as UserRole;
@@ -59,16 +105,21 @@ async function buildUserFromSession(session: Session): Promise<User | null> {
       id: supabaseUser.id, email: supabaseUser.email || '',
       name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
       role: metadataRole,
-      organizationName: profile?.organizationName || supabaseUser.user_metadata?.organization_name || undefined,
-      organizationId: profile?.organizationId || undefined,
+      organizationName: orgInfo?.orgName || profile?.organizationName || supabaseUser.user_metadata?.organization_name || undefined,
+      organizationId,
+      productorId,
+      orgTipo: orgInfo?.orgTipo || (metadataRole as OrgTipo) || undefined,
     };
   }
 
   return {
     id: supabaseUser.id, email: supabaseUser.email || '',
     name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
-    role, organizationName: profile?.organizationName || undefined,
-    organizationId: profile?.organizationId || undefined,
+    role,
+    organizationName: orgInfo?.orgName || profile?.organizationName || undefined,
+    organizationId,
+    productorId,
+    orgTipo: orgInfo?.orgTipo || (role as string as OrgTipo) || undefined,
   };
 }
 
@@ -136,6 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: demo.name,
       role,
       organizationName: demo.organizationName,
+      orgTipo: demo.orgTipo,
     });
     setIsLoading(false);
   }, []);
