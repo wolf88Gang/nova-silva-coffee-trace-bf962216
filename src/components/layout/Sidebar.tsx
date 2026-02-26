@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
+import { ORGANIZATION_TYPE_LABELS } from '@/lib/roles';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 
@@ -152,8 +153,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="px-4 py-3 border-b border-sidebar-border">
         <p className="text-xs text-sidebar-foreground/70 truncate">{user.organizationName}</p>
         <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
-        <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-sidebar-accent text-sidebar-accent-foreground capitalize">
-          {user.role}
+        <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-sidebar-accent text-sidebar-accent-foreground">
+          {ORGANIZATION_TYPE_LABELS[user.role] ?? user.role}
         </span>
       </div>
 
