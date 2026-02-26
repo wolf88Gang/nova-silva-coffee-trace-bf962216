@@ -10,27 +10,27 @@ import { AlertsSection } from './blocks/AlertsSection';
 import { ModuleStatusSection } from './blocks/ModuleStatusSection';
 import { QuickActionsSection } from './blocks/QuickActionsSection';
 import { ActivitySection } from './blocks/ActivitySection';
-import { getCooperativaStats, getProductorStats, getExportadorStats } from '@/lib/demo-data';
+import { getDemoStats } from '@/lib/demoSeed';
+import { getActorLabels } from '@/lib/terminology';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { PlusCircle } from 'lucide-react';
 
-/** Resolve demo header stats based on role/orgTipo */
-function getHeaderStats(role: string | null, orgTipo: string | null) {
-  if (role === 'cooperativa' || orgTipo === 'cooperativa') {
-    const s = getCooperativaStats();
-    return { vitalScore: s.promedioVITAL, eudrStatus: `${s.eudrCompliance}% compliant`, plan: 'Smart' };
-  }
-  if (role === 'exportador' || orgTipo === 'exportador') {
-    const s = getExportadorStats();
-    return { vitalScore: undefined, eudrStatus: `${s.eudrCompliance}% compliant`, plan: 'Enterprise' };
-  }
-  if (role === 'productor') {
-    const s = getProductorStats();
-    return { vitalScore: s.puntajeVITAL, eudrStatus: undefined, plan: undefined };
-  }
-  return {};
+/** Resolve demo header stats based on orgTipo + activeModules */
+function getHeaderStats(orgTipo: string | null, modules: import('@/lib/org-modules').OrgModule[]) {
+  const s = getDemoStats(orgTipo, modules);
+  return {
+    vitalScore: s.promedioVITAL > 0 ? s.promedioVITAL : undefined,
+    eudrStatus: s.eudrCompliance > 0 ? `${s.eudrCompliance}% compliant` : undefined,
+    plan: orgTipo === 'cooperativa' ? 'Smart' : orgTipo === 'exportador' ? 'Enterprise' : undefined,
+    totalActores: s.totalActores,
+  };
 }
 
 export default function OrganizationDashboard() {
   const { organizationId, role, orgTipo, orgName, activeModules, isLoading } = useOrgContext();
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -40,7 +40,36 @@ export default function OrganizationDashboard() {
     );
   }
 
-  const headerStats = getHeaderStats(role, orgTipo);
+  const headerStats = getHeaderStats(orgTipo, activeModules);
+  const actorLabels = getActorLabels(orgTipo);
+
+  // Empty state — no data yet
+  if (headerStats.totalActores === 0) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <OrgHeader
+          orgName={orgName}
+          orgTipo={orgTipo}
+          activeModules={activeModules}
+        />
+        <Card>
+          <CardContent className="py-16 text-center space-y-4">
+            <PlusCircle className="h-12 w-12 mx-auto text-muted-foreground/40" />
+            <h2 className="text-lg font-semibold text-foreground">
+              Tu organización aún no tiene datos
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Puedes comenzar creando tu primer {actorLabels.singular.toLowerCase()} para empezar a gestionar tu operación.
+            </p>
+            <Button onClick={() => navigate('/cooperativa/productores-hub')}>
+              <PlusCircle className="h-4 w-4 mr-1.5" />
+              Crear primer {actorLabels.singular.toLowerCase()}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
