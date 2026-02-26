@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { getActorsNavLabel, getOrgTypeLabel } from '@/lib/org-terminology';
+import { hasModule, hasAnyModule, type OrgModule } from '@/lib/org-modules';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { NotificacionesBell } from './NotificacionesBell';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -20,78 +21,107 @@ import {
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
 
-interface NavItemDef { title: string; url: string; icon: LucideIcon; }
+interface NavItemDef {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  /** Module(s) required — item hidden if none active. Omit for always-visible items. */
+  requiredModule?: OrgModule | OrgModule[];
+}
 
-// Navigation configs per role — titles that depend on orgTipo are replaced dynamically
+// ── NAV DEFINITIONS (module-aware) ──
+
 function getCooperativaNav(actorsLabel: string): NavItemDef[] {
   return [
     { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
-    { title: actorsLabel, url: '/cooperativa/productores-hub', icon: Users },
-    { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package },
-    { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings },
-    { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign },
-    { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare },
-    { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award },
-    { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield },
-    { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users },
+    { title: actorsLabel, url: '/cooperativa/productores-hub', icon: Users, requiredModule: 'productores' },
+    { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package, requiredModule: ['entregas', 'lotes_acopio'] },
+    { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings, requiredModule: ['jornales', 'inventario'] },
+    { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign, requiredModule: ['finanzas', 'creditos'] },
+    { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare, requiredModule: 'mensajes' },
+    { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award, requiredModule: 'calidad' },
+    { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield, requiredModule: 'vital' },
+    { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users, requiredModule: 'inclusion' },
     { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
   ];
 }
 
-const productorNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
-  { title: 'Producción', url: '/productor/produccion', icon: Sprout },
-  { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Bug },
-  { title: 'Finanzas', url: '/productor/finanzas', icon: DollarSign },
-  { title: 'Sostenibilidad', url: '/productor/sostenibilidad', icon: Leaf },
-  { title: 'Comunidad', url: '/productor/avisos', icon: MessageSquare },
-];
+function getProductorNav(): NavItemDef[] {
+  return [
+    { title: 'Panel Principal', url: '/productor/dashboard', icon: LayoutDashboard },
+    { title: 'Producción', url: '/productor/produccion', icon: Sprout, requiredModule: 'parcelas' },
+    { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Bug },
+    { title: 'Finanzas', url: '/productor/finanzas', icon: DollarSign, requiredModule: 'finanzas' },
+    { title: 'Sostenibilidad', url: '/productor/sostenibilidad', icon: Leaf, requiredModule: 'vital' },
+    { title: 'Comunidad', url: '/productor/avisos', icon: MessageSquare, requiredModule: 'mensajes' },
+  ];
+}
 
-const tecnicoNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
-  { title: 'Productores Asignados', url: '/tecnico/productores', icon: Users },
-  { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: Shield },
-  { title: 'Parcelas y Mapas', url: '/tecnico/parcelas', icon: Map },
-  { title: 'Agenda', url: '/tecnico/agenda', icon: Calendar },
-];
+function getTecnicoNav(): NavItemDef[] {
+  return [
+    { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
+    { title: 'Productores Asignados', url: '/tecnico/productores', icon: Users, requiredModule: 'productores' },
+    { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: Shield, requiredModule: 'vital' },
+    { title: 'Parcelas y Mapas', url: '/tecnico/parcelas', icon: Map, requiredModule: 'parcelas' },
+    { title: 'Agenda', url: '/tecnico/agenda', icon: Calendar },
+  ];
+}
 
 function getExportadorNav(actorsLabel: string): NavItemDef[] {
   return [
     { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
-    { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee },
-    { title: actorsLabel, url: '/exportador/proveedores', icon: Users },
-    { title: 'Gestión Comercial', url: '/exportador/contratos', icon: FileText },
-    { title: 'Nova Cup', url: '/exportador/calidad', icon: Award },
+    { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee, requiredModule: ['lotes_acopio', 'lotes_comerciales'] },
+    { title: actorsLabel, url: '/exportador/proveedores', icon: Users, requiredModule: 'productores' },
+    { title: 'Gestión Comercial', url: '/exportador/contratos', icon: FileText, requiredModule: 'contratos' },
+    { title: 'Nova Cup', url: '/exportador/calidad', icon: Award, requiredModule: 'calidad' },
     { title: 'Administración', url: '/exportador/configuracion', icon: Settings },
-    { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare },
+    { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare, requiredModule: 'mensajes' },
   ];
 }
 
-const certificadoraNav: NavItemDef[] = [
-  { title: 'Panel Principal', url: '/certificadora/dashboard', icon: LayoutDashboard },
-  { title: 'Auditorías', url: '/certificadora/auditorias', icon: FileText },
-  { title: 'Organizaciones', url: '/certificadora/orgs', icon: Building2 },
-  { title: 'Verificaciones', url: '/certificadora/verificar', icon: ShieldCheck },
-  { title: 'Reportes', url: '/certificadora/reportes', icon: FileText },
-];
+function getCertificadoraNav(): NavItemDef[] {
+  return [
+    { title: 'Panel Principal', url: '/certificadora/dashboard', icon: LayoutDashboard },
+    { title: 'Auditorías', url: '/certificadora/auditorias', icon: FileText },
+    { title: 'Organizaciones', url: '/certificadora/orgs', icon: Building2 },
+    { title: 'Verificaciones', url: '/certificadora/verificar', icon: ShieldCheck },
+    { title: 'Reportes', url: '/certificadora/reportes', icon: FileText },
+  ];
+}
 
-const adminNav: NavItemDef[] = [
-  { title: 'Panel de Administración', url: '/admin', icon: Shield },
-  { title: 'Directorio de Clientes', url: '/admin/directorio', icon: Building2 },
-];
+function getAdminNav(): NavItemDef[] {
+  return [
+    { title: 'Panel de Administración', url: '/admin', icon: Shield },
+    { title: 'Directorio de Clientes', url: '/admin/directorio', icon: Building2 },
+  ];
+}
 
-function getNavByRole(role: UserRole, orgTipo: string | null | undefined): NavItemDef[] {
+function getRawNavByRole(role: UserRole, orgTipo: string | null | undefined): NavItemDef[] {
   const actorsLabel = getActorsNavLabel(orgTipo);
   switch (role) {
     case 'cooperativa': return getCooperativaNav(actorsLabel);
     case 'exportador': return getExportadorNav(actorsLabel);
-    case 'productor': return productorNav;
-    case 'tecnico': return tecnicoNav;
-    case 'certificadora': return certificadoraNav;
-    case 'admin': return adminNav;
+    case 'productor': return getProductorNav();
+    case 'tecnico': return getTecnicoNav();
+    case 'certificadora': return getCertificadoraNav();
+    case 'admin': return getAdminNav();
     default: return [];
   }
 }
+
+/** Filter nav items by active modules */
+function filterNavByModules(items: NavItemDef[], activeModules: OrgModule[], isAdmin: boolean): NavItemDef[] {
+  // Admin sees everything
+  if (isAdmin) return items;
+
+  return items.filter(item => {
+    if (!item.requiredModule) return true;
+    const required = Array.isArray(item.requiredModule) ? item.requiredModule : [item.requiredModule];
+    return hasAnyModule(activeModules, required);
+  });
+}
+
+// ── COMPONENTS ──
 
 const accountNav: NavItemDef[] = [
   { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
@@ -106,7 +136,7 @@ function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void
       className={({ isActive }) => cn(
         'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
         isActive
-          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-orange-500/20 font-medium'
+          ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
           : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
       )}
     >
@@ -120,22 +150,19 @@ interface SidebarProps { isOpen: boolean; onClose: () => void; }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
-  const { orgTipo } = useOrgContext();
+  const { orgTipo, activeModules } = useOrgContext();
   const navigate = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
 
   if (!user) return null;
 
-  const navItems = getNavByRole(user.role, orgTipo);
+  const rawNav = getRawNavByRole(user.role, orgTipo);
+  const navItems = filterNavByModules(rawNav, activeModules, user.role === 'admin');
   const orgTypeDisplay = getOrgTypeLabel(orgTipo);
 
   const handleLogout = async () => {
     await logout();
-    if (user.id.startsWith('demo-')) {
-      navigate('/demo');
-    } else {
-      navigate('/login');
-    }
+    navigate(user.id.startsWith('demo-') ? '/demo' : '/login');
   };
 
   const sidebarContent = (
@@ -174,7 +201,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Account section */}
       <div className="border-t border-sidebar-border px-3 py-2">
         <Collapsible open={accountOpen} onOpenChange={setAccountOpen}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground uppercase tracking-wider text-xs">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sidebar-foreground/70 hover:text-sidebar-foreground uppercase tracking-wider text-xs">
             Mi cuenta
             <ChevronDown className={cn("h-4 w-4 transition-transform", accountOpen && "rotate-180")} />
           </CollapsibleTrigger>

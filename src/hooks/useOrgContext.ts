@@ -1,6 +1,6 @@
 /**
  * Central hook for org-centric (tenant) context.
- * Exposes organizationId, productorId, role, orgTipo, orgName.
+ * Exposes organizationId, productorId, role, orgTipo, orgName, activeModules.
  *
  * All data hooks should use organizationId from here for tenant filtering.
  * NEVER use user.id as cooperativa_id — always use organizationId.
@@ -8,6 +8,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { OrgTipo } from '@/contexts/AuthContext';
+import { getActiveModules, type OrgModule } from '@/lib/org-modules';
 
 export interface OrgContext {
   /** UUID of the tenant organization (from profiles.organization_id) */
@@ -20,6 +21,8 @@ export interface OrgContext {
   orgTipo: OrgTipo | null;
   /** Organization display name */
   orgName: string | null;
+  /** Active modules for this organization */
+  activeModules: OrgModule[];
   /** Whether the org context is still loading */
   isLoading: boolean;
   /** Whether the user is authenticated and org context is resolved */
@@ -31,37 +34,39 @@ export interface OrgContext {
  *
  * Usage:
  * ```ts
- * const { organizationId, productorId, role, orgTipo } = useOrgContext();
- *
- * // Filtering data by tenant:
- * supabase.from('productores').select('*').eq('cooperativa_id', organizationId)
- *
- * // For productor role, filter own data:
- * if (role === 'productor' && productorId) {
- *   query = query.eq('id', productorId);
- * }
+ * const { organizationId, activeModules } = useOrgContext();
+ * if (hasModule(activeModules, 'vital')) { ... }
  * ```
  */
 export function useOrgContext(): OrgContext {
   const { user, isLoading } = useAuth();
 
-  return useMemo(() => ({
-    organizationId: user?.organizationId ?? null,
-    productorId: user?.productorId ?? null,
-    role: user?.role ?? null,
-    orgTipo: user?.orgTipo ?? null,
-    orgName: user?.organizationName ?? null,
-    isLoading,
-    isReady: !isLoading && !!user,
-  }), [user, isLoading]);
+  return useMemo(() => {
+    const activeModules = getActiveModules(
+      user ? {
+        modules: user.activeModules ?? null,
+        is_eudr_active: user.isEudrActive,
+        is_vital_active: user.isVitalActive,
+        tipo: user.orgTipo ?? null,
+      } : null
+    );
+
+    return {
+      organizationId: user?.organizationId ?? null,
+      productorId: user?.productorId ?? null,
+      role: user?.role ?? null,
+      orgTipo: user?.orgTipo ?? null,
+      orgName: user?.organizationName ?? null,
+      activeModules,
+      isLoading,
+      isReady: !isLoading && !!user,
+    };
+  }, [user, isLoading]);
 }
 
 /**
  * Helper: get the correct column name for tenant filtering on legacy tables.
  * Most legacy tables use `cooperativa_id`, newer ones use `organization_id`.
- *
- * @param tableName - Name of the table to query
- * @returns The column name to use for tenant filtering
  */
 export function getTenantColumn(tableName: string): string {
   const ORG_ID_TABLES = [
@@ -76,6 +81,5 @@ export function getTenantColumn(tableName: string): string {
 
   if (ORG_ID_TABLES.includes(tableName)) return 'organization_id';
   if (ORGANIZACION_ID_TABLES.includes(tableName)) return 'organizacion_id';
-  // Default: legacy cooperativa_id (productores, entregas, lotes_acopio, jornales_*, parcelas, etc.)
   return 'cooperativa_id';
 }
