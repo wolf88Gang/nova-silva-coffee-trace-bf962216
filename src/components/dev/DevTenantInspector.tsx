@@ -18,6 +18,8 @@ import { useOrgContext } from '@/hooks/useOrgContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { isDemoContext } from '@/lib/demoSeed';
+import { applyOrgFilter } from '@/lib/orgFilter';
+import { ORG_ID_ONLY } from '@/config/featureFlags';
 import { type OrgModule } from '@/lib/org-modules';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -114,10 +116,11 @@ export function DevTenantInspector() {
       };
 
       try {
-        const { count: ownCount, error: ownErr } = await supabase
+        let ownQ = supabase
           .from(table)
-          .select('*', { count: 'exact', head: true })
-          .eq('cooperativa_id', organizationId);
+          .select('*', { count: 'exact', head: true });
+        ownQ = applyOrgFilter(ownQ, organizationId);
+        const { count: ownCount, error: ownErr } = await ownQ;
 
         if (ownErr) {
           result.selectOwn = 'error';
@@ -159,10 +162,11 @@ export function DevTenantInspector() {
 
     for (const table of TENANT_TABLES) {
       try {
-        const { count, error } = await supabase
+        let q = supabase
           .from(table)
-          .select('*', { count: 'exact', head: true })
-          .eq('cooperativa_id', organizationId);
+          .select('*', { count: 'exact', head: true });
+        q = applyOrgFilter(q, organizationId);
+        const { count, error } = await q;
         results.push({ table, count: count ?? 0, error: error?.message ?? null });
       } catch (e: any) {
         results.push({ table, count: null, error: e.message });
@@ -485,9 +489,10 @@ export function DevTenantInspector() {
                   </div>
                 )}
 
-                <div className="text-[10px] text-muted-foreground pt-1 border-t">
-                  <p>Filter: <code>cooperativa_id = {maskString(organizationId ?? '—')}</code></p>
-                  <p>All counts scoped to current user's JWT + RLS.</p>
+                <div className="text-[10px] text-muted-foreground pt-1 border-t space-y-0.5">
+                  <p>Filter: <code>applyOrgFilter({maskString(organizationId ?? '—')})</code></p>
+                  <p>ORG_ID_ONLY: <Badge variant={ORG_ID_ONLY ? 'default' : 'secondary'} className="text-[8px] h-3.5">{ORG_ID_ONLY ? 'ON' : 'OFF'}</Badge></p>
+                  <p>Legacy fallback: <Badge variant={!ORG_ID_ONLY ? 'outline' : 'secondary'} className="text-[8px] h-3.5">{!ORG_ID_ONLY ? 'ACTIVE' : 'DISABLED'}</Badge></p>
                 </div>
               </TabsContent>
             </Tabs>

@@ -65,10 +65,12 @@ export function useOrgContext(): OrgContext {
 }
 
 /**
- * Helper: get the correct column name for tenant filtering on legacy tables.
- * Most legacy tables use `cooperativa_id`, newer ones use `organization_id`.
+ * @deprecated Use applyOrgFilter() from '@/lib/orgFilter' instead.
+ * Kept for backward compatibility during migration.
  */
 export function getTenantColumn(tableName: string): string {
+  // When ORG_ID_ONLY is true, always return 'organization_id'
+  // For now, maintain legacy mapping
   const ORG_ID_TABLES = [
     'contratos', 'finance_transactions', 'finance_categories',
     'creditos_productor', 'labor_campaigns', 'certificaciones',
