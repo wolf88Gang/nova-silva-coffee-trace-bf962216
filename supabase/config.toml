@@ -2,3 +2,11 @@
 # ensure-demo-user: debe ser invocable sin sesión (usuario anónimo en /demo)
 [functions.ensure-demo-user]
 verify_jwt = false
+
+# rls-smoke-test: requiere JWT del caller para probar RLS (403 reales)
+[functions.rls-smoke-test]
+verify_jwt = true
+
+# ng-impact-recompute: service_role, corre programada o manual
+[functions.ng-impact-recompute]
+verify_jwt = false
