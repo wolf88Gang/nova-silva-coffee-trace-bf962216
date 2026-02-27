@@ -88,7 +88,7 @@ async function getOrganizationInfo(orgId: string): Promise<OrgInfo | null> {
   // Try full select with module fields
   const { data, error } = await supabase
     .from('organizaciones')
-    .select('nombre, tipo_organizacion, tipo')
+    .select('nombre, tipo')
     .eq('id', orgId)
     .maybeSingle();
 
@@ -99,7 +99,7 @@ async function getOrganizationInfo(orgId: string): Promise<OrgInfo | null> {
   if (!data) return null;
 
   return {
-    orgTipo: (data.tipo_organizacion || data.tipo || 'cooperativa') as OrgTipo,
+    orgTipo: (data.tipo || 'cooperativa') as OrgTipo,
     orgName: data.nombre || '',
     activeModules: null, // Will be populated when org table has modules jsonb
     isEudrActive: false,
