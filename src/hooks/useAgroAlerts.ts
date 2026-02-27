@@ -29,7 +29,6 @@ export interface AgroAlert {
   payload: Record<string, unknown> | null;
   created_at: string;
   updated_at: string | null;
-  // Joined rule
   agro_alert_rules: AgroAlertRule | null;
 }
 
@@ -72,11 +71,34 @@ export function useUpdateAlertStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'ack' | 'closed' }) => {
+      // Try RPC first
+      try {
+        const { error } = await supabase.rpc('rpc_set_alert_status' as any, {
+          p_alert_id: id,
+          p_status: status,
+        });
+        if (!error) return;
+        // If function doesn't exist, fall through to direct update
+        if (!error.message?.includes('function') && !error.message?.includes('does not exist')) {
+          throw error;
+        }
+      } catch (rpcErr: any) {
+        if (!rpcErr?.message?.includes('function') && !rpcErr?.message?.includes('does not exist')) {
+          throw rpcErr;
+        }
+      }
+
+      // Fallback: direct update
       const { error } = await (supabase as any)
         .from('agro_alerts')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id);
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('policy') || error.message?.includes('permission') || error.code === '42501') {
+          throw new Error('Sin permisos para actualizar alertas. Contacta al administrador.');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['agro-alerts'] });

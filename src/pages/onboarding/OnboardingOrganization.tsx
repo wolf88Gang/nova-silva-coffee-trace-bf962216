@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboardingPersistence } from '@/hooks/useOnboardingPersistence';
@@ -7,7 +7,6 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -45,21 +44,21 @@ const INITIAL: WizardState = {
 
 // ── Constants ──
 const ORG_TYPES: { value: OrgType; label: string; icon: typeof Users; desc: string }[] = [
-  { value: 'cooperativa', label: 'Cooperativa', icon: Users, desc: 'Gestiona socios productores y procesa café colectivamente' },
-  { value: 'exportador', label: 'Exportador / Trader', icon: Ship, desc: 'Compra, consolida y exporta café a mercados internacionales' },
-  { value: 'beneficio_privado', label: 'Beneficio Privado', icon: Factory, desc: 'Empresa privada que compra y procesa café de proveedores' },
-  { value: 'productor_grande', label: 'Productor Empresarial', icon: Sprout, desc: 'Finca o empresa que gestiona sus propias operaciones de origen y comercialización' },
+  { value: 'cooperativa', label: 'Cooperativa', icon: Users, desc: 'Gestiona socios productores y procesa cafe colectivamente' },
+  { value: 'exportador', label: 'Exportador / Trader', icon: Ship, desc: 'Compra, consolida y exporta cafe a mercados internacionales' },
+  { value: 'beneficio_privado', label: 'Beneficio Privado', icon: Factory, desc: 'Empresa privada que compra y procesa cafe de proveedores' },
+  { value: 'productor_grande', label: 'Productor Empresarial', icon: Sprout, desc: 'Finca o empresa que gestiona sus propias operaciones de origen y comercializacion' },
 ];
 
 const ACTIVITIES = [
   { value: 'produce', label: 'Produce', desc: 'Cultiva y cosecha en fincas propias o asociadas' },
-  { value: 'compra', label: 'Compra a terceros', desc: 'Adquiere café de productores, cooperativas u otros proveedores' },
-  { value: 'procesa', label: 'Procesa', desc: 'Beneficio húmedo/seco, despulpado, lavado, secado' },
+  { value: 'compra', label: 'Compra a terceros', desc: 'Adquiere cafe de productores, cooperativas u otros proveedores' },
+  { value: 'procesa', label: 'Procesa', desc: 'Beneficio humedo/seco, despulpado, lavado, secado' },
   { value: 'exporta', label: 'Exporta', desc: 'Vende a compradores internacionales directamente' },
 ];
 
 const CROPS = [
-  { value: 'cafe', label: 'Café', icon: Coffee },
+  { value: 'cafe', label: 'Cafe', icon: Coffee },
   { value: 'cacao', label: 'Cacao', icon: TreePine },
   { value: 'miel', label: 'Miel', icon: Sun },
   { value: 'cardamomo', label: 'Cardamomo', icon: Sprout },
@@ -72,14 +71,14 @@ const MONTHS = [
 ];
 
 const CHECKLIST_ITEMS = [
-  { key: 'crear_finca', label: 'Crear mi primera finca', icon: MapPin, desc: 'Registra ubicación y datos generales de tu finca principal' },
-  { key: 'registrar_parcela', label: 'Registrar una parcela', icon: TreePine, desc: 'Define un lote de cultivo con área, variedad y coordenadas' },
-  { key: 'agregar_actor', label: 'Agregar un productor o proveedor', icon: UserPlus, desc: 'Crea el primer actor dentro de tu organización' },
-  { key: 'crear_lote', label: 'Crear un lote de café', icon: Package, desc: 'Registra un lote de acopio o comercial' },
-  { key: 'registrar_entrega', label: 'Registrar primera entrega', icon: Truck, desc: 'Documenta una entrega de café con peso y calidad' },
-  { key: 'subir_evidencia', label: 'Subir una evidencia', icon: ClipboardCheck, desc: 'Fotografía, documento o certificado de cumplimiento' },
-  { key: 'configurar_usuarios', label: 'Configurar usuarios del equipo', icon: Users, desc: 'Invita técnicos, compradores o administradores' },
-  { key: 'revisar_dashboard', label: 'Revisar mi dashboard', icon: Shield, desc: 'Explora el panel principal y familiarízate con la navegación' },
+  { key: 'crear_finca', label: 'Crear mi primera finca', icon: MapPin, desc: 'Registra ubicacion y datos generales de tu finca principal' },
+  { key: 'registrar_parcela', label: 'Registrar una parcela', icon: TreePine, desc: 'Define un lote de cultivo con area, variedad y coordenadas' },
+  { key: 'agregar_actor', label: 'Agregar un productor o proveedor', icon: UserPlus, desc: 'Crea el primer actor dentro de tu organizacion' },
+  { key: 'crear_lote', label: 'Crear un lote de cafe', icon: Package, desc: 'Registra un lote de acopio o comercial' },
+  { key: 'registrar_entrega', label: 'Registrar primera entrega', icon: Truck, desc: 'Documenta una entrega de cafe con peso y calidad' },
+  { key: 'subir_evidencia', label: 'Subir una evidencia', icon: ClipboardCheck, desc: 'Fotografia, documento o certificado de cumplimiento' },
+  { key: 'configurar_usuarios', label: 'Configurar usuarios del equipo', icon: Users, desc: 'Invita tecnicos, compradores o administradores' },
+  { key: 'revisar_dashboard', label: 'Revisar mi dashboard', icon: Shield, desc: 'Explora el panel principal y familiarizate con la navegacion' },
 ];
 
 /** Derive suggested modules from wizard state */
@@ -90,6 +89,11 @@ function deriveSuggestedModules(state: WizardState): string[] {
   if (state.activities.includes('procesa')) modules.push('calidad', 'inventario');
   if (state.org_type === 'cooperativa') modules.push('creditos', 'mensajes');
   return [...new Set(modules)];
+}
+
+/** Build the array of completed step numbers up to (and including) current */
+function buildCompletedSteps(currentStep: number): number[] {
+  return Array.from({ length: currentStep }, (_, i) => i + 1);
 }
 
 export default function OnboardingOrganization() {
@@ -104,31 +108,40 @@ export default function OnboardingOrganization() {
 
   const update = (partial: Partial<WizardState>) => setState(prev => ({ ...prev, ...partial }));
 
-  const saveStep = async (nextStep: Step, profileFields: Record<string, unknown>, finalize = false) => {
+  const persistStep = useCallback(async (
+    nextStep: Step,
+    profileFields: Record<string, unknown>,
+    finalize = false
+  ) => {
     setSaving(true);
 
-    // Save profile fields
-    const profileResult = await saveProfile(profileFields);
-
-    // Save setup state
+    const completedStepNum = finalize ? TOTAL_STEPS : (nextStep as number) - 1;
     const modules = finalize ? deriveSuggestedModules(state) : undefined;
     const checklistData = finalize
       ? { items: state.checklist, modules, roles_text: state.roles_text }
       : undefined;
-    const stateResult = await saveSetupState(
-      finalize ? TOTAL_STEPS : (nextStep as number),
-      finalize,
-      checklistData
-    );
+
+    // Save profile + setup state in parallel
+    const [profileResult, stateResult] = await Promise.all([
+      Object.keys(profileFields).length > 0
+        ? saveProfile(profileFields)
+        : Promise.resolve({ ok: true }),
+      saveSetupState({
+        currentStep: finalize ? TOTAL_STEPS : (nextStep as number),
+        completedSteps: buildCompletedSteps(completedStepNum),
+        isCompleted: finalize,
+        checklist: checklistData,
+      }),
+    ]);
 
     setSaving(false);
 
     if (!profileResult.ok || !stateResult.ok) {
-      toast.info('Guardado parcialmente. Se reintentará con conexión.');
+      toast.info('Guardado parcialmente. Se reintentara con conexion.');
     }
 
     setStep(finalize ? 'done' : nextStep);
-  };
+  }, [state, saveProfile, saveSetupState]);
 
   const progressValue = step === 'done' ? 100 : ((step as number) / TOTAL_STEPS) * 100;
 
@@ -150,22 +163,22 @@ export default function OnboardingOrganization() {
 
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
         {step === 1 && <Step1 state={state} update={update} saving={saving}
-          onNext={() => saveStep(2, { org_type: state.org_type })} />}
+          onNext={() => persistStep(2, { org_type: state.org_type })} />}
         {step === 2 && <Step2 state={state} update={update} saving={saving}
-          onNext={() => saveStep(3, { activities: state.activities })}
+          onNext={() => persistStep(3, { activities: state.activities })}
           onBack={() => setStep(1)} />}
         {step === 3 && <Step3 state={state} update={update} saving={saving}
-          onNext={() => saveStep(4, {
+          onNext={() => persistStep(4, {
             crops: state.crops,
             season_start_month: state.season_start_month ? parseInt(state.season_start_month) : null,
             season_end_month: state.season_end_month ? parseInt(state.season_end_month) : null,
           })}
           onBack={() => setStep(2)} />}
         {step === 4 && <Step4 state={state} update={update} saving={saving}
-          onNext={() => saveStep(5, {})}
+          onNext={() => persistStep(5, { roles_text: state.roles_text })}
           onBack={() => setStep(3)} />}
         {step === 5 && <Step5 state={state} update={update} saving={saving}
-          onFinalize={() => saveStep('done', {}, true)}
+          onFinalize={() => persistStep('done', {}, true)}
           onBack={() => setStep(4)} />}
         {step === 'done' && <StepDone modules={deriveSuggestedModules(state)} onGo={() => navigate('/app')} />}
       </main>
@@ -191,11 +204,11 @@ function NavButtons({ onBack, onNext, nextLabel, disabled, saving }: {
     <div className="flex items-center justify-between pt-4">
       {onBack ? (
         <Button variant="ghost" onClick={onBack} disabled={saving}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
+          <ArrowLeft className="h-4 w-4 mr-1" /> Atras
         </Button>
       ) : <div />}
       <Button onClick={onNext} disabled={disabled || saving} size="lg">
-        {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Guardando…</> : (
+        {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Guardando...</> : (
           <>{nextLabel || 'Siguiente'} <ArrowRight className="h-4 w-4 ml-1" /></>
         )}
       </Button>
@@ -209,7 +222,7 @@ function Step1({ state, update, saving, onNext }: {
 }) {
   return (
     <div className="space-y-6">
-      <StepHeader title="¿Qué tipo de organización eres?" subtitle="Esto personaliza tu experiencia en Nova Silva." />
+      <StepHeader title="Que tipo de organizacion eres?" subtitle="Esto personaliza tu experiencia en Nova Silva." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {ORG_TYPES.map(opt => (
           <Card key={opt.value}
@@ -253,7 +266,7 @@ function Step2({ state, update, saving, onNext, onBack }: {
 
   return (
     <div className="space-y-6">
-      <StepHeader title="¿Qué actividades realizas?" subtitle="Selecciona todas las que apliquen a tu operación." />
+      <StepHeader title="Que actividades realizas?" subtitle="Selecciona todas las que apliquen a tu operacion." />
       <div className="space-y-3">
         {ACTIVITIES.map(a => (
           <Card key={a.value} className={cn('cursor-pointer transition-all',
@@ -285,7 +298,7 @@ function Step3({ state, update, saving, onNext, onBack }: {
 
   return (
     <div className="space-y-6">
-      <StepHeader title="Cultivos y temporada" subtitle="¿Qué produces y cuándo es tu cosecha principal?" />
+      <StepHeader title="Cultivos y temporada" subtitle="Que produces y cuando es tu cosecha principal?" />
       <div>
         <Label className="text-sm font-medium mb-3 block">Cultivos principales</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -341,19 +354,19 @@ function Step4({ state, update, saving, onNext, onBack }: {
 }) {
   return (
     <div className="space-y-6">
-      <StepHeader title="Roles y estructura de equipo" subtitle="Describe brevemente tu equipo. Podrás configurar usuarios después." />
+      <StepHeader title="Roles y estructura de equipo" subtitle="Describe brevemente tu equipo. Podras configurar usuarios despues." />
       <Card>
         <CardContent className="pt-5 space-y-4">
           <div className="space-y-2">
             <Label>Describe tu equipo y roles internos</Label>
             <textarea
               className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Ej: 2 administradores, 5 técnicos de campo, 3 compradores de acopio, 1 catador, 1 gerente de logística…"
+              placeholder="Ej: 2 administradores, 5 tecnicos de campo, 3 compradores de acopio, 1 catador, 1 gerente de logistica..."
               value={state.roles_text}
               onChange={e => update({ roles_text: e.target.value })}
             />
             <p className="text-xs text-muted-foreground">
-              Esta información nos ayuda a sugerir la estructura de permisos y accesos para tu equipo.
+              Esta informacion nos ayuda a sugerir la estructura de permisos y accesos para tu equipo.
             </p>
           </div>
         </CardContent>
@@ -363,7 +376,7 @@ function Step4({ state, update, saving, onNext, onBack }: {
   );
 }
 
-// ── Step 5: Checklist 7 días ──
+// ── Step 5: Checklist 7 dias ──
 function Step5({ state, update, saving, onFinalize, onBack }: {
   state: WizardState; update: (p: Partial<WizardState>) => void; saving: boolean; onFinalize: () => void; onBack: () => void;
 }) {
@@ -375,7 +388,7 @@ function Step5({ state, update, saving, onFinalize, onBack }: {
 
   return (
     <div className="space-y-6">
-      <StepHeader title="Tu plan para los primeros 7 días" subtitle="Marca las tareas que planeas completar. Podrás verlas después en tu dashboard." />
+      <StepHeader title="Tu plan para los primeros 7 dias" subtitle="Marca las tareas que planeas completar. Podras verlas despues en tu dashboard." />
       <Badge variant="outline" className="text-xs">{completed} de {CHECKLIST_ITEMS.length} planificados</Badge>
       <div className="space-y-3">
         {CHECKLIST_ITEMS.map(item => (
@@ -400,11 +413,11 @@ function Step5({ state, update, saving, onFinalize, onBack }: {
       </div>
       <div className="flex items-center justify-between pt-4">
         <Button variant="ghost" onClick={onBack} disabled={saving}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
+          <ArrowLeft className="h-4 w-4 mr-1" /> Atras
         </Button>
         <Button onClick={onFinalize} disabled={saving} size="lg">
-          {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Finalizando…</> : (
-            <><CheckCircle className="h-4 w-4 mr-1" /> Finalizar configuración</>
+          {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Finalizando...</> : (
+            <><CheckCircle className="h-4 w-4 mr-1" /> Finalizar configuracion</>
           )}
         </Button>
       </div>
@@ -419,13 +432,13 @@ function StepDone({ modules, onGo }: { modules: string[]; onGo: () => void }) {
       <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
         <Sparkles className="h-8 w-8 text-primary" />
       </div>
-      <h2 className="text-2xl font-bold text-foreground">¡Configuración completada!</h2>
-      <p className="text-muted-foreground">Tu organización está lista. Hemos activado los módulos recomendados.</p>
+      <h2 className="text-2xl font-bold text-foreground">Configuracion completada!</h2>
+      <p className="text-muted-foreground">Tu organizacion esta lista. Hemos activado los modulos recomendados.</p>
 
       {modules.length > 0 && (
         <Card className="text-left border-primary/30 bg-primary/5">
           <CardContent className="pt-5 pb-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Módulos sugeridos</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Modulos sugeridos</p>
             <div className="flex flex-wrap gap-2">
               {modules.map(m => (
                 <Badge key={m} variant="secondary" className="text-xs">{m.replace(/_/g, ' ')}</Badge>

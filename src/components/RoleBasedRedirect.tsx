@@ -26,22 +26,20 @@ const RoleBasedRedirect: React.FC = () => {
       return;
     }
 
-    // No org → onboarding
-    if (!user.organizationId && !user.id.startsWith('demo-')) {
+    const isDemo = user.id.startsWith('demo-');
+
+    // No org and not demo -> onboarding
+    if (!user.organizationId && !isDemo) {
       navigate("/onboarding/organization");
       return;
     }
 
-    // Org exists but setup not completed → force wizard
-    if (user.organizationId && !user.id.startsWith('demo-') && setupState && !setupState.is_completed) {
-      navigate("/onboarding/organization");
-      return;
-    }
-
-    // Setup state doesn't exist yet (null) for non-demo → also onboarding
-    if (user.organizationId && !user.id.startsWith('demo-') && setupState === null) {
-      navigate("/onboarding/organization");
-      return;
+    // Org exists but setup not completed -> force wizard (non-demo only)
+    if (user.organizationId && !isDemo) {
+      if (setupState === null || setupState?.is_completed === false) {
+        navigate("/onboarding/organization");
+        return;
+      }
     }
 
     navigate(ROLE_REDIRECTS[user.role] ?? "/login");
@@ -49,7 +47,7 @@ const RoleBasedRedirect: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <p className="text-muted-foreground">Redirigiendo…</p>
+      <p className="text-muted-foreground">Redirigiendo...</p>
     </div>
   );
 };
