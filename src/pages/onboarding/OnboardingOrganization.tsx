@@ -15,28 +15,52 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import {
   Leaf, ArrowRight, ArrowLeft, Loader2, CheckCircle, Users, Ship, Package,
-  Factory, Globe, Shield, Sprout, Bug, Target, Gauge, WifiOff, Sparkles
+  Factory, Globe, Shield, Sprout, Bug, Target, Gauge, WifiOff, Sparkles,
+  Coffee, TreePine, Sun, Calendar, UserPlus, ClipboardCheck, MapPin, Truck
 } from 'lucide-react';
 
 // ── Types ──
 type OrgType = 'cooperativa' | 'exportador' | 'beneficio_privado' | 'productor_independiente';
-type Step = 1 | 2 | 3 | 4 | 5 | 'done';
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 'done';
+
+const TOTAL_STEPS = 8;
 
 interface WizardState {
+  // Step 1
   org_type: OrgType | null;
+  // Step 2
   has_farm: boolean;
   has_mill: boolean;
   buys_from_others: boolean;
   exports_direct: boolean;
+  // Step 3
   target_markets: string[];
   needs_eudr: boolean;
+  // Step 4
   needs_labor: boolean;
   needs_yield: boolean;
   needs_guard: boolean;
   needs_vital: boolean;
+  // Step 5
   scale_producers: string;
   scale_parcels: string;
   scale_lots_month: string;
+  // Step 6 — Cultivos y temporada
+  crops: string[];
+  harvest_months_start: string;
+  harvest_months_end: string;
+  // Step 7 — Roles y estructura
+  roles_tecnico: number;
+  roles_comprador: number;
+  roles_admin: number;
+  roles_other: string;
+  // Step 8 — Checklist
+  checklist_finca: boolean;
+  checklist_parcela: boolean;
+  checklist_productor: boolean;
+  checklist_lote: boolean;
+  checklist_cosecha: boolean;
+  checklist_evidencia: boolean;
 }
 
 const INITIAL: WizardState = {
@@ -45,6 +69,10 @@ const INITIAL: WizardState = {
   target_markets: [], needs_eudr: false,
   needs_labor: false, needs_yield: false, needs_guard: false, needs_vital: false,
   scale_producers: '', scale_parcels: '', scale_lots_month: '',
+  crops: [], harvest_months_start: '', harvest_months_end: '',
+  roles_tecnico: 0, roles_comprador: 0, roles_admin: 1, roles_other: '',
+  checklist_finca: false, checklist_parcela: false, checklist_productor: false,
+  checklist_lote: false, checklist_cosecha: false, checklist_evidencia: false,
 };
 
 // ── Constants ──
@@ -67,6 +95,28 @@ const MODULES_INFO = [
   { key: 'needs_vital' as const, label: 'Protocolo VITAL', icon: Gauge, desc: 'Diagnóstico integral de sostenibilidad (ambiental, social, económica)' },
 ];
 
+const CROPS = [
+  { value: 'cafe', label: 'Café', icon: Coffee },
+  { value: 'cacao', label: 'Cacao', icon: TreePine },
+  { value: 'miel', label: 'Miel', icon: Sun },
+  { value: 'cardamomo', label: 'Cardamomo', icon: Sprout },
+  { value: 'otro', label: 'Otro', icon: Leaf },
+];
+
+const MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
+const CHECKLIST_ITEMS = [
+  { key: 'checklist_finca' as const, label: 'Crear mi primera finca', icon: MapPin, desc: 'Registra la ubicación y datos generales de tu finca principal' },
+  { key: 'checklist_parcela' as const, label: 'Registrar una parcela', icon: TreePine, desc: 'Define un lote de cultivo con área, variedad y coordenadas' },
+  { key: 'checklist_productor' as const, label: 'Agregar un productor o proveedor', icon: UserPlus, desc: 'Crea el primer actor dentro de tu organización' },
+  { key: 'checklist_lote' as const, label: 'Crear un lote de café', icon: Package, desc: 'Registra un lote de acopio o comercial' },
+  { key: 'checklist_cosecha' as const, label: 'Registrar primera entrega', icon: Truck, desc: 'Documenta una entrega de café con peso y calidad' },
+  { key: 'checklist_evidencia' as const, label: 'Subir una evidencia', icon: ClipboardCheck, desc: 'Fotografía, documento o certificado de cumplimiento' },
+];
+
 export default function OnboardingOrganization() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -80,7 +130,6 @@ export default function OnboardingOrganization() {
   const [recommendation, setRecommendation] = useState<Record<string, unknown> | null>(null);
   const hasOfflineQueue = getQueue().length > 0;
 
-  // Retry queued items on mount & online
   useEffect(() => {
     retryQueue();
     const handler = () => retryQueue();
@@ -92,7 +141,7 @@ export default function OnboardingOrganization() {
 
   const saveAndAdvance = async (nextStep: Step, payload: Record<string, unknown>, finalize = false) => {
     setSaving(true);
-    const { ok, error } = await upsertProfile(payload, finalize);
+    const { ok } = await upsertProfile(payload, finalize);
     setSaving(false);
 
     if (!ok) {
@@ -100,14 +149,12 @@ export default function OnboardingOrganization() {
     }
 
     if (finalize) {
-      // Fetch recommendation
       setSaving(true);
       const rec = await getRecommendation();
       setSaving(false);
       if (rec.ok && rec.data) {
         setRecommendation(rec.data);
       } else {
-        // Show a generic recommendation if RPC fails
         setRecommendation({ message: 'Tu organización ha sido configurada exitosamente. Los módulos recomendados se activarán automáticamente.' });
       }
       setStep('done');
@@ -116,11 +163,10 @@ export default function OnboardingOrganization() {
     }
   };
 
-  const progressValue = step === 'done' ? 100 : ((step as number) / 5) * 100;
+  const progressValue = step === 'done' ? 100 : ((step as number) / TOTAL_STEPS) * 100;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="border-b border-border px-6 py-4 flex items-center gap-3">
         <div className="p-2 rounded-lg bg-primary/10">
           <Leaf className="h-5 w-5 text-primary" />
@@ -133,17 +179,15 @@ export default function OnboardingOrganization() {
             </Badge>
           )}
           {step !== 'done' && (
-            <span className="text-sm text-muted-foreground">Paso {step as number} de 5</span>
+            <span className="text-sm text-muted-foreground">Paso {step as number} de {TOTAL_STEPS}</span>
           )}
         </div>
       </header>
 
-      {/* Progress */}
       <div className="px-6 pt-4">
         <Progress value={progressValue} className="h-1.5" />
       </div>
 
-      {/* Content */}
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
         {step === 1 && <Step1OrgType state={state} update={update} saving={saving} onNext={() =>
           saveAndAdvance(2, { org_type: state.org_type })
@@ -169,12 +213,40 @@ export default function OnboardingOrganization() {
           onBack={() => setStep(3)}
         />}
         {step === 5 && <Step5Escala state={state} update={update} saving={saving}
-          onFinalize={() => saveAndAdvance('done', {
+          onNext={() => saveAndAdvance(6, {
             scale_producers: state.scale_producers,
             scale_parcels: state.scale_parcels,
             scale_lots_month: state.scale_lots_month,
-          }, true)}
+          })}
           onBack={() => setStep(4)}
+        />}
+        {step === 6 && <Step6Cultivos state={state} update={update} saving={saving}
+          onNext={() => saveAndAdvance(7, {
+            crops: state.crops,
+            harvest_months_start: state.harvest_months_start,
+            harvest_months_end: state.harvest_months_end,
+          })}
+          onBack={() => setStep(5)}
+        />}
+        {step === 7 && <Step7Roles state={state} update={update} saving={saving}
+          onNext={() => saveAndAdvance(8, {
+            roles_tecnico: state.roles_tecnico,
+            roles_comprador: state.roles_comprador,
+            roles_admin: state.roles_admin,
+            roles_other: state.roles_other,
+          })}
+          onBack={() => setStep(6)}
+        />}
+        {step === 8 && <Step8Checklist state={state} update={update} saving={saving}
+          onFinalize={() => saveAndAdvance('done', {
+            checklist_finca: state.checklist_finca,
+            checklist_parcela: state.checklist_parcela,
+            checklist_productor: state.checklist_productor,
+            checklist_lote: state.checklist_lote,
+            checklist_cosecha: state.checklist_cosecha,
+            checklist_evidencia: state.checklist_evidencia,
+          }, true)}
+          onBack={() => setStep(7)}
         />}
         {step === 'done' && <StepDone recommendation={recommendation} onGo={() => {
           window.location.href = '/app';
@@ -184,7 +256,7 @@ export default function OnboardingOrganization() {
   );
 }
 
-// ── Step Components ──
+// ── Shared Components ──
 
 function StepHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -300,7 +372,6 @@ function Step3Mercado({ state, update, saving, onNext, onBack }: {
   return (
     <div className="space-y-6">
       <StepHeader title="Mercado y cumplimiento" subtitle="¿A dónde vendes tu café y qué regulaciones necesitas cumplir?" />
-
       <div>
         <Label className="text-sm font-medium mb-3 block">Mercados objetivo (selecciona todos los que apliquen)</Label>
         <div className="flex flex-wrap gap-2">
@@ -315,7 +386,6 @@ function Step3Mercado({ state, update, saving, onNext, onBack }: {
           ))}
         </div>
       </div>
-
       <Card className={cn('cursor-pointer transition-all',
         state.needs_eudr ? 'border-primary/50 bg-primary/5' : ''
       )} onClick={() => update({ needs_eudr: !state.needs_eudr })}>
@@ -332,7 +402,6 @@ function Step3Mercado({ state, update, saving, onNext, onBack }: {
           </div>
         </CardContent>
       </Card>
-
       <NavButtons onBack={onBack} onNext={onNext} saving={saving} />
     </div>
   );
@@ -369,15 +438,15 @@ function Step4Modulos({ state, update, saving, onNext, onBack }: {
 }
 
 // ── Step 5: Escala ──
-function Step5Escala({ state, update, saving, onFinalize, onBack }: {
-  state: WizardState; update: (p: Partial<WizardState>) => void; saving: boolean; onFinalize: () => void; onBack: () => void;
+function Step5Escala({ state, update, saving, onNext, onBack }: {
+  state: WizardState; update: (p: Partial<WizardState>) => void; saving: boolean; onNext: () => void; onBack: () => void;
 }) {
   return (
     <div className="space-y-6">
       <StepHeader title="Escala de tu operación" subtitle="Esto nos ayuda a optimizar tu experiencia y recomendaciones." />
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="scale-prod">¿Cuántos productores o proveedores gestionas?</Label>
+          <Label>¿Cuántos productores o proveedores gestionas?</Label>
           <Select value={state.scale_producers} onValueChange={v => update({ scale_producers: v })}>
             <SelectTrigger><SelectValue placeholder="Seleccionar rango" /></SelectTrigger>
             <SelectContent>
@@ -391,7 +460,7 @@ function Step5Escala({ state, update, saving, onFinalize, onBack }: {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="scale-parcels">¿Cuántas parcelas o fincas administras?</Label>
+          <Label>¿Cuántas parcelas o fincas administras?</Label>
           <Select value={state.scale_parcels} onValueChange={v => update({ scale_parcels: v })}>
             <SelectTrigger><SelectValue placeholder="Seleccionar rango" /></SelectTrigger>
             <SelectContent>
@@ -404,7 +473,7 @@ function Step5Escala({ state, update, saving, onFinalize, onBack }: {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="scale-lots">¿Cuántos lotes de café procesas por mes?</Label>
+          <Label>¿Cuántos lotes de café procesas por mes?</Label>
           <Select value={state.scale_lots_month} onValueChange={v => update({ scale_lots_month: v })}>
             <SelectTrigger><SelectValue placeholder="Seleccionar rango" /></SelectTrigger>
             <SelectContent>
@@ -417,6 +486,170 @@ function Step5Escala({ state, update, saving, onFinalize, onBack }: {
           </Select>
         </div>
       </div>
+      <NavButtons onBack={onBack} onNext={onNext} saving={saving} />
+    </div>
+  );
+}
+
+// ── Step 6: Cultivos y temporada ──
+function Step6Cultivos({ state, update, saving, onNext, onBack }: {
+  state: WizardState; update: (p: Partial<WizardState>) => void; saving: boolean; onNext: () => void; onBack: () => void;
+}) {
+  const toggleCrop = (c: string) => {
+    const crops = state.crops.includes(c) ? state.crops.filter(x => x !== c) : [...state.crops, c];
+    update({ crops });
+  };
+
+  return (
+    <div className="space-y-6">
+      <StepHeader title="Cultivos y temporada" subtitle="¿Qué produces y cuándo es tu cosecha principal?" />
+
+      <div>
+        <Label className="text-sm font-medium mb-3 block">Cultivos principales</Label>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {CROPS.map(c => (
+            <Card key={c.value} className={cn('cursor-pointer transition-all',
+              state.crops.includes(c.value) ? 'border-primary/50 bg-primary/5 ring-1 ring-primary/30' : 'hover:border-primary/30'
+            )} onClick={() => toggleCrop(c.value)}>
+              <CardContent className="py-3 px-4 flex items-center gap-3">
+                <div className={cn('h-8 w-8 rounded-md flex items-center justify-center',
+                  state.crops.includes(c.value) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                )}>
+                  <c.icon className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium text-foreground">{c.label}</span>
+                {state.crops.includes(c.value) && <CheckCircle className="h-4 w-4 text-primary ml-auto" />}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+            Inicio de cosecha
+          </Label>
+          <Select value={state.harvest_months_start} onValueChange={v => update({ harvest_months_start: v })}>
+            <SelectTrigger><SelectValue placeholder="Mes de inicio" /></SelectTrigger>
+            <SelectContent>
+              {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+            Fin de cosecha
+          </Label>
+          <Select value={state.harvest_months_end} onValueChange={v => update({ harvest_months_end: v })}>
+            <SelectTrigger><SelectValue placeholder="Mes de cierre" /></SelectTrigger>
+            <SelectContent>
+              {MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <NavButtons onBack={onBack} onNext={onNext} disabled={state.crops.length === 0} saving={saving} />
+    </div>
+  );
+}
+
+// ── Step 7: Roles y estructura ──
+function Step7Roles({ state, update, saving, onNext, onBack }: {
+  state: WizardState; update: (p: Partial<WizardState>) => void; saving: boolean; onNext: () => void; onBack: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <StepHeader title="Roles y estructura de equipo" subtitle="¿Cuántos usuarios internos necesitas? Podrás ajustarlo después." />
+
+      <div className="space-y-4">
+        {[
+          { key: 'roles_admin' as const, label: 'Administradores', desc: 'Acceso completo a la organización', icon: Shield },
+          { key: 'roles_tecnico' as const, label: 'Técnicos de campo', desc: 'Visitas, diagnósticos y seguimiento de fincas', icon: Users },
+          { key: 'roles_comprador' as const, label: 'Compradores / Acopiadores', desc: 'Registro de entregas, pesaje y calidad', icon: Package },
+        ].map(r => (
+          <Card key={r.key}>
+            <CardContent className="py-4 px-4 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <r.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">{r.label}</p>
+                <p className="text-xs text-muted-foreground">{r.desc}</p>
+              </div>
+              <Input
+                type="number"
+                min={0}
+                max={999}
+                value={state[r.key]}
+                onChange={e => update({ [r.key]: parseInt(e.target.value) || 0 })}
+                className="w-20 text-center"
+              />
+            </CardContent>
+          </Card>
+        ))}
+
+        <div className="space-y-2">
+          <Label>Otros roles o notas sobre estructura</Label>
+          <Input
+            placeholder="Ej: 2 catadores, 1 gerente de logística…"
+            value={state.roles_other}
+            onChange={e => update({ roles_other: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <NavButtons onBack={onBack} onNext={onNext} saving={saving} />
+    </div>
+  );
+}
+
+// ── Step 8: Checklist primeros 7 días ──
+function Step8Checklist({ state, update, saving, onFinalize, onBack }: {
+  state: WizardState; update: (p: Partial<WizardState>) => void; saving: boolean; onFinalize: () => void; onBack: () => void;
+}) {
+  const completed = CHECKLIST_ITEMS.filter(i => state[i.key]).length;
+
+  return (
+    <div className="space-y-6">
+      <StepHeader
+        title="Tu checklist de inicio"
+        subtitle="Marca lo que planeas hacer en tus primeros 7 días. No te preocupes, podrás completarlo después."
+      />
+
+      <div className="flex items-center gap-2 mb-2">
+        <Badge variant="outline" className="text-xs">
+          {completed} de {CHECKLIST_ITEMS.length} planificados
+        </Badge>
+      </div>
+
+      <div className="space-y-3">
+        {CHECKLIST_ITEMS.map(item => (
+          <Card key={item.key} className={cn('cursor-pointer transition-all',
+            state[item.key] ? 'border-primary/50 bg-primary/5' : ''
+          )} onClick={() => update({ [item.key]: !state[item.key] })}>
+            <CardContent className="py-3 px-4 flex items-center gap-3">
+              <Checkbox checked={state[item.key]} onCheckedChange={() => update({ [item.key]: !state[item.key] })} />
+              <div className={cn('h-8 w-8 rounded-md flex items-center justify-center shrink-0',
+                state[item.key] ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              )}>
+                <item.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className={cn('text-sm font-medium', state[item.key] ? 'text-foreground' : 'text-foreground/80')}>
+                  {item.label}
+                </p>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              </div>
+              {state[item.key] && <CheckCircle className="h-4 w-4 text-primary ml-auto shrink-0" />}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <div className="flex items-center justify-between pt-4">
         <Button variant="ghost" onClick={onBack} disabled={saving}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
