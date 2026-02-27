@@ -6,7 +6,6 @@ import { Sidebar } from './Sidebar';
 import { UserRole } from '@/types';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DevTenantInspector } from '@/components/dev/DevTenantInspector';
 
 interface DashboardLayoutProps { children: ReactNode; requiredRole?: UserRole | UserRole[]; }
 
@@ -52,7 +51,6 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
             {children}
           </main>
         </div>
-        <DevTenantInspector />
       </div>
     </ActorProvider>
   );
