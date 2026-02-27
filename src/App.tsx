@@ -129,7 +129,8 @@ const App = () => (
               <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />
               <Route path="/mi-plan" element={<Navigate to="/billing" replace />} />
               <Route path="/billing" element={<DashboardLayout><BillingReadOnly /></DashboardLayout>} />
-              <Route path="/alertas" element={<DashboardLayout><AlertasPage /></DashboardLayout>} />
+              <Route path="/alerts" element={<DashboardLayout><AlertasPage /></DashboardLayout>} />
+              <Route path="/alertas" element={<Navigate to="/alerts" replace />} />
 
               {/* ── COOPERATIVA ── */}
               <Route path="/cooperativa" element={<Navigate to="/cooperativa/dashboard" replace />} />

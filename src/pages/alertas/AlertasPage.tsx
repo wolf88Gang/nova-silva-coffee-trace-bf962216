@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, CheckCircle2, XCircle, Eye, Filter } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, XCircle, Eye, Filter, Clock, Activity, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,11 +21,23 @@ const SEVERITY_BADGE: Record<string, string> = {
   low: 'bg-muted text-muted-foreground',
 };
 
+const SEVERITY_LABEL: Record<string, string> = {
+  critical: 'Crítica',
+  high: 'Alta',
+  medium: 'Media',
+  low: 'Baja',
+};
+
 const STATUS_LABEL: Record<string, string> = {
   open: 'Abierta',
   ack: 'Reconocida',
   closed: 'Cerrada',
 };
+
+function formatDate(d: string | null) {
+  if (!d) return '—';
+  return new Date(d).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' });
+}
 
 export default function AlertasPage() {
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -48,7 +61,9 @@ export default function AlertasPage() {
   const handleAction = (id: string, status: 'ack' | 'closed') => {
     mutation.mutate({ id, status }, {
       onSuccess: () => toast.success(status === 'ack' ? 'Alerta reconocida' : 'Alerta cerrada'),
-      onError: () => toast.error('Error al actualizar la alerta'),
+      onError: (err: any) => toast.error(err?.message?.includes('policy') 
+        ? 'Sin permisos para actualizar. Contacta al administrador.' 
+        : 'Error al actualizar la alerta'),
     });
   };
 
@@ -59,6 +74,8 @@ export default function AlertasPage() {
     setDateFrom('');
     setDateTo('');
   };
+
+  const hasFilters = statusFilter || severity || issueCode || dateFrom || dateTo;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -73,6 +90,11 @@ export default function AlertasPage() {
           <div className="flex items-center gap-2 mb-3">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium text-foreground">Filtros</span>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={clearFilters}>
+                Limpiar
+              </Button>
+            )}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -95,13 +117,9 @@ export default function AlertasPage() {
             </Select>
 
             <Input placeholder="Código de issue" value={issueCode} onChange={e => setIssueCode(e.target.value)} />
-
             <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} title="Desde" />
             <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} title="Hasta" />
           </div>
-          {(statusFilter || severity || issueCode || dateFrom || dateTo) && (
-            <Button variant="ghost" size="sm" className="mt-2" onClick={clearFilters}>Limpiar filtros</Button>
-          )}
         </CardContent>
       </Card>
 
@@ -110,7 +128,7 @@ export default function AlertasPage() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
-              {[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : isError ? (
             <div className="p-8 text-center text-destructive">
@@ -129,6 +147,7 @@ export default function AlertasPage() {
                   <TableHead>Severidad</TableHead>
                   <TableHead>Título</TableHead>
                   <TableHead>Código</TableHead>
+                  <TableHead>Métrica</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -136,34 +155,43 @@ export default function AlertasPage() {
               </TableHeader>
               <TableBody>
                 {alerts.map(a => (
-                  <TableRow key={a.id}>
+                  <TableRow key={a.id} className="group">
                     <TableCell>
                       <Badge className={SEVERITY_BADGE[a.severity] ?? 'bg-muted text-muted-foreground'}>
-                        {a.severity}
+                        {SEVERITY_LABEL[a.severity] ?? a.severity}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium text-foreground max-w-[240px] truncate">{a.title}</TableCell>
+                    <TableCell className="font-medium text-foreground max-w-[220px] truncate">{a.title}</TableCell>
                     <TableCell><code className="text-xs text-muted-foreground">{a.issue_code}</code></TableCell>
+                    <TableCell className="text-sm">
+                      {a.metric_key ? (
+                        <span className="text-muted-foreground">
+                          {a.metric_key}: <span className="font-mono text-foreground">{a.metric_value ?? '—'}</span>
+                        </span>
+                      ) : '—'}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{STATUS_LABEL[a.status] ?? a.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {new Date(a.created_at).toLocaleDateString('es')}
                     </TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button variant="ghost" size="icon" title="Ver detalle" onClick={() => setSelected(a)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {a.status === 'open' && (
-                        <Button variant="ghost" size="icon" title="Reconocer" onClick={() => handleAction(a.id, 'ack')} disabled={mutation.isPending}>
-                          <CheckCircle2 className="h-4 w-4 text-warning" />
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" title="Ver detalle" onClick={() => setSelected(a)}>
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
-                      {a.status !== 'closed' && (
-                        <Button variant="ghost" size="icon" title="Cerrar" onClick={() => handleAction(a.id, 'closed')} disabled={mutation.isPending}>
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
+                        {a.status === 'open' && (
+                          <Button variant="ghost" size="icon" title="Reconocer" onClick={() => handleAction(a.id, 'ack')} disabled={mutation.isPending}>
+                            <CheckCircle2 className="h-4 w-4 text-warning" />
+                          </Button>
+                        )}
+                        {a.status !== 'closed' && (
+                          <Button variant="ghost" size="icon" title="Cerrar" onClick={() => handleAction(a.id, 'closed')} disabled={mutation.isPending}>
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -184,59 +212,110 @@ export default function AlertasPage() {
           </DialogHeader>
           {selected && (
             <div className="space-y-4">
+              {/* Título y mensaje */}
               <div>
                 <p className="text-sm font-medium text-foreground">{selected.title}</p>
                 {selected.message && <p className="text-sm text-muted-foreground mt-1">{selected.message}</p>}
               </div>
+
+              {/* Metadata grid */}
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Código:</span>
-                  <span className="ml-2 font-mono">{selected.issue_code}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Severidad:</span>
-                  <Badge className={`ml-2 ${SEVERITY_BADGE[selected.severity] ?? ''}`}>{selected.severity}</Badge>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Estado:</span>
-                  <span className="ml-2">{STATUS_LABEL[selected.status] ?? selected.status}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Creada:</span>
-                  <span className="ml-2">{new Date(selected.created_at).toLocaleString('es')}</span>
-                </div>
+                <DetailField label="Código" value={selected.issue_code} mono />
+                <DetailField label="Severidad">
+                  <Badge className={SEVERITY_BADGE[selected.severity] ?? ''}>{SEVERITY_LABEL[selected.severity] ?? selected.severity}</Badge>
+                </DetailField>
+                <DetailField label="Estado" value={STATUS_LABEL[selected.status] ?? selected.status} />
+                <DetailField label="Creada" value={formatDate(selected.created_at)} />
               </div>
+
+              {/* Métrica y ventana temporal */}
+              {(selected.metric_key || selected.window_start) && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                      <Activity className="h-3.5 w-3.5" /> Métrica y ventana
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      {selected.metric_key && (
+                        <DetailField label="Métrica">
+                          <span className="font-mono text-foreground">{selected.metric_key} = {selected.metric_value ?? '—'}</span>
+                        </DetailField>
+                      )}
+                      {selected.window_start && (
+                        <DetailField label="Ventana">
+                          <div className="flex items-center gap-1 text-xs">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            {formatDate(selected.window_start)} → {formatDate(selected.window_end)}
+                          </div>
+                        </DetailField>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Regla vinculada */}
+              {selected.agro_alert_rules && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5" /> Regla de detección
+                    </p>
+                    <div className="text-sm space-y-1">
+                      <p className="text-foreground font-medium">{selected.agro_alert_rules.rule_name ?? 'Sin nombre'}</p>
+                      {selected.agro_alert_rules.description && (
+                        <p className="text-muted-foreground text-xs">{selected.agro_alert_rules.description}</p>
+                      )}
+                      {selected.agro_alert_rules.metric_key && (
+                        <p className="text-xs text-muted-foreground">
+                          Umbral: <span className="font-mono">{selected.agro_alert_rules.metric_key} {selected.agro_alert_rules.threshold_operator} {selected.agro_alert_rules.threshold_value}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Payload */}
               {selected.payload && Object.keys(selected.payload).length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-foreground mb-1">Datos adicionales</p>
-                  <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-40">
-                    {JSON.stringify(selected.payload, null, 2)}
-                  </pre>
-                  {/* Links a parcela/lote si existen */}
-                  <div className="flex gap-2 mt-2">
-                    {(selected.payload as any).parcela_id && (
-                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => { setSelected(null); navigate('/productor/produccion'); }}>
-                        Ver parcela →
-                      </Button>
-                    )}
-                    {(selected.payload as any).lote_id && (
-                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => { setSelected(null); navigate('/cooperativa/acopio'); }}>
-                        Ver lote →
-                      </Button>
-                    )}
-                    {(selected.payload as any).impact_id && (
-                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => { setSelected(null); navigate('/cooperativa/vital'); }}>
-                        Ver diagnóstico →
-                      </Button>
-                    )}
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Payload</p>
+                    <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-40">
+                      {JSON.stringify(selected.payload, null, 2)}
+                    </pre>
+                    <div className="flex gap-3 mt-2">
+                      {(selected.payload as any).parcela_id && (
+                        <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => { setSelected(null); navigate('/productor/produccion'); }}>
+                          Ver parcela →
+                        </Button>
+                      )}
+                      {(selected.payload as any).lote_id && (
+                        <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => { setSelected(null); navigate('/cooperativa/acopio'); }}>
+                          Ver lote →
+                        </Button>
+                      )}
+                      {(selected.payload as any).impact_id && (
+                        <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => { setSelected(null); navigate('/cooperativa/vital'); }}>
+                          Ver diagnóstico →
+                        </Button>
+                      )}
+                      {(selected.payload as any).diagnostic_id && (
+                        <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => { setSelected(null); navigate('/cooperativa/vital'); }}>
+                          Ver diagnóstico →
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Acciones */}
-              <div className="flex gap-2 pt-2 border-t border-border">
+              <Separator />
+              <div className="flex gap-2">
                 {selected.status === 'open' && (
                   <Button size="sm" variant="outline" onClick={() => { handleAction(selected.id, 'ack'); setSelected(null); }}>
                     <CheckCircle2 className="h-4 w-4 mr-1" /> Reconocer
@@ -247,11 +326,28 @@ export default function AlertasPage() {
                     <XCircle className="h-4 w-4 mr-1" /> Cerrar
                   </Button>
                 )}
+                {selected.status === 'closed' && (
+                  <p className="text-xs text-muted-foreground italic">Esta alerta ya fue cerrada.</p>
+                )}
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/** Small helper for detail fields */
+function DetailField({ label, value, mono, children }: {
+  label: string; value?: string; mono?: boolean; children?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <div className={`mt-0.5 ${mono ? 'font-mono text-sm' : 'text-sm'}`}>
+        {children ?? <span className="text-foreground">{value ?? '—'}</span>}
+      </div>
     </div>
   );
 }
