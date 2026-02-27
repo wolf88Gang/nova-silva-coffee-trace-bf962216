@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChevronLeft, ChevronRight, CheckCircle, Clock, AlertTriangle, Shield, Save } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, Shield, Save, ChevronLeft, Wifi, WifiOff } from 'lucide-react';
+import { WizardProgress, WizardStepNav, WizardNavButtons, WizardQuestionCard } from '@/components/wizard';
+import { useWizardState, type WizardStepDef } from '@/hooks/useWizardState';
+import { enqueue, getPending } from '@/lib/offlineQueue';
+import { useToast } from '@/hooks/use-toast';
 import {
   DIMENSIONES_DIAGNOSTICO, OPCIONES_DIAGNOSTICO,
   getSemaforo, getRecomendacion, getTotalPreguntas,
@@ -22,60 +22,74 @@ interface ResultadoDimension {
   recomendacion: string;
 }
 
-// Mock historial
 const HISTORIAL_MOCK = [
   { id: '1', fecha: '2025-09-15', evaluador: 'Carlos Mendoza', promedioGlobal: 2.4, nivel: 'ambar' as NivelSemaforo },
   { id: '2', fecha: '2025-03-20', evaluador: 'Ana Ramírez', promedioGlobal: 1.9, nivel: 'rojo' as NivelSemaforo },
 ];
 
+const steps: WizardStepDef[] = DIMENSIONES_DIAGNOSTICO.map(d => ({
+  id: d.id,
+  label: d.nombre.split(' ')[0],
+  questionCount: d.preguntas.length,
+}));
+
+const allCodes = DIMENSIONES_DIAGNOSTICO.flatMap(d => d.preguntas.map(p => p.codigo));
+
+const REC_LABELS: Record<string, string> = {
+  fortalecimiento_previo: 'Fortalecimiento previo requerido antes de implementación tecnológica',
+  piloto_parcial: 'Piloto parcial recomendado con acompañamiento técnico',
+  implementacion_completa: 'Implementación completa viable',
+};
+
 export default function VitalOrgWizard() {
-  const [iniciado, setIniciado] = useState(false);
-  const [dimIdx, setDimIdx] = useState(0);
-  const [respuestas, setRespuestas] = useState<Map<string, number>>(new Map());
-  const [completado, setCompletado] = useState(false);
+  const { toast } = useToast();
+  const wizard = useWizardState<number>({
+    steps,
+    questionCodes: allCodes,
+    persistence: { storageKey: 'novasilva_diag_org', debounceMs: 300 },
+  });
 
-  const totalPreguntas = getTotalPreguntas();
-  const respondidas = respuestas.size;
-  const dimActual = DIMENSIONES_DIAGNOSTICO[dimIdx];
-
-  const handleRespuesta = (codigo: string, valor: number) => {
-    setRespuestas(prev => { const n = new Map(prev); n.set(codigo, valor); return n; });
-  };
-
-  const dimCompleta = dimActual?.preguntas.every(p => respuestas.has(p.codigo));
-
-  const siguiente = () => {
-    if (dimIdx < DIMENSIONES_DIAGNOSTICO.length - 1) {
-      setDimIdx(i => i + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      setCompletado(true);
-    }
-  };
+  const dimActual = DIMENSIONES_DIAGNOSTICO[wizard.stepIndex];
 
   const resultados: ResultadoDimension[] = useMemo(() => {
     return DIMENSIONES_DIAGNOSTICO.map(dim => {
-      const vals = dim.preguntas.map(p => respuestas.get(p.codigo) ?? 0).filter(v => v > 0);
+      const vals = dim.preguntas.map(p => wizard.responses.get(p.codigo) ?? 0).filter(v => v > 0);
       const promedio = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
       return {
-        id: dim.id,
-        nombre: dim.nombre,
-        critica: dim.critica,
+        id: dim.id, nombre: dim.nombre, critica: dim.critica,
         promedio: Math.round(promedio * 100) / 100,
         semaforo: getSemaforo(promedio),
         recomendacion: getRecomendacion(promedio),
       };
     });
-  }, [respuestas]);
+  }, [wizard.responses]);
 
   const promedioGlobal = useMemo(() => {
     const vals = resultados.filter(r => r.promedio > 0);
-    if (vals.length === 0) return 0;
-    return Math.round((vals.reduce((s, r) => s + r.promedio, 0) / vals.length) * 100) / 100;
+    return vals.length === 0 ? 0 : Math.round((vals.reduce((s, r) => s + r.promedio, 0) / vals.length) * 100) / 100;
   }, [resultados]);
 
-  // Pantalla de bienvenida
-  if (!iniciado) {
+  const handleSave = () => {
+    const payload = {
+      respuestas: Object.fromEntries(wizard.responses),
+      resultados,
+      promedioGlobal,
+      timestamp: new Date().toISOString(),
+    };
+
+    if (!navigator.onLine) {
+      enqueue('diagnostico_org', payload);
+      toast({ title: 'Guardado en cola offline', description: 'Se enviará cuando haya conexión.' });
+      return;
+    }
+
+    enqueue('diagnostico_org', payload);
+    toast({ title: 'Diagnóstico guardado', description: `Promedio global: ${promedioGlobal}/4.0` });
+    wizard.clearSaved();
+  };
+
+  if (!wizard.isStarted) {
+    const pendingOps = getPending().filter(op => op.type === 'diagnostico_org').length;
     return (
       <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
         <Card>
@@ -83,15 +97,28 @@ export default function VitalOrgWizard() {
             <Shield className="h-16 w-16 text-primary mx-auto" />
             <h2 className="text-2xl font-bold text-foreground">Diagnóstico Organizacional</h2>
             <p className="text-muted-foreground max-w-lg mx-auto">
-              Esta herramienta evalúa 12 dimensiones clave de su organización a través de {totalPreguntas} preguntas.
+              Esta herramienta evalúa 12 dimensiones clave de su organización a través de {getTotalPreguntas()} preguntas.
               El resultado le ayudará a identificar fortalezas y áreas de mejora para implementar la plataforma Nova Silva.
             </p>
             <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1"><Clock className="h-4 w-4" /> 2-3 horas estimadas</div>
-              <div className="flex items-center gap-1"><CheckCircle className="h-4 w-4" /> {totalPreguntas} preguntas</div>
+              <div className="flex items-center gap-1"><CheckCircle className="h-4 w-4" /> {getTotalPreguntas()} preguntas</div>
               <div className="flex items-center gap-1"><AlertTriangle className="h-4 w-4" /> 3 dimensiones críticas</div>
             </div>
-            <Button size="lg" onClick={() => setIniciado(true)}>Iniciar Diagnóstico</Button>
+            {wizard.validation.respondedCount > 0 && (
+              <p className="text-sm text-primary font-medium">
+                Tienes {wizard.validation.respondedCount} respuestas guardadas — puedes continuar donde lo dejaste.
+              </p>
+            )}
+            {pendingOps > 0 && (
+              <div className="flex items-center justify-center gap-2 text-sm text-amber-600">
+                <WifiOff className="h-4 w-4" />
+                <span>{pendingOps} diagnóstico(s) pendiente(s) de envío</span>
+              </div>
+            )}
+            <Button size="lg" onClick={wizard.start}>
+              {wizard.validation.respondedCount > 0 ? 'Continuar Diagnóstico' : 'Iniciar Diagnóstico'}
+            </Button>
           </CardContent>
         </Card>
 
@@ -118,15 +145,9 @@ export default function VitalOrgWizard() {
     );
   }
 
-  // Pantalla de resultados
-  if (completado) {
+  if (wizard.isCompleted) {
     const semaforoGlobal = getSemaforo(promedioGlobal);
     const criticas = resultados.filter(r => r.critica && r.semaforo.nivel === 'rojo');
-    const recMap: Record<string, string> = {
-      fortalecimiento_previo: 'Fortalecimiento previo requerido antes de implementación tecnológica',
-      piloto_parcial: 'Piloto parcial recomendado con acompañamiento técnico',
-      implementacion_completa: 'Implementación completa viable',
-    };
     const recGlobal = getRecomendacion(promedioGlobal);
 
     return (
@@ -142,7 +163,7 @@ export default function VitalOrgWizard() {
             <p className="text-4xl font-bold text-foreground">{promedioGlobal}/4.0</p>
             <p className="text-sm text-muted-foreground">Promedio global de las 12 dimensiones</p>
             <div className="p-3 rounded-md bg-primary/5 border border-primary/20">
-              <p className="text-sm font-medium text-primary">Recomendación: {recMap[recGlobal]}</p>
+              <p className="text-sm font-medium text-primary">Recomendación: {REC_LABELS[recGlobal]}</p>
             </div>
           </CardContent>
         </Card>
@@ -180,50 +201,31 @@ export default function VitalOrgWizard() {
         </Card>
 
         <div className="flex justify-center gap-3">
-          <Button variant="outline" onClick={() => { setCompletado(false); setDimIdx(0); }}>
+          <Button variant="outline" onClick={wizard.reviewFromResults}>
             <ChevronLeft className="h-4 w-4 mr-1" /> Revisar
           </Button>
-          <Button onClick={() => console.log('Guardar diagnóstico:', { respuestas: Object.fromEntries(respuestas), resultados, promedioGlobal })}>
-            <Save className="h-4 w-4 mr-1" /> Guardar diagnóstico
+          <Button onClick={handleSave}>
+            {navigator.onLine
+              ? <><Save className="h-4 w-4 mr-1" /> Guardar diagnóstico</>
+              : <><WifiOff className="h-4 w-4 mr-1" /> Guardar offline</>
+            }
           </Button>
         </div>
       </div>
     );
   }
 
-  // Wizard de preguntas
+  const stepNavInfo = wizard.validation.stepProgress.map((sp, i) => ({
+    id: sp.stepId,
+    label: steps[i].label,
+    complete: sp.complete,
+  }));
+
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Progreso general</span>
-          <span className="font-medium text-foreground">{respondidas}/{totalPreguntas}</span>
-        </div>
-        <Progress value={(respondidas / totalPreguntas) * 100} className="h-2" />
-      </div>
+      <WizardProgress responded={wizard.validation.respondedCount} total={wizard.validation.totalCount} />
 
-      {/* Navigator de dimensiones */}
-      <ScrollArea className="w-full">
-        <div className="flex gap-1 pb-2">
-          {DIMENSIONES_DIAGNOSTICO.map((d, i) => {
-            const done = d.preguntas.every(p => respuestas.has(p.codigo));
-            const activo = i === dimIdx;
-            return (
-              <button
-                key={d.id}
-                onClick={() => setDimIdx(i)}
-                className={`flex-shrink-0 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                  activo ? 'bg-primary text-primary-foreground'
-                    : done ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                {d.nombre.split(' ')[0]}{done && ' ✓'}
-              </button>
-            );
-          })}
-        </div>
-      </ScrollArea>
+      <WizardStepNav steps={stepNavInfo} activeIndex={wizard.stepIndex} onSelect={wizard.setStepIndex} />
 
       <Card>
         <CardHeader className="pb-2">
@@ -232,41 +234,30 @@ export default function VitalOrgWizard() {
               {dimActual.nombre}
               {dimActual.critica && <Badge variant="destructive" className="text-[10px]">Crítica</Badge>}
             </CardTitle>
-            <Badge variant="outline" className="text-xs">{dimIdx + 1}/{DIMENSIONES_DIAGNOSTICO.length}</Badge>
+            <Badge variant="outline" className="text-xs">{wizard.stepIndex + 1}/{steps.length}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {dimActual.preguntas.map((p, idx) => (
-            <div key={p.codigo} className={`p-4 rounded-lg border ${respuestas.has(p.codigo) ? 'border-primary/30' : 'border-border'}`}>
-              <p className="text-sm font-medium text-foreground mb-3">{idx + 1}. {p.texto}</p>
-              <RadioGroup
-                value={respuestas.get(p.codigo)?.toString() ?? ''}
-                onValueChange={(v) => handleRespuesta(p.codigo, parseInt(v))}
-                className="space-y-2"
-              >
-                {OPCIONES_DIAGNOSTICO.map(o => (
-                  <div key={o.valor} className="flex items-center space-x-2">
-                    <RadioGroupItem value={o.valor.toString()} id={`${p.codigo}-${o.valor}`} />
-                    <Label htmlFor={`${p.codigo}-${o.valor}`} className="text-sm cursor-pointer">{o.etiqueta}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
+            <WizardQuestionCard
+              key={p.codigo}
+              questionNumber={idx + 1}
+              text={p.texto}
+              options={OPCIONES_DIAGNOSTICO.map(o => ({ value: o.valor.toString(), label: o.etiqueta }))}
+              selectedValue={wizard.responses.get(p.codigo)?.toString()}
+              onSelect={(v) => wizard.setResponse(p.codigo, parseInt(v))}
+            />
           ))}
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => { setDimIdx(i => i - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={dimIdx === 0}>
-          <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-        </Button>
-        <Button onClick={siguiente} disabled={!dimCompleta}>
-          {dimIdx === DIMENSIONES_DIAGNOSTICO.length - 1
-            ? <><CheckCircle className="h-4 w-4 mr-1" /> Finalizar</>
-            : <><span>Siguiente</span><ChevronRight className="h-4 w-4 ml-1" /></>
-          }
-        </Button>
-      </div>
+      <WizardNavButtons
+        onPrev={wizard.goPrev}
+        onNext={wizard.goNext}
+        canPrev={wizard.canGoPrev}
+        canNext={wizard.canGoNext}
+        isLast={wizard.isLastStep}
+      />
     </div>
   );
 }
