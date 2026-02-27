@@ -10,6 +10,7 @@ import { AlertsSection } from './blocks/AlertsSection';
 import { ModuleStatusSection } from './blocks/ModuleStatusSection';
 import { QuickActionsSection } from './blocks/QuickActionsSection';
 import { ActivitySection } from './blocks/ActivitySection';
+import { ChartsSection } from './blocks/ChartsSection';
 import { getDemoStats } from '@/lib/demoSeed';
 import { getActorLabels } from '@/lib/terminology';
 import { Card, CardContent } from '@/components/ui/card';
@@ -89,7 +90,10 @@ export default function OrganizationDashboard() {
       {/* 2. KPIs principales */}
       <KPISection role={role} orgTipo={orgTipo} activeModules={activeModules} />
 
-      {/* 3. Alertas + 4. Estado módulos */}
+      {/* 3. Charts — role-specific visualizations */}
+      <ChartsSection role={role} activeModules={activeModules} />
+
+      {/* 4. Alertas + Estado módulos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <ModuleStatusSection activeModules={activeModules} />
