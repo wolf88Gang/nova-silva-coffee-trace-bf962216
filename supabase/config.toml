@@ -10,3 +10,7 @@ verify_jwt = true
 # ng-impact-recompute: service_role, corre programada o manual
 [functions.ng-impact-recompute]
 verify_jwt = false
+
+# agro-alert-evaluator: service_role, corre programada o manual
+[functions.agro-alert-evaluator]
+verify_jwt = false
