@@ -78,6 +78,7 @@ import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
 // Admin
 import AdminPanel from "./pages/admin/AdminPanel";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
+import BillingReadOnly from "./pages/billing/BillingReadOnly";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
@@ -125,7 +126,8 @@ const App = () => (
 
               {/* Shared */}
               <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />
-              <Route path="/mi-plan" element={<DashboardLayout><PlaceholderPage title="Mi Plan" /></DashboardLayout>} />
+              <Route path="/mi-plan" element={<Navigate to="/billing" replace />} />
+              <Route path="/billing" element={<DashboardLayout><BillingReadOnly /></DashboardLayout>} />
 
               {/* ── COOPERATIVA ── */}
               <Route path="/cooperativa" element={<Navigate to="/cooperativa/dashboard" replace />} />

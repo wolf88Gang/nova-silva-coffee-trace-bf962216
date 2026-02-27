@@ -70,10 +70,17 @@ function getTecnicoNav(): NavItemDef[] {
 function getExportadorNav(actorsLabel: string): NavItemDef[] {
   return [
     { title: 'Panel Principal', url: '/exportador/dashboard', icon: LayoutDashboard },
-    { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee, requiredModule: ['lotes_acopio', 'lotes_comerciales'] },
+    // Campo / operativo (Exportador A — only if field modules active)
     { title: actorsLabel, url: '/exportador/proveedores', icon: Users, requiredModule: 'productores' },
-    { title: 'Gestión Comercial', url: '/exportador/contratos', icon: FileText, requiredModule: 'contratos' },
+    { title: 'Entregas y Acopio', url: '/cooperativa/acopio', icon: Package, requiredModule: ['entregas', 'lotes_acopio'] },
     { title: 'Nova Cup', url: '/exportador/calidad', icon: Award, requiredModule: 'calidad' },
+    // Comercial (ambos arquetipos)
+    { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee, requiredModule: ['lotes_acopio', 'lotes_comerciales'] },
+    { title: 'Contratos', url: '/exportador/contratos', icon: FileText, requiredModule: 'contratos' },
+    { title: 'Embarques', url: '/exportador/embarques', icon: Package, requiredModule: 'contratos' },
+    // Compliance (Exportador B — always visible for exportador)
+    { title: 'EUDR', url: '/exportador/eudr', icon: ShieldCheck, requiredModule: 'eudr' },
+    // Soporte
     { title: 'Administración', url: '/exportador/configuracion', icon: Settings },
     { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare, requiredModule: 'mensajes' },
   ];
@@ -125,7 +132,7 @@ function filterNavByModules(items: NavItemDef[], activeModules: OrgModule[], isA
 
 const accountNav: NavItemDef[] = [
   { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
-  { title: 'Mi plan', url: '/mi-plan', icon: Wallet },
+  { title: 'Mi plan', url: '/billing', icon: Wallet },
 ];
 
 function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void }) {
