@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Truck, DollarSign, Wallet, TrendingDown, Plus, Leaf, Calendar, Send, FileText, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import CarbonoTab from '@/components/finanzas/CarbonoTab';
 
 // ── Entregas data ──
 const entregas = [
@@ -192,15 +193,8 @@ export default function FinanzasProductor() {
         </TabsContent>
 
         {/* ── CARBONO ── */}
-        <TabsContent value="carbono" className="space-y-4 mt-4">
-          <Card>
-            <CardContent className="py-16 text-center space-y-4">
-              <Leaf className="h-12 w-12 mx-auto text-muted-foreground/40" />
-              <h2 className="text-lg font-semibold text-foreground">Activos de Carbono</h2>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">Próximamente podrás visualizar tus créditos de carbono generados por tus prácticas agrícolas sostenibles.</p>
-              <Badge variant="outline">Próximamente</Badge>
-            </CardContent>
-          </Card>
+        <TabsContent value="carbono" className="mt-4">
+          <CarbonoTab />
         </TabsContent>
       </Tabs>
 
