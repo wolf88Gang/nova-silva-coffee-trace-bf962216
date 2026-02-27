@@ -3,17 +3,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { ORG_KEY } from '@/lib/keys';
 
+export interface AgroAlertRule {
+  id: string;
+  rule_name: string | null;
+  description: string | null;
+  metric_key: string | null;
+  threshold_operator: string | null;
+  threshold_value: number | null;
+  severity: string | null;
+}
+
 export interface AgroAlert {
   id: string;
   organization_id: string;
+  rule_id: string | null;
   issue_code: string;
   severity: string;
   status: string;
   title: string;
   message: string | null;
+  metric_key: string | null;
+  metric_value: number | null;
+  window_start: string | null;
+  window_end: string | null;
   payload: Record<string, unknown> | null;
   created_at: string;
   updated_at: string | null;
+  // Joined rule
+  agro_alert_rules: AgroAlertRule | null;
 }
 
 interface AlertFilters {
@@ -33,7 +50,7 @@ export function useAgroAlerts(filters: AlertFilters = {}) {
     queryFn: async () => {
       let q = (supabase as any)
         .from('agro_alerts')
-        .select('*')
+        .select('*, agro_alert_rules(*)')
         .eq(ORG_KEY, organizationId!)
         .order('created_at', { ascending: false });
 
