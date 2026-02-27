@@ -16,7 +16,7 @@ import {
   MessageSquare, Building2,
   Calendar, ShieldCheck, Shield, FileText,
   Sprout, Settings, Map, Award, DollarSign,
-  Bug, Coffee
+  Bug, Coffee, AlertTriangle
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
@@ -133,6 +133,7 @@ function filterNavByModules(items: NavItemDef[], activeModules: OrgModule[], isA
 const accountNav: NavItemDef[] = [
   { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
   { title: 'Mi plan', url: '/billing', icon: Wallet },
+  { title: 'Alertas', url: '/alertas', icon: AlertTriangle },
 ];
 
 function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void }) {
