@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { tooltipStyle } from '@/lib/chartStyles';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle } from '@/lib/chartStyles';
 
 const flujo = [
   { mes: 'Sep', ingresos: 38000000, egresos: 28000000 },
@@ -74,6 +74,8 @@ export default function FinanzasDashboard() {
                 <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={fmt} />
                 <Tooltip
                   contentStyle={tooltipStyle}
+                  itemStyle={tooltipItemStyle}
+                  labelStyle={tooltipLabelStyle}
                   formatter={(v: number) => [`$${v.toLocaleString()} CRC`]}
                 />
                 <Line type="monotone" dataKey="ingresos" stroke="hsl(142, 60%, 40%)" strokeWidth={2} name="Ingresos" dot={false} />
@@ -93,7 +95,7 @@ export default function FinanzasDashboard() {
                 <Pie data={distribucion} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, value }) => `${name} ${value}%`} labelLine={false}>
                   {distribucion.map((d, i) => <Cell key={i} fill={d.color} />)}
                 </Pie>
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}%`]} />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`${v}%`]} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

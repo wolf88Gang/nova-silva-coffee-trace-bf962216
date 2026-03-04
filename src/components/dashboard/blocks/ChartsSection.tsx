@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Package, Leaf, PieChartIcon } from 'lucide-react';
 import { type OrgModule, hasModule } from '@/lib/org-modules';
-import { tooltipStyle } from '@/lib/chartStyles';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 
 // ── Cooperativa charts data ──
 const entregasMensuales = [
@@ -66,7 +66,7 @@ function CoopCharts({ activeModules }: { activeModules: OrgModule[] }) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="mes" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
               <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toLocaleString()} kg`]} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} formatter={(v: number) => [`${v.toLocaleString()} kg`]} />
               <Bar dataKey="kg" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -86,7 +86,7 @@ function CoopCharts({ activeModules }: { activeModules: OrgModule[] }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="mes" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis domain={[40, 80]} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}/100`]} />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`${v}/100`]} />
                 <Area type="monotone" dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.15)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
@@ -106,7 +106,7 @@ function CoopCharts({ activeModules }: { activeModules: OrgModule[] }) {
               <Pie data={calidadDist} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" label={({ name, value }) => `${name}: ${value}%`} labelLine={false}>
                 {calidadDist.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}%`]} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`${v}%`]} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -130,7 +130,7 @@ function ExportadorCharts() {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis type="number" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
               <YAxis type="category" dataKey="origen" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} width={100} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v} sacos`]} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} formatter={(v: number) => [`${v} sacos`]} />
               <Bar dataKey="sacos" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -149,7 +149,7 @@ function ExportadorCharts() {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="mes" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
               <YAxis domain={[3.5, 4.5]} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`USD $${v.toFixed(2)}/lb`]} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`USD $${v.toFixed(2)}/lb`]} />
               <Area type="monotone" dataKey="usd" stroke="hsl(var(--accent))" fill="hsl(var(--accent) / 0.15)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
@@ -168,7 +168,7 @@ function ExportadorCharts() {
               <Pie data={destinoDist} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" label={({ name, value }) => `${name}: ${value}%`} labelLine={false}>
                 {destinoDist.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}%`]} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`${v}%`]} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -191,7 +191,7 @@ function TecnicoCharts() {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="mes" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
             <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-            <Tooltip contentStyle={tooltipStyle} />
+            <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} />
             <Bar dataKey="completadas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
