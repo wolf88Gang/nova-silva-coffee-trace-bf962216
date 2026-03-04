@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Package, Leaf, PieChartIcon } from 'lucide-react';
 import { type OrgModule, hasModule } from '@/lib/org-modules';
+import { tooltipStyle } from '@/lib/chartStyles';
 
 // ── Cooperativa charts data ──
 const entregasMensuales = [
@@ -49,13 +50,6 @@ const evaluacionesPorMes = [
   { mes: 'Ene', completadas: 10 }, { mes: 'Feb', completadas: 14 },
 ];
 
-const tooltipStyle = {
-  backgroundColor: 'hsl(var(--card))',
-  border: '1px solid hsl(var(--border))',
-  borderRadius: '8px',
-  color: 'hsl(var(--foreground))',
-  fontSize: 12,
-};
 
 function CoopCharts({ activeModules }: { activeModules: OrgModule[] }) {
   return (

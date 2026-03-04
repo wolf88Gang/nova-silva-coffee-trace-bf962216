@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { hasModule, hasAnyModule, type OrgModule } from '@/lib/org-modules';
 import { DEMO_ENTREGAS, DEMO_LOTES_COMERCIALES, DEMO_VISITAS } from '@/lib/demo-data';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { tooltipStyle } from '@/lib/chartStyles';
 
 interface ActivitySectionProps {
   role: string | null;
@@ -41,7 +42,7 @@ function CoopActivity({ activeModules }: { activeModules: OrgModule[] }) {
               <XAxis dataKey="mes" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
-                contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                contentStyle={tooltipStyle}
                 formatter={(value: number) => [`${value.toLocaleString()} kg`, 'Entregas']}
               />
               <Bar dataKey="kg" radius={[4, 4, 0, 0]}>
