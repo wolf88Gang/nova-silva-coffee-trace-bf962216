@@ -20,14 +20,7 @@ import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import NotFound from "./pages/NotFound";
 import PlaceholderPage from "./pages/PlaceholderPage";
 
-// Public pages
-import HomePage from "./pages/public/HomePage";
-import NosotrosPage from "./pages/public/NosotrosPage";
-import SolucionesPage from "./pages/public/SolucionesPage";
-import CumplimientoPage from "./pages/public/CumplimientoPage";
-import ProtocoloVitalPage from "./pages/public/PlanClimaPage";
-import ImpactoPage from "./pages/public/ImpactoPage";
-import ContactoPage from "./pages/public/ContactoPage";
+// Public pages removed — platform only
 
 // Cooperativa pages
 import DashboardCooperativa from "./pages/cooperativa/DashboardCooperativa";
@@ -106,15 +99,8 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              {/* Public website */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/nosotros" element={<NosotrosPage />} />
-              <Route path="/soluciones" element={<SolucionesPage />} />
-              <Route path="/cumplimiento-y-certificaciones" element={<CumplimientoPage />} />
-              <Route path="/protocolo-vital" element={<ProtocoloVitalPage />} />
-              <Route path="/plan-clima" element={<Navigate to="/protocolo-vital" replace />} />
-              <Route path="/impacto" element={<ImpactoPage />} />
-              <Route path="/contacto" element={<ContactoPage />} />
+              {/* Root → Login */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
 
               {/* Auth */}
               <Route path="/login" element={<Login />} />
