@@ -1,157 +1,88 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import {
   Shield, FileCheck, CheckCircle, AlertTriangle, ExternalLink, MapPin, FileText,
   TrendingUp, Droplets, Sun, Leaf, ChevronRight, Globe, ChevronDown, ChevronUp, Upload,
-  ArrowRight, ArrowLeft, Radio, Calendar, RotateCcw, ClipboardCheck,
+  ArrowRight, ArrowLeft, Calendar, RotateCcw, ClipboardCheck, Thermometer, Sprout,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  VITAL_BLOCKS, TOTAL_QUESTIONS, calculateIGRN, IGRN_RANGES,
+  type VitalBlock, type IGRNResult,
+} from '@/config/vitalProductorQuestions';
 
-// ── VITAL data ──
+// ── Block icons ──
+const blockIcons = [Droplets, Sprout, Shield, Thermometer, Globe];
+
+// ── Demo VITAL data ──
 const vitalScore = {
   global: 75.1,
-  exposicion: 72,
-  sensibilidad: 68,
-  adaptacion: 85,
+  exposicion: 0.72,
+  sensibilidad: 0.68,
+  adaptacion: 0.85,
   delta: '+16.8',
-  nivel: 'Resiliente',
+  nivel: 'Moderada' as const,
   ultimaEval: '2026-01-20',
   frecuencia: 'bianual' as 'bianual' | 'trianual',
   proximaEval: '2027-07-20',
 };
 
 interface Recomendacion {
-  area: string;
-  prioridad: 'alta' | 'media' | 'baja';
-  accion: string;
-  icon: typeof Droplets;
-  detalle: string;
-  impacto: string;
-  plazo: string;
-  recursos: string[];
+  area: string; prioridad: 'alta' | 'media' | 'baja'; accion: string;
+  icon: typeof Droplets; detalle: string; impacto: string; plazo: string; recursos: string[];
 }
 
 const recomendaciones: Recomendacion[] = [
-  {
-    area: 'Recurso Hídrico', prioridad: 'alta', icon: Droplets,
-    accion: 'Implementar sistema de cosecha de agua lluvia con tanque de almacenamiento de al menos 5,000 litros.',
-    detalle: 'La finca presenta déficit hídrico en los meses de enero a abril. Un sistema de cosecha de agua lluvia con capacidad de 5,000 litros permitiría cubrir las necesidades de riego complementario durante la época seca.',
-    impacto: '+8 puntos en componente de Adaptación',
-    plazo: '3-6 meses para implementación completa',
-    recursos: ['Tanque de almacenamiento (5,000L)', 'Canaletas y filtros', 'Sistema de distribución por gravedad'],
-  },
-  {
-    area: 'Sombra', prioridad: 'media', icon: Sun,
-    accion: 'Incrementar cobertura de sombra al 50% usando especies de servicio como Inga edulis.',
-    detalle: 'La cobertura de sombra actual (35%) expone el cafetal a estrés térmico y lumínico. Establecer Inga edulis como sombra temporal y Erythrina poeppigiana como sombra permanente equilibrará la temperatura del suelo.',
-    impacto: '+5 puntos en componente de Exposición',
-    plazo: '6-12 meses (crecimiento inicial de árboles)',
-    recursos: ['Plántulas de Inga edulis (100/ha)', 'Plántulas de Erythrina (25/ha)', 'Tutores y protección'],
-  },
-  {
-    area: 'Diversificación', prioridad: 'media', icon: Leaf,
-    accion: 'Establecer parcelas de cultivos alternativos para reducir la dependencia del café.',
-    detalle: 'Diversificar con cacao, frutales y hortalizas mejora la resiliencia económica ante fluctuaciones de precio del café y proporciona seguridad alimentaria.',
-    impacto: '+6 puntos en componente de Sensibilidad',
-    plazo: '3-6 meses (preparación e instalación)',
-    recursos: ['Semillas de hortalizas', 'Plántulas de cacao o frutales', 'Herramientas de siembra'],
-  },
+  { area: 'Recurso Hídrico', prioridad: 'alta', icon: Droplets,
+    accion: 'Implementar sistema de cosecha de agua lluvia con tanque de al menos 5,000 litros.',
+    detalle: 'La finca presenta déficit hídrico en los meses de enero a abril. Un sistema de cosecha de agua lluvia permitiría cubrir las necesidades de riego complementario durante la época seca.',
+    impacto: '+8 puntos en Capacidad Adaptativa', plazo: '3-6 meses',
+    recursos: ['Tanque de almacenamiento (5,000L)', 'Canaletas y filtros', 'Sistema de distribución por gravedad'] },
+  { area: 'Sombra', prioridad: 'media', icon: Sun,
+    accion: 'Incrementar cobertura de sombra al 50% usando Inga edulis.',
+    detalle: 'La cobertura actual (35%) expone el cafetal a estrés térmico. Establecer Inga edulis como sombra temporal equilibrará la temperatura del suelo.',
+    impacto: '+5 puntos en Exposición', plazo: '6-12 meses',
+    recursos: ['Plántulas de Inga edulis (100/ha)', 'Plántulas de Erythrina (25/ha)', 'Tutores y protección'] },
+  { area: 'Diversificación', prioridad: 'media', icon: Leaf,
+    accion: 'Establecer cultivos alternativos para reducir dependencia del café.',
+    detalle: 'Diversificar con cacao, frutales y hortalizas mejora la resiliencia económica ante fluctuaciones de precio.',
+    impacto: '+6 puntos en Sensibilidad', plazo: '3-6 meses',
+    recursos: ['Semillas de hortalizas', 'Plántulas de cacao o frutales', 'Herramientas de siembra'] },
 ];
 
 const historialVital = [
-  { fecha: '2026-01-20', puntaje: 75.1, nivel: 'Resiliente', componentes: { exp: 72, sen: 68, ada: 85 } },
-  { fecha: '2025-07-15', puntaje: 58.3, nivel: 'En Transición', componentes: { exp: 55, sen: 52, ada: 68 } },
-  { fecha: '2025-01-10', puntaje: 45.0, nivel: 'Vulnerable', componentes: { exp: 40, sen: 45, ada: 50 } },
-];
-
-// ── VITAL Wizard questions (6 blocks, simplified for demo) ──
-interface VitalQuestion { id: string; texto: string; }
-interface VitalBlock { nombre: string; icon: typeof Droplets; preguntas: VitalQuestion[]; }
-
-const vitalBlocks: VitalBlock[] = [
-  { nombre: 'Producción', icon: Leaf, preguntas: [
-    { id: 'p1', texto: '¿Realiza podas de renovación periódicas?' },
-    { id: 'p2', texto: '¿Tiene plan de fertilización basado en análisis de suelo?' },
-    { id: 'p3', texto: '¿Registra la producción por parcela y variedad?' },
-    { id: 'p4', texto: '¿Realiza control de malezas de forma integrada?' },
-  ]},
-  { nombre: 'Agua', icon: Droplets, preguntas: [
-    { id: 'a1', texto: '¿Cuenta con fuentes de agua protegidas?' },
-    { id: 'a2', texto: '¿Tiene sistema de cosecha de agua lluvia?' },
-    { id: 'a3', texto: '¿Realiza prácticas de conservación de fuentes hídricas?' },
-    { id: 'a4', texto: '¿El beneficiado utiliza recirculación de agua?' },
-  ]},
-  { nombre: 'Suelo', icon: Globe, preguntas: [
-    { id: 's1', texto: '¿Tiene cobertura vegetal permanente en el cafetal?' },
-    { id: 's2', texto: '¿Implementa barreras vivas o muertas contra erosión?' },
-    { id: 's3', texto: '¿Aplica abonos orgánicos (compost, bocashi, lombricompost)?' },
-    { id: 's4', texto: '¿Realiza análisis de suelo al menos cada 2 años?' },
-  ]},
-  { nombre: 'Plagas', icon: Shield, preguntas: [
-    { id: 'pl1', texto: '¿Implementa manejo integrado de plagas (MIP)?' },
-    { id: 'pl2', texto: '¿Monitorea incidencia de roya y broca periódicamente?' },
-    { id: 'pl3', texto: '¿Utiliza trampas para detección temprana de broca?' },
-    { id: 'pl4', texto: '¿Aplica controladores biológicos (Beauveria, Trichoderma)?' },
-  ]},
-  { nombre: 'Diversificación', icon: TrendingUp, preguntas: [
-    { id: 'd1', texto: '¿Tiene árboles de sombra con al menos 3 especies diferentes?' },
-    { id: 'd2', texto: '¿Cultiva alimentos para autoconsumo en la finca?' },
-    { id: 'd3', texto: '¿Tiene fuentes de ingreso diferentes al café?' },
-    { id: 'd4', texto: '¿Mantiene áreas de conservación o bosque en la finca?' },
-  ]},
-  { nombre: 'Capacitación', icon: ClipboardCheck, preguntas: [
-    { id: 'c1', texto: '¿Ha recibido capacitación en buenas prácticas agrícolas en el último año?' },
-    { id: 'c2', texto: '¿Participa en giras de campo o intercambios de experiencias?' },
-    { id: 'c3', texto: '¿Conoce los requisitos de la regulación EUDR?' },
-    { id: 'c4', texto: '¿Tiene acceso a asistencia técnica regular?' },
-  ]},
-];
-
-const vitalAnswerOptions = [
-  { value: 1, label: 'No / Nunca', color: 'bg-destructive/10 border-destructive/30 text-destructive' },
-  { value: 2, label: 'Parcialmente', color: 'bg-accent/10 border-accent/30 text-accent' },
-  { value: 3, label: 'Sí, regularmente', color: 'bg-primary/10 border-primary/30 text-primary' },
-  { value: 4, label: 'Sí, con evidencia', color: 'bg-primary/20 border-primary/40 text-primary' },
+  { fecha: '2026-01-20', puntaje: 75.1, nivel: 'Moderada', componentes: { exp: 72, sen: 68, ada: 85 } },
+  { fecha: '2025-07-15', puntaje: 58.3, nivel: 'Alta Fragilidad', componentes: { exp: 55, sen: 52, ada: 68 } },
+  { fecha: '2025-01-10', puntaje: 45.0, nivel: 'Alta Fragilidad', componentes: { exp: 40, sen: 45, ada: 50 } },
 ];
 
 // ── EUDR data ──
 const eudrCompliance = 87;
-
 interface EUDRParcela {
   nombre: string; area: number; gps: boolean; docs: boolean; riesgo: 'bajo' | 'medio' | 'alto';
   coordenadas?: string; altitud?: string; documentos: { nombre: string; estado: 'vigente' | 'pendiente' | 'vencido' }[];
   deforestacion: boolean; legalidad: boolean;
 }
-
 const parcelasEUDR: EUDRParcela[] = [
-  {
-    nombre: 'Finca El Mirador', area: 3.5, gps: true, docs: true, riesgo: 'bajo',
+  { nombre: 'Finca El Mirador', area: 3.5, gps: true, docs: true, riesgo: 'bajo',
     coordenadas: '9.9337° N, 84.0840° W', altitud: '1,450 msnm',
     documentos: [
       { nombre: 'Título de propiedad', estado: 'vigente' },
       { nombre: 'Permiso uso de suelo', estado: 'vigente' },
       { nombre: 'Estudio de impacto ambiental', estado: 'vigente' },
-    ],
-    deforestacion: true, legalidad: true,
-  },
-  {
-    nombre: 'Lote Norte', area: 1.2, gps: true, docs: false, riesgo: 'medio',
+    ], deforestacion: true, legalidad: true },
+  { nombre: 'Lote Norte', area: 1.2, gps: true, docs: false, riesgo: 'medio',
     coordenadas: '9.9350° N, 84.0855° W', altitud: '1,380 msnm',
     documentos: [
       { nombre: 'Contrato de arrendamiento', estado: 'vigente' },
       { nombre: 'Permiso ambiental', estado: 'pendiente' },
-    ],
-    deforestacion: true, legalidad: false,
-  },
+    ], deforestacion: true, legalidad: false },
 ];
-
 const docVencimiento = { nombre: 'Permiso uso de suelo', diasRestantes: 45 };
 
 const prioridadStyles: Record<string, string> = {
@@ -161,10 +92,10 @@ const prioridadStyles: Record<string, string> = {
 };
 
 const nivelColors: Record<string, string> = {
-  Vulnerable: 'text-destructive',
-  'En Transición': 'text-accent',
-  Resiliente: 'text-primary',
-  Regenerativo: 'text-primary',
+  'Crítica': 'text-destructive',
+  'Alta Fragilidad': 'text-accent',
+  'Moderada': 'text-foreground',
+  'Resiliente': 'text-primary',
 };
 
 export default function SostenibilidadHub() {
@@ -173,10 +104,10 @@ export default function SostenibilidadHub() {
   const [selectedParcela, setSelectedParcela] = useState<EUDRParcela | null>(null);
   const [expandedHistorial, setExpandedHistorial] = useState<string | null>(null);
 
-  // VITAL Wizard state
+  // VITAL Wizard
   const [showWizard, setShowWizard] = useState(false);
   const [wizardBlock, setWizardBlock] = useState(0);
-  const [wizardAnswers, setWizardAnswers] = useState<Record<string, number>>({});
+  const [wizardAnswers, setWizardAnswers] = useState<Record<number, number>>({});
   const [wizardFrequency, setWizardFrequency] = useState<'bianual' | 'trianual'>('bianual');
   const [wizardComplete, setWizardComplete] = useState(false);
 
@@ -189,36 +120,29 @@ export default function SostenibilidadHub() {
     });
   };
 
-  // False resilience detection
+  // False resilience from demo data
   const components = [vitalScore.exposicion, vitalScore.sensibilidad, vitalScore.adaptacion];
   const maxC = Math.max(...components);
   const minC = Math.min(...components);
-  const hasFalseResilience = (maxC - minC) >= 40;
+  const hasFalseResilience = (maxC - minC) >= 0.4;
 
-  // Wizard helpers
-  const currentBlock = vitalBlocks[wizardBlock];
-  const totalQuestions = vitalBlocks.reduce((s, b) => s + b.preguntas.length, 0);
+  // Wizard computed
+  const currentBlock = VITAL_BLOCKS[wizardBlock];
   const answeredCount = Object.keys(wizardAnswers).length;
   const currentBlockAnswered = currentBlock?.preguntas.filter(q => wizardAnswers[q.id] !== undefined).length ?? 0;
   const isBlockComplete = currentBlockAnswered === (currentBlock?.preguntas.length ?? 0);
 
-  const calculateWizardScore = () => {
-    const values = Object.values(wizardAnswers);
-    if (values.length === 0) return 0;
-    const avg = values.reduce((s, v) => s + v, 0) / values.length;
-    return Math.round(((avg - 1) / 3) * 100);
-  };
+  const wizardResult = useMemo<IGRNResult | null>(() => {
+    if (!wizardComplete) return null;
+    return calculateIGRN(wizardAnswers);
+  }, [wizardComplete, wizardAnswers]);
 
   const finishWizard = () => {
     setWizardComplete(true);
     toast.success('Evaluación VITAL completada exitosamente');
   };
-
   const resetWizard = () => {
-    setShowWizard(false);
-    setWizardBlock(0);
-    setWizardAnswers({});
-    setWizardComplete(false);
+    setShowWizard(false); setWizardBlock(0); setWizardAnswers({}); setWizardComplete(false);
   };
 
   return (
@@ -248,7 +172,9 @@ export default function SostenibilidadHub() {
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Evaluación de vulnerabilidad climática — Índice de Gestión de Riesgo Natural (IGRN)</p>
+              <p className="text-xs text-muted-foreground">
+                Índice de Gestión de Riesgo Natural (IGRN) — 100 preguntas en 5 bloques • Fórmula: IGRN = 0.35×C + 0.30×E + 0.35×R
+              </p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -260,13 +186,12 @@ export default function SostenibilidadHub() {
                     <p className="text-xs text-primary mt-2 flex items-center justify-center gap-1">
                       <TrendingUp className="h-3 w-3" /> {vitalScore.delta} pts
                     </p>
-                    <p className="text-[10px] text-muted-foreground">vs evaluación anterior</p>
                   </CardContent>
                 </Card>
                 {[
-                  { label: 'Exposición', value: vitalScore.exposicion, peso: 'α=0.35', sub: 'Impacto eventos climáticos', icon: Sun },
-                  { label: 'Sensibilidad', value: vitalScore.sensibilidad, peso: 'β=0.30', sub: 'Vulnerabilidad del sistema', icon: Droplets },
-                  { label: 'Adaptación', value: vitalScore.adaptacion, peso: 'γ=0.35', sub: 'Capacidad de respuesta', icon: Leaf },
+                  { label: 'Exposición (C)', value: Math.round(vitalScore.exposicion * 100), peso: 'α=0.35', sub: 'Impacto eventos climáticos', icon: Sun },
+                  { label: 'Sensibilidad (E)', value: Math.round(vitalScore.sensibilidad * 100), peso: 'β=0.30', sub: 'Vulnerabilidad del sistema', icon: Droplets },
+                  { label: 'Adaptación (R)', value: Math.round(vitalScore.adaptacion * 100), peso: 'γ=0.35', sub: 'Capacidad de respuesta', icon: Leaf },
                 ].map((d) => (
                   <Card key={d.label} className="border border-border">
                     <CardContent className="pt-4 pb-3 text-center">
@@ -282,7 +207,7 @@ export default function SostenibilidadHub() {
                 ))}
               </div>
 
-              {/* Scheduling info */}
+              {/* Schedule */}
               <div className="mt-4 flex items-center justify-between p-3 rounded-lg bg-muted border border-border">
                 <div className="flex items-center gap-3">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -300,7 +225,7 @@ export default function SostenibilidadHub() {
                     <div>
                       <p className="text-sm font-semibold text-foreground">Alerta de Falsa Resiliencia</p>
                       <p className="text-xs text-muted-foreground">
-                        Diferencia de {maxC - minC} puntos entre el componente más alto ({maxC}) y más bajo ({minC}). Fortalezca los componentes más débiles.
+                        Diferencia de {Math.round((maxC - minC) * 100)} puntos entre componentes. El puntaje global puede enmascarar vulnerabilidades críticas.
                       </p>
                     </div>
                   </div>
@@ -309,24 +234,27 @@ export default function SostenibilidadHub() {
             </CardContent>
           </Card>
 
-          {/* Interpretación Nova Silva */}
+          {/* Interpretación */}
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="pt-4 pb-4">
               <p className="text-xs font-semibold text-primary mb-2">Interpretación Nova Silva</p>
               <p className="text-sm text-muted-foreground">
                 Su finca se clasifica como <span className="font-bold text-foreground">{vitalScore.nivel}</span> con un puntaje IGRN de {vitalScore.global}/100.
-                Ha mejorado {vitalScore.delta} puntos desde la última evaluación, lo que refleja un progreso significativo en capacidad adaptativa ({vitalScore.adaptacion}/100).
-                {vitalScore.sensibilidad < 70 && ' Sin embargo, el componente de Sensibilidad requiere atención prioritaria para consolidar la resiliencia.'}
+                Ha mejorado {vitalScore.delta} puntos desde la última evaluación.
+                {vitalScore.sensibilidad < 0.7 && ' El componente de Sensibilidad requiere atención prioritaria.'}
               </p>
               <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
-                <div className="p-2 rounded bg-destructive/10 text-center"><p className="font-bold">0-39</p><p className="text-muted-foreground">Vulnerable</p></div>
-                <div className="p-2 rounded bg-accent/10 text-center"><p className="font-bold">40-59</p><p className="text-muted-foreground">Transición</p></div>
-                <div className="p-2 rounded bg-primary/10 text-center"><p className="font-bold">60-79</p><p className="text-muted-foreground">Resiliente</p></div>
-                <div className="p-2 rounded bg-primary/20 text-center"><p className="font-bold">80-100</p><p className="text-muted-foreground">Regenerativo</p></div>
+                {IGRN_RANGES.map(r => (
+                  <div key={r.label} className={`p-2 rounded bg-${r.color}/10 text-center`}>
+                    <p className="font-bold">{r.min}-{r.max}</p>
+                    <p className="text-muted-foreground">{r.label}</p>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
 
+          {/* Plan + Historial */}
           <Tabs defaultValue="recomendaciones">
             <TabsList>
               <TabsTrigger value="recomendaciones" className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Plan de Mejora</TabsTrigger>
@@ -341,13 +269,10 @@ export default function SostenibilidadHub() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {recomendaciones.map((r) => (
-                    <button
-                      key={r.area}
-                      onClick={() => setSelectedRec(r)}
+                    <button key={r.area} onClick={() => setSelectedRec(r)}
                       className={`w-full text-left p-4 rounded-lg border transition-all hover:shadow-md ${
                         completedRecs.has(r.area) ? 'border-primary/30 bg-primary/5 opacity-75' : 'border-border hover:border-primary/50'
-                      }`}
-                    >
+                      }`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 mb-1">
                           {completedRecs.has(r.area) ? <CheckCircle className="h-4 w-4 text-primary" /> : <r.icon className="h-4 w-4 text-accent" />}
@@ -426,9 +351,9 @@ export default function SostenibilidadHub() {
                       {expandedHistorial === h.fecha && (
                         <div className="ml-4 mt-2 p-3 rounded-lg bg-muted/50 border border-border">
                           <div className="grid grid-cols-3 gap-3 text-sm">
-                            <div><p className="text-xs text-muted-foreground">Exposición</p><p className="font-bold text-foreground">{h.componentes.exp}</p></div>
-                            <div><p className="text-xs text-muted-foreground">Sensibilidad</p><p className="font-bold text-foreground">{h.componentes.sen}</p></div>
-                            <div><p className="text-xs text-muted-foreground">Adaptación</p><p className="font-bold text-foreground">{h.componentes.ada}</p></div>
+                            <div><p className="text-xs text-muted-foreground">Exposición (C)</p><p className="font-bold text-foreground">{h.componentes.exp}</p></div>
+                            <div><p className="text-xs text-muted-foreground">Sensibilidad (E)</p><p className="font-bold text-foreground">{h.componentes.sen}</p></div>
+                            <div><p className="text-xs text-muted-foreground">Adaptación (R)</p><p className="font-bold text-foreground">{h.componentes.ada}</p></div>
                           </div>
                         </div>
                       )}
@@ -470,10 +395,8 @@ export default function SostenibilidadHub() {
                     { label: 'No deforestación', pct: 100, ok: true },
                     { label: 'Legalidad', pct: 75, ok: false },
                   ].map(cat => (
-                    <button key={cat.label} onClick={() => {
-                      toast.info(`${cat.label}: ${cat.ok ? 'Cumple con todos los requisitos' : 'Acción requerida: Parcela "Lote Norte" necesita documentación'}`);
-                    }}
-                    className="p-2 rounded-lg border border-border text-center hover:bg-muted/50 transition-colors cursor-pointer">
+                    <button key={cat.label} onClick={() => toast.info(`${cat.label}: ${cat.ok ? 'Cumple con todos los requisitos' : 'Parcela "Lote Norte" necesita documentación'}`)}
+                      className="p-2 rounded-lg border border-border text-center hover:bg-muted/50 transition-colors cursor-pointer">
                       <p className="text-xs text-muted-foreground">{cat.label}</p>
                       <p className={`text-lg font-bold ${cat.ok ? 'text-primary' : 'text-accent'}`}>{cat.pct}%</p>
                       <Progress value={cat.pct} className="h-1 mt-1" />
@@ -486,7 +409,6 @@ export default function SostenibilidadHub() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2"><Globe className="h-4 w-4 text-primary" /> Estado de Parcelas</CardTitle>
-                <p className="text-xs text-muted-foreground">Haz clic en una parcela para ver el detalle completo</p>
               </CardHeader>
               <CardContent className="space-y-3">
                 {parcelasEUDR.map((p) => (
@@ -504,8 +426,7 @@ export default function SostenibilidadHub() {
                       <Badge variant={p.docs ? 'outline' : 'destructive'} className="text-xs">
                         <FileText className="h-3 w-3 mr-1" /> {p.docs ? 'Docs' : 'Pendiente'}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">Riesgo {p.riesgo}</Badge>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
                     </div>
                   </button>
                 ))}
@@ -513,6 +434,7 @@ export default function SostenibilidadHub() {
             </Card>
           </div>
 
+          {/* Parcela detail dialog */}
           <Dialog open={!!selectedParcela} onOpenChange={() => setSelectedParcela(null)}>
             <DialogContent className="max-w-lg">
               {selectedParcela && (
@@ -566,8 +488,7 @@ export default function SostenibilidadHub() {
               <p className="text-xs font-semibold text-primary mb-2">Interpretación Nova Silva</p>
               <p className="text-sm text-muted-foreground">
                 Su nivel de cumplimiento EUDR es del <span className="font-bold text-foreground">{eudrCompliance}%</span>.
-                Todas las parcelas cuentan con geolocalización GPS y verificación de no deforestación post-2020.
-                {eudrCompliance < 100 && ' Para alcanzar el 100%, complete la documentación pendiente de "Lote Norte" (permiso ambiental) y regularice la situación legal.'}
+                {eudrCompliance < 100 && ' Para alcanzar el 100%, complete la documentación pendiente de "Lote Norte".'}
               </p>
             </CardContent>
           </Card>
@@ -579,14 +500,14 @@ export default function SostenibilidadHub() {
                   <AlertTriangle className="h-4 w-4 text-accent" />
                   <p className="text-sm text-foreground">Documento "{docVencimiento.nombre}" vence en {docVencimiento.diasRestantes} días</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => toast.info('Recordatorio configurado para renovación')}>Renovar documento</Button>
+                <Button variant="outline" size="sm" onClick={() => toast.info('Recordatorio configurado')}>Renovar</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* ══════════ VITAL WIZARD DIALOG ══════════ */}
+      {/* ══════════ VITAL WIZARD DIALOG — 100 PREGUNTAS ══════════ */}
       <Dialog open={showWizard} onOpenChange={(open) => { if (!open) resetWizard(); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           {!wizardComplete ? (
@@ -595,41 +516,60 @@ export default function SostenibilidadHub() {
                 <DialogTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" /> Evaluación Protocolo VITAL
                 </DialogTitle>
-                <p className="text-xs text-muted-foreground">{answeredCount} de {totalQuestions} preguntas respondidas</p>
+                <p className="text-xs text-muted-foreground">
+                  {answeredCount} de {TOTAL_QUESTIONS} preguntas • Bloque {wizardBlock + 1}/5: {currentBlock.nombre} ({currentBlock.rango})
+                </p>
               </DialogHeader>
 
               {/* Block stepper */}
               <div className="flex items-center gap-1">
-                {vitalBlocks.map((b, i) => (
-                  <button key={b.nombre} onClick={() => setWizardBlock(i)}
-                    className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${i === wizardBlock ? 'bg-primary/10' : 'hover:bg-muted'}`}>
-                    <div className={`h-2 w-full rounded-full ${i < wizardBlock ? 'bg-primary' : i === wizardBlock ? 'bg-primary/60' : 'bg-muted'}`} />
-                    <b.icon className={`h-3.5 w-3.5 ${i === wizardBlock ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-[10px] ${i === wizardBlock ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>{b.nombre}</span>
-                  </button>
-                ))}
+                {VITAL_BLOCKS.map((b, i) => {
+                  const Icon = blockIcons[i];
+                  const blockAnswered = b.preguntas.filter(q => wizardAnswers[q.id] !== undefined).length;
+                  const blockTotal = b.preguntas.length;
+                  const pct = blockTotal > 0 ? (blockAnswered / blockTotal) * 100 : 0;
+                  return (
+                    <button key={b.id} onClick={() => setWizardBlock(i)}
+                      className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${i === wizardBlock ? 'bg-primary/10' : 'hover:bg-muted'}`}>
+                      <div className="relative w-full">
+                        <div className="h-2 w-full rounded-full bg-muted">
+                          <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                      <Icon className={`h-3.5 w-3.5 ${i === wizardBlock ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-[9px] leading-tight text-center ${i === wizardBlock ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                        {b.nombre}
+                      </span>
+                      <span className="text-[8px] text-muted-foreground">{blockAnswered}/{blockTotal}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Questions */}
-              <div className="space-y-4 mt-2">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <currentBlock.icon className="h-5 w-5 text-primary" />
-                  {currentBlock.nombre}
-                  <Badge variant="outline" className="text-xs">{currentBlockAnswered}/{currentBlock.preguntas.length}</Badge>
-                </h3>
-
+              <div className="space-y-3 mt-2">
                 {currentBlock.preguntas.map((q) => (
-                  <div key={q.id} className="p-4 rounded-lg border border-border space-y-3">
-                    <p className="text-sm font-medium text-foreground">{q.texto}</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {vitalAnswerOptions.map((opt) => (
-                        <button key={opt.value} onClick={() => setWizardAnswers(prev => ({ ...prev, [q.id]: opt.value }))}
-                          className={`p-2 rounded-lg border text-xs font-medium transition-all ${
-                            wizardAnswers[q.id] === opt.value ? opt.color + ' border-2' : 'border-border hover:bg-muted/50 text-muted-foreground'
-                          }`}>
-                          {opt.label}
-                        </button>
-                      ))}
+                  <div key={q.id} className="p-3 rounded-lg border border-border space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">{q.componente}</Badge>
+                      <p className="text-sm font-medium text-foreground">P{q.id}. {q.texto}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {q.opciones.map((opt, oi) => {
+                        const isSelected = wizardAnswers[q.id] === opt.score;
+                        const severity = oi === 0 ? 'border-destructive/30 bg-destructive/5' :
+                                        oi === q.opciones.length - 1 ? 'border-primary/30 bg-primary/5' :
+                                        'border-border bg-muted/30';
+                        return (
+                          <button key={oi} onClick={() => setWizardAnswers(prev => ({ ...prev, [q.id]: opt.score }))}
+                            className={`p-2 rounded-lg border text-xs transition-all text-left ${
+                              isSelected ? 'ring-2 ring-primary border-primary bg-primary/10 font-semibold text-foreground' : `${severity} text-muted-foreground hover:bg-muted/50`
+                            }`}>
+                            <span className="text-[10px] text-muted-foreground mr-1">({opt.score})</span>
+                            {opt.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -640,19 +580,22 @@ export default function SostenibilidadHub() {
                 <Button variant="outline" disabled={wizardBlock === 0} onClick={() => setWizardBlock(prev => prev - 1)}>
                   <ArrowLeft className="h-4 w-4 mr-1" /> Anterior
                 </Button>
-                <Progress value={(answeredCount / totalQuestions) * 100} className="h-2 w-32" />
-                {wizardBlock < vitalBlocks.length - 1 ? (
-                  <Button disabled={!isBlockComplete} onClick={() => setWizardBlock(prev => prev + 1)}>
+                <div className="text-center">
+                  <Progress value={(answeredCount / TOTAL_QUESTIONS) * 100} className="h-2 w-32" />
+                  <p className="text-[10px] text-muted-foreground mt-1">{Math.round((answeredCount / TOTAL_QUESTIONS) * 100)}%</p>
+                </div>
+                {wizardBlock < VITAL_BLOCKS.length - 1 ? (
+                  <Button onClick={() => setWizardBlock(prev => prev + 1)}>
                     Siguiente <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 ) : (
-                  <Button disabled={answeredCount < totalQuestions} onClick={finishWizard}>
-                    Finalizar evaluación <CheckCircle className="h-4 w-4 ml-1" />
+                  <Button disabled={answeredCount < TOTAL_QUESTIONS} onClick={finishWizard}>
+                    Finalizar <CheckCircle className="h-4 w-4 ml-1" />
                   </Button>
                 )}
               </div>
 
-              {/* Frequency selector */}
+              {/* Frequency */}
               <div className="mt-4 p-3 rounded-lg bg-muted border border-border">
                 <p className="text-xs text-muted-foreground mb-2">Frecuencia de evaluación</p>
                 <div className="flex gap-2">
@@ -665,7 +608,7 @@ export default function SostenibilidadHub() {
                 </div>
               </div>
             </>
-          ) : (
+          ) : wizardResult && (
             /* ── Wizard Results ── */
             <>
               <DialogHeader>
@@ -673,34 +616,52 @@ export default function SostenibilidadHub() {
               </DialogHeader>
               <div className="space-y-4">
                 <div className="text-center p-6">
-                  <p className="text-6xl font-bold text-foreground">{calculateWizardScore()}<span className="text-2xl text-muted-foreground">/100</span></p>
-                  <p className="text-sm text-muted-foreground mt-2">Puntaje IGRN calculado</p>
-                  <Badge variant="outline" className="mt-2 border-primary text-primary">
-                    {calculateWizardScore() >= 80 ? 'Regenerativo' : calculateWizardScore() >= 60 ? 'Resiliente' : calculateWizardScore() >= 40 ? 'En Transición' : 'Vulnerable'}
+                  <p className="text-6xl font-bold text-foreground">{wizardResult.igrn}<span className="text-2xl text-muted-foreground">/100</span></p>
+                  <p className="text-sm text-muted-foreground mt-2">Índice de Gestión de Riesgo Natural (IGRN)</p>
+                  <Badge variant="outline" className={`mt-2 border-${wizardResult.color} text-${wizardResult.color}`}>
+                    {wizardResult.nivel}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {vitalBlocks.slice(0, 3).map((b) => {
-                    const blockScore = Math.round(b.preguntas.reduce((s, q) => s + ((wizardAnswers[q.id] || 1) - 1), 0) / (b.preguntas.length * 3) * 100);
-                    return (
-                      <div key={b.nombre} className="p-3 rounded-lg border border-border text-center">
-                        <b.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
-                        <p className="text-lg font-bold text-foreground">{blockScore}</p>
-                        <p className="text-[10px] text-muted-foreground">{b.nombre}</p>
-                      </div>
-                    );
-                  })}
+                  {[
+                    { label: 'Exposición (C)', value: Math.round(wizardResult.muClima * 100), peso: '×0.35', icon: Sun },
+                    { label: 'Sensibilidad (E)', value: Math.round(wizardResult.muEstructura * 100), peso: '×0.30', icon: Droplets },
+                    { label: 'Adaptación (R)', value: Math.round(wizardResult.muRespuesta * 100), peso: '×0.35', icon: Leaf },
+                  ].map((d) => (
+                    <div key={d.label} className="p-3 rounded-lg border border-border text-center">
+                      <d.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
+                      <p className="text-lg font-bold text-foreground">{d.value}</p>
+                      <p className="text-[10px] text-muted-foreground">{d.label}</p>
+                      <p className="text-[9px] text-muted-foreground">{d.peso}</p>
+                    </div>
+                  ))}
                 </div>
+
+                {wizardResult.falsaResiliencia && (
+                  <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-accent shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">⚠️ Falsa Resiliencia Detectada</p>
+                        <p className="text-xs text-muted-foreground">
+                          Diferencia ≥40 puntos entre componentes. El IGRN puede enmascarar vulnerabilidades críticas en uno o más ejes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <Card className="bg-primary/5 border-primary/20">
                   <CardContent className="pt-4 pb-4">
                     <p className="text-xs font-semibold text-primary mb-1">Interpretación Nova Silva</p>
                     <p className="text-sm text-muted-foreground">
-                      La evaluación indica un nivel de <span className="font-bold text-foreground">
-                        {calculateWizardScore() >= 80 ? 'Regenerativo' : calculateWizardScore() >= 60 ? 'Resiliente' : calculateWizardScore() >= 40 ? 'En Transición' : 'Vulnerable'}
-                      </span>. {calculateWizardScore() < 60 ? 'Se recomienda priorizar las áreas con menor puntaje y solicitar asistencia técnica.' : 'Mantener las buenas prácticas y fortalecer las áreas con menor puntaje.'}
-                      {' '}La próxima evaluación está programada para {wizardFrequency === 'bianual' ? '2028' : '2029'}.
+                      La evaluación indica un nivel de <span className="font-bold text-foreground">{wizardResult.nivel}</span> con IGRN de {wizardResult.igrn}/100.
+                      {wizardResult.igrn <= 40 && ' Requiere intervención de emergencia. Contacte a su técnico asignado.'}
+                      {wizardResult.igrn > 40 && wizardResult.igrn <= 60 && ' La finca presenta fragilidad estructural. Priorizar infraestructura básica y renovación.'}
+                      {wizardResult.igrn > 60 && wizardResult.igrn <= 80 && ' Bases sólidas con brechas específicas. Priorizar tecnificación y acceso a mercados.'}
+                      {wizardResult.igrn > 80 && ' Finca modelo. Priorizar innovación y liderazgo regional.'}
+                      {' '}Próxima evaluación: {wizardFrequency === 'bianual' ? '2028' : '2029'}.
                     </p>
                   </CardContent>
                 </Card>
