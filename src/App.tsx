@@ -73,6 +73,7 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
 import AlertasPage from "./pages/alertas/AlertasPage";
+import ReportesHub from "./pages/reportes/ReportesHub";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
@@ -117,6 +118,7 @@ const App = () => (
               <Route path="/billing" element={<DashboardLayout><BillingReadOnly /></DashboardLayout>} />
               <Route path="/alerts" element={<DashboardLayout><AlertasPage /></DashboardLayout>} />
               <Route path="/alertas" element={<Navigate to="/alerts" replace />} />
+              <Route path="/reportes" element={<DashboardLayout><ReportesHub /></DashboardLayout>} />
 
               {/* ── COOPERATIVA ── */}
               <Route path="/cooperativa" element={<Navigate to="/cooperativa/dashboard" replace />} />
