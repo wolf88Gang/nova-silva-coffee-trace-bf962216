@@ -62,10 +62,23 @@ export default function FinanzasProductor() {
     setSolicitud({ tipo: '', monto: '', plazo: '6', justificacion: '' });
   };
 
+  // ── SCN (Score Crediticio Nova) ──
+  const scnFactores = [
+    { factor: 'Historial de pagos', peso: 25, score: 88, desc: '3/3 cuotas puntuales' },
+    { factor: 'Volumen entregas', peso: 20, score: 75, desc: '1,610 kg últimos 6 meses' },
+    { factor: 'Antigüedad', peso: 15, score: 90, desc: '4 años como socio' },
+    { factor: 'Puntaje VITAL', peso: 15, score: 72, desc: 'Resiliencia media-alta' },
+    { factor: 'Diversificación', peso: 10, score: 60, desc: '2 variedades, 2 parcelas' },
+    { factor: 'Documentación', peso: 15, score: 95, desc: 'GPS + títulos al día' },
+  ];
+  const scnTotal = Math.round(scnFactores.reduce((s, f) => s + (f.score * f.peso / 100), 0));
+  const scnColor = scnTotal >= 80 ? 'text-primary' : scnTotal >= 60 ? 'text-accent' : 'text-destructive';
+  const scnLabel = scnTotal >= 80 ? 'Excelente' : scnTotal >= 60 ? 'Bueno' : scnTotal >= 40 ? 'Regular' : 'Bajo';
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <p className="text-sm text-muted-foreground">Entregas, transacciones, créditos y activos de carbono</p>
+        <p className="text-sm text-muted-foreground">Entregas, transacciones, créditos, score crediticio y activos de carbono</p>
       </div>
 
       <Tabs defaultValue="entregas">
@@ -73,6 +86,7 @@ export default function FinanzasProductor() {
           <TabsTrigger value="entregas" className="flex items-center gap-1.5"><Truck className="h-3.5 w-3.5" /> Entregas</TabsTrigger>
           <TabsTrigger value="finanzas" className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5" /> Finanzas</TabsTrigger>
           <TabsTrigger value="creditos" className="flex items-center gap-1.5"><Wallet className="h-3.5 w-3.5" /> Créditos</TabsTrigger>
+          <TabsTrigger value="scn" className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Score SCN</TabsTrigger>
           <TabsTrigger value="carbono" className="flex items-center gap-1.5"><Leaf className="h-3.5 w-3.5" /> Carbono</TabsTrigger>
         </TabsList>
 
@@ -188,6 +202,75 @@ export default function FinanzasProductor() {
                   </Card>
                 </button>
               ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── SCORE CREDITICIO NOVA (SCN) ── */}
+        <TabsContent value="scn" className="space-y-6 mt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Score Crediticio Nova</h2>
+              <p className="text-sm text-muted-foreground">Tu calificación crediticia basada en 6 factores de desempeño</p>
+            </div>
+            <div className="text-center">
+              <p className={`text-4xl font-bold ${scnColor}`}>{scnTotal}</p>
+              <p className={`text-sm font-medium ${scnColor}`}>{scnLabel}</p>
+            </div>
+          </div>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="relative h-4 rounded-full bg-muted overflow-hidden mb-6">
+                <div className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-destructive via-accent to-primary transition-all" style={{ width: `${scnTotal}%` }} />
+                <div className="absolute inset-y-0 flex items-center" style={{ left: `${scnTotal}%`, transform: 'translateX(-50%)' }}>
+                  <div className="h-6 w-6 rounded-full bg-foreground border-2 border-background shadow-md flex items-center justify-center">
+                    <span className="text-[8px] font-bold text-background">{scnTotal}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between text-[10px] text-muted-foreground -mt-2 mb-4">
+                <span>0 — Bajo</span><span>40 — Regular</span><span>60 — Bueno</span><span>80 — Excelente</span><span>100</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-3">
+            {scnFactores.map((f) => {
+              const barColor = f.score >= 80 ? 'bg-primary' : f.score >= 60 ? 'bg-accent' : 'bg-destructive';
+              return (
+                <Card key={f.factor}>
+                  <CardContent className="py-4 px-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{f.factor}</p>
+                        <p className="text-xs text-muted-foreground">{f.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-foreground">{f.score}</p>
+                        <p className="text-[10px] text-muted-foreground">Peso: {f.peso}%</p>
+                      </div>
+                    </div>
+                    <div className="h-2 rounded-full bg-muted overflow-hidden">
+                      <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${f.score}%` }} />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="pt-4 pb-4 space-y-2">
+              <p className="text-sm font-semibold text-foreground">¿Cómo mejorar tu Score?</p>
+              <ul className="space-y-1.5">
+                {scnFactores.filter(f => f.score < 80).sort((a, b) => a.score - b.score).map(f => (
+                  <li key={f.factor} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <CheckCircle className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                    <span><span className="font-medium text-foreground">{f.factor}:</span> Actualmente {f.score}/100. Incrementar mejoraría tu SCN en ~{Math.round(f.peso * 0.2)} pts.</span>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         </TabsContent>
