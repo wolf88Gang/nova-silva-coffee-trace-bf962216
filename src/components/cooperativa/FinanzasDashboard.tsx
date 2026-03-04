@@ -5,6 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
+import { tooltipStyle } from '@/lib/chartStyles';
 
 const flujo = [
   { mes: 'Sep', ingresos: 38000000, egresos: 28000000 },
@@ -34,13 +35,13 @@ const transacciones = [
 ];
 
 const kpis = [
-  { label: 'Ingresos del Periodo', value: '$45,200,000', icon: TrendingUp, color: 'text-emerald-600' },
-  { label: 'Egresos del Periodo', value: '$31,800,000', icon: TrendingDown, color: 'text-destructive' },
-  { label: 'Balance', value: '$13,400,000', icon: Wallet, color: 'text-primary' },
+  { label: 'Ingresos del Periodo', value: '₡45,200,000', icon: TrendingUp, color: 'text-emerald-600' },
+  { label: 'Egresos del Periodo', value: '₡31,800,000', icon: TrendingDown, color: 'text-destructive' },
+  { label: 'Balance', value: '₡13,400,000', icon: Wallet, color: 'text-primary' },
   { label: 'Créditos Activos', value: '12 productores', icon: Users, color: '' },
 ];
 
-const fmt = (v: number) => `$${(v / 1000000).toFixed(1)}M`;
+const fmt = (v: number) => `₡${(v / 1000000).toFixed(1)}M`;
 
 export default function FinanzasDashboard() {
   return (
@@ -72,8 +73,8 @@ export default function FinanzasDashboard() {
                 <XAxis dataKey="mes" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
                 <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={fmt} />
                 <Tooltip
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: number) => [`$${v.toLocaleString()} COP`]}
+                  contentStyle={tooltipStyle}
+                  formatter={(v: number) => [`$${v.toLocaleString()} CRC`]}
                 />
                 <Line type="monotone" dataKey="ingresos" stroke="hsl(142, 60%, 40%)" strokeWidth={2} name="Ingresos" dot={false} />
                 <Line type="monotone" dataKey="egresos" stroke="hsl(0, 65%, 50%)" strokeWidth={2} name="Egresos" dot={false} />
@@ -92,7 +93,7 @@ export default function FinanzasDashboard() {
                 <Pie data={distribucion} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, value }) => `${name} ${value}%`} labelLine={false}>
                   {distribucion.map((d, i) => <Cell key={i} fill={d.color} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => [`${v}%`]} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}%`]} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -127,7 +128,7 @@ export default function FinanzasDashboard() {
                         {t.tipo}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 font-medium">${t.monto.toLocaleString()}</td>
+                    <td className="px-4 py-3 font-medium">₡{t.monto.toLocaleString()}</td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">{t.ref}</td>
                   </tr>
                 ))}

@@ -5,7 +5,7 @@ import { Users, Clock, Wallet, ClipboardList } from 'lucide-react';
 const kpis = [
   { label: 'Cuadrillas Activas', value: '4', icon: Users },
   { label: 'Trabajadores Hoy', value: '32', icon: Clock },
-  { label: 'Costo Acumulado Mes', value: '$4,250,000 COP', icon: Wallet },
+  { label: 'Costo Acumulado Mes', value: '₡2,125,000', icon: Wallet },
   { label: 'Jornales Registrados', value: '186', icon: ClipboardList },
 ];
 
