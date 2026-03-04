@@ -1,16 +1,20 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
-import { FlaskConical, Award, TrendingUp, Star, Plus, Coffee, Eye } from 'lucide-react';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { FlaskConical, Award, TrendingUp, Star, Plus, Coffee, Eye, BarChart3, GitCompare, Download } from 'lucide-react';
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie,
+} from 'recharts';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 import { toast } from 'sonner';
 
 // ── SCA sensory attributes ──
@@ -20,42 +24,62 @@ const SCA_ATTRIBUTES = [
 const CVA_ATTRIBUTES = [
   'Floral', 'Frutal', 'Azucarado', 'Cacao/Nuez', 'Especias', 'Cereales', 'Vegetal', 'Amargo', 'Fermentado'
 ];
-const DESCRIPTORES = [
-  'Chocolate', 'Panela', 'Mandarina', 'Floral', 'Caramelo', 'Cítrico', 'Frutas rojas', 'Miel',
-  'Nuez', 'Vainilla', 'Canela', 'Bergamota', 'Jazmín', 'Durazno', 'Naranja', 'Cereza'
-];
+
+// Rueda de sabores expandida - Categorías principales con subcategorías
+const FLAVOR_WHEEL: Record<string, string[]> = {
+  'Frutal': ['Citrico', 'Mandarina', 'Naranja', 'Limon', 'Cereza', 'Durazno', 'Manzana', 'Frutas rojas', 'Uva', 'Maracuya'],
+  'Floral': ['Jazmin', 'Rosa', 'Lavanda', 'Bergamota', 'Hibisco', 'Manzanilla'],
+  'Dulce': ['Panela', 'Miel', 'Caramelo', 'Vainilla', 'Chocolate', 'Cacao', 'Melaza', 'Azucar morena'],
+  'Nuez/Cacao': ['Nuez', 'Almendra', 'Avellana', 'Mani', 'Cacao oscuro', 'Chocolate con leche'],
+  'Especias': ['Canela', 'Clavo', 'Pimienta negra', 'Cardamomo', 'Jengibre', 'Nuez moscada'],
+  'Herbaceo': ['Te negro', 'Te verde', 'Menta', 'Hierbas', 'Tabaco', 'Cedro'],
+};
+
+// Tipos de muestra para comparación
+type SampleType = 'offer' | 'pss' | 'arrival';
+const SAMPLE_LABELS: Record<SampleType, string> = { offer: 'Oferta', pss: 'Pre-Shipment (PSS)', arrival: 'Llegada' };
+const SAMPLE_COLORS: Record<SampleType, string> = { offer: 'hsl(var(--primary))', pss: 'hsl(var(--accent))', arrival: 'hsl(210, 60%, 50%)' };
 
 interface Catacion {
   id: string; fecha: string; lote: string; productor: string;
   protocolo: 'SCA' | 'CVA'; puntaje: number; cat: string;
   atributos: Record<string, number>; descriptores: string[]; notas: string;
+  sampleType: SampleType;
+  defectos?: number;
+  humedad?: number;
 }
 
 const catacionesDemo: Catacion[] = [
-  { id: '1', fecha: '2026-02-23', lote: 'LOT-2026-023', productor: 'Carlos A. Muñoz', protocolo: 'SCA', puntaje: 87.2, cat: 'Specialty',
+  { id: '1', fecha: '2026-02-23', lote: 'LOT-2026-023', productor: 'Carlos A. Munoz', protocolo: 'SCA', puntaje: 87.2, cat: 'Specialty',
     atributos: { 'Fragancia/Aroma': 8.5, 'Sabor': 8.75, 'Post-gusto': 8.5, 'Acidez': 8.75, 'Cuerpo': 8.25, 'Balance': 8.5, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
-    descriptores: ['Mandarina', 'Panela', 'Floral', 'Caramelo'], notas: 'Taza excepcional con acidez brillante' },
-  { id: '2', fecha: '2026-02-22', lote: 'LOT-2026-045', productor: 'María del C. Ortiz', protocolo: 'SCA', puntaje: 85.1, cat: 'Specialty',
+    descriptores: ['Mandarina', 'Panela', 'Jazmin', 'Caramelo'], notas: 'Taza excepcional con acidez brillante', sampleType: 'offer', defectos: 0, humedad: 10.5 },
+  { id: '1b', fecha: '2026-02-25', lote: 'LOT-2026-023', productor: 'Carlos A. Munoz', protocolo: 'SCA', puntaje: 86.8, cat: 'Specialty',
+    atributos: { 'Fragancia/Aroma': 8.5, 'Sabor': 8.5, 'Post-gusto': 8.25, 'Acidez': 8.75, 'Cuerpo': 8.25, 'Balance': 8.5, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+    descriptores: ['Mandarina', 'Panela', 'Caramelo'], notas: 'PSS consistente con oferta', sampleType: 'pss', defectos: 0, humedad: 10.8 },
+  { id: '2', fecha: '2026-02-22', lote: 'LOT-2026-045', productor: 'Maria del C. Ortiz', protocolo: 'SCA', puntaje: 85.1, cat: 'Specialty',
     atributos: { 'Fragancia/Aroma': 8.25, 'Sabor': 8.5, 'Post-gusto': 8.0, 'Acidez': 8.5, 'Cuerpo': 8.25, 'Balance': 8.25, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
-    descriptores: ['Chocolate', 'Nuez', 'Miel'], notas: 'Cuerpo sedoso, final prolongado' },
+    descriptores: ['Chocolate', 'Nuez', 'Miel'], notas: 'Cuerpo sedoso, final prolongado', sampleType: 'offer', defectos: 1, humedad: 11.0 },
   { id: '3', fecha: '2026-02-20', lote: 'LOT-2026-018', productor: 'Ana L. Betancourt', protocolo: 'CVA', puntaje: 84.5, cat: 'Specialty',
     atributos: { 'Floral': 7, 'Frutal': 8, 'Azucarado': 7.5, 'Cacao/Nuez': 6, 'Especias': 5, 'Cereales': 4, 'Vegetal': 3, 'Amargo': 4, 'Fermentado': 2 },
-    descriptores: ['Frutas rojas', 'Bergamota', 'Jazmín'], notas: 'CVA: perfil frutal dominante' },
-  { id: '4', fecha: '2026-02-18', lote: 'LOT-2026-032', productor: 'José Hernández', protocolo: 'SCA', puntaje: 82.3, cat: 'Premium',
+    descriptores: ['Frutas rojas', 'Bergamota', 'Jazmin'], notas: 'CVA: perfil frutal dominante', sampleType: 'offer', defectos: 0, humedad: 10.2 },
+  { id: '4', fecha: '2026-02-18', lote: 'LOT-2026-032', productor: 'Jose Hernandez', protocolo: 'SCA', puntaje: 82.3, cat: 'Premium',
     atributos: { 'Fragancia/Aroma': 8.0, 'Sabor': 8.0, 'Post-gusto': 7.75, 'Acidez': 8.0, 'Cuerpo': 8.0, 'Balance': 8.0, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
-    descriptores: ['Chocolate', 'Canela', 'Cereza'], notas: 'Balance sólido, acidez media' },
+    descriptores: ['Chocolate', 'Canela', 'Cereza'], notas: 'Balance solido, acidez media', sampleType: 'offer', defectos: 2, humedad: 11.2 },
   { id: '5', fecha: '2026-02-15', lote: 'LOT-2026-011', productor: 'Rosa E. Castillo', protocolo: 'SCA', puntaje: 81.0, cat: 'Premium',
     atributos: { 'Fragancia/Aroma': 7.75, 'Sabor': 7.75, 'Post-gusto': 7.5, 'Acidez': 7.75, 'Cuerpo': 8.0, 'Balance': 7.75, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
-    descriptores: ['Nuez', 'Vainilla', 'Caramelo'], notas: 'Cuerpo notable, acidez suave' },
+    descriptores: ['Nuez', 'Vainilla', 'Caramelo'], notas: 'Cuerpo notable, acidez suave', sampleType: 'offer', defectos: 1, humedad: 11.5 },
   { id: '6', fecha: '2026-02-12', lote: 'LOT-2026-007', productor: 'Fernando Ruiz', protocolo: 'SCA', puntaje: 78.5, cat: 'Comercial',
     atributos: { 'Fragancia/Aroma': 7.25, 'Sabor': 7.5, 'Post-gusto': 7.0, 'Acidez': 7.25, 'Cuerpo': 7.5, 'Balance': 7.5, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
-    descriptores: ['Chocolate', 'Panela'], notas: 'Taza limpia pero sin complejidad destacada' },
+    descriptores: ['Chocolate', 'Panela'], notas: 'Taza limpia pero sin complejidad destacada', sampleType: 'offer', defectos: 3, humedad: 12.0 },
+  { id: '7', fecha: '2026-02-10', lote: 'LOT-2026-007', productor: 'Fernando Ruiz', protocolo: 'SCA', puntaje: 77.8, cat: 'Comercial',
+    atributos: { 'Fragancia/Aroma': 7.0, 'Sabor': 7.25, 'Post-gusto': 7.0, 'Acidez': 7.0, 'Cuerpo': 7.5, 'Balance': 7.25, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+    descriptores: ['Chocolate'], notas: 'Arrival muestra ligera perdida de complejidad', sampleType: 'arrival', defectos: 4, humedad: 12.2 },
 ];
 
 const kpis = [
   { label: 'Promedio SCA', value: '83.5', badge: 'Premium', icon: FlaskConical },
   { label: 'Total Cataciones', value: '34 este periodo', badge: '', icon: TrendingUp },
-  { label: 'Mejor Lote', value: 'LOT-023 — 87.2 pts', badge: '', icon: Award },
+  { label: 'Mejor Lote', value: 'LOT-023 - 87.2 pts', badge: '', icon: Award },
   { label: 'Specialty (>84)', value: '12 muestras (35%)', badge: '', icon: Star },
 ];
 
@@ -65,19 +89,79 @@ const catBadge = (cat: string) => {
   return <Badge variant="secondary">Comercial</Badge>;
 };
 
+const sampleBadge = (s: SampleType) => {
+  const cls: Record<SampleType, string> = {
+    offer: 'bg-primary/10 text-primary border-primary/30',
+    pss: 'bg-accent/10 text-accent border-accent/30',
+    arrival: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-300',
+  };
+  return <Badge variant="outline" className={cls[s]}>{SAMPLE_LABELS[s]}</Badge>;
+};
+
+// ── Distribution chart data ──
+const catDistribution = [
+  { name: 'Specialty (>84)', value: 35, color: 'hsl(45, 90%, 50%)' },
+  { name: 'Premium (80-84)', value: 40, color: 'hsl(210, 60%, 50%)' },
+  { name: 'Comercial (<80)', value: 25, color: 'hsl(var(--muted-foreground))' },
+];
+
+const scoresByProducer = [
+  { productor: 'C. Munoz', puntaje: 87.2 },
+  { productor: 'M. Ortiz', puntaje: 85.1 },
+  { productor: 'A. Betancourt', puntaje: 84.5 },
+  { productor: 'J. Hernandez', puntaje: 82.3 },
+  { productor: 'R. Castillo', puntaje: 81.0 },
+  { productor: 'F. Ruiz', puntaje: 78.5 },
+];
+
+const descriptorFrequency = [
+  { descriptor: 'Chocolate', count: 4 },
+  { descriptor: 'Panela', count: 3 },
+  { descriptor: 'Caramelo', count: 3 },
+  { descriptor: 'Nuez', count: 2 },
+  { descriptor: 'Mandarina', count: 2 },
+  { descriptor: 'Jazmin', count: 2 },
+  { descriptor: 'Cereza', count: 2 },
+  { descriptor: 'Miel', count: 1 },
+];
+
 export default function NovaCupDashboard() {
   const [showNuevaCata, setShowNuevaCata] = useState(false);
   const [selectedCata, setSelectedCata] = useState<Catacion | null>(null);
   const [protocolo, setProtocolo] = useState<'SCA' | 'CVA'>('SCA');
   const [scores, setScores] = useState<Record<string, number>>({});
   const [descriptoresSeleccionados, setDescriptoresSeleccionados] = useState<string[]>([]);
-  const [cataForm, setCataForm] = useState({ lote: '', productor: '', notas: '' });
-  const [step, setStep] = useState(0); // 0=config, 1=scoring, 2=descriptors, 3=result
+  const [cataForm, setCataForm] = useState({ lote: '', productor: '', notas: '', sampleType: 'offer' as SampleType, defectos: 0, humedad: 0 });
+  const [step, setStep] = useState(0);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSamples, setCompareSamples] = useState<Catacion[]>([]);
+  const [filterProtocolo, setFilterProtocolo] = useState<string>('all');
+  const [filterCat, setFilterCat] = useState<string>('all');
 
   const attrs = protocolo === 'SCA' ? SCA_ATTRIBUTES : CVA_ATTRIBUTES;
   const totalScore = protocolo === 'SCA'
-    ? Object.values(scores).reduce((s, v) => s + v, 0) + 36 // 36 = base defects
+    ? Object.values(scores).reduce((s, v) => s + v, 0) + 36
     : Object.values(scores).reduce((s, v) => s + v, 0);
+
+  const filteredCataciones = useMemo(() => {
+    return catacionesDemo.filter(c => {
+      if (filterProtocolo !== 'all' && c.protocolo !== filterProtocolo) return false;
+      if (filterCat !== 'all' && c.cat !== filterCat) return false;
+      return true;
+    });
+  }, [filterProtocolo, filterCat]);
+
+  // Group cataciones by lote for comparison
+  const loteSamples = useMemo(() => {
+    const map = new Map<string, Catacion[]>();
+    catacionesDemo.forEach(c => {
+      const arr = map.get(c.lote) || [];
+      arr.push(c);
+      map.set(c.lote, arr);
+    });
+    return map;
+  }, []);
 
   const handleStartCata = () => {
     if (!cataForm.lote) { toast.error('Ingrese un ID de lote'); return; }
@@ -87,10 +171,10 @@ export default function NovaCupDashboard() {
 
   const handleFinish = () => {
     const cat = totalScore >= 84 ? 'Specialty' : totalScore >= 80 ? 'Premium' : 'Comercial';
-    toast.success(`Catación registrada: ${cataForm.lote} — ${totalScore.toFixed(1)} pts (${cat})`);
+    toast.success(`Catacion registrada: ${cataForm.lote} - ${totalScore.toFixed(1)} pts (${cat})`);
     setShowNuevaCata(false);
     setStep(0);
-    setCataForm({ lote: '', productor: '', notas: '' });
+    setCataForm({ lote: '', productor: '', notas: '', sampleType: 'offer', defectos: 0, humedad: 0 });
     setScores({});
     setDescriptoresSeleccionados([]);
   };
@@ -101,20 +185,44 @@ export default function NovaCupDashboard() {
     );
   };
 
+  const toggleCompare = (c: Catacion) => {
+    setCompareSamples(prev => {
+      if (prev.find(x => x.id === c.id)) return prev.filter(x => x.id !== c.id);
+      if (prev.length >= 3) { toast.error('Maximo 3 muestras para comparar'); return prev; }
+      return [...prev, c];
+    });
+  };
+
   const radarData = selectedCata
-    ? Object.entries(selectedCata.atributos).map(([key, val]) => ({ attr: key.length > 12 ? key.slice(0, 12) + '…' : key, value: val, fullMark: 10 }))
-    : attrs.map(a => ({ attr: a.length > 12 ? a.slice(0, 12) + '…' : a, value: scores[a] || 0, fullMark: 10 }));
+    ? Object.entries(selectedCata.atributos).map(([key, val]) => ({ attr: key.length > 12 ? key.slice(0, 12) + '...' : key, value: val, fullMark: 10 }))
+    : attrs.map(a => ({ attr: a.length > 12 ? a.slice(0, 12) + '...' : a, value: scores[a] || 0, fullMark: 10 }));
+
+  // Build compare radar data
+  const compareRadarData = useMemo(() => {
+    if (compareSamples.length === 0) return [];
+    const allKeys = Object.keys(compareSamples[0].atributos);
+    return allKeys.map(key => {
+      const entry: Record<string, any> = { attr: key.length > 10 ? key.slice(0, 10) + '...' : key, fullMark: 10 };
+      compareSamples.forEach((s, i) => { entry[`sample${i}`] = s.atributos[key] || 0; });
+      return entry;
+    });
+  }, [compareSamples]);
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Nova Cup</h1>
-          <p className="text-sm text-muted-foreground">Evaluación sensorial y perfiles de taza</p>
+          <p className="text-sm text-muted-foreground">Evaluacion sensorial y perfiles de taza - Protocolos SCA y CVA</p>
         </div>
-        <Button onClick={() => { setShowNuevaCata(true); setStep(0); }}>
-          <Plus className="h-4 w-4 mr-1" /> Nueva Catación
-        </Button>
+        <div className="flex gap-2">
+          <Button variant={compareMode ? 'default' : 'outline'} size="sm" onClick={() => { setCompareMode(!compareMode); setCompareSamples([]); }}>
+            <GitCompare className="h-4 w-4 mr-1" /> {compareMode ? 'Cancelar Comparacion' : 'Comparar Muestras'}
+          </Button>
+          <Button onClick={() => { setShowNuevaCata(true); setStep(0); }}>
+            <Plus className="h-4 w-4 mr-1" /> Nueva Catacion
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -135,57 +243,349 @@ export default function NovaCupDashboard() {
         ))}
       </div>
 
-      {/* Cataciones Table */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <FlaskConical className="h-4 w-4 text-primary" /> Cataciones Recientes
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground text-left">
-                  <th className="px-4 py-3 font-medium">Fecha</th>
-                  <th className="px-4 py-3 font-medium">Lote</th>
-                  <th className="px-4 py-3 font-medium">Productor</th>
-                  <th className="px-4 py-3 font-medium">Protocolo</th>
-                  <th className="px-4 py-3 font-medium">Puntaje</th>
-                  <th className="px-4 py-3 font-medium">Categoría</th>
-                  <th className="px-4 py-3 font-medium"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {catacionesDemo.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                    <td className="px-4 py-3 text-muted-foreground">{c.fecha}</td>
-                    <td className="px-4 py-3 font-medium text-foreground">{c.lote}</td>
-                    <td className="px-4 py-3">{c.productor}</td>
-                    <td className="px-4 py-3"><Badge variant="outline">{c.protocolo}</Badge></td>
-                    <td className="px-4 py-3 font-bold">{c.puntaje}</td>
-                    <td className="px-4 py-3">{catBadge(c.cat)}</td>
-                    <td className="px-4 py-3">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedCata(c)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="cataciones" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="cataciones">Cataciones</TabsTrigger>
+          <TabsTrigger value="analytics">Analitica</TabsTrigger>
+          <TabsTrigger value="descriptores">Perfil de Sabores</TabsTrigger>
+          {compareMode && compareSamples.length >= 2 && (
+            <TabsTrigger value="compare">Comparacion ({compareSamples.length})</TabsTrigger>
+          )}
+        </TabsList>
 
-      {/* ═══ NUEVA CATACIÓN WIZARD ═══ */}
+        {/* ═══ TAB: CATACIONES ═══ */}
+        <TabsContent value="cataciones" className="space-y-4">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3">
+            <Select value={filterProtocolo} onValueChange={setFilterProtocolo}>
+              <SelectTrigger className="w-32"><SelectValue placeholder="Protocolo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="SCA">SCA</SelectItem>
+                <SelectItem value="CVA">CVA</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterCat} onValueChange={setFilterCat}>
+              <SelectTrigger className="w-36"><SelectValue placeholder="Categoria" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="Specialty">Specialty</SelectItem>
+                <SelectItem value="Premium">Premium</SelectItem>
+                <SelectItem value="Comercial">Comercial</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={() => toast.success('Reporte CSV generado')}>
+              <Download className="h-4 w-4 mr-1" /> Exportar
+            </Button>
+          </div>
+
+          {compareMode && (
+            <div className="p-3 rounded-lg border border-primary/30 bg-primary/5">
+              <p className="text-sm text-foreground">Seleccione 2 o 3 muestras para comparar sus perfiles sensoriales.</p>
+              {compareSamples.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {compareSamples.map(s => (
+                    <Badge key={s.id} variant="outline" className="gap-1">
+                      {s.lote} ({s.puntaje}) - {SAMPLE_LABELS[s.sampleType]}
+                      <button onClick={() => toggleCompare(s)} className="ml-1 text-muted-foreground hover:text-destructive">×</button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FlaskConical className="h-4 w-4 text-primary" /> Cataciones Recientes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-muted-foreground text-left">
+                      {compareMode && <th className="px-3 py-3 font-medium w-10"></th>}
+                      <th className="px-4 py-3 font-medium">Fecha</th>
+                      <th className="px-4 py-3 font-medium">Lote</th>
+                      <th className="px-4 py-3 font-medium">Productor</th>
+                      <th className="px-4 py-3 font-medium">Muestra</th>
+                      <th className="px-4 py-3 font-medium">Protocolo</th>
+                      <th className="px-4 py-3 font-medium">Puntaje</th>
+                      <th className="px-4 py-3 font-medium">Categoria</th>
+                      <th className="px-4 py-3 font-medium">Defectos</th>
+                      <th className="px-4 py-3 font-medium">Humedad</th>
+                      <th className="px-4 py-3 font-medium"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCataciones.map((c) => (
+                      <tr key={c.id} className={`border-b last:border-0 hover:bg-muted/50 transition-colors ${compareSamples.find(x => x.id === c.id) ? 'bg-primary/5' : ''}`}>
+                        {compareMode && (
+                          <td className="px-3 py-3">
+                            <input type="checkbox" checked={!!compareSamples.find(x => x.id === c.id)} onChange={() => toggleCompare(c)}
+                              className="h-4 w-4 rounded border-border" />
+                          </td>
+                        )}
+                        <td className="px-4 py-3 text-muted-foreground">{c.fecha}</td>
+                        <td className="px-4 py-3 font-medium text-foreground">{c.lote}</td>
+                        <td className="px-4 py-3">{c.productor}</td>
+                        <td className="px-4 py-3">{sampleBadge(c.sampleType)}</td>
+                        <td className="px-4 py-3"><Badge variant="outline">{c.protocolo}</Badge></td>
+                        <td className="px-4 py-3 font-bold">{c.puntaje}</td>
+                        <td className="px-4 py-3">{catBadge(c.cat)}</td>
+                        <td className="px-4 py-3 text-center">{c.defectos ?? '-'}</td>
+                        <td className="px-4 py-3">{c.humedad ? `${c.humedad}%` : '-'}</td>
+                        <td className="px-4 py-3">
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedCata(c)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Lote tracking: show which lotes have multiple samples */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <GitCompare className="h-4 w-4 text-primary" /> Seguimiento por Lote (Oferta → PSS → Llegada)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.from(loteSamples.entries()).filter(([, samples]) => samples.length > 1).map(([lote, samples]) => {
+                  const sorted = [...samples].sort((a, b) => {
+                    const order: Record<SampleType, number> = { offer: 0, pss: 1, arrival: 2 };
+                    return order[a.sampleType] - order[b.sampleType];
+                  });
+                  const first = sorted[0].puntaje;
+                  const last = sorted[sorted.length - 1].puntaje;
+                  const delta = last - first;
+                  return (
+                    <div key={lote} className="p-3 rounded-lg border border-border hover:border-primary/30 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-foreground">{lote}</span>
+                        <Badge variant={delta >= 0 ? 'default' : 'destructive'} className="text-xs">
+                          {delta >= 0 ? '+' : ''}{delta.toFixed(1)} pts variacion
+                        </Badge>
+                      </div>
+                      <div className="flex gap-3">
+                        {sorted.map(s => (
+                          <div key={s.id} className="flex items-center gap-2 text-sm">
+                            {sampleBadge(s.sampleType)}
+                            <span className="font-bold text-foreground">{s.puntaje}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {Array.from(loteSamples.entries()).filter(([, s]) => s.length > 1).length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">No hay lotes con muestras multiples para comparar.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ═══ TAB: ANALYTICS ═══ */}
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-primary" /> Puntaje por Productor
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={scoresByProducer} layout="vertical">
+                    <XAxis type="number" domain={[70, 90]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                    <YAxis type="category" dataKey="productor" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={90} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} formatter={(v: number) => [`${v} pts`]} />
+                    <Bar dataKey="puntaje" radius={[0, 4, 4, 0]}>
+                      {scoresByProducer.map((d, i) => (
+                        <Cell key={i} fill={d.puntaje >= 84 ? 'hsl(45, 90%, 50%)' : d.puntaje >= 80 ? 'hsl(210, 60%, 50%)' : 'hsl(var(--muted-foreground))'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Star className="h-4 w-4 text-primary" /> Distribucion de Calidad
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie data={catDistribution} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}%`} labelLine={false}>
+                      {catDistribution.map((d, i) => <Cell key={i} fill={d.color} />)}
+                    </Pie>
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`${v}%`]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FlaskConical className="h-4 w-4 text-primary" /> Frecuencia de Descriptores
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={descriptorFrequency}>
+                  <XAxis dataKey="descriptor" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Frecuencia" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ═══ TAB: DESCRIPTORES / FLAVOR PROFILE ═══ */}
+        <TabsContent value="descriptores" className="space-y-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Rueda de Sabores - Descriptores Frecuentes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-4">Explore las categorias para ver los descriptores mas utilizados en las cataciones recientes.</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {Object.entries(FLAVOR_WHEEL).map(([category, items]) => (
+                  <div key={category}
+                    className={`rounded-lg border transition-all cursor-pointer ${expandedCategory === category ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'}`}
+                    onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}>
+                    <div className="p-3">
+                      <span className="font-medium text-sm text-foreground">{category}</span>
+                      <p className="text-xs text-muted-foreground">{items.length} descriptores</p>
+                    </div>
+                    {expandedCategory === category && (
+                      <div className="px-3 pb-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {items.map(d => {
+                            const freq = catacionesDemo.filter(c => c.descriptores.includes(d)).length;
+                            return (
+                              <Badge key={d} variant={freq > 0 ? 'default' : 'outline'} className="text-xs">
+                                {d} {freq > 0 && <span className="ml-1 opacity-70">({freq})</span>}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ═══ TAB: COMPARACION ═══ */}
+        {compareMode && compareSamples.length >= 2 && (
+          <TabsContent value="compare" className="space-y-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <GitCompare className="h-4 w-4 text-primary" /> Comparacion de Perfiles Sensoriales
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={compareRadarData}>
+                      <PolarGrid stroke="hsl(var(--border))" />
+                      <PolarAngleAxis dataKey="attr" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
+                      <PolarRadiusAxis domain={[0, 10]} tick={false} />
+                      {compareSamples.map((s, i) => (
+                        <Radar key={s.id} dataKey={`sample${i}`} stroke={SAMPLE_COLORS[s.sampleType]}
+                          fill={SAMPLE_COLORS[s.sampleType]} fillOpacity={0.1} strokeWidth={2}
+                          name={`${s.lote} (${SAMPLE_LABELS[s.sampleType]})`} />
+                      ))}
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-wrap justify-center gap-4 mt-3">
+                  {compareSamples.map(s => (
+                    <div key={s.id} className="flex items-center gap-2 text-sm">
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: SAMPLE_COLORS[s.sampleType] }} />
+                      <span className="text-foreground">{s.lote} ({SAMPLE_LABELS[s.sampleType]}) - {s.puntaje} pts</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Attribute comparison table */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Detalle Comparativo por Atributo</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-muted-foreground text-left">
+                        <th className="px-4 py-3 font-medium">Atributo</th>
+                        {compareSamples.map(s => (
+                          <th key={s.id} className="px-4 py-3 font-medium">{s.lote} ({SAMPLE_LABELS[s.sampleType]})</th>
+                        ))}
+                        <th className="px-4 py-3 font-medium">Variacion</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.keys(compareSamples[0].atributos).map(attr => {
+                        const vals = compareSamples.map(s => s.atributos[attr] || 0);
+                        const delta = vals[vals.length - 1] - vals[0];
+                        return (
+                          <tr key={attr} className="border-b last:border-0">
+                            <td className="px-4 py-2 text-foreground font-medium">{attr}</td>
+                            {vals.map((v, i) => (
+                              <td key={i} className="px-4 py-2 font-bold">{v.toFixed(2)}</td>
+                            ))}
+                            <td className={`px-4 py-2 font-bold ${delta >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>
+                              {delta >= 0 ? '+' : ''}{delta.toFixed(2)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+      </Tabs>
+
+      {/* ═══ NUEVA CATACIÓN WIZARD (4 pasos) ═══ */}
       <Dialog open={showNuevaCata} onOpenChange={setShowNuevaCata}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-primary" />
-              {step === 0 ? 'Configurar Catación' : step === 1 ? 'Evaluación Sensorial' : step === 2 ? 'Descriptores de Sabor' : 'Resultado'}
+              {step === 0 ? 'Configurar Catacion' : step === 1 ? 'Evaluacion Sensorial' : step === 2 ? 'Rueda de Sabores' : 'Resultado Final'}
             </DialogTitle>
+            <div className="flex gap-1 mt-2">
+              {[0, 1, 2, 3].map(s => (
+                <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary' : 'bg-muted'}`} />
+              ))}
+            </div>
           </DialogHeader>
 
           {/* Step 0: Config */}
@@ -197,31 +597,56 @@ export default function NovaCupDashboard() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="SCA">SCA Traditional (100 pts)</SelectItem>
-                    <SelectItem value="CVA">CVA — Coffee Value Assessment</SelectItem>
+                    <SelectItem value="CVA">CVA - Coffee Value Assessment</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>ID de Lote *</Label>
-                <Input placeholder="Ej: LOT-2026-050" value={cataForm.lote}
-                  onChange={(e) => setCataForm(s => ({ ...s, lote: e.target.value }))} />
+                <Label>Tipo de Muestra</Label>
+                <Select value={cataForm.sampleType} onValueChange={(v) => setCataForm(s => ({ ...s, sampleType: v as SampleType }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="offer">Oferta</SelectItem>
+                    <SelectItem value="pss">Pre-Shipment (PSS)</SelectItem>
+                    <SelectItem value="arrival">Llegada (Arrival)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Productor</Label>
-                <Input placeholder="Nombre del productor" value={cataForm.productor}
-                  onChange={(e) => setCataForm(s => ({ ...s, productor: e.target.value }))} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>ID de Lote *</Label>
+                  <Input placeholder="Ej: LOT-2026-050" value={cataForm.lote}
+                    onChange={(e) => setCataForm(s => ({ ...s, lote: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Productor</Label>
+                  <Input placeholder="Nombre" value={cataForm.productor}
+                    onChange={(e) => setCataForm(s => ({ ...s, productor: e.target.value }))} />
+                </div>
               </div>
-              <Button className="w-full" onClick={handleStartCata}>Comenzar Evaluación →</Button>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Defectos (count)</Label>
+                  <Input type="number" min={0} value={cataForm.defectos}
+                    onChange={(e) => setCataForm(s => ({ ...s, defectos: Number(e.target.value) }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Humedad (%)</Label>
+                  <Input type="number" min={0} step={0.1} value={cataForm.humedad}
+                    onChange={(e) => setCataForm(s => ({ ...s, humedad: Number(e.target.value) }))} />
+                </div>
+              </div>
+              <Button className="w-full" onClick={handleStartCata}>Comenzar Evaluacion →</Button>
             </div>
           )}
 
-          {/* Step 1: Scoring */}
+          {/* Step 1: Scoring with sliders */}
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-xs text-muted-foreground">
                 {protocolo === 'SCA' ? 'Califique cada atributo de 6.00 a 10.00' : 'Califique intensidad de 0 a 10'}
               </p>
-              <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2">
+              <div className="space-y-3 max-h-[45vh] overflow-y-auto pr-2">
                 {attrs.map((attr) => (
                   <div key={attr} className="space-y-1">
                     <div className="flex justify-between text-sm">
@@ -240,7 +665,7 @@ export default function NovaCupDashboard() {
               {/* Live radar */}
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={attrs.map(a => ({ attr: a.length > 10 ? a.slice(0, 10) + '…' : a, value: scores[a] || 0, fullMark: 10 }))}>
+                  <RadarChart data={attrs.map(a => ({ attr: a.length > 10 ? a.slice(0, 10) + '...' : a, value: scores[a] || 0, fullMark: 10 }))}>
                     <PolarGrid stroke="hsl(var(--border))" />
                     <PolarAngleAxis dataKey="attr" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
                     <PolarRadiusAxis domain={[0, 10]} tick={false} />
@@ -253,35 +678,50 @@ export default function NovaCupDashboard() {
                 <p className="text-2xl font-bold text-foreground">{totalScore.toFixed(1)} pts</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(0)}>← Atrás</Button>
+                <Button variant="outline" onClick={() => setStep(0)}>← Atras</Button>
                 <Button className="flex-1" onClick={() => setStep(2)}>Descriptores →</Button>
               </div>
             </div>
           )}
 
-          {/* Step 2: Descriptors (flavor wheel) */}
+          {/* Step 2: Flavor Wheel descriptors */}
           {step === 2 && (
             <div className="space-y-4">
-              <p className="text-xs text-muted-foreground">Seleccione los descriptores de sabor identificados (rueda de sabores)</p>
-              <div className="flex flex-wrap gap-2">
-                {DESCRIPTORES.map((d) => (
-                  <button key={d} onClick={() => toggleDescriptor(d)}
-                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                      descriptoresSeleccionados.includes(d)
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-muted/50 text-foreground border-border hover:border-primary/50'
-                    }`}>
-                    {d}
-                  </button>
+              <p className="text-xs text-muted-foreground">Seleccione los descriptores de sabor identificados en la rueda de sabores.</p>
+              <div className="space-y-3 max-h-[45vh] overflow-y-auto pr-2">
+                {Object.entries(FLAVOR_WHEEL).map(([category, items]) => (
+                  <div key={category} className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{category}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {items.map((d) => (
+                        <button key={d} onClick={() => toggleDescriptor(d)}
+                          className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                            descriptoresSeleccionados.includes(d)
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-muted/50 text-foreground border-border hover:border-primary/50'
+                          }`}>
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
+              {descriptoresSeleccionados.length > 0 && (
+                <div className="p-2 rounded border border-primary/20 bg-primary/5">
+                  <p className="text-xs text-muted-foreground mb-1">Seleccionados ({descriptoresSeleccionados.length}):</p>
+                  <div className="flex flex-wrap gap-1">
+                    {descriptoresSeleccionados.map(d => <Badge key={d} className="text-xs">{d}</Badge>)}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Notas del catador</Label>
                 <Textarea placeholder="Observaciones adicionales..." value={cataForm.notas}
                   onChange={(e) => setCataForm(s => ({ ...s, notas: e.target.value }))} />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(1)}>← Atrás</Button>
+                <Button variant="outline" onClick={() => setStep(1)}>← Atras</Button>
                 <Button className="flex-1" onClick={() => setStep(3)}>Ver Resultado →</Button>
               </div>
             </div>
@@ -291,14 +731,14 @@ export default function NovaCupDashboard() {
           {step === 3 && (
             <div className="space-y-4">
               <div className="text-center p-4">
-                <p className="text-xs text-muted-foreground mb-1">Puntaje Final — {protocolo}</p>
+                <p className="text-xs text-muted-foreground mb-1">Puntaje Final - {protocolo}</p>
                 <p className="text-5xl font-bold text-foreground">{totalScore.toFixed(1)}</p>
                 <div className="mt-2">{catBadge(totalScore >= 84 ? 'Specialty' : totalScore >= 80 ? 'Premium' : 'Comercial')}</div>
               </div>
 
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={attrs.map(a => ({ attr: a.length > 10 ? a.slice(0, 10) + '…' : a, value: scores[a] || 0, fullMark: 10 }))}>
+                  <RadarChart data={attrs.map(a => ({ attr: a.length > 10 ? a.slice(0, 10) + '...' : a, value: scores[a] || 0, fullMark: 10 }))}>
                     <PolarGrid stroke="hsl(var(--border))" />
                     <PolarAngleAxis dataKey="attr" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} />
                     <PolarRadiusAxis domain={[0, 10]} tick={false} />
@@ -311,9 +751,7 @@ export default function NovaCupDashboard() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Descriptores identificados</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {descriptoresSeleccionados.map(d => (
-                      <Badge key={d} variant="outline">{d}</Badge>
-                    ))}
+                    {descriptoresSeleccionados.map(d => <Badge key={d} variant="outline">{d}</Badge>)}
                   </div>
                 </div>
               )}
@@ -323,14 +761,17 @@ export default function NovaCupDashboard() {
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground">Lote:</span> <span className="font-medium text-foreground">{cataForm.lote}</span></div>
                     <div><span className="text-muted-foreground">Protocolo:</span> <span className="font-medium text-foreground">{protocolo}</span></div>
-                    <div><span className="text-muted-foreground">Productor:</span> <span className="font-medium text-foreground">{cataForm.productor || '—'}</span></div>
+                    <div><span className="text-muted-foreground">Muestra:</span> <span className="font-medium text-foreground">{SAMPLE_LABELS[cataForm.sampleType]}</span></div>
+                    <div><span className="text-muted-foreground">Productor:</span> <span className="font-medium text-foreground">{cataForm.productor || '-'}</span></div>
+                    <div><span className="text-muted-foreground">Defectos:</span> <span className="font-medium text-foreground">{cataForm.defectos}</span></div>
+                    <div><span className="text-muted-foreground">Humedad:</span> <span className="font-medium text-foreground">{cataForm.humedad}%</span></div>
                     <div><span className="text-muted-foreground">Fecha:</span> <span className="font-medium text-foreground">{new Date().toISOString().slice(0, 10)}</span></div>
                   </div>
                 </CardContent>
               </Card>
 
               <Button className="w-full" onClick={handleFinish}>
-                <Coffee className="h-4 w-4 mr-1" /> Guardar Catación
+                <Coffee className="h-4 w-4 mr-1" /> Guardar Catacion
               </Button>
             </div>
           )}
@@ -339,7 +780,7 @@ export default function NovaCupDashboard() {
 
       {/* ═══ DETAIL DIALOG ═══ */}
       <Dialog open={!!selectedCata} onOpenChange={() => setSelectedCata(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           {selectedCata && (
             <>
               <DialogHeader>
@@ -350,8 +791,11 @@ export default function NovaCupDashboard() {
               <div className="space-y-4">
                 <div className="text-center">
                   <p className="text-4xl font-bold text-foreground">{selectedCata.puntaje}</p>
-                  <div className="mt-1">{catBadge(selectedCata.cat)}</div>
-                  <p className="text-xs text-muted-foreground mt-1">{selectedCata.protocolo} • {selectedCata.fecha}</p>
+                  <div className="mt-1 flex items-center justify-center gap-2">
+                    {catBadge(selectedCata.cat)}
+                    {sampleBadge(selectedCata.sampleType)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{selectedCata.protocolo} | {selectedCata.fecha}</p>
                 </div>
 
                 <div className="h-56">
@@ -400,7 +844,38 @@ export default function NovaCupDashboard() {
                     <span className="text-muted-foreground">Protocolo:</span>
                     <p className="font-medium text-foreground">{selectedCata.protocolo}</p>
                   </div>
+                  <div className="p-2 rounded border border-border">
+                    <span className="text-muted-foreground">Defectos:</span>
+                    <p className="font-medium text-foreground">{selectedCata.defectos ?? '-'}</p>
+                  </div>
+                  <div className="p-2 rounded border border-border">
+                    <span className="text-muted-foreground">Humedad:</span>
+                    <p className="font-medium text-foreground">{selectedCata.humedad ? `${selectedCata.humedad}%` : '-'}</p>
+                  </div>
                 </div>
+
+                {/* Show other samples for same lote */}
+                {(() => {
+                  const siblings = catacionesDemo.filter(c => c.lote === selectedCata.lote && c.id !== selectedCata.id);
+                  if (siblings.length === 0) return null;
+                  return (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">Otras muestras de este lote</p>
+                      <div className="space-y-2">
+                        {siblings.map(s => (
+                          <div key={s.id} className="flex items-center justify-between p-2 rounded border border-border hover:bg-muted/50 cursor-pointer"
+                            onClick={() => setSelectedCata(s)}>
+                            <div className="flex items-center gap-2">
+                              {sampleBadge(s.sampleType)}
+                              <span className="text-sm font-medium text-foreground">{s.puntaje} pts</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{s.fecha}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </>
           )}
