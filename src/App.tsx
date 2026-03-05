@@ -26,7 +26,6 @@ import DashboardCooperativa from "./pages/cooperativa/DashboardCooperativa";
 import ProductoresHub from "./pages/cooperativa/ProductoresHub";
 import AcopioHub from "./pages/cooperativa/AcopioHub";
 import OperacionesHub from "./pages/cooperativa/OperacionesHub";
-import NutricionHub from "./pages/cooperativa/NutricionHub";
 import FinanzasHub from "./pages/cooperativa/FinanzasHub";
 import ComunicacionHub from "./pages/cooperativa/ComunicacionHub";
 import VitalCooperativa from "./pages/cooperativa/VitalCooperativa";
@@ -130,7 +129,7 @@ const App = () => (
               <Route path="/cooperativa/productores-hub" element={<DashboardLayout requiredRole="cooperativa"><ProductoresHub /></DashboardLayout>} />
               <Route path="/cooperativa/acopio" element={<DashboardLayout requiredRole="cooperativa"><AcopioHub /></DashboardLayout>} />
               <Route path="/cooperativa/operaciones" element={<DashboardLayout requiredRole="cooperativa"><OperacionesHub /></DashboardLayout>} />
-              <Route path="/cooperativa/nutricion" element={<DashboardLayout requiredRole="cooperativa"><NutricionHub /></DashboardLayout>} />
+              <Route path="/cooperativa/nutricion" element={<Navigate to="/cooperativa/operaciones" replace />} />
               <Route path="/cooperativa/finanzas-hub" element={<DashboardLayout requiredRole="cooperativa"><FinanzasHub /></DashboardLayout>} />
               <Route path="/cooperativa/comunicacion" element={<DashboardLayout requiredRole="cooperativa"><ComunicacionHub /></DashboardLayout>} />
               <Route path="/cooperativa/calidad" element={<DashboardLayout requiredRole="cooperativa"><CalidadHub /></DashboardLayout>} />
