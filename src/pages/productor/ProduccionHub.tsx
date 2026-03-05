@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import NutricionTab from '@/components/cooperativa/operaciones/NutricionTab';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import {
   DollarSign, CheckCircle, AlertCircle, Leaf, Target, Camera,
   Calendar as CalIcon, ArrowRight, ArrowLeft, X, Trash2, Edit,
   Upload, Eye, Wrench, TrendingDown, BarChart3, Info, ChevronDown, ChevronUp,
+  Droplets,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -832,6 +834,7 @@ export default function ProduccionHub() {
       <Tabs defaultValue="parcelas">
         <TabsList className="w-full justify-start">
           <TabsTrigger value="parcelas" className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Mis parcelas</TabsTrigger>
+          <TabsTrigger value="nutricion" className="flex items-center gap-1.5"><Droplets className="h-3.5 w-3.5" /> Nutrición</TabsTrigger>
           <TabsTrigger value="inventario" className="flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Inventario</TabsTrigger>
           <TabsTrigger value="jornales" className="flex items-center gap-1.5"><Scissors className="h-3.5 w-3.5" /> Jornales</TabsTrigger>
           <TabsTrigger value="yield" className="flex items-center gap-1.5"><Sprout className="h-3.5 w-3.5" /> Nova Yield</TabsTrigger>
@@ -920,6 +923,11 @@ export default function ProduccionHub() {
               )}
             </DialogContent>
           </Dialog>
+        </TabsContent>
+
+        {/* ── NUTRICIÓN ── */}
+        <TabsContent value="nutricion" className="space-y-4 mt-4">
+          <NutricionTab />
         </TabsContent>
 
         {/* ── INVENTARIO ── */}
