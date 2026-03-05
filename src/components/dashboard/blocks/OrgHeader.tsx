@@ -3,19 +3,23 @@ import { getOrgTypeLabel } from '@/lib/org-terminology';
 import { hasModule, type OrgModule } from '@/lib/org-modules';
 import { Building2, Shield, ShieldCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { getGreeting } from '@/lib/genderHelper';
 
 interface OrgHeaderProps {
   orgName: string | null;
   orgTipo: string | null;
   activeModules: OrgModule[];
+  userName?: string | null;
   /** Demo data — will be replaced by real queries */
   vitalScore?: number;
   eudrStatus?: string;
   plan?: string;
 }
 
-export function OrgHeader({ orgName, orgTipo, activeModules, vitalScore, eudrStatus, plan }: OrgHeaderProps) {
+export function OrgHeader({ orgName, orgTipo, activeModules, userName, vitalScore, eudrStatus, plan }: OrgHeaderProps) {
   const typeLabel = getOrgTypeLabel(orgTipo);
+  const greeting = getGreeting(userName);
+  const firstName = userName?.split(' ')[0] || '';
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
@@ -24,7 +28,9 @@ export function OrgHeader({ orgName, orgTipo, activeModules, vitalScore, eudrSta
           <Building2 className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">{orgName || 'Mi Organización'}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">
+            {firstName ? `${greeting}, ${firstName}` : (orgName || 'Mi Organización')}
+          </h1>
           <div className="flex items-center gap-2 mt-0.5">
             <Badge variant="outline" className="text-xs">{typeLabel}</Badge>
             {plan && <Badge variant="secondary" className="text-xs">{plan}</Badge>}

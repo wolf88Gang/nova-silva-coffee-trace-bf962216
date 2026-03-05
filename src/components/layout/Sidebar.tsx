@@ -46,7 +46,6 @@ function getCooperativaNav(actorsLabel: string): NavItemDef[] {
     { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users, requiredModule: 'inclusion' },
     { title: 'Reportes', url: '/reportes', icon: FileText },
     { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
-    { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
   ];
 }
 
@@ -64,7 +63,7 @@ function getProductorNav(): NavItemDef[] {
 function getTecnicoNav(): NavItemDef[] {
   return [
     { title: 'Panel Principal', url: '/tecnico/dashboard', icon: LayoutDashboard },
-    { title: 'Productores Asignados', url: '/tecnico/productores', icon: Users, requiredModule: 'productores' },
+    { title: 'Productoras y productores', url: '/tecnico/productores', icon: Users, requiredModule: 'productores' },
     { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: Shield, requiredModule: 'vital' },
     { title: 'Parcelas y Mapas', url: '/tecnico/parcelas', icon: Map, requiredModule: 'parcelas' },
     { title: 'Agenda', url: '/tecnico/agenda', icon: Calendar },

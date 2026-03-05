@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getGreeting } from '@/lib/genderHelper';
+import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -53,6 +55,7 @@ const alertas = [
 ];
 
 export default function DashboardExportador() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedLote, setSelectedLote] = useState<typeof lotesPendientes[0] | null>(null);
 
@@ -70,7 +73,9 @@ export default function DashboardExportador() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Centro de Exportación</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          {user?.name ? `${getGreeting(user.name)}, ${user.name.split(' ')[0]}` : 'Centro de Exportación'}
+        </h1>
         <p className="text-sm text-muted-foreground">Consolidación, cumplimiento y logística comercial</p>
       </div>
 

@@ -31,11 +31,11 @@ export function getActorLabels(orgTipo: OrgTipo | null | undefined): ActorLabelS
   switch (orgTipo) {
     case 'cooperativa':
       return {
-        plural: 'Socios',
-        singular: 'Socio',
-        articleSingular: 'un socio',
-        emptyStateTitle: 'Sin socios registrados',
-        emptyStateBody: 'Agrega tu primer socio para comenzar a gestionar entregas, créditos y trazabilidad.',
+        plural: 'Productoras y productores',
+        singular: 'Persona productora',
+        articleSingular: 'una persona productora',
+        emptyStateTitle: 'Sin productoras ni productores',
+        emptyStateBody: 'Agrega tu primera persona socia para comenzar a gestionar entregas, créditos y trazabilidad.',
       };
     case 'exportador':
     case 'beneficio_privado':
@@ -62,7 +62,7 @@ export function getActorLabels(orgTipo: OrgTipo | null | undefined): ActorLabelS
         singular: 'Unidad Auditada',
         articleSingular: 'una unidad auditada',
         emptyStateTitle: 'Sin unidades auditadas',
-        emptyStateBody: 'No hay productores o unidades bajo auditoría activa.',
+        emptyStateBody: 'No hay unidades bajo auditoría activa.',
       };
     default:
       return {
@@ -79,14 +79,14 @@ export function getActorLabels(orgTipo: OrgTipo | null | undefined): ActorLabelS
 export function getOrgLabel(orgTipo: OrgTipo | null | undefined): string {
   switch (orgTipo) {
     case 'cooperativa': return 'Cooperativa';
-    case 'exportador': return 'Exportador';
+    case 'exportador': return 'Casa de Exportación';
     case 'beneficio_privado': return 'Beneficio Privado';
     case 'productor':
     case 'productor_empresarial': return 'Productor Empresarial';
     case 'aggregator': return 'Agregador';
     case 'certificadora': return 'Certificadora';
-    case 'tecnico': return 'Técnico';
-    case 'admin': return 'Administrador';
+    case 'tecnico': return 'Persona técnica';
+    case 'admin': return 'Administración';
     default: return 'Organización';
   }
 }

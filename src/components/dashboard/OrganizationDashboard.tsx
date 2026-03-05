@@ -4,6 +4,7 @@
  * Replaces all legacy per-role dashboards.
  */
 import { useOrgContext } from '@/hooks/useOrgContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { OrgHeader } from './blocks/OrgHeader';
 import { KPISection } from './blocks/KPISection';
 import { AlertsSection } from './blocks/AlertsSection';
@@ -31,6 +32,7 @@ function getHeaderStats(orgTipo: string | null, modules: import('@/lib/org-modul
 
 export default function OrganizationDashboard() {
   const { organizationId, role, orgTipo, orgName, activeModules, isLoading } = useOrgContext();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -52,6 +54,7 @@ export default function OrganizationDashboard() {
           orgName={orgName}
           orgTipo={orgTipo}
           activeModules={activeModules}
+          userName={user?.name}
         />
         <Card>
           <CardContent className="py-16 text-center space-y-4">
@@ -82,6 +85,7 @@ export default function OrganizationDashboard() {
         orgName={orgName}
         orgTipo={orgTipo}
         activeModules={activeModules}
+        userName={user?.name}
         vitalScore={headerStats.vitalScore}
         eudrStatus={headerStats.eudrStatus}
         plan={headerStats.plan}

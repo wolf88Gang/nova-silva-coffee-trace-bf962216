@@ -15,15 +15,15 @@ import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } f
 // ── KPI indicators ──
 const indicadores = [
   { label: 'Participación femenina', valor: 38, meta: 50, unidad: '%' },
-  { label: 'Jóvenes productores (<30)', valor: 12, meta: 20, unidad: '%' },
-  { label: 'Productores con discapacidad', valor: 2, meta: null, unidad: 'personas' },
+  { label: 'Jóvenes (<30 años)', valor: 12, meta: 20, unidad: '%' },
+  { label: 'Personas con discapacidad', valor: 2, meta: null, unidad: 'personas' },
   { label: 'Comunidades indígenas', valor: 1, meta: null, unidad: 'comunidad' },
 ];
 
 // ── Acciones ──
 const acciones = [
   { id: '1', titulo: 'Taller de liderazgo para mujeres productoras', fecha: '2026-03-05', estado: 'programada', participantes: 25, responsable: 'Sandra López' },
-  { id: '2', titulo: 'Programa de mentoría para jóvenes caficultores', fecha: '2026-02-20', estado: 'en_curso', participantes: 12, responsable: 'Miguel Flores' },
+  { id: '2', titulo: 'Programa de mentoría para personas jóvenes caficultoras', fecha: '2026-02-20', estado: 'en_curso', participantes: 12, responsable: 'Miguel Flores' },
   { id: '3', titulo: 'Capacitación en derechos laborales', fecha: '2026-01-15', estado: 'completada', participantes: 45, responsable: 'Ana Betancourt' },
   { id: '4', titulo: 'Censo de diversidad en fincas', fecha: '2026-01-10', estado: 'completada', participantes: 67, responsable: 'Roberto Paz' },
   { id: '5', titulo: 'Feria de emprendimiento femenino', fecha: '2026-03-15', estado: 'programada', participantes: 30, responsable: 'María Ortiz' },
@@ -64,11 +64,11 @@ const rolesLiderazgo = [
 
 // ── Reportes ──
 const reportes = [
-  { id: 'r1', titulo: 'Informe Anual de Equidad de Genero 2025', fecha: '2025-12-15', tipo: 'Anual', estado: 'publicado' },
-  { id: 'r2', titulo: 'Reporte Trimestral Inclusion T4-2025', fecha: '2025-12-30', tipo: 'Trimestral', estado: 'publicado' },
-  { id: 'r3', titulo: 'Diagnostico de Brechas Salariales', fecha: '2025-11-10', tipo: 'Especial', estado: 'publicado' },
-  { id: 'r4', titulo: 'Plan de Accion Inclusion 2026', fecha: '2026-01-20', tipo: 'Plan', estado: 'borrador' },
-  { id: 'r5', titulo: 'Informe de Impacto - Programa Jovenes', fecha: '2026-02-28', tipo: 'Especial', estado: 'publicado' },
+  { id: 'r1', titulo: 'Informe Anual de Equidad de Género 2025', fecha: '2025-12-15', tipo: 'Anual', estado: 'publicado' },
+  { id: 'r2', titulo: 'Reporte Trimestral Inclusión T4-2025', fecha: '2025-12-30', tipo: 'Trimestral', estado: 'publicado' },
+  { id: 'r3', titulo: 'Diagnóstico de Brechas Salariales', fecha: '2025-11-10', tipo: 'Especial', estado: 'publicado' },
+  { id: 'r4', titulo: 'Plan de Acción Inclusión 2026', fecha: '2026-01-20', tipo: 'Plan', estado: 'borrador' },
+  { id: 'r5', titulo: 'Informe de Impacto — Programa Jóvenes', fecha: '2026-02-28', tipo: 'Especial', estado: 'publicado' },
 ];
 
 export default function InclusionEquidad() {
@@ -114,7 +114,7 @@ export default function InclusionEquidad() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" /> Distribución por genero
+                  <Users className="h-4 w-4 text-primary" /> Distribución por género
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -143,7 +143,7 @@ export default function InclusionEquidad() {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="rango" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                     <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} formatter={(v: number) => [`${v} productores`]} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} formatter={(v: number) => [`${v} personas`]} />
                     <Bar dataKey="cantidad" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -234,7 +234,7 @@ export default function InclusionEquidad() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-muted-foreground text-left">
-                      <th className="px-4 py-3 font-medium">Titulo</th>
+                      <th className="px-4 py-3 font-medium">Título</th>
                       <th className="px-4 py-3 font-medium">Tipo</th>
                       <th className="px-4 py-3 font-medium">Fecha</th>
                       <th className="px-4 py-3 font-medium">Estado</th>
@@ -295,13 +295,13 @@ export default function InclusionEquidad() {
                 </div>
               </div>
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                <p className="text-sm font-medium text-foreground mb-2">Resumen del analisis Nova Silva</p>
+                <p className="text-sm font-medium text-foreground mb-2">Resumen del análisis Nova Silva</p>
                 <p className="text-sm text-muted-foreground">
                   {selectedReport.tipo === 'Anual'
-                    ? 'La participación femenina ha crecido un 10% interanual, alcanzando el 38% del total de productores asociados. Se recomienda fortalecer los programas de acceso a credito diferenciado y ampliar las capacitaciones en liderazgo para alcanzar la meta del 50% para 2027.'
+                    ? 'La participación femenina ha crecido un 10% interanual, alcanzando el 38% del total de productoras y productores asociados. Se recomienda fortalecer los programas de acceso a crédito diferenciado y ampliar las capacitaciones en liderazgo para alcanzar la meta del 50% para 2027.'
                     : selectedReport.tipo === 'Especial'
-                    ? 'El diagnostico revela una brecha salarial promedio del 12% en las actividades de corte y poscosecha. Las acciones correctivas implementadas en T3-2025 han reducido esta brecha en 3 puntos porcentuales respecto al periodo anterior.'
-                    : 'El plan de acción 2026 contempla 8 iniciativas clave: 3 talleres de liderazgo, 2 programas de mentoría, 1 feria de emprendimiento, 1 censo de diversidad actualizado y 1 programa de becas para jóvenes caficultores.'}
+                    ? 'El diagnóstico revela una brecha salarial promedio del 12% en las actividades de corte y poscosecha. Las acciones correctivas implementadas en T3-2025 han reducido esta brecha en 3 puntos porcentuales respecto al periodo anterior.'
+                    : 'El plan de acción 2026 contempla 8 iniciativas clave: 3 talleres de liderazgo, 2 programas de mentoría, 1 feria de emprendimiento, 1 censo de diversidad actualizado y 1 programa de becas para jóvenes caficultoras y caficultores.'}
                 </p>
               </div>
               <Button variant="outline" className="w-full">Descargar PDF</Button>
