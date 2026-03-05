@@ -1,14 +1,18 @@
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, Shield, TrendingDown } from 'lucide-react';
+import { AlertTriangle, Shield, TrendingDown, FileText, ChevronRight } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 import type { ResultadoClimaProductor } from '@/lib/climaScoring';
 import { BLOQUES_INFO } from '@/config/climaProductor';
+import { generarInterpretacion, type NivelRiesgoProductor } from '@/lib/climaInterpretacion';
 
 interface Props {
   resultado: ResultadoClimaProductor;
   compact?: boolean;
+  nombre?: string;
+  comunidad?: string;
 }
 
 const nivelBadgeClass: Record<string, string> = {
@@ -18,12 +22,52 @@ const nivelBadgeClass: Record<string, string> = {
   'Crítica': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
 };
 
-export default function VitalResultadoCard({ resultado, compact = false }: Props) {
+function mapNivelToRiesgo(nivel: string): NivelRiesgoProductor {
+  switch (nivel) {
+    case 'Resiliente': return 'bajo';
+    case 'En Construcción': return 'medio';
+    case 'Fragilidad': return 'alto';
+    case 'Crítica': return 'critico';
+    default: return 'medio';
+  }
+}
+
+function scoreToNivelRiesgo(score: number): NivelRiesgoProductor {
+  if (score <= 0.25) return 'bajo';
+  if (score <= 0.50) return 'medio';
+  if (score <= 0.75) return 'alto';
+  return 'critico';
+}
+
+export default function VitalResultadoCard({ resultado, compact = false, nombre, comunidad }: Props) {
   const radarData = [
     { dim: 'Baja Exposición', value: Math.round((1 - resultado.exposicion) * 100) },
     { dim: 'Baja Sensibilidad', value: Math.round((1 - resultado.sensibilidad) * 100) },
     { dim: 'Cap. Adaptativa', value: Math.round(resultado.capacidadAdaptativa * 100) },
   ];
+
+  // Generate interpretation
+  const interpretacion = useMemo(() => {
+    const nivelRiesgo = mapNivelToRiesgo(resultado.nivel);
+    return generarInterpretacion({
+      productor: { nombre: nombre ?? 'Productor', comunidad },
+      indice_clima: resultado.indiceGlobal,
+      nivel_riesgo_global: nivelRiesgo,
+      puntaje_exposicion: Math.round(resultado.exposicion * 100),
+      puntaje_sensibilidad: Math.round(resultado.sensibilidad * 100),
+      puntaje_capacidad_adaptativa: Math.round(resultado.capacidadAdaptativa * 100),
+      riesgo_exposicion: scoreToNivelRiesgo(resultado.exposicion),
+      riesgo_sensibilidad: scoreToNivelRiesgo(resultado.sensibilidad),
+      riesgo_capacidad_adaptativa: scoreToNivelRiesgo(1 - resultado.capacidadAdaptativa),
+      factores_riesgo: resultado.factoresRiesgo.slice(0, 5).map(f => ({
+        codigo: f.codigo,
+        bloque: f.bloque,
+        pregunta: f.texto,
+        dimension: 'exposicion',
+        impacto: f.impacto >= 3 ? 'alto' as const : 'medio' as const,
+      })),
+    });
+  }, [resultado, nombre, comunidad]);
 
   return (
     <div className="space-y-4">
@@ -32,7 +76,7 @@ export default function VitalResultadoCard({ resultado, compact = false }: Props
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Shield className="h-5 w-5 text-primary" />
-            Índice Global de Resiliencia
+            Índice Global de Resiliencia (IGRN)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -76,6 +120,91 @@ export default function VitalResultadoCard({ resultado, compact = false }: Props
                     <p className="text-xs text-muted-foreground">{d.dim}</p>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Interpretación Nova Silva */}
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                Interpretación Nova Silva
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold text-primary mb-1">Qué es el Protocolo VITAL</p>
+                <p className="text-sm text-muted-foreground">{interpretacion.queEsDiagnostico}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-primary mb-1">Resumen de tu situación</p>
+                <p className="text-sm text-muted-foreground">{interpretacion.resumenSituacion}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-primary mb-1">Análisis por Dimensión</p>
+                <div className="space-y-2">
+                  {Object.entries(interpretacion.analisisDimensiones).map(([key, dim]) => (
+                    <div key={key} className="p-2 rounded-lg border border-border">
+                      <p className="text-sm font-medium text-foreground">{dim.titulo} — {dim.nivel}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{dim.texto}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {interpretacion.factoresCriticos.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-primary mb-1">Factores Críticos</p>
+                  <div className="space-y-2">
+                    {interpretacion.factoresCriticos.map((f, i) => (
+                      <div key={i} className="p-2 rounded-lg bg-destructive/5 border border-destructive/10">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <Badge variant="destructive" className="text-[10px]">{f.nivelRiesgo}</Badge>
+                          <span className="text-sm font-medium text-foreground">{f.titulo}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{f.queHacer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {interpretacion.pasosCorto.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-primary mb-1">Pasos a corto plazo (6-12 meses)</p>
+                  <ul className="space-y-1">
+                    {interpretacion.pasosCorto.map((p, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <ChevronRight className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />{p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {interpretacion.pasosMediano.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-primary mb-1">Pasos a mediano plazo (1-3 años)</p>
+                  <ul className="space-y-1">
+                    {interpretacion.pasosMediano.map((p, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />{p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div>
+                <p className="text-xs font-semibold text-primary mb-1">Cómo te puede apoyar tu organización</p>
+                <ul className="space-y-1">
+                  {interpretacion.apoyoCooperativa.map((a, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <ChevronRight className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />{a}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </CardContent>
           </Card>

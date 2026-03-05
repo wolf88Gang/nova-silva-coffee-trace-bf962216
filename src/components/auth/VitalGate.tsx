@@ -16,8 +16,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 /** If true, VITAL pages show mock data only (no real queries to blocked tables) */
-export const VITAL_ACTIONS_BLOCKED = true;
-export const VITAL_SCORES_BLOCKED = true;
+export const VITAL_ACTIONS_BLOCKED = false;
+export const VITAL_SCORES_BLOCKED = false;
 
 interface VitalGateProps {
   children: ReactNode;
