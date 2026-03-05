@@ -16,13 +16,8 @@ import type { PermissionKey } from '@/config/orgPermissions';
 import { PERMISSION_KEYS } from '@/config/orgPermissions';
 
 /** Explicit select to reduce payload — must match PERMISSION_KEYS + meta columns */
-const SELECT_COLUMNS = [
-  'id',
-  'activo',
-  'rol_interno',
-  'rol_visible',
-  ...PERMISSION_KEYS,
-].join(',');
+const SELECT_COLUMNS =
+  'id,activo,rol_interno,rol_visible,permiso_gestion_productores,permiso_crear_editar_productores,permiso_ver_parcelas_clima,permiso_gestion_lotes_acopio,permiso_ver_eudr_exportador,permiso_gestion_contratos,permiso_gestion_configuracion_org,permiso_ver_informes_financieros';
 
 export interface CurrentUserPermissions {
   /** Whether the query has resolved */
