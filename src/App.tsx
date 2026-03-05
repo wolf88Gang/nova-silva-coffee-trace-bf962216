@@ -70,6 +70,8 @@ import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
 
 // Admin
 import AdminPanel from "./pages/admin/AdminPanel";
+import AdminDirectorio from "./pages/admin/AdminDirectorio";
+import MiPerfil from "./pages/perfil/MiPerfil";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
 import AlertasPage from "./pages/alertas/AlertasPage";
@@ -114,7 +116,7 @@ const App = () => (
               <Route path="/onboarding/organization" element={<OnboardingOrganization />} />
 
               {/* Shared */}
-              <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />
+              <Route path="/mi-perfil" element={<DashboardLayout><MiPerfil /></DashboardLayout>} />
               <Route path="/mi-plan" element={<Navigate to="/billing" replace />} />
               <Route path="/billing" element={<DashboardLayout><BillingReadOnly /></DashboardLayout>} />
               <Route path="/alerts" element={<DashboardLayout><AlertasPage /></DashboardLayout>} />
@@ -189,7 +191,7 @@ const App = () => (
 
               {/* ── ADMIN ── */}
               <Route path="/admin" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminPanel /></DashboardLayout></RequireAdmin>} />
-              <Route path="/admin/directorio" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Directorio de Clientes" /></DashboardLayout></RequireAdmin>} />
+              <Route path="/admin/directorio" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminDirectorio /></DashboardLayout></RequireAdmin>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
