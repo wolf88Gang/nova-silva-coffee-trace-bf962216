@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ActorProvider } from '@/contexts/ActorContext';
 import { Sidebar } from './Sidebar';
 import { NotificacionesBell } from './NotificacionesBell';
+import { ProfileDropdown } from './ProfileDropdown';
 import { UserRole } from '@/types';
 import { Menu, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -57,9 +58,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
             </div>
             <div className="flex items-center gap-3">
               <NotificacionesBell />
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary">{user?.name?.charAt(0) || 'U'}</span>
-              </div>
+              <ProfileDropdown />
             </div>
           </header>
           <div className="hidden lg:block h-14" />
@@ -73,7 +72,10 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
               <img src={logoNovasilva} alt="Nova Silva" className="h-7 w-7 object-contain" />
               <span className="font-semibold text-foreground text-sm">{user?.organizationName || 'Nova Silva'}</span>
             </div>
-            <NotificacionesBell />
+            <div className="flex items-center gap-2">
+              <NotificacionesBell />
+              <ProfileDropdown />
+            </div>
           </header>
           <div className="lg:hidden h-14" />
 
