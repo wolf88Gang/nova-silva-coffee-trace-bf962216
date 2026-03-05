@@ -52,8 +52,8 @@ import TecnicoAgenda from "./pages/tecnico/TecnicoAgenda";
 
 // Exportador pages
 import DashboardExportador from "./pages/exportador/DashboardExportador";
-import ExportadorProveedores from "./pages/exportador/ExportadorProveedores";
-import ExportadorLotes from "./pages/exportador/ExportadorLotes";
+import CarteraProveedores from "./pages/exportador/CarteraProveedores";
+import CafeHub from "./pages/exportador/CafeHub";
 import ExportadorContratos from "./pages/exportador/ExportadorContratos";
 import ExportadorEUDR from "./pages/exportador/ExportadorEUDR";
 import ExportadorEmbarques from "./pages/exportador/ExportadorEmbarques";
@@ -61,6 +61,10 @@ import ExportadorClientes from "./pages/exportador/ExportadorClientes";
 import ExportadorCalidad from "./pages/exportador/ExportadorCalidad";
 import ExportadorConfiguracion from "./pages/exportador/ExportadorConfiguracion";
 import ExportadorMensajes from "./pages/exportador/ExportadorMensajes";
+
+// Cooperativa extra pages
+import ExportadoresAsociados from "./pages/cooperativa/ExportadoresAsociados";
+import OfertasRecibidas from "./pages/cooperativa/OfertasRecibidas";
 
 // Certificadora pages
 import DashboardCertificadora from "./pages/certificadora/DashboardCertificadora";
@@ -137,7 +141,8 @@ const App = () => (
               <Route path="/cooperativa/lotes-acopio" element={<Navigate to="/cooperativa/acopio" replace />} />
               <Route path="/cooperativa/creditos" element={<Navigate to="/cooperativa/finanzas-hub" replace />} />
               <Route path="/cooperativa/configuracion" element={<Navigate to="/cooperativa/usuarios" replace />} />
-              <Route path="/cooperativa/exportadores" element={<Navigate to="/cooperativa/acopio" replace />} />
+              <Route path="/cooperativa/exportadores" element={<DashboardLayout requiredRole="cooperativa"><ExportadoresAsociados /></DashboardLayout>} />
+              <Route path="/cooperativa/ofertas-recibidas" element={<DashboardLayout requiredRole="cooperativa"><OfertasRecibidas /></DashboardLayout>} />
               <Route path="/cooperativa/avisos" element={<Navigate to="/cooperativa/comunicacion" replace />} />
 
               {/* ── PRODUCTOR ── */}
@@ -168,8 +173,9 @@ const App = () => (
               {/* ── EXPORTADOR ── */}
               <Route path="/exportador" element={<Navigate to="/exportador/dashboard" replace />} />
               <Route path="/exportador/dashboard" element={<DashboardLayout requiredRole="exportador"><DashboardExportador /></DashboardLayout>} />
-              <Route path="/exportador/lotes" element={<DashboardLayout requiredRole="exportador"><ExportadorLotes /></DashboardLayout>} />
-              <Route path="/exportador/proveedores" element={<DashboardLayout requiredRole="exportador"><ExportadorProveedores /></DashboardLayout>} />
+              <Route path="/exportador/cafe" element={<DashboardLayout requiredRole="exportador"><CafeHub /></DashboardLayout>} />
+              <Route path="/exportador/lotes" element={<Navigate to="/exportador/cafe?tab=inventario" replace />} />
+              <Route path="/exportador/proveedores" element={<DashboardLayout requiredRole="exportador"><CarteraProveedores /></DashboardLayout>} />
               <Route path="/exportador/contratos" element={<DashboardLayout requiredRole="exportador"><ExportadorContratos /></DashboardLayout>} />
               <Route path="/exportador/eudr" element={<DashboardLayout requiredRole="exportador"><ModuleGuard module="eudr"><ExportadorEUDR /></ModuleGuard></DashboardLayout>} />
               <Route path="/exportador/embarques" element={<DashboardLayout requiredRole="exportador"><ExportadorEmbarques /></DashboardLayout>} />
