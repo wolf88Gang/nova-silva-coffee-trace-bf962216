@@ -584,30 +584,73 @@ export default function NovaCupDashboard() {
         {/* ═══ TAB: DESCRIPTORES ═══ */}
         <TabsContent value="descriptores" className="space-y-6">
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Rueda de Sabores — Descriptores Frecuentes</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base">Perfil de Sabores por Productor</CardTitle></CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground mb-4">Explore las categorías para ver los descriptores más utilizados en las cataciones recientes.</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {Object.entries(FLAVOR_WHEEL).map(([category, items]) => (
-                  <div key={category}
-                    className={`rounded-lg border transition-all cursor-pointer ${expandedCategory === category ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'}`}
-                    onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}>
-                    <div className="p-3">
-                      <span className="font-medium text-sm text-foreground">{category}</span>
-                      <p className="text-xs text-muted-foreground">{items.length} descriptores</p>
-                    </div>
-                    {expandedCategory === category && (
-                      <div className="px-3 pb-3">
-                        <div className="flex flex-wrap gap-1.5">
-                          {items.map(d => {
-                            const freq = catacionesDemo.filter(c => c.descriptores.includes(d)).length;
-                            return <Badge key={d} variant={freq > 0 ? 'default' : 'outline'} className="text-xs">{d} {freq > 0 && <span className="ml-1 opacity-70">({freq})</span>}</Badge>;
-                          })}
+              <p className="text-xs text-muted-foreground mb-4">Descriptores identificados en cataciones recientes, agrupados por categoría con los productores asociados.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.entries(FLAVOR_WHEEL).map(([category, items]) => {
+                  // Find descriptors that appear in cataciones and map to producers
+                  const descriptorData = items
+                    .map(d => ({
+                      name: d,
+                      producers: catacionesDemo
+                        .filter(c => c.descriptores.includes(d))
+                        .map(c => ({ nombre: c.productor, puntaje: c.puntaje, lote: c.lote })),
+                    }))
+                    .filter(d => d.producers.length > 0);
+
+                  const isExpanded = expandedCategory === category;
+
+                  return (
+                    <div key={category}
+                      className={`rounded-lg border transition-all cursor-pointer ${isExpanded ? 'border-primary bg-primary/5 col-span-1 md:col-span-2 lg:col-span-3' : 'border-border hover:border-primary/30'}`}
+                      onClick={() => setExpandedCategory(isExpanded ? null : category)}>
+                      <div className="p-3 flex items-center justify-between">
+                        <div>
+                          <span className="font-medium text-sm text-foreground">{category}</span>
+                          <p className="text-xs text-muted-foreground">
+                            {descriptorData.length > 0
+                              ? `${descriptorData.length} descriptores · ${new Set(descriptorData.flatMap(d => d.producers.map(p => p.nombre))).size} productores`
+                              : 'Sin registros recientes'}
+                          </p>
                         </div>
+                        {descriptorData.length > 0 && (
+                          <Badge variant="secondary" className="text-[10px]">{descriptorData.length}</Badge>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {isExpanded && descriptorData.length > 0 && (
+                        <div className="px-3 pb-3 space-y-2" onClick={e => e.stopPropagation()}>
+                          {descriptorData.map(d => (
+                            <div key={d.name} className="p-2.5 rounded-md border border-border bg-background">
+                              <p className="text-sm font-medium text-foreground mb-1.5">{d.name}</p>
+                              <div className="space-y-1">
+                                {d.producers.map((p, i) => (
+                                  <div key={i} className="flex items-center justify-between text-xs">
+                                    <span className="text-foreground">{p.nombre}</span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-muted-foreground">{p.lote}</span>
+                                      <Badge variant="outline" className="text-[10px]">{p.puntaje} pts</Badge>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          {items.filter(d => !descriptorData.find(dd => dd.name === d)).length > 0 && (
+                            <p className="text-xs text-muted-foreground pt-1">
+                              Sin registros: {items.filter(d => !descriptorData.find(dd => dd.name === d)).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {isExpanded && descriptorData.length === 0 && (
+                        <div className="px-3 pb-3">
+                          <p className="text-xs text-muted-foreground">Ningún descriptor de esta categoría ha sido registrado en cataciones recientes.</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
