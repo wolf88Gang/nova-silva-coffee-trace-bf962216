@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   ShieldCheck, Users, TrendingUp, Play, CheckCircle, AlertTriangle,
   ArrowRight, ArrowLeft, BarChart3, Building2, Eye, UserCheck, Calendar, MapPin,
+  MessageSquare, ClipboardCheck,
 } from 'lucide-react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -55,6 +57,76 @@ const DEMO_TECNICO_ASIGNADO: Record<string, { nombre: string; telefono: string }
   '6': { nombre: 'Ing. Sofía Villagrán', telefono: '+502 5555-5678' },
   '7': { nombre: 'Ing. Roberto Castañeda', telefono: '+502 5555-1234' },
   '8': { nombre: 'Ing. Sofía Villagrán', telefono: '+502 5555-5678' },
+};
+
+// Demo technician comments per producer
+const DEMO_COMENTARIOS_TECNICO: Record<string, { fecha: string; tecnico: string; texto: string }[]> = {
+  '1': [
+    { fecha: '2026-02-01', tecnico: 'Ing. Roberto Castañeda', texto: 'Suelo con buena cobertura vegetal. Recomendé ampliar barreras vivas en zona norte de parcela 2.' },
+    { fecha: '2025-08-15', tecnico: 'Ing. Roberto Castañeda', texto: 'Avance significativo en manejo de sombra. Falta mejorar registros de agua.' },
+  ],
+  '2': [
+    { fecha: '2026-01-20', tecnico: 'Ing. Roberto Castañeda', texto: 'Productora modelo. Excelentes prácticas de conservación de suelo y diversificación.' },
+  ],
+  '3': [
+    { fecha: '2026-01-28', tecnico: 'Ing. Sofía Villagrán', texto: 'Productor con dificultades en manejo de plagas. Se entregó plan de acción correctiva urgente.' },
+    { fecha: '2025-08-05', tecnico: 'Ing. Sofía Villagrán', texto: 'Sin avance en recomendaciones anteriores. Necesita acompañamiento más frecuente.' },
+  ],
+  '4': [
+    { fecha: '2026-02-12', tecnico: 'Ing. Roberto Castañeda', texto: 'Puntuación más alta del grupo. Candidata a promotora comunitaria.' },
+  ],
+  '5': [
+    { fecha: '2025-12-20', tecnico: 'Ing. Sofía Villagrán', texto: 'Situación crítica: deforestación reciente en lindero este. Se requiere intervención inmediata.' },
+  ],
+  '6': [
+    { fecha: '2026-01-15', tecnico: 'Ing. Sofía Villagrán', texto: 'Buen progreso en biodiversidad. Pendiente implementar sistema de riego eficiente.' },
+  ],
+  '7': [
+    { fecha: '2026-01-10', tecnico: 'Ing. Roberto Castañeda', texto: 'Primera evaluación. Productor receptivo, se definió plan de mejora a 6 meses.' },
+  ],
+  '8': [
+    { fecha: '2026-02-05', tecnico: 'Ing. Sofía Villagrán', texto: 'Mejora constante. Implementó compostaje y reducción de agroquímicos.' },
+  ],
+};
+
+// Demo validated actions per producer
+const DEMO_ACCIONES_VALIDADAS: Record<string, { id: string; accion: string; validada: boolean; fechaValidacion?: string; tecnico: string }[]> = {
+  '1': [
+    { id: 'a1', accion: 'Instalar barreras vivas en parcela norte', validada: true, fechaValidacion: '2026-02-01', tecnico: 'Roberto Castañeda' },
+    { id: 'a2', accion: 'Implementar registro diario de consumo de agua', validada: false, tecnico: 'Roberto Castañeda' },
+    { id: 'a3', accion: 'Ampliar cobertura de sombra al 40%', validada: true, fechaValidacion: '2025-08-15', tecnico: 'Roberto Castañeda' },
+  ],
+  '2': [
+    { id: 'a4', accion: 'Mantener diversificación de cultivos asociados', validada: true, fechaValidacion: '2026-01-20', tecnico: 'Roberto Castañeda' },
+    { id: 'a5', accion: 'Documentar prácticas para replicar en comunidad', validada: true, fechaValidacion: '2026-01-20', tecnico: 'Roberto Castañeda' },
+  ],
+  '3': [
+    { id: 'a6', accion: 'Aplicar plan de control integrado de plagas', validada: false, tecnico: 'Sofía Villagrán' },
+    { id: 'a7', accion: 'Asistir a capacitación de manejo fitosanitario', validada: false, tecnico: 'Sofía Villagrán' },
+    { id: 'a8', accion: 'Eliminar uso de herbicidas no autorizados', validada: false, tecnico: 'Sofía Villagrán' },
+  ],
+  '4': [
+    { id: 'a9', accion: 'Certificar como promotora comunitaria VITAL', validada: true, fechaValidacion: '2026-02-12', tecnico: 'Roberto Castañeda' },
+    { id: 'a10', accion: 'Capacitar a 3 productores vecinos', validada: false, tecnico: 'Roberto Castañeda' },
+  ],
+  '5': [
+    { id: 'a11', accion: 'Detener deforestación en lindero este', validada: false, tecnico: 'Sofía Villagrán' },
+    { id: 'a12', accion: 'Iniciar reforestación con especies nativas', validada: false, tecnico: 'Sofía Villagrán' },
+    { id: 'a13', accion: 'Presentar plan de remediación ambiental', validada: false, tecnico: 'Sofía Villagrán' },
+  ],
+  '6': [
+    { id: 'a14', accion: 'Instalar sistema de micro-riego', validada: false, tecnico: 'Sofía Villagrán' },
+    { id: 'a15', accion: 'Mantener corredores biológicos', validada: true, fechaValidacion: '2026-01-15', tecnico: 'Sofía Villagrán' },
+  ],
+  '7': [
+    { id: 'a16', accion: 'Completar análisis de suelo en parcelas', validada: false, tecnico: 'Roberto Castañeda' },
+    { id: 'a17', accion: 'Establecer calendario de fertilización orgánica', validada: false, tecnico: 'Roberto Castañeda' },
+  ],
+  '8': [
+    { id: 'a18', accion: 'Mantener programa de compostaje', validada: true, fechaValidacion: '2026-02-05', tecnico: 'Sofía Villagrán' },
+    { id: 'a19', accion: 'Reducir uso de agroquímicos en 50%', validada: true, fechaValidacion: '2026-02-05', tecnico: 'Sofía Villagrán' },
+    { id: 'a20', accion: 'Obtener certificación orgánica', validada: false, tecnico: 'Sofía Villagrán' },
+  ],
 };
 
 const DEMO_EVAL_HISTORIAL: Record<string, { fecha: string; score: number; evaluador: string }[]> = {
@@ -466,6 +538,64 @@ export default function VitalCooperativa() {
                       </Badge>
                     </div>
                   </div>
+
+                  {/* Acciones validadas por técnico */}
+                  {(DEMO_ACCIONES_VALIDADAS[p.id] || []).length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                        <ClipboardCheck className="h-4 w-4 text-primary" /> Acciones — Validación Técnica
+                      </p>
+                      <div className="space-y-2">
+                        {(DEMO_ACCIONES_VALIDADAS[p.id] || []).map(a => (
+                          <div key={a.id} className={`flex items-start gap-3 p-2.5 rounded-lg border transition-colors ${
+                            a.validada ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-border'
+                          }`}>
+                            <Checkbox checked={a.validada} disabled className="mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${a.validada ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                                {a.accion}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {a.validada
+                                  ? `✓ Validada por ${a.tecnico} — ${a.fechaValidacion}`
+                                  : `Pendiente · Asignada a ${a.tecnico}`
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-2 flex gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3 text-emerald-600" />
+                          {(DEMO_ACCIONES_VALIDADAS[p.id] || []).filter(a => a.validada).length} validadas
+                        </span>
+                        <span>
+                          {(DEMO_ACCIONES_VALIDADAS[p.id] || []).filter(a => !a.validada).length} pendientes
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comentarios del técnico */}
+                  {(DEMO_COMENTARIOS_TECNICO[p.id] || []).length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-primary" /> Comentarios del Técnico
+                      </p>
+                      <div className="space-y-2">
+                        {(DEMO_COMENTARIOS_TECNICO[p.id] || []).map((c, i) => (
+                          <div key={i} className="p-3 rounded-lg bg-muted/50 border border-border">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-medium text-foreground">{c.tecnico}</span>
+                              <span className="text-xs text-muted-foreground">{c.fecha}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{c.texto}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             );
