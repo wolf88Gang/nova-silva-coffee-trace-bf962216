@@ -394,7 +394,6 @@ export default function VitalCooperativa() {
                               : 'border-border hover:border-primary/30 text-foreground'
                           }`}>
                           {opt.label}
-                          <span className="text-xs text-muted-foreground ml-1">({opt.score})</span>
                         </button>
                       ))}
                     </div>
