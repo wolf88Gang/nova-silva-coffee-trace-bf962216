@@ -9,6 +9,7 @@ import {
   Shield, FileCheck, CheckCircle, AlertTriangle, ExternalLink, MapPin, FileText,
   TrendingUp, Droplets, Sun, Leaf, ChevronRight, Globe, ChevronDown, ChevronUp, Upload,
   ArrowRight, ArrowLeft, Calendar, RotateCcw, ClipboardCheck, Thermometer, Sprout,
+  Target, Lightbulb, Clock, DollarSign, Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -16,6 +17,7 @@ import {
   type VitalBlock, type IGRNResult,
 } from '@/config/vitalProductorQuestions';
 import { generarInterpretacion, type ClimaProductorData } from '@/lib/climaInterpretacion';
+import { TecnicoContactLink, TecnicoContactBanner } from '@/components/common/TecnicoContactCard';
 
 // ── Block icons ──
 const blockIcons = [Droplets, Sprout, Shield, Thermometer, Globe];
@@ -36,25 +38,87 @@ const vitalScore = {
 interface Recomendacion {
   area: string; prioridad: 'alta' | 'media' | 'baja'; accion: string;
   icon: typeof Droplets; detalle: string; impacto: string; plazo: string; recursos: string[];
+  costoEstimado: string; pasos: string[]; indicadorExito: string; componenteVital: string;
 }
 
 const recomendaciones: Recomendacion[] = [
   { area: 'Recurso Hídrico', prioridad: 'alta', icon: Droplets,
     accion: 'Implementar sistema de cosecha de agua lluvia con tanque de al menos 5,000 litros.',
-    detalle: 'La finca presenta déficit hídrico en los meses de enero a abril. Un sistema de cosecha de agua lluvia permitiría cubrir las necesidades de riego complementario durante la época seca.',
+    detalle: 'La finca presenta déficit hídrico en los meses de enero a abril. Un sistema de cosecha de agua lluvia permitiría cubrir las necesidades de riego complementario durante la época seca, reduciendo la dependencia de fuentes externas y mejorando la autonomía productiva.',
     impacto: '+8 puntos en Capacidad Adaptativa', plazo: '3-6 meses',
-    recursos: ['Tanque de almacenamiento (5,000L)', 'Canaletas y filtros', 'Sistema de distribución por gravedad'] },
-  { area: 'Sombra', prioridad: 'media', icon: Sun,
-    accion: 'Incrementar cobertura de sombra al 50% usando Inga edulis.',
-    detalle: 'La cobertura actual (35%) expone el cafetal a estrés térmico. Establecer Inga edulis como sombra temporal equilibrará la temperatura del suelo.',
+    costoEstimado: '₡280,000 - ₡450,000',
+    pasos: [
+      'Evaluar el área de captación disponible (techos de beneficiadero, bodega)',
+      'Adquirir e instalar tanque de almacenamiento de 5,000L mínimo',
+      'Instalar canaletas, bajantes y filtro de primeras aguas',
+      'Configurar sistema de distribución por gravedad hacia parcelas',
+      'Realizar prueba de calidad de agua captada',
+      'Documentar sistema para validación VITAL',
+    ],
+    indicadorExito: 'Reducción del 40% en uso de agua externa durante época seca',
+    componenteVital: 'Capacidad Adaptativa — Bloque 5',
+    recursos: ['Tanque de almacenamiento (5,000L)', 'Canaletas y filtros', 'Sistema de distribución por gravedad', 'Mangueras de riego'] },
+  { area: 'Sombra y Microclima', prioridad: 'media', icon: Sun,
+    accion: 'Incrementar cobertura de sombra al 50% usando Inga edulis y Erythrina.',
+    detalle: 'La cobertura actual (35%) expone el cafetal a estrés térmico y pérdida de humedad del suelo. Establecer árboles de sombra regulada equilibrará la temperatura del suelo (-3°C promedio), reducirá evapotranspiración y mejorará la calidad de taza.',
     impacto: '+5 puntos en Exposición', plazo: '6-12 meses',
-    recursos: ['Plántulas de Inga edulis (100/ha)', 'Plántulas de Erythrina (25/ha)', 'Tutores y protección'] },
-  { area: 'Diversificación', prioridad: 'media', icon: Leaf,
+    costoEstimado: '₡120,000 - ₡200,000',
+    pasos: [
+      'Realizar inventario actual de árboles de sombra y medir cobertura',
+      'Diseñar plan de siembra con espaciamiento de 8×8m para Inga',
+      'Adquirir plántulas certificadas de vivero',
+      'Siembra al inicio de época de lluvias (mayo-junio)',
+      'Instalar tutores y protección contra ganado',
+      'Podas de formación a los 6 meses',
+      'Monitorear crecimiento y registrar en bitácora VITAL',
+    ],
+    indicadorExito: 'Cobertura de sombra ≥50% verificada por técnico',
+    componenteVital: 'Exposición Climática — Bloque 1',
+    recursos: ['Plántulas de Inga edulis (100/ha)', 'Plántulas de Erythrina (25/ha)', 'Tutores y protección', 'Herramientas de siembra'] },
+  { area: 'Diversificación Económica', prioridad: 'media', icon: Leaf,
     accion: 'Establecer cultivos alternativos para reducir dependencia del café.',
-    detalle: 'Diversificar con cacao, frutales y hortalizas mejora la resiliencia económica ante fluctuaciones de precio.',
+    detalle: 'La dependencia de un solo cultivo expone al productor a fluctuaciones de precio y pérdidas por eventos climáticos. Diversificar con musáceas, frutales y hortalizas mejora la resiliencia económica y nutricional de la familia.',
     impacto: '+6 puntos en Sensibilidad', plazo: '3-6 meses',
-    recursos: ['Semillas de hortalizas', 'Plántulas de cacao o frutales', 'Herramientas de siembra'] },
+    costoEstimado: '₡80,000 - ₡150,000',
+    pasos: [
+      'Evaluar área disponible para cultivos complementarios',
+      'Seleccionar especies compatibles con café (musáceas, aguacate)',
+      'Preparar suelo y sembrar en asocio o parcelas dedicadas',
+      'Implementar calendario de siembras escalonadas',
+      'Registrar producción y ventas para medición de impacto',
+    ],
+    indicadorExito: 'Al menos 2 fuentes de ingreso adicionales al café',
+    componenteVital: 'Sensibilidad — Bloque 3',
+    recursos: ['Semillas de hortalizas', 'Plántulas de cacao o frutales', 'Herramientas de siembra', 'Insumos orgánicos'] },
 ];
+
+// Threshold detail info
+const THRESHOLD_DETAILS: Record<string, { descripcion: string; queSignifica: string; acciones: string[]; ejemplos: string }> = {
+  'Crítica': {
+    descripcion: 'La finca tiene vulnerabilidades severas que requieren intervención inmediata.',
+    queSignifica: 'Más del 60% de los factores de riesgo están sin gestionar. La producción es altamente dependiente de condiciones externas favorables.',
+    acciones: ['Solicitar visita técnica urgente', 'Priorizar acciones de cosecha de agua', 'Establecer sombra de emergencia', 'Evaluar variedades tolerantes a sequía'],
+    ejemplos: 'Sin sombra, sin acceso a agua, monocultivo, sin reservas económicas, sin seguro agrícola.',
+  },
+  'Fragilidad': {
+    descripcion: 'Existen medidas básicas pero insuficientes ante eventos climáticos moderados.',
+    queSignifica: 'Entre 40% y 60% de factores gestionados. La finca puede resistir eventos leves pero es vulnerable ante sequías prolongadas o lluvias extremas.',
+    acciones: ['Completar cobertura de sombra', 'Diversificar fuentes de ingreso', 'Mejorar manejo de suelos', 'Establecer monitoreo climático'],
+    ejemplos: 'Sombra parcial (20-35%), un cultivo alternativo, reserva de agua limitada.',
+  },
+  'En Construcción': {
+    descripcion: 'La finca muestra avances significativos pero aún tiene áreas por fortalecer.',
+    queSignifica: 'Entre 60% y 80% de factores gestionados. Buen progreso en adaptación, pero algunos componentes requieren consolidación.',
+    acciones: ['Fortalecer el componente más débil', 'Documentar prácticas para certificación', 'Establecer plan de monitoreo continuo', 'Conectar con redes de productores resilientes'],
+    ejemplos: 'Sombra 40-50%, diversificación parcial, cosecha de agua implementada, capacitación intermedia.',
+  },
+  'Resiliente': {
+    descripcion: 'La finca cuenta con prácticas sólidas de gestión de riesgos en todas las dimensiones.',
+    queSignifica: 'Más del 80% de factores gestionados. La finca puede resistir y recuperarse de eventos climáticos extremos manteniendo la productividad.',
+    acciones: ['Mantener prácticas actuales', 'Compartir experiencia con otros productores', 'Explorar certificaciones premium', 'Innovar con tecnologías verdes'],
+    ejemplos: 'Sombra >50%, 3+ fuentes de ingreso, cosecha de agua completa, suelo con alta materia orgánica, seguro agrícola.',
+  },
+};
 
 const historialVital = [
   { fecha: '2026-01-20', puntaje: 75.1, nivel: 'En Construcción', componentes: { exp: 72, sen: 68, ada: 85 } },
@@ -103,9 +167,9 @@ export default function SostenibilidadHub() {
   const [selectedRec, setSelectedRec] = useState<Recomendacion | null>(null);
   const [completedRecs, setCompletedRecs] = useState<Set<string>>(new Set());
   const [selectedParcela, setSelectedParcela] = useState<EUDRParcela | null>(null);
-  const [expandedHistorial, setExpandedHistorial] = useState<string | null>(null);
+  const [selectedThreshold, setSelectedThreshold] = useState<string | null>(null);
 
-  // VITAL Wizard
+  const [expandedHistorial, setExpandedHistorial] = useState<string | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [wizardBlock, setWizardBlock] = useState(0);
   const [wizardAnswers, setWizardAnswers] = useState<Record<number, number>>({});
@@ -174,7 +238,7 @@ export default function SostenibilidadHub() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Índice de Gestión de Riesgo Natural (IGRN) — 100 preguntas en 5 bloques • Fórmula: IGRN = 0.35×C + 0.30×E + 0.35×R
+                Índice de Gestión de Riesgo Natural — Evaluación integral de resiliencia en 5 dimensiones
               </p>
             </CardHeader>
             <CardContent>
@@ -190,15 +254,15 @@ export default function SostenibilidadHub() {
                   </CardContent>
                 </Card>
                 {[
-                  { label: 'Exposición (C)', value: Math.round(vitalScore.exposicion * 100), peso: 'α=0.35', sub: 'Impacto eventos climáticos', icon: Sun },
-                  { label: 'Sensibilidad (E)', value: Math.round(vitalScore.sensibilidad * 100), peso: 'β=0.30', sub: 'Vulnerabilidad del sistema', icon: Droplets },
-                  { label: 'Adaptación (R)', value: Math.round(vitalScore.adaptacion * 100), peso: 'γ=0.35', sub: 'Capacidad de respuesta', icon: Leaf },
+                  { label: 'Exposición', value: Math.round(vitalScore.exposicion * 100), sub: 'Impacto eventos climáticos', icon: Sun },
+                  { label: 'Sensibilidad', value: Math.round(vitalScore.sensibilidad * 100), sub: 'Vulnerabilidad del sistema', icon: Droplets },
+                  { label: 'Adaptación', value: Math.round(vitalScore.adaptacion * 100), sub: 'Capacidad de respuesta', icon: Leaf },
                 ].map((d) => (
                   <Card key={d.label} className="border border-border">
                     <CardContent className="pt-4 pb-3 text-center">
                       <div className="flex items-center justify-center gap-1.5 mb-1">
                         <d.icon className="h-3.5 w-3.5 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">{d.label} <span className="text-[9px]">({d.peso})</span></p>
+                        <p className="text-xs text-muted-foreground">{d.label}</p>
                       </div>
                       <p className="text-3xl font-bold text-foreground">{d.value}</p>
                       <Progress value={d.value} className="h-1.5 mt-2" />
@@ -237,31 +301,90 @@ export default function SostenibilidadHub() {
 
           {/* Interpretación */}
           <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-4 pb-4">
+            <CardContent className="pt-4 pb-4 space-y-4">
               <p className="text-xs font-semibold text-primary mb-2">Interpretación Nova Silva</p>
-              <p className="text-sm text-muted-foreground">
-                Su finca se clasifica como <span className="font-bold text-foreground">{vitalScore.nivel}</span> con un puntaje IGRN de {vitalScore.global}/100.
+              <p className="text-sm text-foreground leading-relaxed">
+                Su finca se clasifica como <span className="font-bold">{vitalScore.nivel}</span> con un puntaje de {vitalScore.global}/100.
                 Ha mejorado {vitalScore.delta} puntos desde la última evaluación.
-                {vitalScore.sensibilidad < 0.7 && ' El componente de Sensibilidad requiere atención prioritaria.'}
+                {vitalScore.sensibilidad < 0.7 && <> El componente de <span className="font-semibold text-accent">Sensibilidad ({Math.round(vitalScore.sensibilidad * 100)})</span> es su área más débil — consulte con su <TecnicoContactLink label="técnico asignado" forwardMessage={`Mi componente de Sensibilidad está en ${Math.round(vitalScore.sensibilidad * 100)}/100. Necesito orientación para mejorar.`} className="text-sm" /> para diseñar un plan específico.</>}
               </p>
-              <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
+              <div className="grid grid-cols-4 gap-2 text-xs">
                 {IGRN_RANGES.map(r => {
                   const bgMap: Record<string, string> = {
-                    destructive: 'bg-destructive/10 text-destructive',
-                    orange: 'bg-orange-500/10 text-orange-600',
-                    amber: 'bg-amber-500/10 text-amber-600',
-                    emerald: 'bg-emerald-500/10 text-emerald-600',
+                    destructive: 'bg-destructive/10 text-destructive border-destructive/20',
+                    orange: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+                    amber: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                    emerald: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
                   };
+                  const isCurrentLevel = r.label === vitalScore.nivel;
                   return (
-                    <div key={r.label} className={`p-2 rounded text-center ${bgMap[r.color] || ''}`}>
+                    <button key={r.label}
+                      onClick={() => setSelectedThreshold(r.label)}
+                      className={`p-2.5 rounded-lg text-center border transition-all cursor-pointer hover:shadow-md ${bgMap[r.color] || ''} ${isCurrentLevel ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}`}>
                       <p className="font-bold">{r.min}-{r.max}</p>
-                      <p className="text-muted-foreground">{r.label}</p>
-                    </div>
+                      <p>{r.label}</p>
+                      {isCurrentLevel && <p className="text-[9px] font-bold mt-0.5">← Usted</p>}
+                    </button>
                   );
                 })}
               </div>
+              <TecnicoContactBanner context={`Evaluación VITAL: ${vitalScore.global}/100 (${vitalScore.nivel}). Exposición: ${Math.round(vitalScore.exposicion * 100)}, Sensibilidad: ${Math.round(vitalScore.sensibilidad * 100)}, Adaptación: ${Math.round(vitalScore.adaptacion * 100)}.`} />
             </CardContent>
           </Card>
+
+          {/* Threshold Detail Dialog */}
+          <Dialog open={!!selectedThreshold} onOpenChange={() => setSelectedThreshold(null)}>
+            <DialogContent className="max-w-lg">
+              {selectedThreshold && THRESHOLD_DETAILS[selectedThreshold] && (() => {
+                const td = THRESHOLD_DETAILS[selectedThreshold];
+                const range = IGRN_RANGES.find(r => r.label === selectedThreshold);
+                const bgMap: Record<string, string> = {
+                  'Crítica': 'bg-destructive/10 text-destructive',
+                  'Fragilidad': 'bg-orange-500/10 text-orange-600',
+                  'En Construcción': 'bg-amber-500/10 text-amber-600',
+                  'Resiliente': 'bg-emerald-500/10 text-emerald-600',
+                };
+                return (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <div className={`px-2 py-1 rounded text-xs font-bold ${bgMap[selectedThreshold] || ''}`}>
+                          {range?.min}-{range?.max}
+                        </div>
+                        {selectedThreshold}
+                        {selectedThreshold === vitalScore.nivel && <Badge variant="outline" className="text-[10px]">Su nivel actual</Badge>}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <p className="text-sm text-foreground leading-relaxed">{td.descripcion}</p>
+                      <div className="p-3 rounded-lg bg-muted border border-border">
+                        <p className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1"><Lightbulb className="h-3 w-3" /> ¿Qué significa?</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{td.queSignifica}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1"><Target className="h-4 w-4 text-primary" /> Acciones recomendadas</p>
+                        <ul className="space-y-2">
+                          {td.acciones.map((a, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 font-bold">{i + 1}</span>
+                              {a}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                        <p className="text-xs font-semibold text-primary mb-1">Ejemplos típicos de este nivel</p>
+                        <p className="text-sm text-muted-foreground">{td.ejemplos}</p>
+                      </div>
+                      {selectedThreshold !== 'Resiliente' && (
+                        <TecnicoContactBanner context={`Necesito orientación para avanzar desde el nivel "${selectedThreshold}" hacia el siguiente nivel de resiliencia.`} />
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+            </DialogContent>
+          </Dialog>
 
           {/* Plan + Historial */}
           <Tabs defaultValue="recomendaciones">
@@ -297,7 +420,7 @@ export default function SostenibilidadHub() {
               </Card>
 
               <Dialog open={!!selectedRec} onOpenChange={() => setSelectedRec(null)}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                   {selectedRec && (
                     <>
                       <DialogHeader>
@@ -308,17 +431,41 @@ export default function SostenibilidadHub() {
                         </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <p className="text-sm text-muted-foreground">{selectedRec.detalle}</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                            <p className="text-xs text-muted-foreground">Impacto estimado</p>
-                            <p className="text-sm font-bold text-primary">{selectedRec.impacto}</p>
+                        <p className="text-sm text-foreground leading-relaxed">{selectedRec.detalle}</p>
+
+                        {/* KPIs */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-center">
+                            <Target className="h-4 w-4 text-primary mx-auto mb-1" />
+                            <p className="text-[11px] text-muted-foreground">Impacto</p>
+                            <p className="text-xs font-bold text-primary">{selectedRec.impacto}</p>
                           </div>
-                          <div className="p-3 rounded-lg bg-muted border border-border">
-                            <p className="text-xs text-muted-foreground">Plazo</p>
-                            <p className="text-sm font-bold text-foreground">{selectedRec.plazo}</p>
+                          <div className="p-3 rounded-lg bg-muted border border-border text-center">
+                            <Clock className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
+                            <p className="text-[11px] text-muted-foreground">Plazo</p>
+                            <p className="text-xs font-bold text-foreground">{selectedRec.plazo}</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-accent/5 border border-accent/20 text-center">
+                            <DollarSign className="h-4 w-4 text-accent mx-auto mb-1" />
+                            <p className="text-[11px] text-muted-foreground">Costo est.</p>
+                            <p className="text-xs font-bold text-accent">{selectedRec.costoEstimado}</p>
                           </div>
                         </div>
+
+                        {/* Step by step */}
+                        <div>
+                          <p className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1"><ClipboardCheck className="h-4 w-4 text-primary" /> Pasos de implementación</p>
+                          <ol className="space-y-2">
+                            {selectedRec.pasos.map((paso, i) => (
+                              <li key={i} className="flex items-start gap-3 text-sm">
+                                <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 font-bold mt-0.5">{i + 1}</span>
+                                <span className="text-muted-foreground">{paso}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+
+                        {/* Resources */}
                         <div>
                           <p className="text-sm font-semibold text-foreground mb-2">Recursos necesarios</p>
                           <ul className="space-y-1">
@@ -329,6 +476,17 @@ export default function SostenibilidadHub() {
                             ))}
                           </ul>
                         </div>
+
+                        {/* Success indicator */}
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1"><Target className="h-3 w-3" /> Indicador de éxito</p>
+                          <p className="text-sm text-foreground">{selectedRec.indicadorExito}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Componente VITAL: {selectedRec.componenteVital}</p>
+                        </div>
+
+                        {/* Técnico contact */}
+                        <TecnicoContactBanner context={`Plan de Mejora VITAL — ${selectedRec.area}: ${selectedRec.accion}`} />
+
                         <div className="flex gap-2">
                           <Button variant={completedRecs.has(selectedRec.area) ? 'outline' : 'default'} className="flex-1"
                             onClick={() => { handleCompleteRec(selectedRec.area); setSelectedRec(null); }}>
