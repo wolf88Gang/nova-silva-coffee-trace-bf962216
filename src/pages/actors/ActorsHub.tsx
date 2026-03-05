@@ -7,13 +7,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { hasModule, type OrgModule } from '@/lib/org-modules';
 import {
   getActorsLabel, getActorLabel, getNewActorLabel, getActorsEmptyState,
 } from '@/lib/org-terminology';
-import { DEMO_PRODUCTORES, type DemoProductor } from '@/lib/demo-data';
-import { Search, Plus, Download, Users, MapPin, FileText, CreditCard, Leaf, Package } from 'lucide-react';
+import { DEMO_PRODUCTORES, DEMO_ENTREGAS, DEMO_CREDITOS, type DemoProductor } from '@/lib/demo-data';
+import { Search, Plus, Download, Users, MapPin, FileText, CreditCard, Leaf, Package, Mountain, Sprout, Calendar, DollarSign, Shield, AlertTriangle } from 'lucide-react';
+
+// ── Demo Parcelas (same data as ParcelasHub) ──
+interface DemoParcela {
+  id: string; nombre: string; productorId: string; area: number; variedad: string; altitud: number; estadoEUDR: 'compliant' | 'pending' | 'non-compliant'; comunidad: string;
+}
+const DEMO_PARCELAS: DemoParcela[] = [
+  { id: '1', nombre: 'El Mirador', productorId: '1', area: 2.0, variedad: 'Caturra', altitud: 1450, estadoEUDR: 'compliant', comunidad: 'San Miguel' },
+  { id: '2', nombre: 'La Esperanza', productorId: '1', area: 1.5, variedad: 'Bourbon', altitud: 1380, estadoEUDR: 'compliant', comunidad: 'San Miguel' },
+  { id: '3', nombre: 'Cerro Verde', productorId: '2', area: 3.2, variedad: 'Catuaí', altitud: 1520, estadoEUDR: 'compliant', comunidad: 'El Progreso' },
+  { id: '4', nombre: 'Las Nubes', productorId: '3', area: 1.8, variedad: 'Caturra', altitud: 1400, estadoEUDR: 'pending', comunidad: 'Las Flores' },
+  { id: '5', nombre: 'San José', productorId: '4', area: 3.0, variedad: 'Bourbon', altitud: 1500, estadoEUDR: 'compliant', comunidad: 'San Miguel' },
+  { id: '6', nombre: 'El Cafetal', productorId: '5', area: 2.5, variedad: 'Catuaí', altitud: 1350, estadoEUDR: 'non-compliant', comunidad: 'El Progreso' },
+  { id: '7', nombre: 'Cerro Alto', productorId: '4', area: 1.8, variedad: 'Caturra', altitud: 1600, estadoEUDR: 'compliant', comunidad: 'San Miguel' },
+  { id: '8', nombre: 'El Bosque', productorId: '6', area: 2.2, variedad: 'Bourbon', altitud: 1480, estadoEUDR: 'compliant', comunidad: 'Las Flores' },
+];
+
+// ── Demo Documents ──
+interface DemoDocumento {
+  id: string; productorId: string; nombre: string; tipo: string; fecha: string; estado: 'vigente' | 'vencido' | 'pendiente';
+}
+const DEMO_DOCUMENTOS: DemoDocumento[] = [
+  { id: '1', productorId: '1', nombre: 'Cédula de identidad', tipo: 'Identificación', fecha: '2025-01-15', estado: 'vigente' },
+  { id: '2', productorId: '1', nombre: 'Escritura parcela El Mirador', tipo: 'Propiedad', fecha: '2024-06-10', estado: 'vigente' },
+  { id: '3', productorId: '1', nombre: 'Certificado orgánico', tipo: 'Certificación', fecha: '2025-12-01', estado: 'vigente' },
+  { id: '4', productorId: '2', nombre: 'Cédula de identidad', tipo: 'Identificación', fecha: '2024-03-20', estado: 'vigente' },
+  { id: '5', productorId: '2', nombre: 'Constancia de membresía', tipo: 'Cooperativa', fecha: '2025-08-15', estado: 'vigente' },
+  { id: '6', productorId: '3', nombre: 'Cédula de identidad', tipo: 'Identificación', fecha: '2023-11-05', estado: 'vigente' },
+  { id: '7', productorId: '3', nombre: 'Certificado EUDR pendiente', tipo: 'EUDR', fecha: '2026-01-10', estado: 'pendiente' },
+  { id: '8', productorId: '4', nombre: 'Cédula de identidad', tipo: 'Identificación', fecha: '2024-09-01', estado: 'vigente' },
+  { id: '9', productorId: '4', nombre: 'Certificado Rainforest Alliance', tipo: 'Certificación', fecha: '2026-01-20', estado: 'vigente' },
+  { id: '10', productorId: '5', nombre: 'Documento vencido', tipo: 'Identificación', fecha: '2023-06-01', estado: 'vencido' },
+];
 
 // ── Helpers ──
 
@@ -35,7 +68,31 @@ function canWrite(role: string | null): boolean {
   return ['admin', 'cooperativa', 'exportador'].includes(role ?? '');
 }
 
-// ── Actor Detail Panel ──
+// ── Actor Detail Panel (fully wired) ──
+
+const eudrBadgeSmall = (s: string) => {
+  if (s === 'compliant') return <Badge variant="default" className="text-[10px]">Cumple</Badge>;
+  if (s === 'pending') return <Badge variant="secondary" className="text-[10px]">Pendiente</Badge>;
+  return <Badge variant="destructive" className="text-[10px]">No cumple</Badge>;
+};
+
+const payBadge = (s: string) => {
+  if (s === 'pagado') return <Badge variant="default" className="text-[10px]">Pagado</Badge>;
+  if (s === 'parcial') return <Badge variant="secondary" className="text-[10px]">Parcial</Badge>;
+  return <Badge variant="destructive" className="text-[10px]">Pendiente</Badge>;
+};
+
+const docBadge = (s: string) => {
+  if (s === 'vigente') return <Badge variant="default" className="text-[10px]">Vigente</Badge>;
+  if (s === 'vencido') return <Badge variant="destructive" className="text-[10px]">Vencido</Badge>;
+  return <Badge variant="secondary" className="text-[10px]">Pendiente</Badge>;
+};
+
+const creditBadge = (s: string) => {
+  if (s === 'activo') return <Badge variant="default" className="text-[10px]">Activo</Badge>;
+  if (s === 'pagado') return <Badge className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">Pagado</Badge>;
+  return <Badge variant="destructive" className="text-[10px]">Vencido</Badge>;
+};
 
 function ActorDetail({
   actor, modules, onClose,
@@ -51,8 +108,26 @@ function ActorDetail({
 
   const visibleTabs = availableTabs.filter(t => !t.requiredModule || hasModule(modules, t.requiredModule));
 
+  // Filter data for this actor
+  const actorParcelas = DEMO_PARCELAS.filter(p => p.productorId === actor.id);
+  const actorEntregas = DEMO_ENTREGAS.filter(e => e.productorNombre === actor.nombre);
+  const actorDocumentos = DEMO_DOCUMENTOS.filter(d => d.productorId === actor.id);
+  const actorCreditos = DEMO_CREDITOS.filter(c => c.productorNombre === actor.nombre);
+  const totalArea = actorParcelas.reduce((s, p) => s + p.area, 0);
+  const totalEntregasKg = actorEntregas.reduce((s, e) => s + e.pesoKg, 0);
+
+  // VITAL dimensions mock
+  const vitalDimensions = [
+    { name: 'Agua', score: Math.min(100, actor.puntajeVITAL + 5) },
+    { name: 'Suelo', score: Math.min(100, actor.puntajeVITAL - 3) },
+    { name: 'Biodiversidad', score: Math.min(100, actor.puntajeVITAL + 8) },
+    { name: 'Económico', score: Math.max(0, actor.puntajeVITAL - 10) },
+    { name: 'Social', score: Math.min(100, actor.puntajeVITAL + 2) },
+    { name: 'Clima', score: Math.max(0, actor.puntajeVITAL - 5) },
+  ];
+
   return (
-    <DialogContent className="max-w-2xl">
+    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{actor.nombre}</DialogTitle>
       </DialogHeader>
@@ -65,12 +140,14 @@ function ActorDetail({
           ))}
         </TabsList>
 
-        <TabsContent value="resumen" className="space-y-3 pt-2">
+        {/* ── RESUMEN ── */}
+        <TabsContent value="resumen" className="space-y-4 pt-2">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div><span className="text-muted-foreground">Documento:</span> {actor.cedula}</div>
             <div><span className="text-muted-foreground">Comunidad:</span> {actor.comunidad}</div>
             <div><span className="text-muted-foreground">Parcelas:</span> {actor.parcelas}</div>
             <div><span className="text-muted-foreground">Hectáreas:</span> {actor.hectareas}</div>
+            {actor.ultimaEntrega && <div><span className="text-muted-foreground">Última entrega:</span> {actor.ultimaEntrega}</div>}
             {hasModule(modules, 'vital') && (
               <div><span className="text-muted-foreground">VITAL:</span> <span className={`font-bold ${vitalColor(actor.puntajeVITAL)}`}>{actor.puntajeVITAL}</span></div>
             )}
@@ -78,13 +155,189 @@ function ActorDetail({
               <div><span className="text-muted-foreground">EUDR:</span> {eudrBadge(actor.estadoEUDR)}</div>
             )}
           </div>
+          {/* Quick summary cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <Card><CardContent className="p-3 text-center"><p className="text-lg font-bold">{actorParcelas.length}</p><p className="text-[11px] text-muted-foreground">Parcelas</p></CardContent></Card>
+            <Card><CardContent className="p-3 text-center"><p className="text-lg font-bold">{actorEntregas.length}</p><p className="text-[11px] text-muted-foreground">Entregas</p></CardContent></Card>
+            <Card><CardContent className="p-3 text-center"><p className="text-lg font-bold">{actorCreditos.filter(c => c.estado === 'activo').length}</p><p className="text-[11px] text-muted-foreground">Créditos activos</p></CardContent></Card>
+          </div>
         </TabsContent>
 
-        {visibleTabs.filter(t => t.key !== 'resumen').map(t => (
-          <TabsContent key={t.key} value={t.key} className="pt-2">
-            <p className="text-sm text-muted-foreground">Contenido del módulo {t.label} se cargará desde hooks de datos reales.</p>
-          </TabsContent>
-        ))}
+        {/* ── PARCELAS ── */}
+        <TabsContent value="parcelas" className="pt-2">
+          {actorParcelas.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              <MapPin className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+              No tiene parcelas registradas.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">{actorParcelas.length} parcelas · {totalArea.toFixed(1)} ha totales</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b text-muted-foreground text-left">
+                    <th className="px-3 py-2 font-medium">Parcela</th>
+                    <th className="px-3 py-2 font-medium">Área</th>
+                    <th className="px-3 py-2 font-medium">Variedad</th>
+                    <th className="px-3 py-2 font-medium">Altitud</th>
+                    {hasModule(modules, 'eudr') && <th className="px-3 py-2 font-medium">EUDR</th>}
+                  </tr></thead>
+                  <tbody>
+                    {actorParcelas.map(p => (
+                      <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50">
+                        <td className="px-3 py-2 font-medium text-foreground">{p.nombre}</td>
+                        <td className="px-3 py-2">{p.area} ha</td>
+                        <td className="px-3 py-2">{p.variedad}</td>
+                        <td className="px-3 py-2">{p.altitud} msnm</td>
+                        {hasModule(modules, 'eudr') && <td className="px-3 py-2">{eudrBadgeSmall(p.estadoEUDR)}</td>}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── ENTREGAS ── */}
+        <TabsContent value="entregas" className="pt-2">
+          {actorEntregas.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              <Package className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+              No tiene entregas registradas.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">{actorEntregas.length} entregas · {totalEntregasKg.toLocaleString()} kg totales</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b text-muted-foreground text-left">
+                    <th className="px-3 py-2 font-medium">Fecha</th>
+                    <th className="px-3 py-2 font-medium">Peso</th>
+                    <th className="px-3 py-2 font-medium">Tipo</th>
+                    <th className="px-3 py-2 font-medium">Precio/kg</th>
+                    <th className="px-3 py-2 font-medium">Estado</th>
+                  </tr></thead>
+                  <tbody>
+                    {actorEntregas.map(e => (
+                      <tr key={e.id} className="border-b last:border-0 hover:bg-muted/50">
+                        <td className="px-3 py-2 text-foreground">{e.fecha}</td>
+                        <td className="px-3 py-2 font-medium">{e.pesoKg} kg</td>
+                        <td className="px-3 py-2">{e.tipoCafe}</td>
+                        <td className="px-3 py-2">Q {e.precioUnitario.toLocaleString()}</td>
+                        <td className="px-3 py-2">{payBadge(e.estadoPago)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── DOCUMENTOS ── */}
+        <TabsContent value="documentos" className="pt-2">
+          {actorDocumentos.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+              No tiene documentos registrados.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">{actorDocumentos.length} documentos</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b text-muted-foreground text-left">
+                    <th className="px-3 py-2 font-medium">Documento</th>
+                    <th className="px-3 py-2 font-medium">Tipo</th>
+                    <th className="px-3 py-2 font-medium">Fecha</th>
+                    <th className="px-3 py-2 font-medium">Estado</th>
+                  </tr></thead>
+                  <tbody>
+                    {actorDocumentos.map(d => (
+                      <tr key={d.id} className="border-b last:border-0 hover:bg-muted/50">
+                        <td className="px-3 py-2 font-medium text-foreground">{d.nombre}</td>
+                        <td className="px-3 py-2">{d.tipo}</td>
+                        <td className="px-3 py-2">{d.fecha}</td>
+                        <td className="px-3 py-2">{docBadge(d.estado)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── CRÉDITOS ── */}
+        <TabsContent value="creditos" className="pt-2">
+          {actorCreditos.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              <CreditCard className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+              No tiene créditos registrados.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">{actorCreditos.length} créditos · Saldo total: Q {actorCreditos.reduce((s, c) => s + c.saldo, 0).toLocaleString()}</p>
+              {actorCreditos.map(c => (
+                <Card key={c.id}>
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{c.tipo}</span>
+                      {creditBadge(c.estado)}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                      <div>Monto: <span className="text-foreground font-medium">Q {c.monto.toLocaleString()}</span></div>
+                      <div>Saldo: <span className="text-foreground font-medium">Q {c.saldo.toLocaleString()}</span></div>
+                      <div>Vence: <span className="text-foreground">{c.fechaVencimiento}</span></div>
+                    </div>
+                    <Progress value={((c.monto - c.saldo) / c.monto) * 100} className="h-1.5" />
+                    <p className="text-[11px] text-muted-foreground text-right">{Math.round(((c.monto - c.saldo) / c.monto) * 100)}% pagado</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── VITAL ── */}
+        <TabsContent value="vital" className="pt-2">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className={`text-3xl font-bold ${vitalColor(actor.puntajeVITAL)}`}>{actor.puntajeVITAL}</div>
+              <div>
+                <p className="text-sm font-medium">Score VITAL</p>
+                <p className="text-xs text-muted-foreground">
+                  {actor.puntajeVITAL >= 81 ? 'Ejemplar' : actor.puntajeVITAL >= 61 ? 'Sostenible' : actor.puntajeVITAL >= 41 ? 'En desarrollo' : 'Crítico'}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {vitalDimensions.map(d => (
+                <div key={d.name} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{d.name}</span>
+                    <span className={`font-medium ${vitalColor(d.score)}`}>{d.score}</span>
+                  </div>
+                  <Progress value={d.score} className="h-1.5" />
+                </div>
+              ))}
+            </div>
+            {actor.puntajeVITAL < 60 && (
+              <Card className="border-destructive/30 bg-destructive/5">
+                <CardContent className="p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
+                    <div className="text-xs">
+                      <p className="font-medium text-destructive">Atención requerida</p>
+                      <p className="text-muted-foreground mt-1">Este productor necesita acompañamiento técnico para mejorar su puntaje en las dimensiones económica y clima.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
       <DialogFooter>
         <Button variant="ghost" onClick={onClose}>Cerrar</Button>
