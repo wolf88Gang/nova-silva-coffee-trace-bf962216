@@ -187,7 +187,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle className="text-sidebar-foreground/70 hover:text-sidebar-foreground" />
-          <NotificacionesBell />
           <button className="lg:hidden p-1.5 text-sidebar-foreground" onClick={onClose}>
             <X className="h-5 w-5" />
           </button>
