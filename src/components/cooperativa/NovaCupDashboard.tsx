@@ -560,7 +560,7 @@ export default function NovaCupDashboard() {
                       label={({ name, value }) => `${name}: ${value}%`} labelLine={false}>
                       {catDistribution.map((d, i) => <Cell key={i} fill={d.color} />)}
                     </Pie>
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}%`]} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`${v}%`]} />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -573,7 +573,7 @@ export default function NovaCupDashboard() {
                 <BarChart data={descriptorFrequency}>
                   <XAxis dataKey="descriptor" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                   <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                  <Tooltip contentStyle={tooltipStyle} cursor={chartCursorStyle} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} />
                   <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Frecuencia" />
                 </BarChart>
               </ResponsiveContainer>

@@ -15,7 +15,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
   PieChart, Pie,
 } from 'recharts';
-import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle } from '@/lib/chartStyles';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 import { DEMO_PRODUCTORES } from '@/lib/demo-data';
 import { VITAL_ORG_BLOCKS, calculateIGRNOrg, type VitalOrgBlock } from '@/config/vitalOrgQuestions';
 import { toast } from 'sonner';
@@ -206,7 +206,7 @@ export default function VitalCooperativa() {
                     <BarChart data={scoreByCommunity}>
                       <XAxis dataKey="comunidad" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} />
+                      <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} />
                       <Bar dataKey="promedio" radius={[4, 4, 0, 0]}>
                         {scoreByCommunity.map((d, i) => (
                           <Cell key={i} fill={d.promedio >= 75 ? 'hsl(142, 60%, 40%)' : d.promedio >= 50 ? 'hsl(var(--primary))' : 'hsl(0, 65%, 50%)'} />

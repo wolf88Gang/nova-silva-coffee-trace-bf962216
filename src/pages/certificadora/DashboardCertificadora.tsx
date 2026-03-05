@@ -13,6 +13,7 @@ import {
   ClipboardCheck, Building2, ShieldCheck, AlertTriangle, Calendar,
   ChevronRight, ExternalLink, FileSearch, TrendingUp,
 } from 'lucide-react';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle } from '@/lib/chartStyles';
 
 /* ── Demo data ── */
 const kpis = [
@@ -118,7 +119,7 @@ export default function DashboardCertificadora() {
                   label={({ tipo, cantidad }) => `${tipo}: ${cantidad}`}>
                   {hallazgosPorTipo.map((d, i) => <Cell key={i} fill={d.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

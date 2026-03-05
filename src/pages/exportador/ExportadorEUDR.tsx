@@ -12,6 +12,7 @@ import {
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle } from '@/lib/chartStyles';
 
 const proveedores = [
   { id: 'p1', nombre: 'Coopetarrazú', productores: 120, mapeados: 118, parcelas: 245, verificadas: 232, docs: 95, estado: 'compliant' as const },
@@ -131,7 +132,7 @@ export default function ExportadorEUDR() {
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
                       {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
