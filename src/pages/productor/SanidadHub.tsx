@@ -13,6 +13,7 @@ import {
   AlertTriangle, Calendar, Shield, Droplets, CircleDot, FileText,
   Zap, RotateCcw, Sprout, FlaskConical, ShieldAlert, Microscope, Send,
 } from 'lucide-react';
+import { TecnicoContactLink } from '@/components/common/TecnicoContactCard';
 import { toast } from 'sonner';
 
 // ── Disease database (biblia fitosanitaria) ──
@@ -631,7 +632,7 @@ export default function SanidadHub() {
                         setSospechaDesc('');
                         setShowSospechaForm(false);
                       }}>
-                        <Send className="h-3.5 w-3.5 mr-1" /> Enviar reporte a técnico
+                        <Send className="h-3.5 w-3.5 mr-1" /> Enviar reporte a <TecnicoContactLink label="técnico" className="text-primary-foreground ml-1 no-underline decoration-transparent" />
                       </Button>
                     </div>
                   )}

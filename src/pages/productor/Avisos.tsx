@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Bell, MessageSquare, Users, Send, Search, Phone, Mail, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { TecnicoContactLink, TecnicoContactBanner } from '@/components/common/TecnicoContactCard';
 
 // ── Avisos data ──
 interface Aviso {
@@ -57,6 +58,18 @@ const tipoBadge = (tipo: string) => {
   const { label, variant } = map[tipo] ?? map.informativo;
   return <Badge variant={variant} className="text-[10px]">{label}</Badge>;
 };
+
+/** Replaces "técnico asignado" mentions in text with clickable links */
+function renderContenidoConLinks(text: string) {
+  const pattern = /(Contacte a su técnico asignado|técnico asignado|contacte.*técnico)/gi;
+  const parts = text.split(pattern);
+  return parts.map((part, i) => {
+    if (pattern.test(part)) {
+      return <TecnicoContactLink key={i} label={part} className="text-sm" />;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
 
 export default function Avisos() {
   const [selectedAviso, setSelectedAviso] = useState<Aviso | null>(null);
@@ -134,19 +147,24 @@ export default function Avisos() {
                       {tipoBadge(selectedAviso.tipo)}
                       <span className="text-xs text-muted-foreground">{selectedAviso.fecha}</span>
                     </div>
-                    <p className="text-sm text-foreground leading-relaxed">{selectedAviso.contenido}</p>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {renderContenidoConLinks(selectedAviso.contenido)}
+                    </p>
                     <Card className="bg-primary/5 border-primary/20">
                       <CardContent className="pt-3 pb-3">
                         <p className="text-xs font-semibold text-primary mb-1">Interpretación Nova Silva</p>
                         <p className="text-sm text-muted-foreground">
                           {selectedAviso.tipo === 'urgente'
-                            ? 'Esta alerta requiere acción inmediata. Contacte a su técnico asignado para coordinación.'
+                            ? <>Esta alerta requiere acción inmediata. <TecnicoContactLink label="Contacte a su técnico asignado" forwardMessage={selectedAviso.contenido} className="text-sm" /> para coordinación.</>
                             : selectedAviso.tipo === 'evento'
                             ? 'Participar en capacitaciones mejora su puntaje VITAL en el componente de Capacidad Adaptativa.'
                             : 'Información importante para la planificación de su ciclo productivo.'}
                         </p>
                       </CardContent>
                     </Card>
+                    {selectedAviso.tipo === 'urgente' && (
+                      <TecnicoContactBanner context={selectedAviso.contenido} />
+                    )}
                     <div className="flex gap-2">
                       <Button variant="outline" className="flex-1" onClick={() => { toast.success('Aviso marcado como leído'); setSelectedAviso(null); }}>
                         Marcar como leído

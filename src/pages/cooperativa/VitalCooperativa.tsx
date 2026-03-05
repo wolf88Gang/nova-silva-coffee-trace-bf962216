@@ -10,8 +10,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   ShieldCheck, Users, TrendingUp, Play, CheckCircle, AlertTriangle,
   ArrowRight, ArrowLeft, BarChart3, Building2, Eye, UserCheck, Calendar, MapPin,
-  MessageSquare, ClipboardCheck,
+  MessageSquare, ClipboardCheck, Phone, Mail,
 } from 'lucide-react';
+import { TecnicoContactBanner } from '@/components/common/TecnicoContactCard';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
@@ -472,13 +473,16 @@ export default function VitalCooperativa() {
 
                   {/* Técnico asignado */}
                   {tecnico && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                      <UserCheck className="h-5 w-5 text-primary shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Técnico asignado: {tecnico.nombre}</p>
-                        <p className="text-xs text-muted-foreground">{tecnico.telefono}</p>
-                      </div>
-                    </div>
+                    <TecnicoContactBanner
+                      tecnico={{
+                        nombre: tecnico.nombre,
+                        rol: 'Técnico Asignado',
+                        telefono: tecnico.telefono,
+                        email: `${tecnico.nombre.toLowerCase().replace(/[\s.]+/g, '.')}@cooperativa.org`,
+                        disponible: true,
+                      }}
+                      context={`Evaluación VITAL de ${p.nombre} — Puntaje: ${p.puntajeVITAL}/100`}
+                    />
                   )}
 
                   {/* Radar de dimensiones */}
