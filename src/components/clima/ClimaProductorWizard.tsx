@@ -5,7 +5,8 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, CheckCircle, Save } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ChevronLeft, ChevronRight, CheckCircle, Save, HelpCircle, Info } from 'lucide-react';
 import { CLIMA_PRODUCTOR_PREGUNTAS, BLOQUES_INFO, BLOQUES_ORDER, getPreguntasPorBloque } from '@/config/climaProductor';
 import { calcularResultadoGlobal, type RespuestaClima } from '@/lib/climaScoring';
 import VitalResultadoCard from './VitalResultadoCard';
@@ -92,8 +93,8 @@ export default function ClimaProductorWizard() {
   const infoBloque = BLOQUES_INFO[bloqueActual];
 
   return (
+    <TooltipProvider>
     <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
-      {/* Progreso global */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Progreso general</span>
@@ -139,6 +140,10 @@ export default function ClimaProductorWizard() {
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">{infoBloque.descripcion}</p>
+          <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-primary/5 border border-primary/10">
+            <Info className="h-3.5 w-3.5 text-primary shrink-0" />
+            <p className="text-xs text-muted-foreground">Toque el ícono <HelpCircle className="h-3 w-3 inline text-muted-foreground" /> en cada pregunta para ver la guía de interpretación.</p>
+          </div>
         </CardHeader>
       </Card>
 
@@ -152,7 +157,24 @@ export default function ClimaProductorWizard() {
               <CardContent className="pt-4 space-y-3">
                 <div className="flex items-start gap-2">
                   <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{numGlobal}</span>
-                  <p className="text-sm font-medium text-foreground">{p.texto}</p>
+                  <p className="text-sm font-medium text-foreground flex-1">{p.texto}</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="shrink-0 mt-0.5">
+                        <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-xs">
+                      <p className="text-xs font-medium mb-1">Guía de respuesta</p>
+                      <p className="text-xs text-muted-foreground">
+                        {p.dimension === 'exposicion'
+                          ? 'Evalúe qué tan expuesta está su finca a este factor. A mayor exposición, mayor vulnerabilidad.'
+                          : p.dimension === 'sensibilidad'
+                            ? 'Considere qué tan sensible es su sistema productivo ante este factor. Una alta sensibilidad indica mayor fragilidad.'
+                            : 'Valore su capacidad de adaptarse o responder ante este desafío. Mayor capacidad = mayor resiliencia.'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <RadioGroup
                   value={resp?.clave ?? ''}
@@ -171,7 +193,6 @@ export default function ClimaProductorWizard() {
                 </RadioGroup>
                 <p className="text-[10px] text-muted-foreground">
                   {p.dimension === 'exposicion' ? 'Exposición' : p.dimension === 'sensibilidad' ? 'Sensibilidad' : 'Capacidad Adaptativa'}
-                  {' · Peso: '}{p.peso}
                 </p>
               </CardContent>
             </Card>
@@ -192,5 +213,6 @@ export default function ClimaProductorWizard() {
         </Button>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
