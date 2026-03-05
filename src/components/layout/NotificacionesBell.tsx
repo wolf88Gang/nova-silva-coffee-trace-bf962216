@@ -16,7 +16,7 @@ interface Notificacion {
 }
 
 const notificacionesDemo: Notificacion[] = [
-  { id: '1', titulo: 'Broca detectada en El Mirador', descripcion: 'Nivel de infestación 3.2%. Acción requerida.', tipo: 'alerta', fecha: 'Hace 2h', leida: false, ruta: '/productor/sanidad' },
+  { id: '1', titulo: 'Broca detectada en El Mirador', descripcion: 'Nivel de infestación 3.2%. Contacte a su técnico.', tipo: 'alerta', fecha: 'Hace 2h', leida: false, ruta: '/productor/sanidad' },
   { id: '2', titulo: 'Evaluación VITAL próxima', descripcion: 'Su evaluación bianual vence en 30 días.', tipo: 'recordatorio', fecha: 'Hace 5h', leida: false, ruta: '/productor/sostenibilidad' },
   { id: '3', titulo: 'Mensaje de Ing. Castañeda', descripcion: 'Confirmo visita técnica para el jueves.', tipo: 'mensaje', fecha: 'Ayer', leida: false, ruta: '/productor/avisos' },
   { id: '4', titulo: 'Pago de entregas disponible', descripcion: 'Pagos de enero listos para retiro.', tipo: 'recordatorio', fecha: 'Hace 2d', leida: true, ruta: '/productor/finanzas' },
