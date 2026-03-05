@@ -20,6 +20,7 @@ import {
 } from 'recharts';
 import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { DEMO_PRODUCTORES, DEMO_CREDITOS } from '@/lib/demo-data';
 
 // ── Financial data ──
@@ -142,6 +143,7 @@ const scpColor = (score: number) => {
 };
 
 export default function FinanzasHub() {
+  const navigate = useNavigate();
   const [movimientos, setMovimientos] = useState(movimientosIniciales);
   const [creditos, setCreditos] = useState(creditosIniciales);
   const [solicitudes, setSolicitudes] = useState(solicitudesIniciales);
@@ -440,6 +442,9 @@ export default function FinanzasHub() {
                         <Button variant="ghost" size="sm" onClick={() => setShowDetSolicitud(s)}><Eye className="h-4 w-4" /></Button>
                         {s.estado === 'pendiente' && (
                           <>
+                            <Button size="sm" variant="outline" onClick={() => navigate('/cooperativa/comite-credito')}>
+                              <BarChart3 className="h-4 w-4 mr-1" /> Analizar
+                            </Button>
                             <Button size="sm" variant="default" onClick={() => handleSolicitudAction(s.id, 'aprobada')}><CheckCircle className="h-4 w-4 mr-1" /> Aprobar</Button>
                             <Button size="sm" variant="destructive" onClick={() => handleSolicitudAction(s.id, 'rechazada')}><XCircle className="h-4 w-4" /></Button>
                           </>
