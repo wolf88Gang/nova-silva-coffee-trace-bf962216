@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Package } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Package, AlertTriangle } from 'lucide-react';
 import { DEMO_LOTES_COMERCIALES } from '@/lib/demo-data';
 
 const estadoBadge = (estado: string) => {
@@ -17,6 +18,12 @@ const estadoBadge = (estado: string) => {
 export default function ExportadorLotes() {
   return (
     <div className="space-y-6 animate-fade-in">
+      <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+        <AlertTriangle className="h-4 w-4 text-amber-600" />
+        <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
+          Integración con lotes de acopio pendiente — La vinculación automática entre lotes de acopio de cooperativas y lotes comerciales estará disponible próximamente.
+        </AlertDescription>
+      </Alert>
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> Lotes Comerciales</CardTitle></CardHeader>
         <CardContent>
