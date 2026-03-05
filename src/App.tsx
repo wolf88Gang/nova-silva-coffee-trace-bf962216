@@ -153,6 +153,7 @@ const App = () => (
               <Route path="/productor/finca" element={<Navigate to="/productor/produccion" replace />} />
               <Route path="/productor/entregas" element={<Navigate to="/productor/produccion" replace />} />
               <Route path="/productor/creditos" element={<Navigate to="/productor/finanzas" replace />} />
+              <Route path="/productor/clima" element={<Navigate to="/productor/sostenibilidad" replace />} />
 
               {/* ── TÉCNICO ── */}
               <Route path="/tecnico" element={<Navigate to="/tecnico/dashboard" replace />} />

@@ -45,7 +45,7 @@ const ultimasEntregas = [
 ];
 
 const alertasClima = [
-  { id: 'a1', texto: 'Lluvia intensa prevista para el 2 de marzo', nivel: 'ambar' as const, route: '/productor/clima', icon: Droplets, detail: 'Se esperan precipitaciones de 45-60mm entre el 2 y 3 de marzo. Recomendación: cubrir café en secado, revisar drenajes en parcelas bajas.' },
+  { id: 'a1', texto: 'Lluvia intensa prevista para el 2 de marzo', nivel: 'ambar' as const, route: '/productor/sostenibilidad', icon: Droplets, detail: 'Se esperan precipitaciones de 45-60mm entre el 2 y 3 de marzo. Recomendación: cubrir café en secado, revisar drenajes en parcelas bajas.' },
   { id: 'a2', texto: 'Broca detectada en sector norte — El Mirador', nivel: 'rojo' as const, route: '/productor/sanidad', icon: Bug, detail: 'Nivel de infestación: 3.2% (umbral 2%). Se recomienda iniciar trampeo intensivo y evaluación Nova Guard inmediata.' },
 ];
 
@@ -59,10 +59,10 @@ export default function DashboardProductor() {
   const [selectedAlert, setSelectedAlert] = useState<typeof alertasClima[0] | null>(null);
 
   const kpis = [
-    { label: 'Total entregado', value: `${totalKg.toLocaleString()} kg`, icon: Package, route: '/productor/entregas', sub: `${ultimasEntregas.length} entregas` },
+    { label: 'Total entregado', value: `${totalKg.toLocaleString()} kg`, icon: Package, route: '/productor/produccion', sub: `${ultimasEntregas.length} entregas` },
     { label: 'Parcelas activas', value: s.parcelas, icon: MapPin, route: '/productor/produccion', sub: 'Ver parcelas' },
     { label: 'Próximo pago est.', value: '₡125,000', icon: DollarSign, route: '/productor/finanzas', sub: 'Ver finanzas' },
-    { label: 'Score VITAL', value: `${s.puntajeVITAL}/100`, icon: Shield, route: '/productor/sostenibilidad', sub: 'Evaluar' },
+    { label: 'Score VITAL', value: `${s.puntajeVITAL}/100`, icon: Shield, route: '/productor/vital', sub: 'Evaluar' },
   ];
 
   /* chart bar click */
@@ -106,7 +106,7 @@ export default function DashboardProductor() {
             <CardTitle className="text-base flex items-center gap-2">
               <Truck className="h-4 w-4 text-primary" /> Entregas por mes (kg)
             </CardTitle>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/productor/entregas')}>
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/productor/produccion')}>
               Ver todas <ExternalLink className="h-3 w-3 ml-1" />
             </Button>
           </CardHeader>
@@ -158,7 +158,7 @@ export default function DashboardProductor() {
                 ) : (
                   <p className="text-xs text-muted-foreground italic">No hay entregas registradas en este mes (datos demo).</p>
                 )}
-                <Button size="sm" variant="outline" className="mt-2 text-xs w-full" onClick={() => navigate('/productor/entregas')}>
+                <Button size="sm" variant="outline" className="mt-2 text-xs w-full" onClick={() => navigate('/productor/produccion')}>
                   Ver historial completo
                 </Button>
               </div>
@@ -204,7 +204,7 @@ export default function DashboardProductor() {
             <CardTitle className="text-base flex items-center gap-2">
               <Package className="h-4 w-4 text-primary" /> Últimas entregas
             </CardTitle>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/productor/entregas')}>
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/productor/produccion')}>
               Ver todas <ExternalLink className="h-3 w-3 ml-1" />
             </Button>
           </CardHeader>
@@ -258,7 +258,7 @@ export default function DashboardProductor() {
                 </div>
               </div>
             ))}
-            <div className="p-3 rounded-md bg-muted/50 border border-border cursor-pointer hover:bg-muted transition-colors" onClick={() => navigate('/productor/clima')}>
+            <div className="p-3 rounded-md bg-muted/50 border border-border cursor-pointer hover:bg-muted transition-colors" onClick={() => navigate('/productor/sostenibilidad')}>
               <p className="text-xs text-muted-foreground">Temperatura: 22°C</p>
               <p className="text-xs text-muted-foreground">Humedad: 78%</p>
               <p className="text-xs text-muted-foreground">Pronóstico: Parcialmente nublado</p>
@@ -314,7 +314,7 @@ export default function DashboardProductor() {
                 <Badge variant={selectedEntrega.estado === 'pagado' ? 'default' : 'secondary'} className="text-sm">
                   {selectedEntrega.estado === 'pagado' ? '✓ Pagado' : '◔ Pago parcial'}
                 </Badge>
-                <Button size="sm" onClick={() => { setSelectedEntrega(null); navigate('/productor/entregas'); }}>
+                <Button size="sm" onClick={() => { setSelectedEntrega(null); navigate('/productor/produccion'); }}>
                   Ir a entregas
                 </Button>
               </div>

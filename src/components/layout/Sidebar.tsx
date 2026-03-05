@@ -42,7 +42,6 @@ function getCooperativaNav(actorsLabel: string): NavItemDef[] {
     { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award, requiredModule: 'calidad' },
     { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield, requiredModule: 'vital' },
     { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users, requiredModule: 'inclusion' },
-    { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users, requiredModule: 'inclusion' },
     { title: 'Reportes', url: '/reportes', icon: FileText },
     { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
   ];
