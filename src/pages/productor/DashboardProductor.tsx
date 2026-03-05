@@ -63,7 +63,7 @@ export default function DashboardProductor() {
     { label: 'Total entregado', value: `${totalKg.toLocaleString()} kg`, icon: Package, route: '/productor/produccion', sub: `${ultimasEntregas.length} entregas` },
     { label: 'Parcelas activas', value: s.parcelas, icon: MapPin, route: '/productor/produccion', sub: 'Ver parcelas' },
     { label: 'Próximo pago est.', value: '₡125,000', icon: DollarSign, route: '/productor/finanzas', sub: 'Ver finanzas' },
-    { label: 'Score VITAL', value: `${s.puntajeVITAL}/100`, icon: Shield, route: '/productor/vital', sub: 'Evaluar' },
+    { label: 'Score VITAL', value: `${s.puntajeVITAL}/100`, icon: Shield, route: '/productor/sostenibilidad', sub: 'Ver resultados' },
   ];
 
   /* chart bar click */
