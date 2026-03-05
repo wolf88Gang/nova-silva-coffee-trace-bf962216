@@ -41,8 +41,8 @@ function scoreToNivelRiesgo(score: number): NivelRiesgoProductor {
 
 export default function VitalResultadoCard({ resultado, compact = false, nombre, comunidad }: Props) {
   const radarData = [
-    { dim: 'Baja Exposición', value: Math.round((1 - resultado.exposicion) * 100) },
-    { dim: 'Baja Sensibilidad', value: Math.round((1 - resultado.sensibilidad) * 100) },
+    { dim: 'Exposición', value: Math.round(resultado.exposicion * 100) },
+    { dim: 'Sensibilidad', value: Math.round(resultado.sensibilidad * 100) },
     { dim: 'Cap. Adaptativa', value: Math.round(resultado.capacidadAdaptativa * 100) },
   ];
 

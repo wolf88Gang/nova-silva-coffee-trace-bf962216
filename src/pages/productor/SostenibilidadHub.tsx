@@ -57,9 +57,9 @@ const recomendaciones: Recomendacion[] = [
 ];
 
 const historialVital = [
-  { fecha: '2026-01-20', puntaje: 75.1, nivel: 'Moderada', componentes: { exp: 72, sen: 68, ada: 85 } },
-  { fecha: '2025-07-15', puntaje: 58.3, nivel: 'Alta Fragilidad', componentes: { exp: 55, sen: 52, ada: 68 } },
-  { fecha: '2025-01-10', puntaje: 45.0, nivel: 'Alta Fragilidad', componentes: { exp: 40, sen: 45, ada: 50 } },
+  { fecha: '2026-01-20', puntaje: 75.1, nivel: 'En Construcción', componentes: { exp: 72, sen: 68, ada: 85 } },
+  { fecha: '2025-07-15', puntaje: 58.3, nivel: 'Fragilidad', componentes: { exp: 55, sen: 52, ada: 68 } },
+  { fecha: '2025-01-10', puntaje: 45.0, nivel: 'Fragilidad', componentes: { exp: 40, sen: 45, ada: 50 } },
 ];
 
 // ── EUDR data ──
@@ -94,9 +94,9 @@ const prioridadStyles: Record<string, string> = {
 
 const nivelColors: Record<string, string> = {
   'Crítica': 'text-destructive',
-  'Alta Fragilidad': 'text-accent',
-  'Moderada': 'text-foreground',
-  'Resiliente': 'text-primary',
+  'Fragilidad': 'text-orange-500',
+  'En Construcción': 'text-amber-500',
+  'Resiliente': 'text-emerald-600',
 };
 
 export default function SostenibilidadHub() {
