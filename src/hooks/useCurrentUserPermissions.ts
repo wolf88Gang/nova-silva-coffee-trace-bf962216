@@ -3,7 +3,10 @@
  * from `organizacion_usuarios` for their active organization.
  *
  * Returns the 8 boolean permission flags, rol_interno, activo status,
- * and convenience helpers like `canManageProductores`, `isOrgAdmin`, etc.
+ * and convenience helpers like `isOrgAdmin`, `isPlatformAdmin`, `hasPermission`.
+ *
+ * Platform admins (user_roles.role = 'admin') get full access even without
+ * a row in organizacion_usuarios.
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,16 +15,25 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { PermissionKey } from '@/config/orgPermissions';
 import { PERMISSION_KEYS } from '@/config/orgPermissions';
 
+/** Explicit select to reduce payload — must match PERMISSION_KEYS + meta columns */
+const SELECT_COLUMNS = [
+  'id',
+  'activo',
+  'rol_interno',
+  'rol_visible',
+  ...PERMISSION_KEYS,
+].join(',');
+
 export interface CurrentUserPermissions {
   /** Whether the query has resolved */
   isLoading: boolean;
-  /** Whether a matching row was found */
+  /** Whether a matching row was found in organizacion_usuarios */
   hasRecord: boolean;
   /** User is active in the org */
   activo: boolean;
-  /** Internal role */
+  /** Internal role from organizacion_usuarios */
   rolInterno: string | null;
-  /** Display role */
+  /** Display role (free text badge) */
   rolVisible: string | null;
   /** Individual permission flags */
   permiso_gestion_productores: boolean;
@@ -34,7 +46,9 @@ export interface CurrentUserPermissions {
   permiso_ver_informes_financieros: boolean;
   /** Convenience: rolInterno === 'admin_org' */
   isOrgAdmin: boolean;
-  /** Check a specific permission key */
+  /** Platform-level admin (from user_roles, not org-scoped) */
+  isPlatformAdmin: boolean;
+  /** Check a specific permission key — returns true for platform admins */
   hasPermission: (key: PermissionKey) => boolean;
 }
 
@@ -53,46 +67,68 @@ const EMPTY: CurrentUserPermissions = {
   permiso_gestion_configuracion_org: false,
   permiso_ver_informes_financieros: false,
   isOrgAdmin: false,
+  isPlatformAdmin: false,
   hasPermission: () => false,
 };
 
 export function useCurrentUserPermissions(): CurrentUserPermissions {
-  const { organizationId } = useOrgContext();
+  const { organizationId, role } = useOrgContext();
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const isPlatformAdmin = role === 'admin';
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['current-user-permissions', organizationId, userId],
     enabled: !!organizationId && !!userId,
-    staleTime: 5 * 60 * 1000, // 5 min cache
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data: row, error } = await (supabase as any)
         .from('organizacion_usuarios')
-        .select('*')
+        .select(SELECT_COLUMNS)
         .eq('organizacion_id', organizationId)
         .eq('user_id', userId)
         .maybeSingle();
-      if (error) throw error;
-      return row as Record<string, any> | null;
+      if (error) {
+        console.error('[useCurrentUserPermissions] RLS/query error:', error.message);
+        throw error;
+      }
+      return row as Record<string, unknown> | null;
     },
   });
 
-  if (isLoading) return { ...EMPTY, isLoading: true };
-  if (!data) return EMPTY;
+  if (isLoading) return { ...EMPTY, isLoading: true, isPlatformAdmin };
+
+  // Platform admin without org row → full access
+  if (isPlatformAdmin && (!data || isError)) {
+    return {
+      ...EMPTY,
+      isPlatformAdmin: true,
+      isOrgAdmin: true,
+      activo: true,
+      hasPermission: () => true,
+    };
+  }
+
+  if (!data || isError) return EMPTY;
 
   const perms: Record<string, boolean> = {};
   for (const k of PERMISSION_KEYS) {
     perms[k] = !!data[k];
   }
 
+  const hasPermission = isPlatformAdmin
+    ? () => true
+    : (key: PermissionKey) => !!data[key];
+
   return {
     isLoading: false,
     hasRecord: true,
     activo: !!data.activo,
-    rolInterno: data.rol_interno ?? null,
-    rolVisible: data.rol_visible ?? null,
+    rolInterno: (data.rol_interno as string) ?? null,
+    rolVisible: (data.rol_visible as string) ?? null,
     ...perms,
     isOrgAdmin: data.rol_interno === 'admin_org',
-    hasPermission: (key: PermissionKey) => !!data[key],
+    isPlatformAdmin,
+    hasPermission,
   } as CurrentUserPermissions;
 }
