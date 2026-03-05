@@ -36,6 +36,8 @@ function getCooperativaNav(actorsLabel: string): NavItemDef[] {
     { title: 'Panel Principal', url: '/cooperativa/dashboard', icon: LayoutDashboard },
     { title: actorsLabel, url: '/cooperativa/productores-hub', icon: Users, requiredModule: 'productores' },
     { title: 'Acopio y Comercial', url: '/cooperativa/acopio', icon: Package, requiredModule: ['entregas', 'lotes_acopio'] },
+    { title: 'Exportadores', url: '/cooperativa/exportadores', icon: Building2 },
+    { title: 'Ofertas Recibidas', url: '/cooperativa/ofertas-recibidas', icon: DollarSign },
     { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings, requiredModule: ['jornales', 'inventario'] },
     { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign, requiredModule: ['finanzas', 'creditos'] },
     { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare, requiredModule: 'mensajes' },
@@ -43,6 +45,7 @@ function getCooperativaNav(actorsLabel: string): NavItemDef[] {
     { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield, requiredModule: 'vital' },
     { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users, requiredModule: 'inclusion' },
     { title: 'Reportes', url: '/reportes', icon: FileText },
+    { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
     { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
   ];
 }
@@ -75,8 +78,8 @@ function getExportadorNav(actorsLabel: string): NavItemDef[] {
     { title: actorsLabel, url: '/exportador/proveedores', icon: Users, requiredModule: 'productores' },
     { title: 'Entregas y Acopio', url: '/cooperativa/acopio', icon: Package, requiredModule: ['entregas', 'lotes_acopio'] },
     { title: 'Nova Cup', url: '/exportador/calidad', icon: Award, requiredModule: 'calidad' },
-    // Comercial (ambos arquetipos)
-    { title: 'Gestión de Café', url: '/exportador/lotes', icon: Coffee, requiredModule: ['lotes_acopio', 'lotes_comerciales'] },
+    // Comercial
+    { title: 'Gestión de Café', url: '/exportador/cafe', icon: Coffee, requiredModule: ['lotes_acopio', 'lotes_comerciales'] },
     { title: 'Contratos', url: '/exportador/contratos', icon: FileText, requiredModule: 'contratos' },
     { title: 'Embarques', url: '/exportador/embarques', icon: Package, requiredModule: 'contratos' },
     // Compliance (Exportador B — always visible for exportador)
