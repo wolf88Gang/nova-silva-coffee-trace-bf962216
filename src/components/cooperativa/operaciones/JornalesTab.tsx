@@ -162,7 +162,7 @@ export default function JornalesTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <p className="text-sm text-muted-foreground">Gestion de cuadrillas, jornales y campanas</p>
+        <p className="text-sm text-muted-foreground">Gestión de cuadrillas, jornales y campañas</p>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowNuevaCuadrilla(true)}><Users className="h-4 w-4 mr-1" /> Nueva Cuadrilla</Button>
           <Button size="sm" onClick={() => setShowNuevoJornal(true)}><Plus className="h-4 w-4 mr-1" /> Registrar Jornal</Button>
@@ -225,7 +225,7 @@ export default function JornalesTab() {
         <TabsList>
           <TabsTrigger value="cuadrillas">Cuadrillas</TabsTrigger>
           <TabsTrigger value="registros">Registros de Jornales</TabsTrigger>
-          <TabsTrigger value="campanas">Campanas</TabsTrigger>
+          <TabsTrigger value="campanas">Campañas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="cuadrillas">
