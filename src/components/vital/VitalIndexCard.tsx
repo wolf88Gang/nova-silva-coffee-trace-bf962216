@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Shield, Cloud, Sprout, RefreshCcw, AlertTriangle } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 
-export type NivelResiliencia = 'vulnerable' | 'en_riesgo' | 'estable' | 'resiliente';
+export type NivelResiliencia = 'critica' | 'fragilidad' | 'en_construccion' | 'resiliente';
 
 interface VitalIndexCardProps {
   indiceGlobal: number;            // 0-100
@@ -24,10 +24,10 @@ interface VitalIndexCardProps {
 }
 
 const NIVEL_CONFIG: Record<NivelResiliencia, { label: string; color: string }> = {
-  vulnerable:  { label: 'Vulnerable',  color: 'bg-destructive/10 text-destructive border-destructive/30' },
-  en_riesgo:   { label: 'En Riesgo',   color: 'bg-orange-500/10 text-orange-600 border-orange-500/30' },
-  estable:     { label: 'Estable',      color: 'bg-amber-500/10 text-amber-600 border-amber-500/30' },
-  resiliente:  { label: 'Resiliente',   color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' },
+  critica:         { label: 'Crítica',          color: 'bg-destructive/10 text-destructive border-destructive/30' },
+  fragilidad:      { label: 'Fragilidad',       color: 'bg-orange-500/10 text-orange-600 border-orange-500/30' },
+  en_construccion: { label: 'En Construcción',  color: 'bg-amber-500/10 text-amber-600 border-amber-500/30' },
+  resiliente:      { label: 'Resiliente',       color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' },
 };
 
 function getProgressColor(value: number): string {

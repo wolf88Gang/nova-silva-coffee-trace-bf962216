@@ -67,9 +67,9 @@ export function runMonteCarloSimulation(
   const rng = xorshift32(seed);
   const { intervention, climate, pest, price } = CALIBRATED_DEFAULTS;
 
-  // Management factor from VITAL level
-  const mgmtFactor: Record<number, number> = { 1: 0.7, 2: 0.85, 3: 1.0, 4: 1.15 };
-  const managementFactor = mgmtFactor[input.vitalNivel ?? 2] ?? 0.85;
+  // Management factor from VITAL level (aligned with vitalScoring.ts getManagementFactor)
+  const mgmtFactor: Record<number, number> = { 1: 0.85, 2: 0.95, 3: 1.0, 4: 1.10 };
+  const managementFactor = mgmtFactor[input.vitalNivel ?? 2] ?? 0.95;
 
   // IoT calibration for climate probability
   let effectiveClimateP = climate.probability;
