@@ -34,7 +34,7 @@ export interface FactorRiesgo {
 
 export interface ResultadoClimaProductor {
   indiceGlobal: number; // 0-100
-  nivel: 'Vulnerable' | 'En Transición' | 'Resiliente' | 'Regenerativo';
+  nivel: 'Crítica' | 'Fragilidad' | 'En Construcción' | 'Resiliente';
   nivelColor: string;
   exposicion: number; // 0-1
   sensibilidad: number; // 0-1
@@ -137,8 +137,8 @@ export function calcularResultadoGlobal(respuestas: Map<string, RespuestaClima>)
 }
 
 export function getNivel(puntaje: number): { nivel: ResultadoClimaProductor['nivel']; nivelColor: string } {
-  if (puntaje >= 80) return { nivel: 'Regenerativo', nivelColor: 'text-emerald-700' };
-  if (puntaje >= 60) return { nivel: 'Resiliente', nivelColor: 'text-emerald-600' };
-  if (puntaje >= 40) return { nivel: 'En Transición', nivelColor: 'text-amber-600' };
-  return { nivel: 'Vulnerable', nivelColor: 'text-destructive' };
+  if (puntaje >= 81) return { nivel: 'Resiliente', nivelColor: 'text-emerald-600' };
+  if (puntaje >= 61) return { nivel: 'En Construcción', nivelColor: 'text-amber-500' };
+  if (puntaje >= 41) return { nivel: 'Fragilidad', nivelColor: 'text-orange-500' };
+  return { nivel: 'Crítica', nivelColor: 'text-destructive' };
 }

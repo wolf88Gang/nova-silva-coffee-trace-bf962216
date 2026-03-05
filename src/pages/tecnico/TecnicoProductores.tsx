@@ -11,11 +11,11 @@ import { DEMO_PRODUCTORES, DEMO_ENTREGAS, type DemoProductor } from '@/lib/demo-
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle } from '@/lib/chartStyles';
 
+import { getVitalLevel, VITAL_FILTER_OPTIONS } from '@/lib/vitalLevels';
+
 const getNivel = (p: number) => {
-  if (p >= 81) return { label: 'Ejemplar', color: 'bg-emerald-600/10 text-emerald-700 border-emerald-600/30' };
-  if (p >= 61) return { label: 'Sostenible', color: 'bg-green-500/10 text-green-600 border-green-500/30' };
-  if (p >= 41) return { label: 'En desarrollo', color: 'bg-amber-500/10 text-amber-600 border-amber-500/30' };
-  return { label: 'Crítico', color: 'bg-destructive/10 text-destructive border-destructive/30' };
+  const l = getVitalLevel(p);
+  return { label: l.label, color: l.badgeColor };
 };
 
 // Simulated VITAL component scores
@@ -90,10 +90,9 @@ export default function TecnicoProductores() {
               <SelectTrigger className="w-[160px]"><Filter className="h-3.5 w-3.5 mr-1" /><SelectValue placeholder="Nivel VITAL" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los niveles</SelectItem>
-                <SelectItem value="Crítico">Crítico</SelectItem>
-                <SelectItem value="En desarrollo">En desarrollo</SelectItem>
-                <SelectItem value="Sostenible">Sostenible</SelectItem>
-                <SelectItem value="Ejemplar">Ejemplar</SelectItem>
+                {VITAL_FILTER_OPTIONS.map(opt => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterComunidad} onValueChange={setFilterComunidad}>
@@ -222,10 +221,10 @@ export default function TecnicoProductores() {
                     {selectedProductor.puntajeVITAL < 41
                       ? 'Productor en estado crítico. Priorizar visita de diagnóstico integral y programar plan de mejora urgente con enfoque en los ejes más débiles del radar VITAL.'
                       : selectedProductor.puntajeVITAL < 61
-                      ? 'Productor en desarrollo. Reforzar capacitación en manejo sostenible y verificar cumplimiento de requisitos mínimos para certificación.'
+                      ? 'Productor en fragilidad sistémica. Reforzar capacitación en manejo sostenible y verificar cumplimiento de requisitos mínimos.'
                       : selectedProductor.puntajeVITAL < 81
-                      ? 'Buen desempeño sostenible. Focalizar mejora en los 2 ejes más bajos del radar para aspirar a nivel Ejemplar.'
-                      : 'Productor ejemplar. Candidato para programa de promotor comunitario y mentoría de productores en desarrollo.'}
+                      ? 'Resiliencia en construcción. Focalizar mejora en los 2 ejes más bajos del radar para aspirar a nivel Resiliente.'
+                      : 'Productor resiliente. Candidato para programa de promotor comunitario y mentoría de productores en fragilidad.'}
                   </p>
                 </div>
               </div>

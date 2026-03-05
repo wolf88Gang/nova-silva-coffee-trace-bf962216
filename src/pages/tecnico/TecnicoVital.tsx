@@ -13,11 +13,11 @@ const evaluaciones = [
   { id: '5', productor: 'Pedro Ramírez Cruz', fecha: '2026-02-10', estado: 'completada' as const, puntaje: 52 },
 ];
 
+import { getVitalLevel } from '@/lib/vitalLevels';
+
 const getNivel = (p: number) => {
-  if (p >= 81) return { label: 'Ejemplar', color: 'bg-green-700/10 text-green-700' };
-  if (p >= 61) return { label: 'Sostenible', color: 'bg-green-500/10 text-green-600' };
-  if (p >= 41) return { label: 'En desarrollo', color: 'bg-yellow-500/10 text-yellow-600' };
-  return { label: 'Crítico', color: 'bg-red-500/10 text-red-600' };
+  const l = getVitalLevel(p);
+  return { label: l.label, color: l.badgeColor };
 };
 
 const promedio = Math.round(DEMO_PRODUCTORES.reduce((s, p) => s + p.puntajeVITAL, 0) / DEMO_PRODUCTORES.length);

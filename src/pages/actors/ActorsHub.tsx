@@ -308,7 +308,7 @@ function ActorDetail({
               <div>
                 <p className="text-sm font-medium">Score VITAL</p>
                 <p className="text-xs text-muted-foreground">
-                  {actor.puntajeVITAL >= 81 ? 'Ejemplar' : actor.puntajeVITAL >= 61 ? 'Sostenible' : actor.puntajeVITAL >= 41 ? 'En desarrollo' : 'Crítico'}
+                  {actor.puntajeVITAL >= 81 ? 'Resiliente' : actor.puntajeVITAL >= 61 ? 'En Construcción' : actor.puntajeVITAL >= 41 ? 'Fragilidad' : 'Crítica'}
                 </p>
               </div>
             </div>
