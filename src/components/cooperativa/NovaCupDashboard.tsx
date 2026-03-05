@@ -297,8 +297,10 @@ export default function NovaCupDashboard() {
           <p className="text-sm text-muted-foreground">Gestión de muestras, cataciones y parámetros físicos</p>
         </div>
         <div className="flex gap-2">
-          <Button variant={compareMode ? 'default' : 'outline'} size="sm" onClick={() => { setCompareMode(!compareMode); setCompareSamples([]); }}>
-            <GitCompare className="h-4 w-4 mr-1" /> {compareMode ? 'Cancelar' : 'Comparar'}
+          <Button variant={compareMode ? 'default' : 'outline'} size="sm"
+            title="Compara los perfiles sensoriales (radar) de 2–3 cataciones lado a lado"
+            onClick={() => { setCompareMode(!compareMode); setCompareSamples([]); }}>
+            <GitCompare className="h-4 w-4 mr-1" /> {compareMode ? 'Cancelar' : 'Comparar Cataciones'}
           </Button>
           <Button onClick={() => setShowNuevaMuestra(true)}>
             <Plus className="h-4 w-4 mr-1" /> Nueva Muestra
@@ -335,11 +337,14 @@ export default function NovaCupDashboard() {
           )}
         </TabsList>
 
+        {/* Tab descriptions */}
+
         {/* ═══ TAB: MUESTRAS ═══ */}
         <TabsContent value="muestras" className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Registro físico de muestras tomadas del inventario. Cada muestra se puede evaluar sensorialmente para generar una catación.</p>
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{muestrasPendientes}</span> muestras pendientes de evaluación ·{' '}
+              <span className="font-medium text-foreground">{muestrasPendientes}</span> pendientes de evaluación ·{' '}
               <span className="font-medium text-foreground">{muestrasEvaluadas}</span> evaluadas
             </p>
           </div>
@@ -406,6 +411,7 @@ export default function NovaCupDashboard() {
 
         {/* ═══ TAB: CATACIONES ═══ */}
         <TabsContent value="cataciones" className="space-y-4">
+          <p className="text-xs text-muted-foreground">Evaluaciones sensoriales completadas. Cada catación contiene puntaje SCA/CVA, descriptores de sabor y notas del catador.</p>
           <div className="flex flex-wrap gap-3">
             <Select value={filterProtocolo} onValueChange={setFilterProtocolo}>
               <SelectTrigger className="w-32"><SelectValue placeholder="Protocolo" /></SelectTrigger>
@@ -1004,6 +1010,29 @@ export default function NovaCupDashboard() {
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                {/* Otras muestras del mismo lote — ARRIBA para navegación rápida */}
+                {(() => {
+                  const siblings = catacionesDemo.filter(c => c.lote === selectedCata.lote && c.id !== selectedCata.id);
+                  if (!siblings.length) return null;
+                  return (
+                    <div className="p-3 rounded-lg border border-primary/20 bg-primary/5">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Otras muestras de este lote</p>
+                      <div className="space-y-1.5">
+                        {siblings.map(s => (
+                          <div key={s.id} className="flex items-center justify-between p-2 rounded border border-border bg-background hover:bg-muted/50 cursor-pointer transition-colors"
+                            onClick={() => setSelectedCata(s)}>
+                            <div className="flex items-center gap-2">
+                              {sampleBadge(s.sampleType)}
+                              <span className="text-sm font-bold text-foreground">{s.puntaje} pts</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{s.fecha}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="text-center">
                   <p className="text-4xl font-bold text-foreground">{selectedCata.puntaje}</p>
                   <div className="mt-1 flex items-center justify-center gap-2">
@@ -1061,28 +1090,7 @@ export default function NovaCupDashboard() {
                   </div>
                 </div>
 
-                {/* Siblings */}
-                {(() => {
-                  const siblings = catacionesDemo.filter(c => c.lote === selectedCata.lote && c.id !== selectedCata.id);
-                  if (!siblings.length) return null;
-                  return (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Otras muestras de este lote</p>
-                      <div className="space-y-2">
-                        {siblings.map(s => (
-                          <div key={s.id} className="flex items-center justify-between p-2 rounded border border-border hover:bg-muted/50 cursor-pointer"
-                            onClick={() => setSelectedCata(s)}>
-                            <div className="flex items-center gap-2">
-                              {sampleBadge(s.sampleType)}
-                              <span className="text-sm font-medium text-foreground">{s.puntaje} pts</span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">{s.fecha}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
+                {/* Siblings moved to top of dialog */}
               </div>
             </>
           )}
