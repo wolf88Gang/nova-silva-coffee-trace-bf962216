@@ -22,18 +22,17 @@ import { DEMO_PRODUCTORES } from '@/lib/demo-data';
 import { VITAL_ORG_BLOCKS, calculateIGRNOrg, type VitalOrgBlock } from '@/config/vitalOrgQuestions';
 import { toast } from 'sonner';
 
+// Use canonical VITAL levels from shared utility
+import { getVitalLevel, getVitalChartColor } from '@/lib/vitalLevels';
+
 const nivelVITAL = (p: number) => {
-  if (p >= 75) return { label: 'Avanzado', color: 'text-emerald-600', bg: 'bg-emerald-500/10', emoji: '🟢' };
-  if (p >= 50) return { label: 'Operativo', color: 'text-primary', bg: 'bg-primary/10', emoji: '🟡' };
-  if (p >= 25) return { label: 'Básico', color: 'text-amber-500', bg: 'bg-amber-500/10', emoji: '🟠' };
-  return { label: 'Inicial', color: 'text-destructive', bg: 'bg-destructive/10', emoji: '🔴' };
+  const l = getVitalLevel(p);
+  return { label: l.label, color: l.textColor, bg: l.bgColor, emoji: l.emoji };
 };
 
 const nivelProductor = (p: number) => {
-  if (p >= 81) return { label: 'Resiliente', color: 'text-emerald-600' };
-  if (p >= 61) return { label: 'En Construcción', color: 'text-primary' };
-  if (p >= 41) return { label: 'Fragilidad', color: 'text-amber-500' };
-  return { label: 'Crítica', color: 'text-destructive' };
+  const l = getVitalLevel(p);
+  return { label: l.label, color: l.textColor };
 };
 
 // Demo VITAL dimensions per producer
@@ -156,8 +155,8 @@ export default function VitalCooperativa() {
 
   const distPie = [
     { name: 'Crítica', value: distribucion.critico, color: 'hsl(0, 65%, 50%)' },
-    { name: 'Fragilidad', value: distribucion.desarrollo, color: 'hsl(45, 90%, 50%)' },
-    { name: 'En Construcción', value: distribucion.sostenible, color: 'hsl(var(--primary))' },
+    { name: 'Fragilidad', value: distribucion.desarrollo, color: 'hsl(30, 90%, 50%)' },
+    { name: 'En Construcción', value: distribucion.sostenible, color: 'hsl(45, 90%, 50%)' },
     { name: 'Resiliente', value: distribucion.ejemplar, color: 'hsl(142, 60%, 40%)' },
   ].filter(d => d.value > 0);
 
@@ -245,7 +244,7 @@ export default function VitalCooperativa() {
                 <div className="grid grid-cols-4 gap-1 text-xs text-center">
                   <div className="rounded bg-destructive/10 text-destructive p-1"><p className="font-bold">{distribucion.critico}</p><p>Crít.</p></div>
                   <div className="rounded bg-amber-500/10 text-amber-500 p-1"><p className="font-bold">{distribucion.desarrollo}</p><p>Frag.</p></div>
-                  <div className="rounded bg-primary/10 text-primary p-1"><p className="font-bold">{distribucion.sostenible}</p><p>Cons.</p></div>
+                  <div className="rounded bg-amber-500/10 text-amber-500 p-1"><p className="font-bold">{distribucion.sostenible}</p><p>Cons.</p></div>
                   <div className="rounded bg-emerald-500/10 text-emerald-600 p-1"><p className="font-bold">{distribucion.ejemplar}</p><p>Res.</p></div>
                 </div>
               </CardContent></Card>
@@ -281,7 +280,7 @@ export default function VitalCooperativa() {
                       <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} />
                       <Bar dataKey="promedio" radius={[4, 4, 0, 0]}>
                         {scoreByCommunity.map((d, i) => (
-                          <Cell key={i} fill={d.promedio >= 75 ? 'hsl(142, 60%, 40%)' : d.promedio >= 50 ? 'hsl(var(--primary))' : 'hsl(0, 65%, 50%)'} />
+                          <Cell key={i} fill={d.promedio >= 81 ? 'hsl(142, 60%, 40%)' : d.promedio >= 61 ? 'hsl(45, 90%, 50%)' : d.promedio >= 41 ? 'hsl(30, 90%, 50%)' : 'hsl(0, 65%, 50%)'} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -632,7 +631,7 @@ export default function VitalCooperativa() {
                 return (
                   <>
                     <div className="text-center p-6 rounded-lg bg-muted/50">
-                      <p className="text-5xl font-bold mb-2" style={{ color: score100 >= 75 ? 'hsl(142, 60%, 40%)' : score100 >= 50 ? 'hsl(var(--primary))' : score100 >= 25 ? 'hsl(45, 90%, 50%)' : 'hsl(0, 65%, 50%)' }}>
+                      <p className="text-5xl font-bold mb-2" style={{ color: score100 >= 81 ? 'hsl(142, 60%, 40%)' : score100 >= 61 ? 'hsl(45, 90%, 50%)' : score100 >= 41 ? 'hsl(30, 90%, 50%)' : 'hsl(0, 65%, 50%)' }}>
                         {score100}/100
                       </p>
                       <Badge className={`text-base px-4 py-1 ${nivel.bg}`}>{nivel.emoji} {nivel.label}</Badge>

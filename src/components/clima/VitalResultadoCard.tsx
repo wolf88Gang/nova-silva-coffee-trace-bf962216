@@ -12,10 +12,10 @@ interface Props {
 }
 
 const nivelBadgeClass: Record<string, string> = {
-  Regenerativo: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-  Resiliente: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-500',
-  'En Transición': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  Vulnerable: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  Resiliente: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+  'En Construcción': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+  Fragilidad: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+  'Crítica': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
 };
 
 export default function VitalResultadoCard({ resultado, compact = false }: Props) {

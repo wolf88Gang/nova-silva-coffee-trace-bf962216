@@ -26,7 +26,7 @@ const vitalScore = {
   sensibilidad: 0.68,
   adaptacion: 0.85,
   delta: '+16.8',
-  nivel: 'Moderada' as const,
+  nivel: 'En Construcción' as const,
   ultimaEval: '2026-01-20',
   frecuencia: 'bianual' as 'bianual' | 'trianual',
   proximaEval: '2027-07-20',
@@ -166,7 +166,7 @@ export default function SostenibilidadHub() {
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <CardTitle className="text-base flex items-center gap-2"><Shield className="h-5 w-5 text-primary" /> Protocolo VITAL</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="border-primary text-primary">{vitalScore.nivel}</Badge>
+                  <Badge variant="outline" className="border-amber-500 text-amber-500">{vitalScore.nivel}</Badge>
                   <Button size="sm" onClick={() => setShowWizard(true)}>
                     <ClipboardCheck className="h-4 w-4 mr-1" /> Actualizar evaluación
                   </Button>
@@ -244,12 +244,20 @@ export default function SostenibilidadHub() {
                 {vitalScore.sensibilidad < 0.7 && ' El componente de Sensibilidad requiere atención prioritaria.'}
               </p>
               <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
-                {IGRN_RANGES.map(r => (
-                  <div key={r.label} className={`p-2 rounded bg-${r.color}/10 text-center`}>
-                    <p className="font-bold">{r.min}-{r.max}</p>
-                    <p className="text-muted-foreground">{r.label}</p>
-                  </div>
-                ))}
+                {IGRN_RANGES.map(r => {
+                  const bgMap: Record<string, string> = {
+                    destructive: 'bg-destructive/10 text-destructive',
+                    orange: 'bg-orange-500/10 text-orange-600',
+                    amber: 'bg-amber-500/10 text-amber-600',
+                    emerald: 'bg-emerald-500/10 text-emerald-600',
+                  };
+                  return (
+                    <div key={r.label} className={`p-2 rounded text-center ${bgMap[r.color] || ''}`}>
+                      <p className="font-bold">{r.min}-{r.max}</p>
+                      <p className="text-muted-foreground">{r.label}</p>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -618,9 +626,19 @@ export default function SostenibilidadHub() {
                 <div className="text-center p-6">
                   <p className="text-6xl font-bold text-foreground">{wizardResult.igrn}<span className="text-2xl text-muted-foreground">/100</span></p>
                   <p className="text-sm text-muted-foreground mt-2">Índice de Gestión de Riesgo Natural (IGRN)</p>
-                  <Badge variant="outline" className={`mt-2 border-${wizardResult.color} text-${wizardResult.color}`}>
-                    {wizardResult.nivel}
-                  </Badge>
+                  {(() => {
+                    const colorMap: Record<string, string> = {
+                      destructive: 'border-destructive text-destructive',
+                      orange: 'border-orange-500 text-orange-500',
+                      amber: 'border-amber-500 text-amber-500',
+                      emerald: 'border-emerald-500 text-emerald-600',
+                    };
+                    return (
+                      <Badge variant="outline" className={`mt-2 ${colorMap[wizardResult.color] || ''}`}>
+                        {wizardResult.nivel}
+                      </Badge>
+                    );
+                  })()}
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">

@@ -290,9 +290,9 @@ export interface IGRNResult {
   /** Whether false resilience is detected */
   falsaResiliencia: boolean;
   /** Nivel text */
-  nivel: 'Crítica' | 'Alta Fragilidad' | 'Moderada' | 'Resiliente';
+  nivel: 'Crítica' | 'Fragilidad' | 'En Construcción' | 'Resiliente';
   /** Color key */
-  color: 'destructive' | 'accent' | 'warning' | 'primary';
+  color: 'destructive' | 'orange' | 'amber' | 'emerald';
 }
 
 /**
@@ -321,9 +321,9 @@ export function calculateIGRN(answers: Record<number, number>): IGRNResult {
   let nivel: IGRNResult['nivel'];
   let color: IGRNResult['color'];
   if (igrn <= 40) { nivel = 'Crítica'; color = 'destructive'; }
-  else if (igrn <= 60) { nivel = 'Alta Fragilidad'; color = 'accent'; }
-  else if (igrn <= 80) { nivel = 'Moderada'; color = 'warning'; }
-  else { nivel = 'Resiliente'; color = 'primary'; }
+  else if (igrn <= 60) { nivel = 'Fragilidad'; color = 'orange'; }
+  else if (igrn <= 80) { nivel = 'En Construcción'; color = 'amber'; }
+  else { nivel = 'Resiliente'; color = 'emerald'; }
 
   return { igrn, muClima, muEstructura, muRespuesta, falsaResiliencia, nivel, color };
 }
@@ -331,7 +331,7 @@ export function calculateIGRN(answers: Record<number, number>): IGRNResult {
 /** Nivel labels and colors for display */
 export const IGRN_RANGES = [
   { min: 0, max: 40, label: 'Crítica', description: 'Colapso inminente. Requiere intervención de emergencia.', color: 'destructive' },
-  { min: 41, max: 60, label: 'Alta Fragilidad', description: 'Finca sobrevive por inercia. Prioridad: infraestructura básica y renovación.', color: 'accent' },
-  { min: 61, max: 80, label: 'Moderada', description: 'Bases sólidas con brechas específicas. Prioridad: tecnificación y mercados.', color: 'warning' },
-  { min: 81, max: 100, label: 'Resiliente', description: 'Finca modelo con capacidad de absorción. Prioridad: innovación y liderazgo.', color: 'primary' },
+  { min: 41, max: 60, label: 'Fragilidad', description: 'Fragilidad sistémica. Prioridad: infraestructura básica y renovación.', color: 'orange' },
+  { min: 61, max: 80, label: 'En Construcción', description: 'Resiliencia en construcción. Prioridad: tecnificación y mercados.', color: 'amber' },
+  { min: 81, max: 100, label: 'Resiliente', description: 'Sostenibilidad consolidada. Prioridad: innovación y liderazgo.', color: 'emerald' },
 ] as const;
