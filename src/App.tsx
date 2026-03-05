@@ -18,7 +18,6 @@ import Register from "./pages/Register";
 import DemoLogin from "./pages/DemoLogin";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import NotFound from "./pages/NotFound";
-import PlaceholderPage from "./pages/PlaceholderPage";
 
 // Public pages removed — platform only
 
@@ -60,6 +59,8 @@ import ExportadorEUDR from "./pages/exportador/ExportadorEUDR";
 import ExportadorEmbarques from "./pages/exportador/ExportadorEmbarques";
 import ExportadorClientes from "./pages/exportador/ExportadorClientes";
 import ExportadorCalidad from "./pages/exportador/ExportadorCalidad";
+import ExportadorConfiguracion from "./pages/exportador/ExportadorConfiguracion";
+import ExportadorMensajes from "./pages/exportador/ExportadorMensajes";
 
 // Certificadora pages
 import DashboardCertificadora from "./pages/certificadora/DashboardCertificadora";
@@ -88,11 +89,6 @@ const PageLoader = () => (
   </div>
 );
 
-const RP = ({ role, title }: { role?: any; title?: string }) => (
-  <DashboardLayout requiredRole={role}>
-    <PlaceholderPage title={title} />
-  </DashboardLayout>
-);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -178,8 +174,8 @@ const App = () => (
               <Route path="/exportador/embarques" element={<DashboardLayout requiredRole="exportador"><ExportadorEmbarques /></DashboardLayout>} />
               <Route path="/exportador/clientes" element={<DashboardLayout requiredRole="exportador"><ExportadorClientes /></DashboardLayout>} />
               <Route path="/exportador/calidad" element={<DashboardLayout requiredRole="exportador"><ExportadorCalidad /></DashboardLayout>} />
-              <Route path="/exportador/configuracion" element={<RP role="exportador" title="Administración" />} />
-              <Route path="/exportador/mensajes" element={<RP role="exportador" title="Mensajes" />} />
+              <Route path="/exportador/configuracion" element={<DashboardLayout requiredRole="exportador"><ExportadorConfiguracion /></DashboardLayout>} />
+              <Route path="/exportador/mensajes" element={<DashboardLayout requiredRole="exportador"><ExportadorMensajes /></DashboardLayout>} />
 
               {/* ── CERTIFICADORA ── */}
               <Route path="/certificadora" element={<Navigate to="/certificadora/dashboard" replace />} />
