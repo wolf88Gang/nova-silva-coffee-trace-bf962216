@@ -1,18 +1,15 @@
-import { useState } from 'react';
 import logoNovasilva from '@/assets/logo-novasilva.png';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { getActorsNavLabel, getOrgTypeLabel } from '@/lib/org-terminology';
 import { hasModule, hasAnyModule, type OrgModule } from '@/lib/org-modules';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { NotificacionesBell } from './NotificacionesBell';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  Leaf, LogOut, ChevronDown, X,
-  LayoutDashboard, Users, Package, Wallet,
+  Leaf, X,
+  LayoutDashboard, Users, Package,
   MessageSquare, Building2,
   Calendar, ShieldCheck, Shield, FileText,
   Sprout, Settings, Map, Award, DollarSign,
@@ -45,7 +42,7 @@ function getCooperativaNav(actorsLabel: string): NavItemDef[] {
     { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield, requiredModule: 'vital' },
     { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: Users, requiredModule: 'inclusion' },
     { title: 'Reportes', url: '/reportes', icon: FileText },
-    { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Settings },
+    { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Shield },
   ];
 }
 
@@ -133,11 +130,6 @@ function filterNavByModules(items: NavItemDef[], activeModules: OrgModule[], isA
 
 // ── COMPONENTS ──
 
-const accountNav: NavItemDef[] = [
-  { title: 'Mi perfil', url: '/mi-perfil', icon: Users },
-  { title: 'Mi plan', url: '/billing', icon: Wallet },
-  { title: 'Alertas', url: '/alerts', icon: AlertTriangle },
-];
 
 function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void }) {
   return (
@@ -160,10 +152,8 @@ function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void
 interface SidebarProps { isOpen: boolean; onClose: () => void; }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { orgTipo, activeModules } = useOrgContext();
-  const navigate = useNavigate();
-  const [accountOpen, setAccountOpen] = useState(false);
 
   if (!user) return null;
 
@@ -171,10 +161,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navItems = filterNavByModules(rawNav, activeModules, user.role === 'admin');
   const orgTypeDisplay = getOrgTypeLabel(orgTipo);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate(user.id.startsWith('demo-') ? '/demo' : '/login');
-  };
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
@@ -208,28 +194,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Account section */}
-      <div className="border-t border-sidebar-border px-3 py-2">
-        <Collapsible open={accountOpen} onOpenChange={setAccountOpen}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sidebar-foreground/70 hover:text-sidebar-foreground uppercase tracking-wider text-xs">
-            Mi cuenta
-            <ChevronDown className={cn("h-4 w-4 transition-transform", accountOpen && "rotate-180")} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-1 mt-1">
-            {accountNav.map((item) => (
-              <NavItemLink key={item.url} item={item} onClick={onClose} />
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      {/* Logout */}
-      <div className="px-3 py-3 border-t border-sidebar-border">
-        <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent" onClick={handleLogout}>
-          <LogOut className="h-4 w-4" />
-          Cerrar sesión
-        </Button>
-      </div>
     </div>
   );
 
