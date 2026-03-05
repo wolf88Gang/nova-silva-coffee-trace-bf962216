@@ -73,28 +73,36 @@ const severityBadge = (s: string) => {
   return <Badge className="bg-emerald-500 text-white border-0">Resuelta</Badge>;
 };
 
-const ZONAS = ['Zona Norte', 'Zona Sur', 'Zona Central', 'Zona Este'];
-const TIPOS_PLAGA = ['Broca', 'Roya', 'Ojo de gallo', 'Antracnosis', 'Minador', 'Otra'];
+const PARCELAS_DEMO = ['La Esperanza', 'El Porvenir', 'Finca Alta', 'Los Cedros', 'Monte Verde'];
+
+const OBSERVACIONES = [
+  { id: 'fumigando', icon: '🧪', titulo: 'Vecinos fumigando', desc: 'Noto actividad de aplicación en fincas cercanas' },
+  { id: 'olor', icon: '👃', titulo: 'Olor extraño', desc: 'Percibo olores químicos o de descomposición' },
+  { id: 'insectos', icon: '🪰', titulo: 'Muchos insectos volando', desc: 'Aumento inusual de insectos en la zona' },
+  { id: 'marchitas', icon: '🥀', titulo: 'Plantas marchitas en la zona', desc: 'Veo plantas afectadas en fincas vecinas' },
+  { id: 'rumores', icon: '💬', titulo: 'Rumores de plaga en comunidad', desc: 'Otros productores mencionan problemas' },
+];
 
 export default function NovaGuardTab() {
   const [alertas, setAlertas] = useState(alertasIniciales);
   const [showDetalle, setShowDetalle] = useState<Alerta | null>(null);
   const [showReporte, setShowReporte] = useState(false);
-  const [reporteForm, setReporteForm] = useState({ zona: '', tipo: '', descripcion: '', severidad: 'warning' });
+  const [reporteForm, setReporteForm] = useState({ parcela: '', observacion: '', descripcion: '' });
 
   const handleReportarSospecha = () => {
-    if (!reporteForm.zona || !reporteForm.tipo) { toast.error('Complete zona y tipo de plaga'); return; }
+    if (!reporteForm.observacion) { toast.error('Seleccione qué observa'); return; }
+    const obs = OBSERVACIONES.find(o => o.id === reporteForm.observacion);
     const nueva: Alerta = {
-      id: Date.now(), titulo: `Sospecha: ${reporteForm.tipo} en ${reporteForm.zona}`,
-      zona: reporteForm.zona, fecha: new Date().toISOString().slice(0, 10),
-      severity: reporteForm.severidad as any, tipo: reporteForm.tipo,
-      descripcion: reporteForm.descripcion || 'Sospecha reportada desde campo. Pendiente de verificación técnica.',
+      id: Date.now(), titulo: `Sospecha: ${obs?.titulo || reporteForm.observacion}`,
+      zona: reporteForm.parcela || 'Sin especificar', fecha: new Date().toISOString().slice(0, 10),
+      severity: 'warning', tipo: 'Sospecha vecinal',
+      descripcion: reporteForm.descripcion || obs?.desc || 'Indicio reportado desde campo. Pendiente de verificación.',
       acciones: 'Programar visita de verificación técnica. Tomar muestras para diagnóstico.',
     };
     setAlertas(prev => [nueva, ...prev]);
-    toast.success('Sospecha reportada exitosamente. Se notificará al equipo técnico.');
+    toast.success('Alerta amarilla enviada. Gracias por tu vigilancia comunitaria.');
     setShowReporte(false);
-    setReporteForm({ zona: '', tipo: '', descripcion: '', severidad: 'warning' });
+    setReporteForm({ parcela: '', observacion: '', descripcion: '' });
   };
 
   const handleResolver = (id: number) => {
@@ -289,42 +297,67 @@ export default function NovaGuardTab() {
         </DialogContent>
       </Dialog>
 
-      {/* ═══ REPORTAR SOSPECHA DIALOG ═══ */}
+      {/* ═══ REPORTAR SOSPECHA VECINAL ═══ */}
       <Dialog open={showReporte} onOpenChange={setShowReporte}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Bug className="h-5 w-5 text-primary" /> Reportar Sospecha</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="flex items-center justify-center h-8 w-8 rounded-full border border-amber-500 text-amber-500">👁</span>
+              Reportar Sospecha Vecinal
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">Tu observación ayuda a la comunidad. Reporta indicios aunque no tengas síntomas confirmados.</p>
           </DialogHeader>
+
           <div className="space-y-4">
+            {/* Parcela selector */}
             <div className="space-y-2">
-              <Label>Zona *</Label>
-              <Select value={reporteForm.zona} onValueChange={v => setReporteForm(s => ({ ...s, zona: v }))}>
-                <SelectTrigger><SelectValue placeholder="Seleccione zona..." /></SelectTrigger>
-                <SelectContent>{ZONAS.map(z => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
+              <Label>Parcela</Label>
+              <Select value={reporteForm.parcela} onValueChange={v => setReporteForm(s => ({ ...s, parcela: v }))}>
+                <SelectTrigger><SelectValue placeholder="Seleccione parcela..." /></SelectTrigger>
+                <SelectContent>{PARCELAS_DEMO.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Tipo de plaga/enfermedad *</Label>
-              <Select value={reporteForm.tipo} onValueChange={v => setReporteForm(s => ({ ...s, tipo: v }))}>
-                <SelectTrigger><SelectValue placeholder="Seleccione tipo..." /></SelectTrigger>
-                <SelectContent>{TIPOS_PLAGA.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-              </Select>
+
+            {/* Observation cards */}
+            <div className="space-y-1.5">
+              <Label>¿Qué observas?</Label>
+              <div className="space-y-2">
+                {OBSERVACIONES.map(obs => (
+                  <button
+                    key={obs.id}
+                    type="button"
+                    onClick={() => setReporteForm(s => ({ ...s, observacion: s.observacion === obs.id ? '' : obs.id }))}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
+                      reporteForm.observacion === obs.id
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-muted-foreground/40 hover:bg-muted/50'
+                    }`}
+                  >
+                    <span className="text-xl shrink-0">{obs.icon}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{obs.titulo}</p>
+                      <p className="text-xs text-muted-foreground">{obs.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Description */}
             <div className="space-y-2">
-              <Label>Nivel de severidad</Label>
-              <Select value={reporteForm.severidad} onValueChange={v => setReporteForm(s => ({ ...s, severidad: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="destructive">Crítica — Requiere acción inmediata</SelectItem>
-                  <SelectItem value="warning">Moderada — Monitoreo cercano</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>¿Qué observaste?</Label>
+              <Textarea
+                value={reporteForm.descripcion}
+                onChange={e => setReporteForm(s => ({ ...s, descripcion: e.target.value }))}
+                rows={3}
+                placeholder="Describe lo que viste: color, ubicación en la planta, cantidad de plantas afectadas..."
+              />
             </div>
-            <div className="space-y-2">
-              <Label>Descripción</Label>
-              <Textarea value={reporteForm.descripcion} onChange={e => setReporteForm(s => ({ ...s, descripcion: e.target.value }))} rows={3} placeholder="Describa los síntomas observados, ubicación exacta, extensión estimada..." />
-            </div>
-            <Button className="w-full" onClick={handleReportarSospecha}>Enviar Reporte</Button>
+
+            <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white" onClick={handleReportarSospecha}>
+              <MapPin className="h-4 w-4 mr-1" /> Enviar Alerta Amarilla
+            </Button>
+            <p className="text-xs text-center text-muted-foreground">Las alertas amarillas son indicios de baja certeza que ayudan a la vigilancia comunitaria.</p>
           </div>
         </DialogContent>
       </Dialog>
