@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getGreeting } from '@/lib/genderHelper';
+import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -57,6 +59,7 @@ const sevConfig = {
 };
 
 export default function DashboardCertificadora() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedAuditoria, setSelectedAuditoria] = useState<typeof proximasAuditorias[0] | null>(null);
   const [selectedHallazgo, setSelectedHallazgo] = useState<typeof hallazgosRecientes[0] | null>(null);
@@ -64,7 +67,9 @@ export default function DashboardCertificadora() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Centro de Certificación</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          {user?.name ? `${getGreeting(user.name)}, ${user.name.split(' ')[0]}` : 'Centro de Certificación'}
+        </h1>
         <p className="text-sm text-muted-foreground">Auditorías, verificación y cumplimiento de organizaciones</p>
       </div>
 
