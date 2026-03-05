@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ShieldCheck, Users, TrendingUp, Play, CheckCircle, AlertTriangle,
-  ArrowRight, ArrowLeft, BarChart3, Building2,
+  ArrowRight, ArrowLeft, BarChart3, Building2, Eye, UserCheck, Calendar, MapPin,
 } from 'lucide-react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -34,10 +34,45 @@ const nivelProductor = (p: number) => {
   return { label: 'Crítica', color: 'text-destructive' };
 };
 
+// Demo VITAL dimensions per producer
+const DEMO_VITAL_DIMENSIONES: Record<string, { eje: string; score: number }[]> = {
+  '1': [{ eje: 'Suelo', score: 82 }, { eje: 'Agua', score: 75 }, { eje: 'Biodiversidad', score: 70 }, { eje: 'Clima', score: 80 }, { eje: 'Social', score: 78 }, { eje: 'Económico', score: 76 }],
+  '2': [{ eje: 'Suelo', score: 90 }, { eje: 'Agua', score: 85 }, { eje: 'Biodiversidad', score: 80 }, { eje: 'Clima', score: 88 }, { eje: 'Social', score: 82 }, { eje: 'Económico', score: 85 }],
+  '3': [{ eje: 'Suelo', score: 55 }, { eje: 'Agua', score: 48 }, { eje: 'Biodiversidad', score: 45 }, { eje: 'Clima', score: 58 }, { eje: 'Social', score: 52 }, { eje: 'Económico', score: 54 }],
+  '4': [{ eje: 'Suelo', score: 95 }, { eje: 'Agua', score: 90 }, { eje: 'Biodiversidad', score: 88 }, { eje: 'Clima', score: 92 }, { eje: 'Social', score: 89 }, { eje: 'Económico', score: 92 }],
+  '5': [{ eje: 'Suelo', score: 35 }, { eje: 'Agua', score: 30 }, { eje: 'Biodiversidad', score: 28 }, { eje: 'Clima', score: 42 }, { eje: 'Social', score: 45 }, { eje: 'Económico', score: 48 }],
+  '6': [{ eje: 'Suelo', score: 78 }, { eje: 'Agua', score: 70 }, { eje: 'Biodiversidad', score: 65 }, { eje: 'Clima', score: 75 }, { eje: 'Social', score: 72 }, { eje: 'Económico', score: 72 }],
+  '7': [{ eje: 'Suelo', score: 68 }, { eje: 'Agua', score: 62 }, { eje: 'Biodiversidad', score: 58 }, { eje: 'Clima', score: 70 }, { eje: 'Social', score: 65 }, { eje: 'Económico', score: 67 }],
+  '8': [{ eje: 'Suelo', score: 85 }, { eje: 'Agua', score: 78 }, { eje: 'Biodiversidad', score: 75 }, { eje: 'Clima', score: 82 }, { eje: 'Social', score: 80 }, { eje: 'Económico', score: 80 }],
+};
+
+const DEMO_TECNICO_ASIGNADO: Record<string, { nombre: string; telefono: string }> = {
+  '1': { nombre: 'Ing. Roberto Castañeda', telefono: '+502 5555-1234' },
+  '2': { nombre: 'Ing. Roberto Castañeda', telefono: '+502 5555-1234' },
+  '3': { nombre: 'Ing. Sofía Villagrán', telefono: '+502 5555-5678' },
+  '4': { nombre: 'Ing. Roberto Castañeda', telefono: '+502 5555-1234' },
+  '5': { nombre: 'Ing. Sofía Villagrán', telefono: '+502 5555-5678' },
+  '6': { nombre: 'Ing. Sofía Villagrán', telefono: '+502 5555-5678' },
+  '7': { nombre: 'Ing. Roberto Castañeda', telefono: '+502 5555-1234' },
+  '8': { nombre: 'Ing. Sofía Villagrán', telefono: '+502 5555-5678' },
+};
+
+const DEMO_EVAL_HISTORIAL: Record<string, { fecha: string; score: number; evaluador: string }[]> = {
+  '1': [{ fecha: '2026-02-01', score: 78, evaluador: 'Roberto Castañeda' }, { fecha: '2025-08-15', score: 72, evaluador: 'Roberto Castañeda' }, { fecha: '2025-02-10', score: 65, evaluador: 'Ana Morales' }],
+  '2': [{ fecha: '2026-01-20', score: 85, evaluador: 'Roberto Castañeda' }, { fecha: '2025-07-10', score: 80, evaluador: 'Roberto Castañeda' }],
+  '3': [{ fecha: '2026-01-28', score: 52, evaluador: 'Sofía Villagrán' }, { fecha: '2025-08-05', score: 48, evaluador: 'Sofía Villagrán' }],
+  '4': [{ fecha: '2026-02-12', score: 91, evaluador: 'Roberto Castañeda' }, { fecha: '2025-09-01', score: 87, evaluador: 'Roberto Castañeda' }, { fecha: '2025-03-15', score: 82, evaluador: 'Ana Morales' }],
+  '5': [{ fecha: '2025-12-20', score: 38, evaluador: 'Sofía Villagrán' }],
+  '6': [{ fecha: '2026-01-15', score: 72, evaluador: 'Sofía Villagrán' }, { fecha: '2025-07-20', score: 68, evaluador: 'Sofía Villagrán' }],
+  '7': [{ fecha: '2026-01-10', score: 65, evaluador: 'Roberto Castañeda' }],
+  '8': [{ fecha: '2026-02-05', score: 80, evaluador: 'Sofía Villagrán' }, { fecha: '2025-08-25', score: 76, evaluador: 'Sofía Villagrán' }],
+};
+
 export default function VitalCooperativa() {
   const [showWizard, setShowWizard] = useState(false);
   const [currentBlock, setCurrentBlock] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [selectedProductor, setSelectedProductor] = useState<typeof DEMO_PRODUCTORES[0] | null>(null);
 
   const promedio = Math.round(DEMO_PRODUCTORES.reduce((s, p) => s + p.puntajeVITAL, 0) / DEMO_PRODUCTORES.length);
   const distribucion = {
@@ -199,8 +234,12 @@ export default function VitalCooperativa() {
                       {DEMO_PRODUCTORES.map(p => {
                         const nivel = nivelProductor(p.puntajeVITAL);
                         return (
-                          <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                            <td className="px-4 py-3 font-medium text-foreground">{p.nombre}</td>
+                          <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
+                            onClick={() => setSelectedProductor(p)}>
+                            <td className="px-4 py-3 font-medium text-foreground flex items-center gap-2">
+                              {p.nombre}
+                              <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                            </td>
                             <td className="px-4 py-3 text-muted-foreground">{p.comunidad}</td>
                             <td className={`px-4 py-3 font-bold ${nivel.color}`}>{p.puntajeVITAL}</td>
                             <td className="px-4 py-3"><Badge variant="outline">{nivel.label}</Badge></td>
@@ -305,6 +344,134 @@ export default function VitalCooperativa() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* ═══ PRODUCER DETAIL DIALOG ═══ */}
+      <Dialog open={!!selectedProductor} onOpenChange={v => { if (!v) setSelectedProductor(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedProductor && (() => {
+            const p = selectedProductor;
+            const nivel = nivelProductor(p.puntajeVITAL);
+            const dims = DEMO_VITAL_DIMENSIONES[p.id] || [];
+            const tecnico = DEMO_TECNICO_ASIGNADO[p.id];
+            const historial = DEMO_EVAL_HISTORIAL[p.id] || [];
+            const radarData = dims.map(d => ({ ...d, fullMark: 100 }));
+
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-primary" />
+                    Protocolo VITAL — {p.nombre}
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="space-y-5">
+                  {/* Header info */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-lg border border-border space-y-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5" /> Comunidad</div>
+                      <p className="text-sm font-medium text-foreground">{p.comunidad}</p>
+                    </div>
+                    <div className="p-3 rounded-lg border border-border space-y-1">
+                      <p className="text-xs text-muted-foreground">Puntaje IGRN</p>
+                      <p className={`text-2xl font-bold ${nivel.color}`}>{p.puntajeVITAL}/100</p>
+                      <Badge variant="outline">{nivel.label}</Badge>
+                    </div>
+                  </div>
+
+                  {/* Técnico asignado */}
+                  {tecnico && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                      <UserCheck className="h-5 w-5 text-primary shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Técnico asignado: {tecnico.nombre}</p>
+                        <p className="text-xs text-muted-foreground">{tecnico.telefono}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Radar de dimensiones */}
+                  {radarData.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-2">Puntaje por Dimensión</p>
+                      <ResponsiveContainer width="100%" height={240}>
+                        <RadarChart data={radarData}>
+                          <PolarGrid stroke="hsl(var(--border))" />
+                          <PolarAngleAxis dataKey="eje" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                          <PolarRadiusAxis domain={[0, 100]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                          <Radar dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" strokeWidth={2} />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        {dims.map(d => {
+                          const n = nivelVITAL(d.score);
+                          return (
+                            <div key={d.eje} className="flex items-center justify-between text-xs p-2 rounded border border-border">
+                              <span className="text-muted-foreground">{d.eje}</span>
+                              <span className={`font-bold ${n.color}`}>{d.score}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Historial de evaluaciones */}
+                  {historial.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-2">Historial de Evaluaciones</p>
+                      <div className="space-y-2">
+                        {historial.map((h, i) => {
+                          const hn = nivelProductor(h.score);
+                          return (
+                            <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-border">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-sm text-foreground">{h.fecha}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs text-muted-foreground">{h.evaluador}</span>
+                                <span className={`text-sm font-bold ${hn.color}`}>{h.score}/100</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {historial.length >= 2 && (
+                        <div className="mt-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20">
+                          <p className="text-xs text-muted-foreground">
+                            Tendencia: <span className={`font-bold ${historial[0].score > historial[historial.length - 1].score ? 'text-emerald-600' : 'text-destructive'}`}>
+                              {historial[0].score > historial[historial.length - 1].score ? '↑' : '↓'} {Math.abs(historial[0].score - historial[historial.length - 1].score)} pts
+                            </span> desde la primera evaluación
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Info adicional */}
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="p-2 rounded border border-border text-center">
+                      <p className="text-muted-foreground">Parcelas</p>
+                      <p className="font-bold text-foreground">{p.parcelas}</p>
+                    </div>
+                    <div className="p-2 rounded border border-border text-center">
+                      <p className="text-muted-foreground">Hectáreas</p>
+                      <p className="font-bold text-foreground">{p.hectareas}</p>
+                    </div>
+                    <div className="p-2 rounded border border-border text-center">
+                      <p className="text-muted-foreground">EUDR</p>
+                      <Badge variant={p.estadoEUDR === 'compliant' ? 'secondary' : 'destructive'} className="text-[10px]">
+                        {p.estadoEUDR === 'compliant' ? 'Cumple' : p.estadoEUDR === 'pending' ? 'Pendiente' : 'No cumple'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* ═══ WIZARD DIALOG ═══ */}
       <Dialog open={showWizard} onOpenChange={v => { if (!v) resetWizard(); }}>
