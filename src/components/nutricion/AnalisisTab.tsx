@@ -1,0 +1,380 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useOrgContext } from '@/hooks/useOrgContext';
+import { applyOrgFilter, orgWriteFields } from '@/lib/orgFilter';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FlaskConical, Droplets, Leaf, Plus, Calendar } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface Parcela { id: string; nombre: string; }
+
+interface SueloAnalisis {
+  id: string; parcela_id: string; fecha_muestreo: string;
+  ph: number | null; mo_pct: number | null; p_ppm: number | null;
+  k_cmol: number | null; ca_cmol: number | null; mg_cmol: number | null;
+  s_ppm: number | null; cice: number | null; textura: string | null;
+  recomendaciones_lab_json: any;
+}
+
+interface HojaAnalisis {
+  id: string; parcela_id: string; fecha_muestreo: string;
+  n_pct: number | null; p_pct: number | null; k_pct: number | null;
+  ca_pct: number | null; mg_pct: number | null; s_pct: number | null;
+  fe_ppm: number | null; mn_ppm: number | null; zn_ppm: number | null;
+  b_ppm: number | null; cu_ppm: number | null;
+  interpretacion: string | null;
+}
+
+export default function AnalisisTab() {
+  const { organizationId } = useOrgContext();
+  const queryClient = useQueryClient();
+  const [showSueloForm, setShowSueloForm] = useState(false);
+  const [showHojaForm, setShowHojaForm] = useState(false);
+  const [selectedParcela, setSelectedParcela] = useState<string>('');
+
+  // Fetch parcelas
+  const { data: parcelas } = useQuery({
+    queryKey: ['parcelas_for_nutricion', organizationId],
+    queryFn: async () => {
+      let q = supabase.from('parcelas').select('id, nombre');
+      q = applyOrgFilter(q, organizationId);
+      const { data, error } = await q.order('nombre');
+      if (error) throw error;
+      return (data ?? []) as Parcela[];
+    },
+    enabled: !!organizationId,
+  });
+
+  // Fetch suelo analyses
+  const { data: sueloList, isLoading: loadingSuelo } = useQuery({
+    queryKey: ['ag_suelo_analisis', organizationId, selectedParcela],
+    queryFn: async () => {
+      let q = supabase.from('ag_suelo_analisis').select('*');
+      q = applyOrgFilter(q, organizationId);
+      if (selectedParcela) q = q.eq('parcela_id', selectedParcela);
+      const { data, error } = await q.order('fecha_muestreo', { ascending: false }).limit(20);
+      if (error) throw error;
+      return (data ?? []) as SueloAnalisis[];
+    },
+    enabled: !!organizationId,
+  });
+
+  // Fetch hoja analyses
+  const { data: hojaList, isLoading: loadingHoja } = useQuery({
+    queryKey: ['ag_hoja_analisis', organizationId, selectedParcela],
+    queryFn: async () => {
+      let q = supabase.from('ag_hoja_analisis').select('*');
+      q = applyOrgFilter(q, organizationId);
+      if (selectedParcela) q = q.eq('parcela_id', selectedParcela);
+      const { data, error } = await q.order('fecha_muestreo', { ascending: false }).limit(20);
+      if (error) throw error;
+      return (data ?? []) as HojaAnalisis[];
+    },
+    enabled: !!organizationId,
+  });
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="w-56">
+          <Label className="text-xs text-muted-foreground">Filtrar por parcela</Label>
+          <Select value={selectedParcela} onValueChange={setSelectedParcela}>
+            <SelectTrigger><SelectValue placeholder="Todas las parcelas" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {parcelas?.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre || p.id.slice(0, 8)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2 ml-auto">
+          <Dialog open={showSueloForm} onOpenChange={setShowSueloForm}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-1" /> Análisis de Suelo</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+              <DialogHeader><DialogTitle>Nuevo Análisis de Suelo</DialogTitle></DialogHeader>
+              <SueloForm
+                parcelas={parcelas ?? []}
+                organizationId={organizationId}
+                onSuccess={() => {
+                  setShowSueloForm(false);
+                  queryClient.invalidateQueries({ queryKey: ['ag_suelo_analisis'] });
+                  queryClient.invalidateQueries({ queryKey: ['ag_parcela_estado_nutricion'] });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showHojaForm} onOpenChange={setShowHojaForm}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-1" /> Análisis Foliar</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+              <DialogHeader><DialogTitle>Nuevo Análisis Foliar</DialogTitle></DialogHeader>
+              <HojaForm
+                parcelas={parcelas ?? []}
+                organizationId={organizationId}
+                onSuccess={() => {
+                  setShowHojaForm(false);
+                  queryClient.invalidateQueries({ queryKey: ['ag_hoja_analisis'] });
+                  queryClient.invalidateQueries({ queryKey: ['ag_parcela_estado_nutricion'] });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Sub-tabs: Suelo / Foliar */}
+      <Tabs defaultValue="suelo">
+        <TabsList>
+          <TabsTrigger value="suelo"><Droplets className="h-4 w-4 mr-1" /> Suelo ({sueloList?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="foliar"><Leaf className="h-4 w-4 mr-1" /> Foliar ({hojaList?.length ?? 0})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="suelo" className="mt-3">
+          {loadingSuelo ? (
+            <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
+          ) : !sueloList?.length ? (
+            <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">No hay análisis de suelo registrados.</CardContent></Card>
+          ) : (
+            <div className="space-y-3 stagger-children">
+              {sueloList.map(s => (
+                <Card key={s.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Droplets className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">{parcelas?.find(p => p.id === s.parcela_id)?.nombre ?? s.parcela_id.slice(0, 8)}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {new Date(s.fecha_muestreo).toLocaleDateString('es')}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
+                      <Metric label="pH" value={s.ph} />
+                      <Metric label="MO %" value={s.mo_pct} />
+                      <Metric label="P ppm" value={s.p_ppm} />
+                      <Metric label="K cmol" value={s.k_cmol} />
+                      <Metric label="Ca cmol" value={s.ca_cmol} />
+                      <Metric label="Mg cmol" value={s.mg_cmol} />
+                    </div>
+                    {s.textura && <p className="text-xs text-muted-foreground mt-2">Textura: {s.textura}</p>}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="foliar" className="mt-3">
+          {loadingHoja ? (
+            <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
+          ) : !hojaList?.length ? (
+            <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">No hay análisis foliares registrados.</CardContent></Card>
+          ) : (
+            <div className="space-y-3 stagger-children">
+              {hojaList.map(h => (
+                <Card key={h.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Leaf className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">{parcelas?.find(p => p.id === h.parcela_id)?.nombre ?? h.parcela_id.slice(0, 8)}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {new Date(h.fecha_muestreo).toLocaleDateString('es')}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
+                      <Metric label="N %" value={h.n_pct} />
+                      <Metric label="P %" value={h.p_pct} />
+                      <Metric label="K %" value={h.k_pct} />
+                      <Metric label="Ca %" value={h.ca_pct} />
+                      <Metric label="Mg %" value={h.mg_pct} />
+                    </div>
+                    {h.interpretacion && <p className="text-xs text-muted-foreground mt-2">{h.interpretacion}</p>}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div className="text-center p-1.5 rounded bg-muted/50">
+      <p className="text-muted-foreground">{label}</p>
+      <p className="font-semibold text-foreground">{value?.toFixed(1) ?? '—'}</p>
+    </div>
+  );
+}
+
+// ── Suelo Form ──
+function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
+  const [form, setForm] = useState({
+    parcela_id: '', fecha_muestreo: new Date().toISOString().split('T')[0],
+    ph: '', mo_pct: '', p_ppm: '', k_cmol: '', ca_cmol: '', mg_cmol: '', s_ppm: '', cice: '', textura: '',
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('ag_suelo_analisis').insert({
+        parcela_id: form.parcela_id,
+        fecha_muestreo: form.fecha_muestreo,
+        ph: form.ph ? parseFloat(form.ph) : null,
+        mo_pct: form.mo_pct ? parseFloat(form.mo_pct) : null,
+        p_ppm: form.p_ppm ? parseFloat(form.p_ppm) : null,
+        k_cmol: form.k_cmol ? parseFloat(form.k_cmol) : null,
+        ca_cmol: form.ca_cmol ? parseFloat(form.ca_cmol) : null,
+        mg_cmol: form.mg_cmol ? parseFloat(form.mg_cmol) : null,
+        s_ppm: form.s_ppm ? parseFloat(form.s_ppm) : null,
+        cice: form.cice ? parseFloat(form.cice) : null,
+        textura: form.textura || null,
+        ...orgWriteFields(organizationId),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success('Análisis de suelo registrado'); onSuccess(); },
+    onError: (e: any) => toast.error(`Error: ${e.message}`),
+  });
+
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Parcela *</Label>
+        <Select value={form.parcela_id} onValueChange={v => set('parcela_id', v)}>
+          <SelectTrigger><SelectValue placeholder="Seleccionar parcela" /></SelectTrigger>
+          <SelectContent>
+            {parcelas.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre || p.id.slice(0, 8)}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Fecha muestreo *</Label>
+        <Input type="date" value={form.fecha_muestreo} onChange={e => set('fecha_muestreo', e.target.value)} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><Label>pH</Label><Input type="number" step="0.1" value={form.ph} onChange={e => set('ph', e.target.value)} placeholder="5.2" /></div>
+        <div><Label>MO %</Label><Input type="number" step="0.1" value={form.mo_pct} onChange={e => set('mo_pct', e.target.value)} placeholder="4.5" /></div>
+        <div><Label>P (ppm)</Label><Input type="number" step="0.1" value={form.p_ppm} onChange={e => set('p_ppm', e.target.value)} /></div>
+        <div><Label>K (cmol/L)</Label><Input type="number" step="0.01" value={form.k_cmol} onChange={e => set('k_cmol', e.target.value)} /></div>
+        <div><Label>Ca (cmol/L)</Label><Input type="number" step="0.01" value={form.ca_cmol} onChange={e => set('ca_cmol', e.target.value)} /></div>
+        <div><Label>Mg (cmol/L)</Label><Input type="number" step="0.01" value={form.mg_cmol} onChange={e => set('mg_cmol', e.target.value)} /></div>
+        <div><Label>S (ppm)</Label><Input type="number" step="0.1" value={form.s_ppm} onChange={e => set('s_ppm', e.target.value)} /></div>
+        <div><Label>CICE</Label><Input type="number" step="0.1" value={form.cice} onChange={e => set('cice', e.target.value)} /></div>
+      </div>
+      <div>
+        <Label>Textura</Label>
+        <Select value={form.textura} onValueChange={v => set('textura', v)}>
+          <SelectTrigger><SelectValue placeholder="Seleccionar textura" /></SelectTrigger>
+          <SelectContent>
+            {['Arcilloso', 'Franco', 'Franco-arcilloso', 'Franco-arenoso', 'Arenoso'].map(t => (
+              <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button onClick={() => mutation.mutate()} disabled={!form.parcela_id || mutation.isPending} className="w-full">
+        {mutation.isPending ? 'Guardando…' : 'Registrar Análisis de Suelo'}
+      </Button>
+    </div>
+  );
+}
+
+// ── Hoja Form ──
+function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
+  const [form, setForm] = useState({
+    parcela_id: '', fecha_muestreo: new Date().toISOString().split('T')[0],
+    n_pct: '', p_pct: '', k_pct: '', ca_pct: '', mg_pct: '', s_pct: '',
+    fe_ppm: '', mn_ppm: '', zn_ppm: '', b_ppm: '', cu_ppm: '', interpretacion: '',
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('ag_hoja_analisis').insert({
+        parcela_id: form.parcela_id,
+        fecha_muestreo: form.fecha_muestreo,
+        n_pct: form.n_pct ? parseFloat(form.n_pct) : null,
+        p_pct: form.p_pct ? parseFloat(form.p_pct) : null,
+        k_pct: form.k_pct ? parseFloat(form.k_pct) : null,
+        ca_pct: form.ca_pct ? parseFloat(form.ca_pct) : null,
+        mg_pct: form.mg_pct ? parseFloat(form.mg_pct) : null,
+        s_pct: form.s_pct ? parseFloat(form.s_pct) : null,
+        fe_ppm: form.fe_ppm ? parseFloat(form.fe_ppm) : null,
+        mn_ppm: form.mn_ppm ? parseFloat(form.mn_ppm) : null,
+        zn_ppm: form.zn_ppm ? parseFloat(form.zn_ppm) : null,
+        b_ppm: form.b_ppm ? parseFloat(form.b_ppm) : null,
+        cu_ppm: form.cu_ppm ? parseFloat(form.cu_ppm) : null,
+        interpretacion: form.interpretacion || null,
+        ...orgWriteFields(organizationId),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success('Análisis foliar registrado'); onSuccess(); },
+    onError: (e: any) => toast.error(`Error: ${e.message}`),
+  });
+
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Parcela *</Label>
+        <Select value={form.parcela_id} onValueChange={v => set('parcela_id', v)}>
+          <SelectTrigger><SelectValue placeholder="Seleccionar parcela" /></SelectTrigger>
+          <SelectContent>
+            {parcelas.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre || p.id.slice(0, 8)}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Fecha muestreo *</Label>
+        <Input type="date" value={form.fecha_muestreo} onChange={e => set('fecha_muestreo', e.target.value)} />
+      </div>
+      <p className="text-xs font-medium text-muted-foreground">Macronutrientes (%)</p>
+      <div className="grid grid-cols-3 gap-3">
+        <div><Label>N</Label><Input type="number" step="0.01" value={form.n_pct} onChange={e => set('n_pct', e.target.value)} /></div>
+        <div><Label>P</Label><Input type="number" step="0.01" value={form.p_pct} onChange={e => set('p_pct', e.target.value)} /></div>
+        <div><Label>K</Label><Input type="number" step="0.01" value={form.k_pct} onChange={e => set('k_pct', e.target.value)} /></div>
+        <div><Label>Ca</Label><Input type="number" step="0.01" value={form.ca_pct} onChange={e => set('ca_pct', e.target.value)} /></div>
+        <div><Label>Mg</Label><Input type="number" step="0.01" value={form.mg_pct} onChange={e => set('mg_pct', e.target.value)} /></div>
+        <div><Label>S</Label><Input type="number" step="0.01" value={form.s_pct} onChange={e => set('s_pct', e.target.value)} /></div>
+      </div>
+      <p className="text-xs font-medium text-muted-foreground">Micronutrientes (ppm)</p>
+      <div className="grid grid-cols-3 gap-3">
+        <div><Label>Fe</Label><Input type="number" step="0.1" value={form.fe_ppm} onChange={e => set('fe_ppm', e.target.value)} /></div>
+        <div><Label>Mn</Label><Input type="number" step="0.1" value={form.mn_ppm} onChange={e => set('mn_ppm', e.target.value)} /></div>
+        <div><Label>Zn</Label><Input type="number" step="0.1" value={form.zn_ppm} onChange={e => set('zn_ppm', e.target.value)} /></div>
+        <div><Label>B</Label><Input type="number" step="0.1" value={form.b_ppm} onChange={e => set('b_ppm', e.target.value)} /></div>
+        <div><Label>Cu</Label><Input type="number" step="0.1" value={form.cu_ppm} onChange={e => set('cu_ppm', e.target.value)} /></div>
+      </div>
+      <div>
+        <Label>Interpretación</Label>
+        <Textarea value={form.interpretacion} onChange={e => set('interpretacion', e.target.value)} placeholder="Observaciones del laboratorio..." />
+      </div>
+      <Button onClick={() => mutation.mutate()} disabled={!form.parcela_id || mutation.isPending} className="w-full">
+        {mutation.isPending ? 'Guardando…' : 'Registrar Análisis Foliar'}
+      </Button>
+    </div>
+  );
+}

@@ -349,6 +349,27 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     hasDashboardWidget: true,
   },
 
+  // ─── Nutrición ───
+  {
+    id: 'nutrition',
+    label: 'Nutrición',
+    description: 'Análisis de suelo/foliar, planes de fertilización',
+    icon: Sprout,
+    allowedOrgTipos: ['cooperativa', 'beneficio_privado', 'productor_empresarial'],
+    requiredRoles: ['cooperativa', 'admin'],
+    dependsOn: ['core_plots'],
+    flags: [],
+    dataResources: ['ag_parcela_contexto', 'ag_suelo_analisis', 'ag_hoja_analisis', 'ag_nutrition_planes', 'ag_nutrition_aplicaciones'],
+    resourcePermissions: [
+      stdPerm('ag_suelo_analisis', { productor: 'read', tecnico: 'write', exportador: 'none' }),
+      stdPerm('ag_nutrition_planes', { productor: 'read', tecnico: 'read', exportador: 'none' }),
+    ],
+    routes: [
+      { path: '/cooperativa/nutricion', label: 'Nutrición', icon: Sprout },
+    ],
+    hasDashboardWidget: true,
+  },
+
   // ─── Governance (diagnóstico organizacional) ───
   {
     id: 'governance',
