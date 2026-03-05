@@ -12,7 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   TrendingUp, TrendingDown, Wallet, Users, Plus, Eye, CreditCard,
   FileText, CheckCircle, XCircle, Clock, AlertTriangle, Shield, Leaf,
-  Package, BarChart3, Download
+  Package, BarChart3, Download, Send, MessageSquare,
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -88,6 +88,15 @@ const solicitudesIniciales: Solicitud[] = [
   { id: '4', productorNombre: 'Elena Castillo Ramos', tipo: 'nuevo_credito', monto: 500000, estado: 'contraoferta', fechaSolicitud: '2026-02-15', motivo: 'Equipo de secado solar', scoreSCP: 70 },
 ];
 
+// ── Pre-loaded Messages ──
+const MENSAJES_CREDITO = {
+  aprobada: (s: Solicitud) => `Estimado(a) ${s.productorNombre},\n\nNos complace informarle que su solicitud de ${s.tipo === 'nuevo_credito' ? 'crédito' : 'arreglo de pago'} por ${fmtCRC(s.monto)} ha sido APROBADA.\n\nMotivo de solicitud: ${s.motivo}\n\nUn representante se comunicará con usted para coordinar los detalles del desembolso y la firma de documentos.\n\nAtentamente,\nComité de Crédito\nCooperativa NovaAgro`,
+  rechazada: (s: Solicitud) => `Estimado(a) ${s.productorNombre},\n\nLamentamos informarle que su solicitud de ${s.tipo === 'nuevo_credito' ? 'crédito' : 'arreglo de pago'} por ${fmtCRC(s.monto)} no ha sido aprobada en esta ocasión.\n\nMotivo de solicitud: ${s.motivo}\nRazón: El perfil de riesgo actual no cumple con los requisitos mínimos de aprobación.\n\nLe invitamos a contactar a su técnico asignado para mejorar su calificación y volver a aplicar en el futuro.\n\nAtentamente,\nComité de Crédito\nCooperativa NovaAgro`,
+  contraoferta: (s: Solicitud) => `Estimado(a) ${s.productorNombre},\n\nHemos revisado su solicitud de ${s.tipo === 'nuevo_credito' ? 'crédito' : 'arreglo de pago'} por ${fmtCRC(s.monto)}.\n\nTras evaluar su perfil, le proponemos una contraoferta:\n- Monto aprobado: ${fmtCRC(Math.round(s.monto * 0.7))}\n- Condición: Garantía de cosecha comprometida\n\nSi acepta estas condiciones, por favor confirme con su técnico asignado para proceder.\n\nAtentamente,\nComité de Crédito\nCooperativa NovaAgro`,
+};
+
+const fmtCRC = (n: number) => `₡${n.toLocaleString()}`;
+
 // ── SCP Scoring ──
 function calcularSCP(productorId: string, creditos: Credito[]): { score: number; nivel: string; factores: Record<string, number> } {
   const productor = DEMO_PRODUCTORES.find(p => p.id === productorId);
@@ -118,7 +127,7 @@ function calcularSCP(productorId: string, creditos: Credito[]): { score: number;
   };
 }
 
-const fmtCRC = (n: number) => `₡${n.toLocaleString()}`;
+// fmtCRC defined above
 
 const estadoCreditoBadge = (e: string) => {
   if (e === 'activo') return <Badge className="bg-emerald-600 text-white border-0">Activo</Badge>;
@@ -152,7 +161,9 @@ export default function FinanzasHub() {
   const [showNuevoCredito, setShowNuevoCredito] = useState(false);
   const [showDetCredito, setShowDetCredito] = useState<Credito | null>(null);
   const [showDetSolicitud, setShowDetSolicitud] = useState<Solicitud | null>(null);
-  const [showSCP, setShowSCP] = useState<string | null>(null); // productorId
+  const [showSCP, setShowSCP] = useState<string | null>(null);
+  const [solicitudAction, setSolicitudAction] = useState<'aprobada' | 'rechazada' | 'contraoferta' | null>(null);
+  const [mensajeSolicitud, setMensajeSolicitud] = useState('');
 
   // Forms
   const [movForm, setMovForm] = useState({ desc: '', cat: 'Ventas', tipo: 'Ingreso' as 'Ingreso' | 'Egreso', monto: '', ref: '' });
@@ -196,8 +207,19 @@ export default function FinanzasHub() {
 
   const handleSolicitudAction = (id: string, action: 'aprobada' | 'rechazada' | 'contraoferta') => {
     setSolicitudes(prev => prev.map(s => s.id === id ? { ...s, estado: action } : s));
-    toast.success(`Solicitud ${action}`);
+    const actionLabel = action === 'aprobada' ? 'aprobada' : action === 'rechazada' ? 'rechazada' : 'contraoferta enviada';
+    toast.success(`Solicitud ${actionLabel}. Mensaje enviado al productor.`);
     setShowDetSolicitud(null);
+    setSolicitudAction(null);
+    setMensajeSolicitud('');
+  };
+
+  const handlePrepareMessage = (action: 'aprobada' | 'rechazada' | 'contraoferta', solicitud?: Solicitud) => {
+    const target = solicitud || showDetSolicitud;
+    if (!target) return;
+    if (solicitud) setShowDetSolicitud(solicitud);
+    setSolicitudAction(action);
+    setMensajeSolicitud(MENSAJES_CREDITO[action](target));
   };
 
   const handleRegistrarPago = (creditoId: string) => {
@@ -439,14 +461,14 @@ export default function FinanzasHub() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => setShowDetSolicitud(s)}><Eye className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="sm" onClick={() => { setShowDetSolicitud(s); setSolicitudAction(null); setMensajeSolicitud(''); }}><Eye className="h-4 w-4" /></Button>
                         {s.estado === 'pendiente' && (
                           <>
                             <Button size="sm" variant="outline" onClick={() => navigate('/cooperativa/comite-credito')}>
                               <BarChart3 className="h-4 w-4 mr-1" /> Analizar
                             </Button>
-                            <Button size="sm" variant="default" onClick={() => handleSolicitudAction(s.id, 'aprobada')}><CheckCircle className="h-4 w-4 mr-1" /> Aprobar</Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleSolicitudAction(s.id, 'rechazada')}><XCircle className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="default" onClick={() => handlePrepareMessage('aprobada', s)}><CheckCircle className="h-4 w-4 mr-1" /> Aprobar</Button>
+                            <Button size="sm" variant="destructive" onClick={() => handlePrepareMessage('rechazada', s)}><XCircle className="h-4 w-4" /></Button>
                           </>
                         )}
                       </div>
@@ -601,7 +623,7 @@ export default function FinanzasHub() {
       </Dialog>
 
       {/* ═══ DETALLE SOLICITUD + SCP DIALOG ═══ */}
-      <Dialog open={!!showDetSolicitud} onOpenChange={() => setShowDetSolicitud(null)}>
+      <Dialog open={!!showDetSolicitud} onOpenChange={() => { setShowDetSolicitud(null); setSolicitudAction(null); setMensajeSolicitud(''); }}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           {showDetSolicitud && (() => {
             const prod = DEMO_PRODUCTORES.find(p => p.nombre === showDetSolicitud.productorNombre);
@@ -664,15 +686,35 @@ export default function FinanzasHub() {
                     </div>
                   )}
 
-                  {showDetSolicitud.estado === 'pendiente' && (
+                  {showDetSolicitud.estado === 'pendiente' && !solicitudAction && (
                     <div className="flex gap-2">
-                      <Button className="flex-1" onClick={() => handleSolicitudAction(showDetSolicitud.id, 'aprobada')}>
+                      <Button className="flex-1" onClick={() => handlePrepareMessage('aprobada')}>
                         <CheckCircle className="h-4 w-4 mr-1" /> Aprobar
                       </Button>
-                      <Button variant="outline" onClick={() => handleSolicitudAction(showDetSolicitud.id, 'contraoferta')}>Contraoferta</Button>
-                      <Button variant="destructive" onClick={() => handleSolicitudAction(showDetSolicitud.id, 'rechazada')}>
+                      <Button variant="outline" onClick={() => handlePrepareMessage('contraoferta')}>Contraoferta</Button>
+                      <Button variant="destructive" onClick={() => handlePrepareMessage('rechazada')}>
                         <XCircle className="h-4 w-4 mr-1" /> Rechazar
                       </Button>
+                    </div>
+                  )}
+
+                  {solicitudAction && (
+                    <div className="space-y-3 border-t border-border pt-3">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium text-foreground">
+                          Mensaje de {solicitudAction === 'aprobada' ? 'aprobación' : solicitudAction === 'rechazada' ? 'rechazo' : 'contraoferta'}
+                        </span>
+                        <Badge variant="outline" className="text-[10px]">Pre-cargado</Badge>
+                      </div>
+                      <Textarea value={mensajeSolicitud} onChange={e => setMensajeSolicitud(e.target.value)} rows={8} className="text-xs" />
+                      <p className="text-[10px] text-muted-foreground">Puede editar el mensaje antes de enviarlo al productor.</p>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" onClick={() => { setSolicitudAction(null); setMensajeSolicitud(''); }}>Volver</Button>
+                        <Button className="flex-1" onClick={() => handleSolicitudAction(showDetSolicitud.id, solicitudAction)}>
+                          <Send className="h-4 w-4 mr-1" /> Enviar y confirmar
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
