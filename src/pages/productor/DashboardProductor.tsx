@@ -15,6 +15,7 @@ import {
   Truck, TrendingUp, ChevronRight, ExternalLink, Bug, Droplets,
 } from 'lucide-react';
 import { getProductorStats } from '@/lib/demo-data';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 
 /* ── demo data ── */
 
@@ -119,7 +120,7 @@ export default function DashboardProductor() {
                 <XAxis dataKey="mes" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
+                  contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle}
                   formatter={(value: number) => [`${value} kg`, 'Volumen']}
                   labelFormatter={(label) => `Mes: ${label}`}
                 />
@@ -182,7 +183,7 @@ export default function DashboardProductor() {
                 <XAxis dataKey="mes" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
+                  contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle}
                   formatter={(value: number) => [`₡${value.toLocaleString()}`, 'Precio/kg']}
                 />
                 <Area type="monotone" dataKey="precio" stroke="hsl(var(--accent))" fill="hsl(var(--accent) / 0.15)" strokeWidth={2} />

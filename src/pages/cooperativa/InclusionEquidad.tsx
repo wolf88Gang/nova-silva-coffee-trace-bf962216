@@ -10,7 +10,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
 } from 'recharts';
-import { tooltipStyle } from '@/lib/chartStyles';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 
 // ── KPI indicators ──
 const indicadores = [
@@ -124,7 +124,7 @@ export default function InclusionEquidad() {
                       label={({ grupo, valor }) => `${grupo}: ${valor}%`} labelLine={false}>
                       {participacionGenero.map((d, i) => <Cell key={i} fill={d.color} />)}
                     </Pie>
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}%`]} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} formatter={(v: number) => [`${v}%`]} />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -143,7 +143,7 @@ export default function InclusionEquidad() {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="rango" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                     <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v} productores`]} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} formatter={(v: number) => [`${v} productores`]} />
                     <Bar dataKey="cantidad" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -163,7 +163,7 @@ export default function InclusionEquidad() {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="periodo" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                     <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} domain={[0, 50]} />
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                     <Area type="monotone" dataKey="mujeres" stroke="hsl(var(--accent))" fill="hsl(var(--accent) / 0.15)" strokeWidth={2} name="Mujeres %" />
                     <Area type="monotone" dataKey="jovenes" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.15)" strokeWidth={2} name="Jóvenes %" />
                   </AreaChart>

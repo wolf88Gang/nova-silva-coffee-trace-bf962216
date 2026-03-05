@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Users, Leaf, Eye, Search, Filter, MapPin, Package, AlertTriangle, TrendingUp, Calendar } from 'lucide-react';
 import { DEMO_PRODUCTORES, DEMO_ENTREGAS, type DemoProductor } from '@/lib/demo-data';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { tooltipStyle } from '@/lib/chartStyles';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle } from '@/lib/chartStyles';
 
 const getNivel = (p: number) => {
   if (p >= 81) return { label: 'Ejemplar', color: 'bg-emerald-600/10 text-emerald-700 border-emerald-600/30' };
@@ -187,7 +187,7 @@ export default function TecnicoProductores() {
                       <PolarGrid stroke="hsl(var(--border))" />
                       <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                       <Radar dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" strokeWidth={2} />
-                      <Tooltip contentStyle={tooltipStyle} />
+                      <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
