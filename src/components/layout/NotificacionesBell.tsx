@@ -73,7 +73,7 @@ export function NotificacionesBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed right-4 top-14 sm:absolute sm:right-0 sm:top-full sm:mt-3 w-[min(400px,calc(100vw-2rem))] z-50 rounded-xl border border-border/60 bg-popover shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+          <div className="fixed right-4 top-14 w-[min(400px,calc(100vw-2rem))] z-[60] rounded-xl border border-border/60 bg-popover shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
               <h3 className="text-base font-semibold text-foreground tracking-tight">Notificaciones</h3>
