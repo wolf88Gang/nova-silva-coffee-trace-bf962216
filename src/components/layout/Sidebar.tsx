@@ -36,6 +36,7 @@ function getCooperativaNav(actorsLabel: string): NavItemDef[] {
     { title: 'Exportadores', url: '/cooperativa/exportadores', icon: Building2 },
     { title: 'Ofertas Recibidas', url: '/cooperativa/ofertas-recibidas', icon: DollarSign },
     { title: 'Operaciones', url: '/cooperativa/operaciones', icon: Settings, requiredModule: ['jornales', 'inventario'] },
+    { title: 'Nutrición', url: '/cooperativa/nutricion', icon: Sprout },
     { title: 'Finanzas', url: '/cooperativa/finanzas-hub', icon: DollarSign, requiredModule: ['finanzas', 'creditos'] },
     { title: 'Comunicación', url: '/cooperativa/comunicacion', icon: MessageSquare, requiredModule: 'mensajes' },
     { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award, requiredModule: 'calidad' },
