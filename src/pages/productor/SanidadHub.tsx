@@ -6,9 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Leaf, Bug, TreePine, Eye, ArrowRight, ArrowLeft, CheckCircle,
-  AlertTriangle, Calendar, Shield, Droplets, CircleDot,
+  AlertTriangle, Calendar, Shield, Droplets, CircleDot, FileText,
   Zap, RotateCcw, Sprout, FlaskConical, ShieldAlert, Microscope, Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -514,6 +516,10 @@ export default function SanidadHub() {
   const [treatmentTab, setTreatmentTab] = useState<'regenerativo' | 'convencional'>('regenerativo');
   const [showTreatmentDialog, setShowTreatmentDialog] = useState(false);
   const [resolved, setResolved] = useState(false);
+  const [showSospechaForm, setShowSospechaForm] = useState(false);
+  const [sospechaDesc, setSospechaDesc] = useState('');
+  const [sospechaParcela, setSospechaParcela] = useState('El Mirador');
+  const [selectedHistorial, setSelectedHistorial] = useState<typeof historial[0] | null>(null);
 
   const relevantDiseases = diseases.filter(d =>
     (!selectedPart || d.parts.includes(selectedPart)) &&
@@ -594,10 +600,41 @@ export default function SanidadHub() {
                         <p className="text-xs text-muted-foreground">Reportar sospecha o indicio sin diagnóstico completo</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => toast.info('Reporte rápido enviado a tu técnico asignado')}>
+                    <Button variant="ghost" size="sm" onClick={() => setShowSospechaForm(!showSospechaForm)}>
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>
+                  {showSospechaForm && (
+                    <div className="mt-4 space-y-3 border-t border-accent/20 pt-4">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Parcela</Label>
+                        <Select value={sospechaParcela} onValueChange={setSospechaParcela}>
+                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="El Mirador">El Mirador</SelectItem>
+                            <SelectItem value="La Esperanza">La Esperanza</SelectItem>
+                            <SelectItem value="Cerro Verde">Cerro Verde</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">¿Qué observaste?</Label>
+                        <textarea
+                          value={sospechaDesc}
+                          onChange={e => setSospechaDesc(e.target.value)}
+                          placeholder="Describe lo que viste: color, ubicación en la planta, cantidad de plantas afectadas..."
+                          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
+                        />
+                      </div>
+                      <Button size="sm" disabled={!sospechaDesc.trim()} onClick={() => {
+                        toast.success(`Sospecha en "${sospechaParcela}" reportada a tu técnico asignado`);
+                        setSospechaDesc('');
+                        setShowSospechaForm(false);
+                      }}>
+                        <Send className="h-3.5 w-3.5 mr-1" /> Enviar reporte a técnico
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -910,7 +947,8 @@ export default function SanidadHub() {
             <CardHeader><CardTitle className="text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-accent" /> Historial de Diagnósticos</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {historial.map((h, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                <button key={i} onClick={() => setSelectedHistorial(h)}
+                  className="w-full text-left flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer group">
                   <div>
                     <p className="text-sm font-medium text-foreground">{h.tipo} — {h.parcela}</p>
                     <p className="text-xs text-muted-foreground">{h.fecha}</p>
@@ -918,11 +956,96 @@ export default function SanidadHub() {
                   <div className="flex items-center gap-2">
                     <Badge className={riskConfig[h.severidad]?.badge}>{h.severidad}</Badge>
                     <Badge variant={h.estado === 'resuelto' ? 'default' : 'secondary'}>{h.estado}</Badge>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
                   </div>
-                </div>
+                </button>
               ))}
             </CardContent>
           </Card>
+
+          {/* Historial Detail Dialog */}
+          <Dialog open={!!selectedHistorial} onOpenChange={() => setSelectedHistorial(null)}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              {selectedHistorial && (() => {
+                const matchedDisease = diseases.find(d => d.name.toLowerCase().includes(selectedHistorial.tipo.toLowerCase().split(' ')[0]));
+                return (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Bug className="h-5 w-5 text-accent" />
+                        {selectedHistorial.tipo}
+                      </DialogTitle>
+                      <p className="text-sm text-muted-foreground">Parcela: {selectedHistorial.parcela} • {selectedHistorial.fecha}</p>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Badge className={riskConfig[selectedHistorial.severidad]?.badge}>{riskConfig[selectedHistorial.severidad]?.label}</Badge>
+                        <Badge variant={selectedHistorial.estado === 'resuelto' ? 'default' : 'secondary'}>{selectedHistorial.estado}</Badge>
+                      </div>
+
+                      {matchedDisease && (
+                        <>
+                          <div className="p-3 rounded-lg border border-border">
+                            <p className="text-xs text-muted-foreground mb-1">Nombre científico</p>
+                            <p className="text-sm italic text-foreground">{matchedDisease.scientificName}</p>
+                            <p className="text-sm text-muted-foreground mt-2">{matchedDisease.description}</p>
+                          </div>
+
+                          <Card className="bg-primary/5 border-primary/20">
+                            <CardContent className="pt-3 pb-3">
+                              <p className="text-xs font-semibold text-primary mb-1">Interpretación Nova Silva</p>
+                              <p className="text-sm text-muted-foreground">
+                                Se registró <span className="font-bold text-foreground">{matchedDisease.name}</span> en la parcela {selectedHistorial.parcela} con severidad {selectedHistorial.severidad}.
+                                {selectedHistorial.estado === 'resuelto'
+                                  ? ' El foco fue controlado exitosamente.'
+                                  : selectedHistorial.estado === 'tratamiento'
+                                    ? ` Se recomienda aplicar ${matchedDisease.treatment.regenerativo.nombre} (${matchedDisease.treatment.regenerativo.dosis}) cada ${matchedDisease.treatment.regenerativo.frecuencia}.`
+                                    : ' Se recomienda mantener monitoreo quincenal y aplicar tratamiento preventivo.'
+                                }
+                              </p>
+                            </CardContent>
+                          </Card>
+
+                          <div>
+                            <p className="text-sm font-semibold text-foreground mb-2">Tratamiento recomendado</p>
+                            <div className="p-3 rounded-lg border border-border space-y-1">
+                              <p className="text-sm font-medium text-foreground">{matchedDisease.treatment.regenerativo.nombre}</p>
+                              <p className="text-xs text-muted-foreground">Dosis: {matchedDisease.treatment.regenerativo.dosis}</p>
+                              <p className="text-xs text-muted-foreground">Frecuencia: {matchedDisease.treatment.regenerativo.frecuencia}</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-semibold text-foreground mb-2">Indicios tempranos a vigilar</p>
+                            <div className="space-y-1">
+                              {matchedDisease.earlyWarnings.map((w, wi) => (
+                                <div key={wi} className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <AlertTriangle className="h-3 w-3 text-accent shrink-0" />{w}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        <Button onClick={() => { toast.success('Datos de diagnóstico enviados a servicio técnico'); setSelectedHistorial(null); }}>
+                          <Send className="h-4 w-4 mr-1" /> Enviar a servicio técnico
+                        </Button>
+                        <Button variant="outline" onClick={() => {
+                          const data = `Diagnóstico: ${selectedHistorial.tipo}\nParcela: ${selectedHistorial.parcela}\nFecha: ${selectedHistorial.fecha}\nSeveridad: ${selectedHistorial.severidad}\nEstado: ${selectedHistorial.estado}${matchedDisease ? `\nCientífico: ${matchedDisease.scientificName}\nTratamiento: ${matchedDisease.treatment.regenerativo.nombre}` : ''}`;
+                          navigator.clipboard.writeText(data);
+                          toast.success('Datos copiados al portapapeles');
+                        }}>
+                          <FileText className="h-4 w-4 mr-1" /> Exportar datos
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
     </div>

@@ -565,15 +565,11 @@ export default function SostenibilidadHub() {
                     <div className="grid grid-cols-2 gap-1.5">
                       {q.opciones.map((opt, oi) => {
                         const isSelected = wizardAnswers[q.id] === opt.score;
-                        const severity = oi === 0 ? 'border-destructive/30 bg-destructive/5' :
-                                        oi === q.opciones.length - 1 ? 'border-primary/30 bg-primary/5' :
-                                        'border-border bg-muted/30';
                         return (
                           <button key={oi} onClick={() => setWizardAnswers(prev => ({ ...prev, [q.id]: opt.score }))}
                             className={`p-2 rounded-lg border text-xs transition-all text-left ${
-                              isSelected ? 'ring-2 ring-primary border-primary bg-primary/10 font-semibold text-foreground' : `${severity} text-muted-foreground hover:bg-muted/50`
+                              isSelected ? 'ring-2 ring-primary border-primary bg-primary/10 font-semibold text-foreground' : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/50'
                             }`}>
-                            <span className="text-[10px] text-muted-foreground mr-1">({opt.score})</span>
                             {opt.label}
                           </button>
                         );

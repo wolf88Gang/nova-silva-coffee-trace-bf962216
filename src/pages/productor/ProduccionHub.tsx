@@ -451,6 +451,7 @@ export default function ProduccionHub() {
   const [equipos, setEquipos] = useState<Equipo[]>(initialEquipos);
   const [jornales, setJornales] = useState<Jornal[]>(initialJornales);
   const [jornalFilter, setJornalFilter] = useState('Todos');
+  const [selectedParcela, setSelectedParcela] = useState<Parcela | null>(null);
 
   const parcelaNames = parcelas.map(p => p.nombre);
   const filteredJornales = jornalFilter === 'Todos' ? jornales :
@@ -493,13 +494,14 @@ export default function ProduccionHub() {
                   </thead>
                   <tbody>
                     {parcelas.map((p) => (
-                      <tr key={p.nombre} className="border-b border-border/50">
+                      <tr key={p.nombre} className="border-b border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => setSelectedParcela(p)}>
                         <td className="py-3 pr-4 font-medium text-foreground">{p.nombre}</td>
                         <td className="py-3 pr-4 text-muted-foreground">{p.area} ha</td>
                         <td className="py-3 pr-4 text-muted-foreground">{p.variedad}</td>
                         <td className="py-3 pr-4"><Badge variant="outline">{p.estadoLegal}</Badge></td>
                         <td className="py-3 pr-4"><Badge variant="destructive">{p.estadoEUDR}</Badge></td>
-                        <td className="py-3"><Button variant="ghost" size="sm"><Edit className="h-3.5 w-3.5 mr-1" /> Editar</Button></td>
+                        <td className="py-3"><Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedParcela(p); }}><Edit className="h-3.5 w-3.5 mr-1" /> Editar</Button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -507,6 +509,69 @@ export default function ProduccionHub() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Parcela Detail Dialog */}
+          <Dialog open={!!selectedParcela} onOpenChange={() => setSelectedParcela(null)}>
+            <DialogContent className="max-w-lg">
+              {selectedParcela && (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> {selectedParcela.nombre}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg border border-border">
+                        <p className="text-xs text-muted-foreground">Área</p>
+                        <p className="font-bold text-foreground">{selectedParcela.area} ha</p>
+                      </div>
+                      <div className="p-3 rounded-lg border border-border">
+                        <p className="text-xs text-muted-foreground">Variedad</p>
+                        <p className="font-bold text-foreground">{selectedParcela.variedad}</p>
+                      </div>
+                      <div className="p-3 rounded-lg border border-border">
+                        <p className="text-xs text-muted-foreground">Estado Legal</p>
+                        <p className="font-bold text-foreground">{selectedParcela.estadoLegal}</p>
+                      </div>
+                      <div className="p-3 rounded-lg border border-border">
+                        <p className="text-xs text-muted-foreground">Estado EUDR</p>
+                        <Badge variant="destructive">{selectedParcela.estadoEUDR}</Badge>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className={`p-2 rounded-lg border ${selectedParcela.gps ? 'border-primary/20 bg-primary/5' : 'border-destructive/20 bg-destructive/5'}`}>
+                        <div className="flex items-center gap-1.5">
+                          {selectedParcela.gps ? <CheckCircle className="h-3.5 w-3.5 text-primary" /> : <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
+                          <span className="text-xs">Geolocalización</span>
+                        </div>
+                      </div>
+                      <div className={`p-2 rounded-lg border ${selectedParcela.docs ? 'border-primary/20 bg-primary/5' : 'border-destructive/20 bg-destructive/5'}`}>
+                        <div className="flex items-center gap-1.5">
+                          {selectedParcela.docs ? <CheckCircle className="h-3.5 w-3.5 text-primary" /> : <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
+                          <span className="text-xs">Documentación</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Card className="bg-primary/5 border-primary/20">
+                      <CardContent className="pt-3 pb-3">
+                        <p className="text-xs font-semibold text-primary mb-1">Interpretación Nova Silva</p>
+                        <p className="text-sm text-muted-foreground">
+                          Parcela de {selectedParcela.area} ha con variedad {selectedParcela.variedad}.
+                          {!selectedParcela.docs && ' Requiere completar documentación para cumplimiento EUDR.'}
+                          {selectedParcela.docs && selectedParcela.gps && ' Parcela con documentación y geolocalización completas.'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <div className="flex gap-2">
+                      <Button className="flex-1" onClick={() => { toast.info('Edición de parcelas próximamente con Supabase'); setSelectedParcela(null); }}>
+                        <Edit className="h-4 w-4 mr-1" /> Editar parcela
+                      </Button>
+                      <Button variant="outline" onClick={() => setSelectedParcela(null)}>Cerrar</Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* ── INVENTARIO ── */}
