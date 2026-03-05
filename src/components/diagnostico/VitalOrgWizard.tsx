@@ -119,13 +119,13 @@ export default function VitalOrgWizard() {
   }
 
   // Pantalla de resultados
-  if (completado) {
+   if (completado) {
     const semaforoGlobal = getSemaforo(promedioGlobal);
     const criticas = resultados.filter(r => r.critica && r.semaforo.nivel === 'rojo');
     const recMap: Record<string, string> = {
-      fortalecimiento_previo: 'Fortalecimiento previo requerido antes de implementación tecnológica',
-      piloto_parcial: 'Piloto parcial recomendado con acompañamiento técnico',
-      implementacion_completa: 'Implementación completa viable',
+      fortalecimiento_previo: 'Fortalecimiento previo requerido antes de implementación tecnológica. Se recomienda un plan de 6-12 meses para cerrar brechas críticas en gobernanza, equipo técnico y gestión de datos antes de adoptar herramientas digitales avanzadas.',
+      piloto_parcial: 'Piloto parcial recomendado con acompañamiento técnico. La organización tiene bases sólidas en algunas dimensiones pero necesita fortalecer áreas específicas. Un piloto controlado permitirá validar la adopción tecnológica.',
+      implementacion_completa: 'Implementación completa viable. La organización demuestra capacidades sólidas en las dimensiones evaluadas y está lista para adoptar la plataforma Nova Silva de forma integral.',
     };
     const recGlobal = getRecomendacion(promedioGlobal);
 
@@ -143,6 +143,35 @@ export default function VitalOrgWizard() {
             <p className="text-sm text-muted-foreground">Promedio global de las 12 dimensiones</p>
             <div className="p-3 rounded-md bg-primary/5 border border-primary/20">
               <p className="text-sm font-medium text-primary">Recomendación: {recMap[recGlobal]}</p>
+            </div>
+
+            {/* Interpretación Nova Silva */}
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
+              <p className="text-xs font-semibold text-primary">Interpretación Nova Silva</p>
+              <p className="text-sm text-muted-foreground">
+                La organización obtiene un puntaje global de <span className="font-bold text-foreground">{promedioGlobal}/4.0</span>, clasificándose como <span className="font-bold text-foreground">{semaforoGlobal.label}</span>.
+                {criticas.length > 0
+                  ? ` Se identifican ${criticas.length} dimensión(es) crítica(s) que requieren atención inmediata: ${criticas.map(c => c.nombre).join(', ')}.`
+                  : ' No se detectan dimensiones críticas en estado de alerta.'}
+              </p>
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-foreground">Fortalezas identificadas</p>
+                {resultados.filter(r => r.semaforo.nivel === 'verde').length > 0
+                  ? resultados.filter(r => r.semaforo.nivel === 'verde').map(r => (
+                      <p key={r.id} className="text-xs text-muted-foreground">• {r.nombre}: {r.promedio}/4.0 — Sólido</p>
+                    ))
+                  : <p className="text-xs text-muted-foreground">Ninguna dimensión alcanza nivel sólido aún.</p>
+                }
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-foreground">Áreas de mejora prioritarias</p>
+                {resultados.filter(r => r.semaforo.nivel === 'rojo').length > 0
+                  ? resultados.filter(r => r.semaforo.nivel === 'rojo').map(r => (
+                      <p key={r.id} className="text-xs text-muted-foreground">• {r.nombre}: {r.promedio}/4.0 — Requiere fortalecimiento{r.critica ? ' (dimensión crítica)' : ''}</p>
+                    ))
+                  : <p className="text-xs text-muted-foreground">No hay dimensiones en estado crítico.</p>
+                }
+              </div>
             </div>
           </CardContent>
         </Card>

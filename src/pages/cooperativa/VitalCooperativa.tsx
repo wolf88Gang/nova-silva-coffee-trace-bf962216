@@ -264,7 +264,7 @@ export default function VitalCooperativa() {
                 <div className="grid grid-cols-4 gap-1 text-xs text-center">
                   <div className="rounded bg-destructive/10 text-destructive p-1"><p className="font-bold">{distribucion.critico}</p><p>Crít.</p></div>
                   <div className="rounded bg-amber-500/10 text-amber-500 p-1"><p className="font-bold">{distribucion.desarrollo}</p><p>Frag.</p></div>
-                  <div className="rounded bg-amber-500/10 text-amber-500 p-1"><p className="font-bold">{distribucion.sostenible}</p><p>Cons.</p></div>
+                  <div className="rounded bg-yellow-500/10 text-yellow-600 p-1"><p className="font-bold">{distribucion.sostenible}</p><p>Cons.</p></div>
                   <div className="rounded bg-emerald-500/10 text-emerald-600 p-1"><p className="font-bold">{distribucion.ejemplar}</p><p>Res.</p></div>
                 </div>
               </CardContent></Card>
