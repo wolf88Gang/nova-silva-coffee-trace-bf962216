@@ -46,6 +46,9 @@ export const TABLE = {
   PROFILES: 'profiles',
   USER_ROLES: 'user_roles',
   NOTIFICATIONS: 'notifications',
+  NOTIFICACIONES: 'notificaciones',
+  MENSAJES_COOP_PRODUCTOR: 'mensajes_coop_productor',
+  MENSAJES_ORGANIZACION: 'mensajes_organizacion',
   LOTES_OFRECIDOS: 'lotes_ofrecidos',
   LOTES_OFRECIDOS_EXPORTADORES: 'lotes_ofrecidos_exportadores',
 } as const;
