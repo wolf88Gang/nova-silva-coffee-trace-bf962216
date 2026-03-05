@@ -74,6 +74,7 @@ import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
 import AlertasPage from "./pages/alertas/AlertasPage";
 import ReportesHub from "./pages/reportes/ReportesHub";
+import CreditCommitteeDashboard from "./components/creditos/CreditCommitteeDashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
@@ -132,6 +133,7 @@ const App = () => (
               <Route path="/cooperativa/vital" element={<DashboardLayout requiredRole="cooperativa"><ModuleGuard module="vital"><VitalCooperativa /></ModuleGuard></DashboardLayout>} />
               <Route path="/cooperativa/inclusion" element={<DashboardLayout requiredRole="cooperativa"><ModuleGuard module="inclusion"><InclusionEquidad /></ModuleGuard></DashboardLayout>} />
               <Route path="/cooperativa/usuarios" element={<DashboardLayout requiredRole="cooperativa"><UsuariosOrg /></DashboardLayout>} />
+              <Route path="/cooperativa/comite-credito" element={<DashboardLayout requiredRole="cooperativa"><CreditCommitteeDashboard /></DashboardLayout>} />
               {/* Legacy cooperativa redirects */}
               <Route path="/cooperativa/productores" element={<Navigate to="/cooperativa/productores-hub" replace />} />
               <Route path="/cooperativa/lotes-acopio" element={<Navigate to="/cooperativa/acopio" replace />} />
