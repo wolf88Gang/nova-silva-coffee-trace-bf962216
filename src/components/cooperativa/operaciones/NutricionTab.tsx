@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import {
   Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle,
-  FlaskConical, FileText, Zap, DollarSign, Calendar,
+  FlaskConical, FileText, Zap, DollarSign, Calendar, Shield,
 } from 'lucide-react';
 
 // ── Demo Data ──
@@ -19,6 +19,7 @@ const DEMO_PARCELAS_ESTADO = [
     ultimo_suelo_fecha: '2026-01-15',
     hoja_n_pct: 2.8, hoja_p_pct: 0.15, hoja_k_pct: 2.1, hoja_ca_pct: 1.0, hoja_mg_pct: 0.32,
     ultimo_hoja_fecha: '2026-01-20',
+    interpretacion: 'Parcela en buen estado general. pH y MO dentro de rangos óptimos para café de especialidad. El fósforo foliar (0.15%) está ligeramente por debajo del umbral ideal (0.16%), lo que puede limitar la floración. Se recomienda una aplicación dirigida de DAP o roca fosfórica al inicio de la temporada de lluvias. La relación Ca/Mg (3.8:1) es adecuada y no requiere corrección.',
   },
   {
     parcela_id: 'p2', parcela_nombre: 'Finca El Roble — Lote Central',
@@ -27,6 +28,7 @@ const DEMO_PARCELAS_ESTADO = [
     ultimo_suelo_fecha: '2025-11-08',
     hoja_n_pct: 2.2, hoja_p_pct: 0.11, hoja_k_pct: 1.6, hoja_ca_pct: 0.7, hoja_mg_pct: 0.22,
     ultimo_hoja_fecha: '2025-11-15',
+    interpretacion: 'Alerta: parcela con acidez severa (pH 4.6) y materia orgánica insuficiente (2.9%). Las deficiencias foliares generalizadas (N 2.2%, P 0.11%, K 1.6%) indican que el suelo no puede suministrar nutrientes de forma eficiente. Acción inmediata: encalado correctivo con cal dolomítica (1.5 ton/ha) para elevar el pH a 5.0–5.2. Posteriormente, incorporar compost o bocashi (3 ton/ha) para reconstruir la biología del suelo. Sin corrección de pH, la fertilización convencional tendrá eficiencia inferior al 40%.',
   },
   {
     parcela_id: 'p3', parcela_nombre: 'Finca Las Nubes',
@@ -35,6 +37,7 @@ const DEMO_PARCELAS_ESTADO = [
     ultimo_suelo_fecha: '2026-02-10',
     hoja_n_pct: 3.1, hoja_p_pct: 0.18, hoja_k_pct: 2.4, hoja_ca_pct: 1.2, hoja_mg_pct: 0.38,
     ultimo_hoja_fecha: '2026-02-15',
+    interpretacion: 'Parcela modelo con excelente balance nutricional. Todos los indicadores de suelo y foliar están dentro de rangos óptimos. La alta MO (5.2%) y CICE estimada sugieren un suelo con buena capacidad buffer. La sombra al 35% es ligeramente baja para la altitud; considerar aumentar a 40-45% para proteger contra estrés térmico. Estrategia: mantener fertilización de reposición sin incrementos. Esta parcela tiene potencial para certificación de café de especialidad (85+ pts SCA).',
   },
   {
     parcela_id: 'p4', parcela_nombre: 'Finca Agua Dulce — Lote Norte',
@@ -43,6 +46,7 @@ const DEMO_PARCELAS_ESTADO = [
     ultimo_suelo_fecha: '2025-09-20',
     hoja_n_pct: null, hoja_p_pct: null, hoja_k_pct: null, hoja_ca_pct: null, hoja_mg_pct: null,
     ultimo_hoja_fecha: null,
+    interpretacion: 'Parcela en estado crítico. El pH de 4.3 indica toxicidad por aluminio que daña raíces e impide absorción de Ca, Mg y P. La MO de 1.8% es la más baja del lote y no provee mineralización suficiente de N. Falta análisis foliar — se recomienda toma de muestras urgente para cuantificar deficiencias. Plan de recuperación requerido: (1) encalado con 2 ton/ha cal viva, (2) incorporación de 5 ton/ha materia orgánica compostada, (3) fertilización escalonada una vez corregido el pH. Pendiente alta (30%) requiere prácticas anti-erosión.',
   },
   {
     parcela_id: 'p5', parcela_nombre: 'Finca Monte Verde',
@@ -51,6 +55,7 @@ const DEMO_PARCELAS_ESTADO = [
     ultimo_suelo_fecha: '2026-02-28',
     hoja_n_pct: 2.9, hoja_p_pct: 0.16, hoja_k_pct: 2.3, hoja_ca_pct: 1.1, hoja_mg_pct: 0.35,
     ultimo_hoja_fecha: '2026-03-01',
+    interpretacion: 'Parcela en buen estado con nutrición adecuada. El K foliar (2.3%) está en el límite inferior del rango óptimo (2.3-2.8%); monitorear en el próximo ciclo ya que un descenso podría afectar el llenado de grano y la resistencia a enfermedades. La relación N/K foliar (1.26:1) es aceptable pero se beneficiaría de una fórmula con mayor proporción de K en la segunda fertilización. Densidad de 5,000 pl/ha y sombra 40% son combinación equilibrada para esta parcela.',
   },
 ];
 
@@ -75,6 +80,7 @@ const DEMO_PLANES = [
     id: 'plan1', parcela_id: 'p1', parcela_nombre: 'Finca La Esperanza — Lote 1',
     ciclo: '2026', objetivo: 'Optimización NPK para producción de especialidad',
     status: 'activo', created_at: '2026-01-25',
+    interpretacion: 'Este plan prioriza la optimización del balance NPK para maximizar calidad de taza. La fórmula 18-5-15 fue seleccionada por el déficit leve de P foliar detectado (0.15%) y la necesidad de mantener K alto para llenado de grano. El costo total estimado de $455/ha está dentro del rango eficiente para café de especialidad (ROI esperado: 3.2x basado en producción proyectada de 25 qq/ha a precio diferenciado). La enmienda calcárea en agosto es preventiva — ejecutar solo si el análisis de suelo de julio confirma pH < 5.0.',
     aplicaciones: [
       { id: 'a1', orden: 1, producto: 'NPK 18-5-15-6-2(MgO-S) granulado', dosis_por_ha: '350 kg/ha', metodo: 'Al suelo, banda lateral', mes_aplicacion: 'Marzo 2026', costo_estimado_usd: 185, notas: 'Primera fertilización post-floración. Aplicar en corona del cafeto a 20cm del tallo.' },
       { id: 'a2', orden: 2, producto: 'Fertilización foliar — K₂O + B + Zn', dosis_por_ha: '3 L/ha', metodo: 'Aspersión foliar', mes_aplicacion: 'Abril 2026', costo_estimado_usd: 45, notas: 'Complemento de potasio y micronutrientes para llenado de fruto.' },
@@ -86,6 +92,7 @@ const DEMO_PLANES = [
     id: 'plan2', parcela_id: 'p2', parcela_nombre: 'Finca El Roble — Lote Central',
     ciclo: '2026', objetivo: 'Plan correctivo — suelo ácido con baja MO',
     status: 'borrador', created_at: '2026-02-20',
+    interpretacion: 'Plan correctivo de alta intensidad. El suelo presenta limitaciones severas (pH 4.6, MO 2.9%) que reducen la eficiencia de cualquier fertilización mineral al 30-40%. Por eso el plan inicia con enmienda y materia orgánica ANTES de fertilizantes NPK. El costo total ($945/ha) es alto pero necesario — sin corrección de pH, invertir en NPK es desperdiciar recursos. Después de la ejecución completa, se espera elevar el pH a 5.0-5.2 y la MO a 3.5-4.0% para el ciclo 2027. Se recomienda análisis de suelo de control en septiembre para verificar respuesta.',
     aplicaciones: [
       { id: 'a5', orden: 1, producto: 'Cal dolomítica', dosis_por_ha: '1500 kg/ha', metodo: 'Al voleo incorporado', mes_aplicacion: 'Marzo 2026', costo_estimado_usd: 195, notas: 'Corrección urgente de pH. Aplicar 60 días antes de primera fertilización.' },
       { id: 'a6', orden: 2, producto: 'Materia orgánica compostada (bocashi)', dosis_por_ha: '3000 kg/ha', metodo: 'En corona, incorporar al suelo', mes_aplicacion: 'Abril 2026', costo_estimado_usd: 280, notas: 'Reconstrucción de MO del suelo. Compostar mínimo 45 días antes de aplicar.' },
@@ -98,6 +105,7 @@ const DEMO_PLANES = [
     id: 'plan3', parcela_id: 'p3', parcela_nombre: 'Finca Las Nubes',
     ciclo: '2026', objetivo: 'Mantenimiento — parcela en excelente condición',
     status: 'activo', created_at: '2026-02-18',
+    interpretacion: 'Plan de reposición estándar para parcela en excelente condición. Con solo 2 aplicaciones y $330/ha de inversión, esta parcela es la más eficiente del portafolio. La fórmula 17-6-18 con MgO mantiene el equilibrio sin sobrefertilizar. No se requieren enmiendas ni correctivos. Recomendación: usar esta parcela como referencia (benchmark) para comparar rendimiento y calidad con las demás.',
     aplicaciones: [
       { id: 'a10', orden: 1, producto: 'NPK 17-6-18-2(MgO) granulado', dosis_por_ha: '300 kg/ha', metodo: 'Al suelo, banda lateral', mes_aplicacion: 'Marzo 2026', costo_estimado_usd: 165, notas: 'Fertilización de mantenimiento. Suelo en óptimas condiciones.' },
       { id: 'a11', orden: 2, producto: 'NPK 17-6-18-2(MgO) granulado', dosis_por_ha: '300 kg/ha', metodo: 'Al suelo, banda lateral', mes_aplicacion: 'Julio 2026', costo_estimado_usd: 165, notas: 'Segunda dosis de mantenimiento.' },
@@ -107,6 +115,7 @@ const DEMO_PLANES = [
     id: 'plan4', parcela_id: 'p4', parcela_nombre: 'Finca Agua Dulce — Lote Norte',
     ciclo: '2025', objetivo: 'Recuperación de parcela degradada',
     status: 'completado', created_at: '2025-03-10',
+    interpretacion: 'Plan de recuperación ejecutado en 2025. La inversión de $800/ha fue justificada por el estado degradado del suelo. Resultados parciales: el pH subió de 4.3 a 4.7 (aún insuficiente) y la MO de 1.8% a 2.4%. Se requiere un segundo ciclo correctivo en 2026 para alcanzar niveles productivos. Lección aprendida: la recuperación de suelos severamente degradados requiere 2-3 ciclos consecutivos de intervención.',
     aplicaciones: [
       { id: 'a12', orden: 1, producto: 'Cal viva', dosis_por_ha: '2000 kg/ha', metodo: 'Al voleo', mes_aplicacion: 'Marzo 2025', costo_estimado_usd: 240, notas: 'Corrección severa de pH 4.3.' },
       { id: 'a13', orden: 2, producto: 'Compost + gallinaza', dosis_por_ha: '5000 kg/ha', metodo: 'En corona incorporado', mes_aplicacion: 'Mayo 2025', costo_estimado_usd: 420, notas: 'Aporte masivo de MO para recuperar biología del suelo.' },
@@ -265,6 +274,15 @@ function EstadoSection() {
                   <p className="text-xs text-muted-foreground/60">Sin análisis foliar</p>
                 )}
               </div>
+
+              {/* Interpretación Nova Silva */}
+              <div className="mt-3 p-3 rounded-md bg-primary/5 border border-primary/20">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Shield className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-primary">Interpretación Nova Silva</span>
+                </div>
+                <p className="text-xs text-foreground/80 leading-relaxed">{p.interpretacion}</p>
+              </div>
             </CardContent>
           </Card>
         );
@@ -374,13 +392,23 @@ function PlanesSection() {
                     <p className="text-sm font-medium truncate">{plan.parcela_nombre} — {plan.ciclo}</p>
                     <p className="text-xs text-muted-foreground truncate">{plan.objetivo}</p>
                   </div>
-                  <Badge variant="outline" className={PLAN_STATUS_COLORS[plan.status] ?? ''}>{plan.status}</Badge>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${PLAN_STATUS_COLORS[plan.status] ?? ''}`}>{plan.status}</span>
                   <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
-                    <DollarSign className="h-3 w-3" />{totalCost.toFixed(0)}
+                    <DollarSign className="h-3 w-3" />${totalCost.toFixed(0)}
                   </span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
+              <AccordionContent className="px-4 pb-4 space-y-3">
+                {/* Interpretación Nova Silva */}
+                <div className="p-3 rounded-md bg-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Shield className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-semibold text-primary">Interpretación Nova Silva</span>
+                  </div>
+                  <p className="text-xs text-foreground/80 leading-relaxed">{plan.interpretacion}</p>
+                </div>
+
+                {/* Aplicaciones */}
                 <div className="space-y-2">
                   {plan.aplicaciones.map(app => (
                     <div key={app.id} className="flex items-start gap-3 p-3 rounded-md bg-muted/30 text-sm">
