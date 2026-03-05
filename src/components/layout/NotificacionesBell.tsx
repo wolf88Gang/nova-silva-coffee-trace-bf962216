@@ -72,10 +72,10 @@ export function NotificacionesBell() {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-4 sm:inset-auto sm:right-4 sm:top-16 sm:w-[420px] sm:max-h-[80vh] z-[70] rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200 flex flex-col">
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="fixed right-4 top-14 sm:absolute sm:right-0 sm:top-full sm:mt-3 w-[min(400px,calc(100vw-2rem))] z-50 rounded-xl border border-border/60 bg-popover shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
               <h3 className="text-base font-semibold text-foreground tracking-tight">Notificaciones</h3>
               <div className="flex items-center gap-2">
                 {noLeidas > 0 && (
@@ -93,7 +93,7 @@ export function NotificacionesBell() {
             </div>
 
             {/* Notification list */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto">
               {notificaciones.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-6">
                   <Bell className="h-8 w-8 text-muted-foreground/40 mb-3" />
@@ -106,9 +106,9 @@ export function NotificacionesBell() {
                     <button
                       key={n.id}
                       onClick={() => handleClick(n)}
-                      className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-muted/40 border-b border-border/30 last:border-0 ${!n.leida ? 'bg-primary/[0.06]' : ''}`}
+                      className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-muted/40 ${!n.leida ? 'bg-primary/[0.04]' : ''}`}
                     >
-                      <div className={`mt-0.5 h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
+                      <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
                         n.tipo === 'alerta' ? 'bg-destructive/10' :
                         n.tipo === 'recordatorio' ? 'bg-accent/10' :
                         n.tipo === 'mensaje' ? 'bg-primary/10' :
@@ -116,15 +116,15 @@ export function NotificacionesBell() {
                       }`}>
                         <Icon className={`h-4 w-4 ${colorMap[n.tipo]}`} />
                       </div>
-                      <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex-1 min-w-0 space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <p className={`text-sm leading-snug truncate ${!n.leida ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                          <p className={`text-sm leading-snug ${!n.leida ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
                             {n.titulo}
                           </p>
                           {!n.leida && <div className="h-2 w-2 rounded-full bg-primary shrink-0" />}
                         </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{n.descripcion}</p>
-                        <p className="text-[11px] text-muted-foreground/60">{n.fecha}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{n.descripcion}</p>
+                        <p className="text-[11px] text-muted-foreground/60 pt-0.5">{n.fecha}</p>
                       </div>
                     </button>
                   );
@@ -133,7 +133,7 @@ export function NotificacionesBell() {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-border px-5 py-3 shrink-0">
+            <div className="border-t border-border/40 px-5 py-3">
               <button
                 onClick={() => { setOpen(false); navigate('/alerts'); }}
                 className="w-full text-center text-sm font-medium text-primary hover:text-primary/80 transition-colors py-1"
