@@ -248,24 +248,48 @@ export default function VitalOrgWizard() {
           </Card>
         )}
 
-        {/* Semáforo por dimensión */}
+        {/* Semáforo por dimensión con detalle expandible */}
         <Card>
           <CardHeader><CardTitle className="text-base">Semáforo por Dimensión</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            {resultados.map(r => (
-              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                <div className="flex items-center gap-2">
-                  <span>{DIMENSION_ICONS[r.id]}</span>
-                  <span className="text-sm font-medium text-foreground">{r.nombre}</span>
-                  {r.critica && <Badge variant="outline" className="text-[10px]">Crítica</Badge>}
-                </div>
-                <div className="flex items-center gap-3">
-                  <Progress value={(r.promedio / 4) * 100} className="h-2 w-16" />
-                  <span className="text-sm font-bold text-foreground w-12 text-right">{r.promedio}/4.0</span>
-                  <Badge className={r.semaforo.color}>{r.semaforo.label}</Badge>
-                </div>
-              </div>
-            ))}
+            {resultados.map(r => {
+              const dim = DIMENSIONES_DIAGNOSTICO.find(d => d.id === r.id);
+              return (
+                <details key={r.id} className="group">
+                  <summary className="flex items-center justify-between p-3 rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors list-none">
+                    <div className="flex items-center gap-2">
+                      <span>{DIMENSION_ICONS[r.id]}</span>
+                      <span className="text-sm font-medium text-foreground">{r.nombre}</span>
+                      {r.critica && <Badge variant="outline" className="text-[10px]">Crítica</Badge>}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Progress value={(r.promedio / 4) * 100} className="h-2 w-16" />
+                      <span className="text-sm font-bold text-foreground w-12 text-right">{r.promedio}/4.0</span>
+                      <Badge className={r.semaforo.color}>{r.semaforo.label}</Badge>
+                    </div>
+                  </summary>
+                  {dim && (
+                    <div className="ml-4 mt-1 mb-2 p-3 rounded-md bg-muted/30 border border-border/50 space-y-2 text-xs animate-fade-in">
+                      <p className="text-muted-foreground">{dim.descripcion}</p>
+                      <div className="space-y-1">
+                        {dim.preguntas.map(p => {
+                          const val = respuestas.get(p.codigo);
+                          const opt = OPCIONES_DIAGNOSTICO.find(o => o.valor === val);
+                          return (
+                            <div key={p.codigo} className="flex items-center justify-between gap-2">
+                              <span className="text-muted-foreground truncate flex-1">{p.texto.slice(0, 80)}...</span>
+                              <span className={`font-medium shrink-0 ${
+                                (val ?? 0) >= 3 ? 'text-emerald-600' : (val ?? 0) >= 2 ? 'text-amber-600' : 'text-destructive'
+                              }`}>{opt?.etiqueta.split(' — ')[0] ?? '—'}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </details>
+              );
+            })}
           </CardContent>
         </Card>
 
