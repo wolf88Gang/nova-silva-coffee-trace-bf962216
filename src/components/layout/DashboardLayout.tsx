@@ -50,6 +50,21 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
       <div className="min-h-screen bg-background">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="lg:ml-64">
+          {/* Desktop top bar */}
+          <header className="hidden lg:flex fixed top-0 left-64 right-0 h-14 bg-background/95 backdrop-blur border-b border-border z-30 items-center justify-between px-8">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground">{user?.organizationName || 'Nova Silva'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <NotificacionesBell />
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-xs font-bold text-primary">{user?.name?.charAt(0) || 'U'}</span>
+              </div>
+            </div>
+          </header>
+          <div className="hidden lg:block h-14" />
+
+          {/* Mobile top bar */}
           <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-30 flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
@@ -61,6 +76,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
             <NotificacionesBell />
           </header>
           <div className="lg:hidden h-14" />
+
           <main className="p-4 md:p-6 lg:p-8 animate-fade-in">
             {children}
           </main>
