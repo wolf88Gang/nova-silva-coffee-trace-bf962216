@@ -1,8 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Clock, Boxes } from 'lucide-react';
+import { Shield, Clock, Boxes, Sprout } from 'lucide-react';
 import NovaGuardTab from '@/components/cooperativa/operaciones/NovaGuardTab';
 import JornalesTab from '@/components/cooperativa/operaciones/JornalesTab';
 import InventarioTab from '@/components/cooperativa/operaciones/InventarioTab';
+import NutricionTab from '@/components/cooperativa/operaciones/NutricionTab';
 
 export default function OperacionesHub() {
   return (
@@ -14,6 +15,7 @@ export default function OperacionesHub() {
           <TabsTrigger value="monitor"><Shield className="h-4 w-4 mr-1" /> Nova Guard</TabsTrigger>
           <TabsTrigger value="jornales"><Clock className="h-4 w-4 mr-1" /> Jornales</TabsTrigger>
           <TabsTrigger value="inventario"><Boxes className="h-4 w-4 mr-1" /> Inventario</TabsTrigger>
+          <TabsTrigger value="nutricion"><Sprout className="h-4 w-4 mr-1" /> Nutrición</TabsTrigger>
         </TabsList>
 
         <TabsContent value="monitor" className="mt-4">
@@ -24,6 +26,9 @@ export default function OperacionesHub() {
         </TabsContent>
         <TabsContent value="inventario" className="mt-4">
           <InventarioTab />
+        </TabsContent>
+        <TabsContent value="nutricion" className="mt-4">
+          <NutricionTab />
         </TabsContent>
       </Tabs>
     </div>
