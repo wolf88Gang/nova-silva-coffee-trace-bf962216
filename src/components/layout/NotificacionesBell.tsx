@@ -1,62 +1,60 @@
 import { useState } from 'react';
-import { Bell, CheckCircle, AlertTriangle, Calendar, MessageSquare, Shield, X } from 'lucide-react';
+import { Bell, AlertTriangle, Calendar, MessageSquare, Shield, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, Notification } from '@/hooks/useNotifications';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
-interface Notificacion {
-  id: string;
-  titulo: string;
-  descripcion: string;
-  tipo: 'alerta' | 'recordatorio' | 'mensaje' | 'vital';
-  fecha: string;
-  leida: boolean;
-  ruta?: string;
-}
-
-const notificacionesDemo: Notificacion[] = [
-  { id: '1', titulo: 'Broca detectada en El Mirador', descripcion: 'Nivel de infestación 3.2%. Contacte a su técnico.', tipo: 'alerta', fecha: 'Hace 2h', leida: false, ruta: '/productor/sanidad' },
-  { id: '2', titulo: 'Evaluación VITAL próxima', descripcion: 'Su evaluación bianual vence en 30 días.', tipo: 'recordatorio', fecha: 'Hace 5h', leida: false, ruta: '/productor/sostenibilidad' },
-  { id: '3', titulo: 'Mensaje de Ing. Castañeda', descripcion: 'Confirmo visita técnica para el jueves.', tipo: 'mensaje', fecha: 'Ayer', leida: false, ruta: '/productor/avisos' },
-  { id: '4', titulo: 'Pago de entregas disponible', descripcion: 'Pagos de enero listos para retiro.', tipo: 'recordatorio', fecha: 'Hace 2d', leida: true, ruta: '/productor/finanzas' },
-  { id: '5', titulo: 'Score VITAL actualizado', descripcion: 'Su puntaje subió a 75.1/100.', tipo: 'vital', fecha: 'Hace 3d', leida: true, ruta: '/productor/sostenibilidad' },
-];
-
-const iconMap = {
+const iconMap: Record<string, typeof AlertTriangle> = {
   alerta: AlertTriangle,
   recordatorio: Calendar,
   mensaje: MessageSquare,
   vital: Shield,
 };
 
-const colorMap = {
+const colorMap: Record<string, string> = {
   alerta: 'text-destructive',
   recordatorio: 'text-accent',
   mensaje: 'text-primary',
   vital: 'text-emerald-600',
 };
 
+const bgMap: Record<string, string> = {
+  alerta: 'bg-destructive/10',
+  recordatorio: 'bg-accent/10',
+  mensaje: 'bg-primary/10',
+  vital: 'bg-emerald-500/10',
+};
+
 export function NotificacionesBell() {
   const [open, setOpen] = useState(false);
-  const [notificaciones, setNotificaciones] = useState(notificacionesDemo);
   const navigate = useNavigate();
+  const { data: notificaciones = [], isLoading } = useNotifications(20);
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
 
-  const noLeidas = notificaciones.filter(n => !n.leida).length;
+  const noLeidas = notificaciones.filter(n => !n.read_at).length;
 
-  const marcarLeida = (id: string) => {
-    setNotificaciones(prev => prev.map(n => n.id === id ? { ...n, leida: true } : n));
+  const handleClick = (n: Notification) => {
+    if (!n.read_at) markRead.mutate(n.id);
+    setOpen(false);
+    if (n.link_url) navigate(n.link_url);
   };
 
   const marcarTodasLeidas = () => {
-    setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })));
-    toast.success('Todas las notificaciones marcadas como leídas');
+    markAllRead.mutate(undefined, {
+      onSuccess: () => toast.success('Todas las notificaciones marcadas como leídas'),
+    });
   };
 
-  const handleClick = (n: Notificacion) => {
-    marcarLeida(n.id);
-    setOpen(false);
-    if (n.ruta) navigate(n.ruta);
+  const formatFecha = (iso: string) => {
+    try {
+      return formatDistanceToNow(new Date(iso), { addSuffix: true, locale: es });
+    } catch {
+      return iso;
+    }
   };
 
   return (
@@ -79,10 +77,7 @@ export function NotificacionesBell() {
               <h3 className="text-base font-semibold text-foreground tracking-tight">Notificaciones</h3>
               <div className="flex items-center gap-2">
                 {noLeidas > 0 && (
-                  <button
-                    onClick={marcarTodasLeidas}
-                    className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                  >
+                  <button onClick={marcarTodasLeidas} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
                     Marcar todas como leídas
                   </button>
                 )}
@@ -94,37 +89,38 @@ export function NotificacionesBell() {
 
             {/* Notification list */}
             <div className="max-h-[400px] overflow-y-auto">
-              {notificaciones.length === 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : notificaciones.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-6">
                   <Bell className="h-8 w-8 text-muted-foreground/40 mb-3" />
                   <p className="text-sm text-muted-foreground">No tienes notificaciones</p>
                 </div>
               ) : (
                 notificaciones.map(n => {
-                  const Icon = iconMap[n.tipo];
+                  const tipo = n.tipo || 'mensaje';
+                  const Icon = iconMap[tipo] || MessageSquare;
+                  const isUnread = !n.read_at;
                   return (
                     <button
                       key={n.id}
                       onClick={() => handleClick(n)}
-                      className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-muted/40 ${!n.leida ? 'bg-primary/[0.04]' : ''}`}
+                      className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-muted/40 ${isUnread ? 'bg-primary/[0.04]' : ''}`}
                     >
-                      <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
-                        n.tipo === 'alerta' ? 'bg-destructive/10' :
-                        n.tipo === 'recordatorio' ? 'bg-accent/10' :
-                        n.tipo === 'mensaje' ? 'bg-primary/10' :
-                        'bg-emerald-500/10'
-                      }`}>
-                        <Icon className={`h-4 w-4 ${colorMap[n.tipo]}`} />
+                      <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${bgMap[tipo] || 'bg-primary/10'}`}>
+                        <Icon className={`h-4 w-4 ${colorMap[tipo] || 'text-primary'}`} />
                       </div>
                       <div className="flex-1 min-w-0 space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <p className={`text-sm leading-snug ${!n.leida ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                          <p className={`text-sm leading-snug ${isUnread ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
                             {n.titulo}
                           </p>
-                          {!n.leida && <div className="h-2 w-2 rounded-full bg-primary shrink-0" />}
+                          {isUnread && <div className="h-2 w-2 rounded-full bg-primary shrink-0" />}
                         </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">{n.descripcion}</p>
-                        <p className="text-[11px] text-muted-foreground/60 pt-0.5">{n.fecha}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{n.cuerpo}</p>
+                        <p className="text-[11px] text-muted-foreground/60 pt-0.5">{formatFecha(n.created_at)}</p>
                       </div>
                     </button>
                   );

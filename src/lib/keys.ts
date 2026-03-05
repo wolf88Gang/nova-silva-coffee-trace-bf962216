@@ -45,6 +45,9 @@ export const TABLE = {
   EUDR_PACKAGES: 'paquetes_eudr',
   PROFILES: 'profiles',
   USER_ROLES: 'user_roles',
+  NOTIFICATIONS: 'notifications',
+  LOTES_OFRECIDOS: 'lotes_ofrecidos',
+  LOTES_OFRECIDOS_EXPORTADORES: 'lotes_ofrecidos_exportadores',
 } as const;
 
 // ── Scope types ──
