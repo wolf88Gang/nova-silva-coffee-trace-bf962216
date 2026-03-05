@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import {
   FlaskConical, Award, TrendingUp, Star, Plus, Coffee, Eye, BarChart3,
@@ -82,26 +81,26 @@ const muestrasDemo: Muestra[] = [
 
 // ── Demo data: Cataciones ──
 const catacionesDemo: Catacion[] = [
-  { id: '1', fecha: '2026-02-23', lote: 'LOT-2026-023', productor: 'Carlos A. Muñoz', protocolo: 'SCA', puntaje: 87.2, cat: 'Specialty',
-    atributos: { 'Fragancia/Aroma': 8.5, 'Sabor': 8.75, 'Post-gusto': 8.5, 'Acidez': 8.75, 'Cuerpo': 8.25, 'Balance': 8.5, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+  { id: '1', fecha: '2026-02-23', lote: 'LOT-2026-023', productor: 'Carlos A. Muñoz', protocolo: 'SCA', puntaje: 87.25, cat: 'Specialty',
+    atributos: { 'Fragancia/Aroma': 8.0, 'Sabor': 8.25, 'Post-gusto': 8.0, 'Acidez': 8.25, 'Cuerpo': 7.75, 'Balance': 7.0, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
     descriptores: ['Mandarina', 'Panela', 'Jazmín', 'Caramelo'], notas: 'Taza excepcional con acidez brillante', sampleType: 'offer', muestraId: 'm1', defectos: 0, humedad: 10.5 },
-  { id: '1b', fecha: '2026-02-25', lote: 'LOT-2026-023', productor: 'Carlos A. Muñoz', protocolo: 'SCA', puntaje: 86.8, cat: 'Specialty',
-    atributos: { 'Fragancia/Aroma': 8.5, 'Sabor': 8.5, 'Post-gusto': 8.25, 'Acidez': 8.75, 'Cuerpo': 8.25, 'Balance': 8.5, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+  { id: '1b', fecha: '2026-02-25', lote: 'LOT-2026-023', productor: 'Carlos A. Muñoz', protocolo: 'SCA', puntaje: 86.75, cat: 'Specialty',
+    atributos: { 'Fragancia/Aroma': 8.0, 'Sabor': 8.0, 'Post-gusto': 7.75, 'Acidez': 8.25, 'Cuerpo': 7.75, 'Balance': 7.0, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
     descriptores: ['Mandarina', 'Panela', 'Caramelo'], notas: 'PSS consistente con oferta', sampleType: 'pss', muestraId: 'm2', defectos: 0, humedad: 10.8 },
-  { id: '2', fecha: '2026-02-22', lote: 'LOT-2026-045', productor: 'María del C. Ortiz', protocolo: 'SCA', puntaje: 85.1, cat: 'Specialty',
-    atributos: { 'Fragancia/Aroma': 8.25, 'Sabor': 8.5, 'Post-gusto': 8.0, 'Acidez': 8.5, 'Cuerpo': 8.25, 'Balance': 8.25, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+  { id: '2', fecha: '2026-02-22', lote: 'LOT-2026-045', productor: 'María del C. Ortiz', protocolo: 'SCA', puntaje: 85.0, cat: 'Specialty',
+    atributos: { 'Fragancia/Aroma': 7.75, 'Sabor': 8.0, 'Post-gusto': 7.5, 'Acidez': 8.0, 'Cuerpo': 7.75, 'Balance': 6.0, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
     descriptores: ['Chocolate', 'Nuez', 'Miel'], notas: 'Cuerpo sedoso, final prolongado', sampleType: 'offer', muestraId: 'm3', defectos: 1, humedad: 11.0 },
   { id: '3', fecha: '2026-02-20', lote: 'LOT-2026-018', productor: 'Ana L. Betancourt', protocolo: 'CVA', puntaje: 84.5, cat: 'Specialty',
     atributos: { 'Floral': 7, 'Frutal': 8, 'Azucarado': 7.5, 'Cacao/Nuez': 6, 'Especias': 5, 'Cereales': 4, 'Vegetal': 3, 'Amargo': 4, 'Fermentado': 2 },
     descriptores: ['Frutas rojas', 'Bergamota', 'Jazmín'], notas: 'CVA: perfil frutal dominante', sampleType: 'offer', muestraId: 'm4', defectos: 0, humedad: 10.2 },
-  { id: '4', fecha: '2026-02-18', lote: 'LOT-2026-032', productor: 'José Hernández', protocolo: 'SCA', puntaje: 82.3, cat: 'Premium',
-    atributos: { 'Fragancia/Aroma': 8.0, 'Sabor': 8.0, 'Post-gusto': 7.75, 'Acidez': 8.0, 'Cuerpo': 8.0, 'Balance': 8.0, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+  { id: '4', fecha: '2026-02-18', lote: 'LOT-2026-032', productor: 'José Hernández', protocolo: 'SCA', puntaje: 82.25, cat: 'Premium',
+    atributos: { 'Fragancia/Aroma': 7.5, 'Sabor': 7.5, 'Post-gusto': 7.25, 'Acidez': 7.5, 'Cuerpo': 7.25, 'Balance': 5.25, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
     descriptores: ['Chocolate', 'Canela', 'Cereza'], notas: 'Balance sólido, acidez media', sampleType: 'offer', muestraId: 'm5', defectos: 2, humedad: 11.2 },
   { id: '5', fecha: '2026-02-15', lote: 'LOT-2026-011', productor: 'Rosa E. Castillo', protocolo: 'SCA', puntaje: 81.0, cat: 'Premium',
-    atributos: { 'Fragancia/Aroma': 7.75, 'Sabor': 7.75, 'Post-gusto': 7.5, 'Acidez': 7.75, 'Cuerpo': 8.0, 'Balance': 7.75, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+    atributos: { 'Fragancia/Aroma': 7.25, 'Sabor': 7.25, 'Post-gusto': 7.0, 'Acidez': 7.25, 'Cuerpo': 7.25, 'Balance': 5.0, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
     descriptores: ['Nuez', 'Vainilla', 'Caramelo'], notas: 'Cuerpo notable, acidez suave', sampleType: 'offer', defectos: 1, humedad: 11.5 },
   { id: '6', fecha: '2026-02-12', lote: 'LOT-2026-007', productor: 'Fernando Ruiz', protocolo: 'SCA', puntaje: 78.5, cat: 'Comercial',
-    atributos: { 'Fragancia/Aroma': 7.25, 'Sabor': 7.5, 'Post-gusto': 7.0, 'Acidez': 7.25, 'Cuerpo': 7.5, 'Balance': 7.5, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
+    atributos: { 'Fragancia/Aroma': 7.0, 'Sabor': 7.0, 'Post-gusto': 6.75, 'Acidez': 7.0, 'Cuerpo': 6.75, 'Balance': 4.0, 'Uniformidad': 10, 'Taza Limpia': 10, 'Dulzura': 10 },
     descriptores: ['Chocolate', 'Panela'], notas: 'Taza limpia pero sin complejidad destacada', sampleType: 'offer', defectos: 3, humedad: 12.0 },
 ];
 
@@ -134,10 +133,10 @@ const catDistribution = [
   { name: 'Comercial (<80)', value: 25, color: 'hsl(var(--muted-foreground))' },
 ];
 const scoresByProducer = [
-  { productor: 'C. Muñoz', puntaje: 87.2 },
-  { productor: 'M. Ortiz', puntaje: 85.1 },
+  { productor: 'C. Muñoz', puntaje: 87.25 },
+  { productor: 'M. Ortiz', puntaje: 85.0 },
   { productor: 'A. Betancourt', puntaje: 84.5 },
-  { productor: 'J. Hernández', puntaje: 82.3 },
+  { productor: 'J. Hernández', puntaje: 82.25 },
   { productor: 'R. Castillo', puntaje: 81.0 },
   { productor: 'F. Ruiz', puntaje: 78.5 },
 ];
@@ -153,9 +152,9 @@ const descriptorFrequency = [
 ];
 
 const kpis = [
-  { label: 'Promedio SCA', value: '83.5', badge: 'Premium', icon: FlaskConical },
+  { label: 'Promedio SCA', value: '83.1', badge: 'Premium', icon: FlaskConical },
   { label: 'Muestras Pendientes', value: '3', badge: '', icon: Beaker },
-  { label: 'Mejor Lote', value: 'LOT-023 — 87.2 pts', badge: '', icon: Award },
+  { label: 'Mejor Lote', value: 'LOT-023 — 87.25 pts', badge: '', icon: Award },
   { label: 'Specialty (>84)', value: '12 muestras (35%)', badge: '', icon: Star },
 ];
 
@@ -198,9 +197,7 @@ export default function NovaCupDashboard() {
   const [filterCat, setFilterCat] = useState<string>('all');
 
   const attrs = protocolo === 'SCA' ? SCA_ATTRIBUTES : CVA_ATTRIBUTES;
-  const totalScore = protocolo === 'SCA'
-    ? Object.values(scores).reduce((s, v) => s + v, 0) + 36
-    : Object.values(scores).reduce((s, v) => s + v, 0);
+  const totalScore = Object.values(scores).reduce((s, v) => s + v, 0);
 
   const filteredCataciones = useMemo(() =>
     catacionesDemo.filter(c => {
@@ -784,26 +781,36 @@ export default function NovaCupDashboard() {
             </div>
           )}
 
-          {/* Step 1: Sliders */}
+          {/* Step 1: Score inputs */}
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-xs text-muted-foreground">
-                {protocolo === 'SCA' ? 'Califique cada atributo de 6.00 a 10.00' : 'Califique intensidad de 0 a 10'}
+                {protocolo === 'SCA' ? 'Ingrese cada atributo de 6.00 a 10.00. Uniformidad, Taza Limpia y Dulzura se califican sobre 10.' : 'Califique intensidad de 0 a 10'}
               </p>
-              <div className="space-y-3 max-h-[45vh] overflow-y-auto pr-2">
-                {attrs.map(attr => (
-                  <div key={attr} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-foreground font-medium">{attr}</span>
-                      <span className="font-bold text-primary">{(scores[attr] || 0).toFixed(2)}</span>
+              <div className="space-y-2 max-h-[45vh] overflow-y-auto pr-2">
+                {attrs.map(attr => {
+                  const isBooleanAttr = protocolo === 'SCA' && ['Uniformidad', 'Taza Limpia', 'Dulzura'].includes(attr);
+                  const min = protocolo === 'SCA' ? (isBooleanAttr ? 0 : 6) : 0;
+                  const max = 10;
+                  const stepVal = protocolo === 'SCA' ? 0.25 : 0.5;
+                  return (
+                    <div key={attr} className="flex items-center justify-between gap-3 py-1.5 border-b border-border last:border-0">
+                      <span className="text-sm font-medium text-foreground min-w-0 flex-1">{attr}</span>
+                      <Input
+                        type="number"
+                        min={min} max={max} step={stepVal}
+                        value={scores[attr] ?? ''}
+                        onChange={e => {
+                          const v = parseFloat(e.target.value);
+                          if (!isNaN(v) && v >= min && v <= max) {
+                            setScores(s => ({ ...s, [attr]: Number(v.toFixed(2)) }));
+                          }
+                        }}
+                        className="w-20 text-center font-bold text-primary h-9"
+                      />
                     </div>
-                    <Slider
-                      value={[scores[attr] || (protocolo === 'SCA' ? 7.5 : 5)]}
-                      onValueChange={([v]) => setScores(s => ({ ...s, [attr]: Number(v.toFixed(2)) }))}
-                      min={protocolo === 'SCA' ? 6 : 0} max={10} step={0.25} className="w-full"
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
