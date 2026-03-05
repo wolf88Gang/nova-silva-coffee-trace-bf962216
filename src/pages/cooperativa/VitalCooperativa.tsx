@@ -21,6 +21,9 @@ import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } f
 import { DEMO_PRODUCTORES } from '@/lib/demo-data';
 import { VITAL_ORG_BLOCKS, calculateIGRNOrg, type VitalOrgBlock } from '@/config/vitalOrgQuestions';
 import { toast } from 'sonner';
+import { generateVitalReport, exportVitalReportToClipboard } from '@/lib/advancedReportsExport';
+import { RECOMENDACION_TEXTOS } from '@/hooks/useRadixPreguntasOrg';
+import { Download } from 'lucide-react';
 
 // Use canonical VITAL levels from shared utility
 import { getVitalLevel, getVitalChartColor } from '@/lib/vitalLevels';
@@ -214,11 +217,28 @@ export default function VitalCooperativa() {
   return (
     <VitalGate mode="banner">
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl font-bold text-foreground">Protocolo VITAL</h1>
-          <Button onClick={() => setShowWizard(true)}>
-            <Play className="h-4 w-4 mr-1" /> Diagnóstico Organizacional
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => {
+              const report = generateVitalReport('Mi Cooperativa', '2025-2026', {
+                evaluated: DEMO_PRODUCTORES.length,
+                avgIGRN: promedio,
+                critical: distribucion.critico,
+                fragile: distribucion.desarrollo,
+                building: distribucion.sostenible,
+                resilient: distribucion.ejemplar,
+              });
+              const text = exportVitalReportToClipboard(report);
+              navigator.clipboard.writeText(text);
+              toast.success('Reporte VITAL copiado al portapapeles');
+            }}>
+              <Download className="h-4 w-4 mr-1" /> Exportar Reporte
+            </Button>
+            <Button onClick={() => setShowWizard(true)}>
+              <Play className="h-4 w-4 mr-1" /> Diagnóstico Organizacional
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="productores">
@@ -662,6 +682,21 @@ export default function VitalCooperativa() {
                         );
                       })}
                     </div>
+
+                    {/* Recommendation */}
+                    <Card className="bg-primary/5 border-primary/20">
+                      <CardContent className="pt-4 pb-4">
+                        <p className="text-xs font-semibold text-primary mb-1">Interpretación Nova Silva — Recomendación</p>
+                        <p className="text-sm text-muted-foreground">
+                          {score100 >= 81
+                            ? RECOMENDACION_TEXTOS.implementacion_completa
+                            : score100 >= 50
+                            ? RECOMENDACION_TEXTOS.piloto_parcial
+                            : RECOMENDACION_TEXTOS.fortalecimiento_previo}
+                        </p>
+                      </CardContent>
+                    </Card>
+
                     <Button className="w-full" onClick={resetWizard}>Cerrar</Button>
                   </>
                 );

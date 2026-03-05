@@ -15,6 +15,7 @@ import {
   VITAL_BLOCKS, TOTAL_QUESTIONS, calculateIGRN, IGRN_RANGES,
   type VitalBlock, type IGRNResult,
 } from '@/config/vitalProductorQuestions';
+import { generarInterpretacion, type ClimaProductorData } from '@/lib/climaInterpretacion';
 
 // ── Block icons ──
 const blockIcons = [Droplets, Sprout, Shield, Thermometer, Globe];
@@ -612,8 +613,22 @@ export default function SostenibilidadHub() {
                 </div>
               </div>
             </>
-          ) : wizardResult && (
-            /* ── Wizard Results ── */
+          ) : wizardResult && (() => {
+            const nivelRiesgo = wizardResult.igrn <= 40 ? 'critico' as const : wizardResult.igrn <= 60 ? 'alto' as const : wizardResult.igrn <= 80 ? 'medio' as const : 'bajo' as const;
+            const interpData: ClimaProductorData = {
+              indice_clima: wizardResult.igrn,
+              nivel_riesgo_global: nivelRiesgo,
+              puntaje_exposicion: Math.round(wizardResult.muClima * 100),
+              puntaje_sensibilidad: Math.round(wizardResult.muEstructura * 100),
+              puntaje_capacidad_adaptativa: Math.round(wizardResult.muRespuesta * 100),
+              riesgo_exposicion: wizardResult.muClima <= 0.4 ? 'critico' : wizardResult.muClima <= 0.6 ? 'alto' : wizardResult.muClima <= 0.8 ? 'medio' : 'bajo',
+              riesgo_sensibilidad: wizardResult.muEstructura <= 0.4 ? 'critico' : wizardResult.muEstructura <= 0.6 ? 'alto' : wizardResult.muEstructura <= 0.8 ? 'medio' : 'bajo',
+              riesgo_capacidad_adaptativa: wizardResult.muRespuesta <= 0.4 ? 'critico' : wizardResult.muRespuesta <= 0.6 ? 'alto' : wizardResult.muRespuesta <= 0.8 ? 'medio' : 'bajo',
+              factores_riesgo: [],
+            };
+            const interp = generarInterpretacion(interpData);
+
+            return (
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-primary" /> Evaluación Completada</DialogTitle>
@@ -666,26 +681,94 @@ export default function SostenibilidadHub() {
                   </div>
                 )}
 
+                {/* ── Interpretación Nova Silva completa (6 secciones) ── */}
                 <Card className="bg-primary/5 border-primary/20">
-                  <CardContent className="pt-4 pb-4">
-                    <p className="text-xs font-semibold text-primary mb-1">Interpretación Nova Silva</p>
-                    <p className="text-sm text-muted-foreground">
-                      La evaluación indica un nivel de <span className="font-bold text-foreground">{wizardResult.nivel}</span> con IGRN de {wizardResult.igrn}/100.
-                      {wizardResult.igrn <= 40 && ' Requiere intervención de emergencia. Contacte a su técnico asignado.'}
-                      {wizardResult.igrn > 40 && wizardResult.igrn <= 60 && ' La finca presenta fragilidad estructural. Priorizar infraestructura básica y renovación.'}
-                      {wizardResult.igrn > 60 && wizardResult.igrn <= 80 && ' Bases sólidas con brechas específicas. Priorizar tecnificación y acceso a mercados.'}
-                      {wizardResult.igrn > 80 && ' Finca modelo. Priorizar innovación y liderazgo regional.'}
-                      {' '}Próxima evaluación: {wizardFrequency === 'bianual' ? '2028' : '2029'}.
-                    </p>
+                  <CardContent className="pt-4 pb-4 space-y-4">
+                    <p className="text-xs font-semibold text-primary">Interpretación Nova Silva</p>
+
+                    {/* S1: Qué es */}
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-1">¿Qué es el Protocolo VITAL?</p>
+                      <p className="text-xs text-muted-foreground">{interp.queEsDiagnostico}</p>
+                    </div>
+
+                    {/* S2: Resumen */}
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-1">Resumen de su situación</p>
+                      <p className="text-xs text-muted-foreground">{interp.resumenSituacion}</p>
+                    </div>
+
+                    {/* S3: Dimensiones */}
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-2">Análisis por Dimensión</p>
+                      {(['exposicion', 'sensibilidad', 'capacidad_adaptativa'] as const).map(dim => {
+                        const d = interp.analisisDimensiones[dim];
+                        return (
+                          <div key={dim} className="mb-2 p-2 rounded-lg border border-border">
+                            <p className="text-xs font-medium text-foreground">{d.titulo} — <span className="capitalize">{d.nivel}</span> ({d.puntaje}/100)</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{d.texto}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* S5: Pasos */}
+                    {interp.pasosCorto.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-foreground mb-1">Pasos a corto plazo (6-12 meses)</p>
+                        <ul className="space-y-1">
+                          {interp.pasosCorto.map((p, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                              <CheckCircle className="h-3 w-3 text-primary mt-0.5 shrink-0" />{p}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {interp.pasosMediano.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-foreground mb-1">Pasos a mediano plazo (1-3 años)</p>
+                        <ul className="space-y-1">
+                          {interp.pasosMediano.map((p, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                              <ArrowRight className="h-3 w-3 text-primary mt-0.5 shrink-0" />{p}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* S6: Apoyo */}
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-1">¿Cómo le apoya su organización?</p>
+                      <ul className="space-y-1">
+                        {interp.apoyoCooperativa.map((a, i) => (
+                          <li key={i} className="text-xs text-muted-foreground">• {a}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </CardContent>
                 </Card>
 
+                <p className="text-xs text-muted-foreground text-center">
+                  Próxima evaluación: {wizardFrequency === 'bianual' ? '2028' : '2029'}
+                </p>
+
                 <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => {
+                    const text = `VITAL IGRN: ${wizardResult.igrn}/100 — ${wizardResult.nivel}\nExposición: ${Math.round(wizardResult.muClima*100)}\nSensibilidad: ${Math.round(wizardResult.muEstructura*100)}\nAdaptación: ${Math.round(wizardResult.muRespuesta*100)}\n\n${interp.resumenSituacion}`;
+                    navigator.clipboard.writeText(text);
+                    toast.success('Resultado copiado al portapapeles');
+                  }}>
+                    Exportar resultado
+                  </Button>
                   <Button className="flex-1" onClick={resetWizard}>Cerrar</Button>
                 </div>
               </div>
             </>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
