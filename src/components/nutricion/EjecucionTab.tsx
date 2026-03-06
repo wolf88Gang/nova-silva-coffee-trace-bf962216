@@ -21,6 +21,7 @@ import EvidenceUploader, { type EvidenceFile } from './EvidenceUploader';
 export default function EjecucionTab() {
   const { submit, loading, error, result, reset } = useLogExecution();
   const { organizationId } = useOrgContext();
+  const queryClient = useQueryClient();
 
   const [uploading, setUploading] = useState(false);
   const [planId, setPlanId] = useState('');
