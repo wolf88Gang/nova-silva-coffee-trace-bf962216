@@ -206,7 +206,7 @@ export default function AnalisisTab() {
                       <Metric label="Ca %" value={h.ca_pct} />
                       <Metric label="Mg %" value={h.mg_pct} />
                     </div>
-                    {h.interpretacion && <p className="text-xs text-muted-foreground mt-2">{h.interpretacion}</p>}
+                    {h.notas && <p className="text-xs text-muted-foreground mt-2">{h.notas}</p>}
                   </CardContent>
                 </Card>
               ))}
