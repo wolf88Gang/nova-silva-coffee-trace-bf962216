@@ -66,6 +66,9 @@ export default function EjecucionTab() {
         costo_real: parseFloat(costoReal) || undefined,
         notas: notas || undefined,
       });
+      if (!r.cached) {
+        await queryClient.invalidateQueries({ queryKey: ['nutricion_planes', organizationId] });
+      }
       toast.success(
         r.cached
           ? 'Aplicación ya registrada (idempotente)'
