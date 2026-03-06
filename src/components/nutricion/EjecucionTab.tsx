@@ -19,6 +19,7 @@ import EvidenceUploader, { type EvidenceFile } from './EvidenceUploader';
 
 export default function EjecucionTab() {
   const { submit, loading, error, result, reset } = useLogExecution();
+  const { organizationId } = useOrgContext();
 
   const [planId, setPlanId] = useState('');
   const [fecha, setFecha] = useState<Date | undefined>(new Date());
@@ -30,6 +31,7 @@ export default function EjecucionTab() {
   const [cantidadKg, setCantidadKg] = useState('');
   const [costoReal, setCostoReal] = useState('');
   const [notas, setNotas] = useState('');
+  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
