@@ -60,6 +60,7 @@ interface ResumenRow {
   k_intercambiable: number | null;
   ca_intercambiable: number | null;
   mg_intercambiable: number | null;
+  suelo_archivo_url: string | null;
   // último foliar
   foliar_fecha: string | null;
   n_pct: number | null;
