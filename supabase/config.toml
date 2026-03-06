@@ -2,3 +2,12 @@
 # ensure-demo-user: debe ser invocable sin sesión (usuario anónimo en /demo)
 [functions.ensure-demo-user]
 verify_jwt = false
+
+[functions.generate-nutrition-plan-v1]
+verify_jwt = false
+
+[functions.quote-nutrition-inputs-v1]
+verify_jwt = false
+
+[functions.log-nutrition-execution-v1]
+verify_jwt = false
