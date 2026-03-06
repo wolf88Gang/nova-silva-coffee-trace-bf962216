@@ -2,13 +2,15 @@ import { supabase } from '@/integrations/supabase/client';
 
 const FUNCTION_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co/functions/v1/log_nutrition_execution_v1';
 
+type JSONValue = string | number | boolean | null | { [k: string]: JSONValue } | JSONValue[];
+
 export interface ExecutionInput {
   plan_id: string;
   fecha_aplicacion: string; // YYYY-MM-DD
   idempotency_key: string;
   tipo_aplicacion?: 'edafica' | 'foliar' | 'fertirriego' | 'otro';
   dosis_aplicada_json?: { nutrientes: Record<string, number> };
-  evidencias?: Record<string, unknown>;
+  evidencias?: Record<string, JSONValue>;
   costo_real?: number;
   fase_objetivo?: string;
   producto_aplicado?: string;
