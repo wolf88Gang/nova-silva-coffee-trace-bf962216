@@ -55,6 +55,9 @@ export default function EjecucionTab() {
             P2O5_kg_ha: parseFloat(p2o5Kg) || 0,
           },
         },
+        evidencias: evidenceFiles.length
+          ? { files: evidenceFiles.map(f => ({ path: f.path, name: f.name, size: f.size, type: f.type })) }
+          : undefined,
         producto_aplicado: productoAplicado || undefined,
         cantidad_aplicada_kg: parseFloat(cantidadKg) || undefined,
         costo_real: parseFloat(costoReal) || undefined,
