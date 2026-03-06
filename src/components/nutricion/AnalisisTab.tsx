@@ -304,16 +304,17 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
 // ── Hoja Form ──
 function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
   const [form, setForm] = useState({
-    parcela_id: '', fecha_analisis: new Date().toISOString().split('T')[0],
+    parcela_id: '', fecha_muestreo: new Date().toISOString().split('T')[0],
     n_pct: '', p_pct: '', k_pct: '', ca_pct: '', mg_pct: '', s_pct: '',
-    fe_ppm: '', mn_ppm: '', zn_ppm: '', b_ppm: '', cu_ppm: '', interpretacion: '',
+    fe_ppm: '', mn_ppm: '', zn_ppm: '', b_ppm: '', cu_ppm: '',
+    laboratorio: '', notas: '',
   });
 
   const mutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('nutricion_analisis_foliar' as any).insert({
         parcela_id: form.parcela_id,
-        fecha_analisis: form.fecha_analisis,
+        fecha_muestreo: form.fecha_muestreo,
         n_pct: form.n_pct ? parseFloat(form.n_pct) : null,
         p_pct: form.p_pct ? parseFloat(form.p_pct) : null,
         k_pct: form.k_pct ? parseFloat(form.k_pct) : null,
@@ -325,7 +326,8 @@ function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]
         zn_ppm: form.zn_ppm ? parseFloat(form.zn_ppm) : null,
         b_ppm: form.b_ppm ? parseFloat(form.b_ppm) : null,
         cu_ppm: form.cu_ppm ? parseFloat(form.cu_ppm) : null,
-        interpretacion: form.interpretacion || null,
+        laboratorio: form.laboratorio || null,
+        notas: form.notas || null,
         ...orgWriteFields(organizationId),
       });
       if (error) throw error;
