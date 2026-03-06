@@ -29,3 +29,15 @@ export function orgWriteFields(organizationId: string | null): Record<string, st
   if (!organizationId) return {};
   return { organization_id: organizationId };
 }
+
+/**
+ * Apply legacy cooperativa_id filter for tables that still use cooperativa_id
+ * as the organization FK (e.g., parcelas, productores).
+ */
+export function applyLegacyOrgFilter<T>(
+  query: T,
+  organizationId: string | null,
+): T {
+  if (!organizationId) return query;
+  return (query as any).eq('cooperativa_id', organizationId) as T;
+}

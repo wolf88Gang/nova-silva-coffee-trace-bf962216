@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { applyOrgFilter } from '@/lib/orgFilter';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { applyOrgFilter, applyLegacyOrgFilter } from '@/lib/orgFilter';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { FileText, Sprout, Zap, DollarSign, Calendar, Package, CheckCircle } from 'lucide-react';
+import { FileText, Sprout, Zap, DollarSign, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface NutritionPlan {
@@ -19,10 +19,11 @@ interface NutritionPlan {
   supuestos_json: any; status: string; created_at: string;
 }
 
-interface Aplicacion {
-  id: string; plan_id: string; orden: number; producto: string;
-  dosis_por_ha: string | null; metodo: string | null; mes_aplicacion: string | null;
-  costo_estimado_usd: number | null; evidencia_doc_id: string | null; notas: string | null;
+interface Fraccionamiento {
+  id: string; plan_id: string; numero_aplicacion: number;
+  etapa_fenologica: string | null; fecha_programada: string | null;
+  n_kg_ha: number | null; p2o5_kg_ha: number | null; k2o_kg_ha: number | null;
+  tipo_aplicacion: string | null; notas: string | null;
 }
 
 interface Parcela { id: string; nombre: string; }
@@ -34,16 +35,23 @@ const STATUS_COLORS: Record<string, string> = {
   cancelado: 'bg-destructive/10 text-destructive border-destructive/20',
 };
 
+const ETAPA_LABELS: Record<string, string> = {
+  cabeza_alfiler: 'Cabeza de alfiler',
+  expansion_rapida: 'Expansión rápida',
+  llenado_grano: 'Llenado de grano',
+  maduracion: 'Maduración',
+};
+
 export default function PlanesTab() {
   const { organizationId } = useOrgContext();
   const queryClient = useQueryClient();
   const [showGenerate, setShowGenerate] = useState(false);
 
-  // Fetch plans
+  // Fetch plans (real table: nutricion_planes)
   const { data: planes, isLoading } = useQuery({
-    queryKey: ['ag_nutrition_planes', organizationId],
+    queryKey: ['nutricion_planes', organizationId],
     queryFn: async () => {
-      let q = supabase.from('ag_nutrition_planes').select('*');
+      let q = supabase.from('nutricion_planes').select('*');
       q = applyOrgFilter(q, organizationId);
       const { data, error } = await q.order('created_at', { ascending: false });
       if (error) throw error;
@@ -52,12 +60,12 @@ export default function PlanesTab() {
     enabled: !!organizationId,
   });
 
-  // Fetch parcelas for name lookup
+  // Fetch parcelas for name lookup (legacy cooperativa_id)
   const { data: parcelas } = useQuery({
     queryKey: ['parcelas_for_planes', organizationId],
     queryFn: async () => {
       let q = supabase.from('parcelas').select('id, nombre');
-      q = applyOrgFilter(q, organizationId);
+      q = applyLegacyOrgFilter(q, organizationId);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as Parcela[];
@@ -81,7 +89,7 @@ export default function PlanesTab() {
               parcelas={parcelas ?? []}
               onSuccess={() => {
                 setShowGenerate(false);
-                queryClient.invalidateQueries({ queryKey: ['ag_nutrition_planes'] });
+                queryClient.invalidateQueries({ queryKey: ['nutricion_planes'] });
               }}
             />
           </DialogContent>
@@ -115,20 +123,18 @@ export default function PlanesTab() {
 }
 
 function PlanCard({ plan, parcelaName }: { plan: NutritionPlan; parcelaName: string }) {
-  const { data: aplicaciones, isLoading } = useQuery({
-    queryKey: ['ag_nutrition_aplicaciones', plan.id],
+  const { data: fraccionamientos, isLoading } = useQuery({
+    queryKey: ['nutricion_fraccionamientos', plan.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ag_nutrition_aplicaciones')
+        .from('nutricion_fraccionamientos')
         .select('*')
         .eq('plan_id', plan.id)
-        .order('orden');
+        .order('numero_aplicacion');
       if (error) throw error;
-      return (data ?? []) as Aplicacion[];
+      return (data ?? []) as Fraccionamiento[];
     },
   });
-
-  const totalCost = aplicaciones?.reduce((sum, a) => sum + (a.costo_estimado_usd ?? 0), 0) ?? 0;
 
   return (
     <AccordionItem value={plan.id} className="border rounded-lg">
@@ -140,34 +146,34 @@ function PlanCard({ plan, parcelaName }: { plan: NutritionPlan; parcelaName: str
             <p className="text-xs text-muted-foreground">{plan.objetivo || 'Plan generado automáticamente'}</p>
           </div>
           <Badge variant="outline" className={STATUS_COLORS[plan.status] ?? ''}>{plan.status}</Badge>
-          {totalCost > 0 && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <DollarSign className="h-3 w-3" />{totalCost.toFixed(0)} USD
-            </span>
-          )}
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
         {isLoading ? (
           <Skeleton className="h-20 w-full" />
-        ) : !aplicaciones?.length ? (
-          <p className="text-sm text-muted-foreground">Sin aplicaciones definidas.</p>
+        ) : !fraccionamientos?.length ? (
+          <p className="text-sm text-muted-foreground">Sin fraccionamientos definidos.</p>
         ) : (
           <div className="space-y-2">
-            {aplicaciones.map((app, i) => (
-              <div key={app.id} className="flex items-start gap-3 p-3 rounded-md bg-muted/30 text-sm">
+            {fraccionamientos.map(f => (
+              <div key={f.id} className="flex items-start gap-3 p-3 rounded-md bg-muted/30 text-sm">
                 <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
-                  {app.orden}
+                  {f.numero_aplicacion}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground">{app.producto}</p>
+                  <p className="font-medium text-foreground">
+                    {ETAPA_LABELS[f.etapa_fenologica ?? ''] ?? f.etapa_fenologica ?? `Aplicación ${f.numero_aplicacion}`}
+                  </p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
-                    {app.dosis_por_ha && <span>Dosis: {app.dosis_por_ha}</span>}
-                    {app.metodo && <span>Método: {app.metodo}</span>}
-                    {app.mes_aplicacion && <span><Calendar className="h-3 w-3 inline mr-0.5" />{app.mes_aplicacion}</span>}
-                    {app.costo_estimado_usd != null && <span><DollarSign className="h-3 w-3 inline" />{app.costo_estimado_usd} USD</span>}
+                    {f.n_kg_ha != null && <span>N: {f.n_kg_ha.toFixed(1)} kg/ha</span>}
+                    {f.p2o5_kg_ha != null && <span>P₂O₅: {f.p2o5_kg_ha.toFixed(1)} kg/ha</span>}
+                    {f.k2o_kg_ha != null && <span>K₂O: {f.k2o_kg_ha.toFixed(1)} kg/ha</span>}
+                    {f.tipo_aplicacion && <span className="capitalize">{f.tipo_aplicacion.replace('_', ' ')}</span>}
+                    {f.fecha_programada && (
+                      <span><Calendar className="h-3 w-3 inline mr-0.5" />{new Date(f.fecha_programada).toLocaleDateString('es')}</span>
+                    )}
                   </div>
-                  {app.notas && <p className="text-xs text-muted-foreground/70 mt-1">{app.notas}</p>}
+                  {f.notas && <p className="text-xs text-muted-foreground/70 mt-1">{f.notas}</p>}
                 </div>
               </div>
             ))}
@@ -187,7 +193,7 @@ function GeneratePlanForm({ parcelas, onSuccess }: { parcelas: Parcela[]; onSucc
       if (error) throw error;
       return data;
     },
-    onSuccess: (planId) => {
+    onSuccess: () => {
       toast.success('Plan de nutrición generado exitosamente');
       onSuccess();
     },
