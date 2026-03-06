@@ -148,10 +148,21 @@ function PlanCard({ plan, parcelaName }: { plan: NutritionPlan; parcelaName: str
             <p className="text-sm font-medium">{parcelaName} — {plan.ciclo}</p>
             <p className="text-xs text-muted-foreground">{plan.objetivo || 'Plan generado automáticamente'}</p>
           </div>
+          {plan.execution_pct_total != null && (
+            <PlanProgressBar pctTotal={plan.execution_pct_total} compact />
+          )}
           <Badge variant="outline" className={STATUS_COLORS[plan.status] ?? ''}>{plan.status}</Badge>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
+        {plan.execution_pct_total != null && (
+          <div className="mb-4">
+            <PlanProgressBar
+              pctTotal={plan.execution_pct_total}
+              pctByNutrient={plan.execution_pct_by_nutrient ?? undefined}
+            />
+          </div>
+        )}
         {isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : !fraccionamientos?.length ? (
