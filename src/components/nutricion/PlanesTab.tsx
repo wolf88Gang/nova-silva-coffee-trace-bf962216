@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { FileText, Sprout, Zap, DollarSign, Calendar } from 'lucide-react';
+import PlanProgressBar from './PlanProgressBar';
 import { toast } from 'sonner';
 
 interface NutritionPlan {
