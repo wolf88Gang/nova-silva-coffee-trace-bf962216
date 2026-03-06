@@ -263,9 +263,9 @@ export default function EjecucionTab() {
             )}
 
             <div className="flex gap-3">
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || uploading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {loading ? 'Registrando...' : 'Registrar aplicación'}
+                {loading ? 'Registrando...' : uploading ? 'Esperando evidencias…' : 'Registrar aplicación'}
               </Button>
               {result && (
                 <Button type="button" variant="outline" onClick={handleReset}>

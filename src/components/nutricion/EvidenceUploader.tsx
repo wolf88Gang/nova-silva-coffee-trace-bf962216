@@ -23,10 +23,15 @@ const BUCKET = 'nutrition-executions';
 const MAX_FILES = 5;
 const MAX_SIZE_MB = 10;
 
-export default function EvidenceUploader({ organizationId, planId, onFilesChange }: EvidenceUploaderProps) {
+export default function EvidenceUploader({ organizationId, planId, onFilesChange, onUploadingChange }: EvidenceUploaderProps) {
   const [files, setFiles] = useState<EvidenceFile[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploadingState] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  function setUploading(v: boolean) {
+    setUploadingState(v);
+    onUploadingChange?.(v);
+  }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files;
