@@ -68,18 +68,17 @@ export default function AnalisisTab() {
     enabled: !!organizationId,
   });
 
-  // Fetch hoja analyses (if table exists — graceful fallback)
+  // Fetch hoja analyses (nutricion_analisis_foliar)
   const { data: hojaList, isLoading: loadingHoja } = useQuery({
     queryKey: ['nutricion_analisis_foliar', organizationId, selectedParcela],
     queryFn: async () => {
-      // Try nutricion_analisis_foliar first; table may not exist yet
-      const { data, error } = await supabase
+      let q = supabase
         .from('nutricion_analisis_foliar' as any)
         .select('*')
-        .eq('organization_id', organizationId!)
-        .order('fecha_analisis', { ascending: false })
-        .limit(20);
-      if (error) return [] as HojaAnalisis[];
+        .eq('organization_id', organizationId!);
+      if (selectedParcela && selectedParcela !== 'all') q = q.eq('parcela_id', selectedParcela);
+      const { data, error } = await q.order('fecha_muestreo', { ascending: false }).limit(20);
+      if (error) throw error;
       return (data ?? []) as HojaAnalisis[];
     },
     enabled: !!organizationId,
