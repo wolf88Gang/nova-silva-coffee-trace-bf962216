@@ -26,12 +26,12 @@ interface SueloAnalisis {
 }
 
 interface HojaAnalisis {
-  id: string; parcela_id: string; fecha_analisis: string;
+  id: string; parcela_id: string; fecha_muestreo: string;
   n_pct: number | null; p_pct: number | null; k_pct: number | null;
   ca_pct: number | null; mg_pct: number | null; s_pct: number | null;
   fe_ppm: number | null; mn_ppm: number | null; zn_ppm: number | null;
   b_ppm: number | null; cu_ppm: number | null;
-  interpretacion: string | null;
+  laboratorio: string | null; notas: string | null;
 }
 
 export default function AnalisisTab() {
@@ -68,18 +68,17 @@ export default function AnalisisTab() {
     enabled: !!organizationId,
   });
 
-  // Fetch hoja analyses (if table exists — graceful fallback)
+  // Fetch hoja analyses (nutricion_analisis_foliar)
   const { data: hojaList, isLoading: loadingHoja } = useQuery({
     queryKey: ['nutricion_analisis_foliar', organizationId, selectedParcela],
     queryFn: async () => {
-      // Try nutricion_analisis_foliar first; table may not exist yet
-      const { data, error } = await supabase
+      let q = supabase
         .from('nutricion_analisis_foliar' as any)
         .select('*')
-        .eq('organization_id', organizationId!)
-        .order('fecha_analisis', { ascending: false })
-        .limit(20);
-      if (error) return [] as HojaAnalisis[];
+        .eq('organization_id', organizationId!);
+      if (selectedParcela && selectedParcela !== 'all') q = q.eq('parcela_id', selectedParcela);
+      const { data, error } = await q.order('fecha_muestreo', { ascending: false }).limit(20);
+      if (error) throw error;
       return (data ?? []) as HojaAnalisis[];
     },
     enabled: !!organizationId,
@@ -197,7 +196,7 @@ export default function AnalisisTab() {
                       </div>
                       <Badge variant="outline" className="text-xs">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(h.fecha_analisis).toLocaleDateString('es')}
+                        {new Date(h.fecha_muestreo).toLocaleDateString('es')}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
@@ -207,7 +206,7 @@ export default function AnalisisTab() {
                       <Metric label="Ca %" value={h.ca_pct} />
                       <Metric label="Mg %" value={h.mg_pct} />
                     </div>
-                    {h.interpretacion && <p className="text-xs text-muted-foreground mt-2">{h.interpretacion}</p>}
+                    {h.notas && <p className="text-xs text-muted-foreground mt-2">{h.notas}</p>}
                   </CardContent>
                 </Card>
               ))}
@@ -305,16 +304,17 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
 // ── Hoja Form ──
 function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
   const [form, setForm] = useState({
-    parcela_id: '', fecha_analisis: new Date().toISOString().split('T')[0],
+    parcela_id: '', fecha_muestreo: new Date().toISOString().split('T')[0],
     n_pct: '', p_pct: '', k_pct: '', ca_pct: '', mg_pct: '', s_pct: '',
-    fe_ppm: '', mn_ppm: '', zn_ppm: '', b_ppm: '', cu_ppm: '', interpretacion: '',
+    fe_ppm: '', mn_ppm: '', zn_ppm: '', b_ppm: '', cu_ppm: '',
+    laboratorio: '', notas: '',
   });
 
   const mutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('nutricion_analisis_foliar' as any).insert({
         parcela_id: form.parcela_id,
-        fecha_analisis: form.fecha_analisis,
+        fecha_muestreo: form.fecha_muestreo,
         n_pct: form.n_pct ? parseFloat(form.n_pct) : null,
         p_pct: form.p_pct ? parseFloat(form.p_pct) : null,
         k_pct: form.k_pct ? parseFloat(form.k_pct) : null,
@@ -326,7 +326,8 @@ function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]
         zn_ppm: form.zn_ppm ? parseFloat(form.zn_ppm) : null,
         b_ppm: form.b_ppm ? parseFloat(form.b_ppm) : null,
         cu_ppm: form.cu_ppm ? parseFloat(form.cu_ppm) : null,
-        interpretacion: form.interpretacion || null,
+        laboratorio: form.laboratorio || null,
+        notas: form.notas || null,
         ...orgWriteFields(organizationId),
       });
       if (error) throw error;
@@ -350,7 +351,7 @@ function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]
       </div>
       <div>
         <Label>Fecha análisis *</Label>
-        <Input type="date" value={form.fecha_analisis} onChange={e => set('fecha_analisis', e.target.value)} />
+        <Input type="date" value={form.fecha_muestreo} onChange={e => set('fecha_muestreo', e.target.value)} />
       </div>
       <p className="text-xs font-medium text-muted-foreground">Macronutrientes (%)</p>
       <div className="grid grid-cols-3 gap-3">
@@ -370,8 +371,12 @@ function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]
         <div><Label>Cu</Label><Input type="number" step="0.1" value={form.cu_ppm} onChange={e => set('cu_ppm', e.target.value)} /></div>
       </div>
       <div>
-        <Label>Interpretación</Label>
-        <Textarea value={form.interpretacion} onChange={e => set('interpretacion', e.target.value)} placeholder="Observaciones del laboratorio..." />
+        <Label>Laboratorio</Label>
+        <Input value={form.laboratorio} onChange={e => set('laboratorio', e.target.value)} placeholder="Nombre del laboratorio" />
+      </div>
+      <div>
+        <Label>Notas</Label>
+        <Textarea value={form.notas} onChange={e => set('notas', e.target.value)} placeholder="Observaciones del análisis..." />
       </div>
       <Button onClick={() => mutation.mutate()} disabled={!form.parcela_id || mutation.isPending} className="w-full">
         {mutation.isPending ? 'Guardando…' : 'Registrar Análisis Foliar'}
