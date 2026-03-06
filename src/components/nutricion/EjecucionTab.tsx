@@ -21,6 +21,7 @@ export default function EjecucionTab() {
   const { submit, loading, error, result, reset } = useLogExecution();
   const { organizationId } = useOrgContext();
 
+  const [uploading, setUploading] = useState(false);
   const [planId, setPlanId] = useState('');
   const [fecha, setFecha] = useState<Date | undefined>(new Date());
   const [tipo, setTipo] = useState<'edafica' | 'foliar' | 'fertirriego' | 'otro'>('edafica');
@@ -239,6 +240,7 @@ export default function EjecucionTab() {
                   organizationId={organizationId}
                   planId={planId}
                   onFilesChange={setEvidenceFiles}
+                  onUploadingChange={setUploading}
                 />
               </div>
             )}
@@ -261,9 +263,9 @@ export default function EjecucionTab() {
             )}
 
             <div className="flex gap-3">
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || uploading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {loading ? 'Registrando...' : 'Registrar aplicación'}
+                {loading ? 'Registrando...' : uploading ? 'Esperando evidencias…' : 'Registrar aplicación'}
               </Button>
               {result && (
                 <Button type="button" variant="outline" onClick={handleReset}>
