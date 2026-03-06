@@ -16,6 +16,7 @@ interface EvidenceUploaderProps {
   organizationId: string;
   planId: string;
   onFilesChange: (files: EvidenceFile[]) => void;
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
 const BUCKET = 'nutrition-executions';
