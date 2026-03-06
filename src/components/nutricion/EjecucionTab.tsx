@@ -84,6 +84,7 @@ export default function EjecucionTab() {
     setCantidadKg('');
     setCostoReal('');
     setNotas('');
+    setEvidenceFiles([]);
     reset();
   }
 
