@@ -351,7 +351,7 @@ function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]
       </div>
       <div>
         <Label>Fecha análisis *</Label>
-        <Input type="date" value={form.fecha_analisis} onChange={e => set('fecha_analisis', e.target.value)} />
+        <Input type="date" value={form.fecha_muestreo} onChange={e => set('fecha_muestreo', e.target.value)} />
       </div>
       <p className="text-xs font-medium text-muted-foreground">Macronutrientes (%)</p>
       <div className="grid grid-cols-3 gap-3">
