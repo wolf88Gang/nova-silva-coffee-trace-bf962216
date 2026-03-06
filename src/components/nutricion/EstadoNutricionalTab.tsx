@@ -70,7 +70,7 @@ interface ResumenRow {
   // último plan
   plan_id: string | null;
   plan_estado: string | null;
-  plan_confianza: string | null;
+  nivel_confianza: string | null;
 }
 
 export default function EstadoNutricionalTab() {
