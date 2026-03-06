@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.rls-smoke-test]
 verify_jwt = true
+
+[functions.generate_nutrition_plan_v1]
+verify_jwt = true
