@@ -100,6 +100,7 @@ function getAdminNav(): NavItemDef[] {
   return [
     { title: 'Panel de Administración', url: '/admin', icon: Shield },
     { title: 'Directorio de Clientes', url: '/admin/directorio', icon: Building2 },
+    { title: 'Catálogos Nutrición', url: '/admin/catalogos', icon: Sprout },
   ];
 }
 

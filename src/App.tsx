@@ -76,6 +76,7 @@ import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
 // Admin
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminDirectorio from "./pages/admin/AdminDirectorio";
+import AdminCatalogos from "./pages/admin/AdminCatalogos";
 import MiPerfil from "./pages/perfil/MiPerfil";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
@@ -196,6 +197,7 @@ const App = () => (
               {/* ── ADMIN ── */}
               <Route path="/admin" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminPanel /></DashboardLayout></RequireAdmin>} />
               <Route path="/admin/directorio" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminDirectorio /></DashboardLayout></RequireAdmin>} />
+              <Route path="/admin/catalogos" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminCatalogos /></DashboardLayout></RequireAdmin>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
