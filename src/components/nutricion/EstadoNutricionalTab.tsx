@@ -4,7 +4,7 @@ import { useOrgContext } from '@/hooks/useOrgContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle, FileText } from 'lucide-react';
+import { Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle, FileText, Download } from 'lucide-react';
 
 // ── Status helpers ──
 
