@@ -231,6 +231,18 @@ export default function EjecucionTab() {
               </div>
             </div>
 
+            {/* Evidencias */}
+            {planId && organizationId && (
+              <div className="space-y-2">
+                <Label>Evidencias fotográficas</Label>
+                <EvidenceUploader
+                  organizationId={organizationId}
+                  planId={planId}
+                  onFilesChange={setEvidenceFiles}
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Notas / Observaciones</Label>
               <Textarea
