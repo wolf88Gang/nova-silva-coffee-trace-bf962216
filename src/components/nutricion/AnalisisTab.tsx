@@ -26,12 +26,12 @@ interface SueloAnalisis {
 }
 
 interface HojaAnalisis {
-  id: string; parcela_id: string; fecha_analisis: string;
+  id: string; parcela_id: string; fecha_muestreo: string;
   n_pct: number | null; p_pct: number | null; k_pct: number | null;
   ca_pct: number | null; mg_pct: number | null; s_pct: number | null;
   fe_ppm: number | null; mn_ppm: number | null; zn_ppm: number | null;
   b_ppm: number | null; cu_ppm: number | null;
-  interpretacion: string | null;
+  laboratorio: string | null; notas: string | null;
 }
 
 export default function AnalisisTab() {
