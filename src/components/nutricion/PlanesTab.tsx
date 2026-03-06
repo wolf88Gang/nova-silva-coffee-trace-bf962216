@@ -16,7 +16,9 @@ import { toast } from 'sonner';
 
 interface NutritionPlan {
   id: string; parcela_id: string; ciclo: string; objetivo: string | null;
-  supuestos_json: any; status: string; created_at: string;
+  supuestos_json: unknown; status: string; created_at: string;
+  execution_pct_total?: number | null;
+  execution_pct_by_nutrient?: Record<string, number> | null;
 }
 
 interface Fraccionamiento {
