@@ -1,36 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrgContext } from '@/hooks/useOrgContext';
+import { applyOrgFilter, applyLegacyOrgFilter } from '@/lib/orgFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle } from 'lucide-react';
-
-interface ParcelaEstado {
-  parcela_id: string;
-  parcela_nombre: string;
-  cooperativa_id: string;
-  pendiente_pct: number | null;
-  densidad_plantas_ha: number | null;
-  sombra_pct: number | null;
-  textura_suelo: string | null;
-  mo_pct: number | null;
-  ph: number | null;
-  cice: number | null;
-  ultimo_suelo_fecha: string | null;
-  suelo_ph: number | null;
-  suelo_mo_pct: number | null;
-  suelo_p_ppm: number | null;
-  suelo_k_cmol: number | null;
-  suelo_ca_cmol: number | null;
-  suelo_mg_cmol: number | null;
-  ultimo_hoja_fecha: string | null;
-  hoja_n_pct: number | null;
-  hoja_p_pct: number | null;
-  hoja_k_pct: number | null;
-  hoja_ca_pct: number | null;
-  hoja_mg_pct: number | null;
-}
 
 // Ranges for coffee nutrition (simplified)
 function phStatus(ph: number | null): 'ok' | 'warning' | 'critical' | 'unknown' {
@@ -67,17 +42,50 @@ function StatusBadge({ status }: { status: 'ok' | 'warning' | 'critical' | 'unkn
   return <Badge variant="outline" className={variants[status]}>{labels[status]}</Badge>;
 }
 
-export default function EstadoNutricionalTab() {
-  const { user } = useAuth();
+interface ParcelaRow { id: string; nombre: string; }
+interface ContextoRow { parcela_id: string; densidad_plantas_ha: number | null; sombra_pct: number | null; pendiente_pct: number | null; ph: number | null; mo_pct: number | null; }
+interface SueloRow { parcela_id: string; fecha_analisis: string; ph: number | null; mo_pct: number | null; p_ppm: number | null; k_cmol: number | null; ca_cmol: number | null; mg_cmol: number | null; }
 
-  const { data: parcelas, isLoading, error } = useQuery({
-    queryKey: ['ag_parcela_estado_nutricion'],
+export default function EstadoNutricionalTab() {
+  const { organizationId } = useOrgContext();
+
+  // Parcelas (legacy cooperativa_id)
+  const { data: parcelas } = useQuery({
+    queryKey: ['parcelas_estado_nut', organizationId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_ag_parcela_estado_nutricion');
+      let q = supabase.from('parcelas').select('id, nombre');
+      q = applyLegacyOrgFilter(q, organizationId);
+      const { data, error } = await q.order('nombre');
       if (error) throw error;
-      return (data ?? []) as ParcelaEstado[];
+      return (data ?? []) as ParcelaRow[];
     },
-    enabled: !!user,
+    enabled: !!organizationId,
+  });
+
+  // Contextos (organization_id)
+  const { data: contextos } = useQuery({
+    queryKey: ['nutricion_contextos', organizationId],
+    queryFn: async () => {
+      let q = supabase.from('nutricion_parcela_contexto').select('parcela_id, densidad_plantas_ha, sombra_pct, pendiente_pct, ph, mo_pct');
+      q = applyOrgFilter(q, organizationId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as ContextoRow[];
+    },
+    enabled: !!organizationId,
+  });
+
+  // Latest suelo per parcela (organization_id)
+  const { data: sueloList, isLoading, error } = useQuery({
+    queryKey: ['nutricion_suelo_estado', organizationId],
+    queryFn: async () => {
+      let q = supabase.from('nutricion_analisis_suelo').select('parcela_id, fecha_analisis, ph, mo_pct, p_ppm, k_cmol, ca_cmol, mg_cmol');
+      q = applyOrgFilter(q, organizationId);
+      const { data, error } = await q.order('fecha_analisis', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as SueloRow[];
+    },
+    enabled: !!organizationId,
   });
 
   if (isLoading) {
@@ -101,7 +109,13 @@ export default function EstadoNutricionalTab() {
     );
   }
 
-  if (!parcelas || parcelas.length === 0) {
+  // Merge parcelas + contexto + latest suelo
+  const parcelaIds = new Set([
+    ...(parcelas?.map(p => p.id) ?? []),
+    ...(contextos?.map(c => c.parcela_id) ?? []),
+  ]);
+
+  if (parcelaIds.size === 0) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
@@ -115,20 +129,37 @@ export default function EstadoNutricionalTab() {
     );
   }
 
+  // Build merged view
+  const sueloByParcela = new Map<string, SueloRow>();
+  sueloList?.forEach(s => {
+    if (!sueloByParcela.has(s.parcela_id)) sueloByParcela.set(s.parcela_id, s);
+  });
+  const ctxByParcela = new Map(contextos?.map(c => [c.parcela_id, c]) ?? []);
+  const parcelaMap = new Map(parcelas?.map(p => [p.id, p]) ?? []);
+
+  const items = Array.from(parcelaIds).map(pid => {
+    const parcela = parcelaMap.get(pid);
+    const ctx = ctxByParcela.get(pid);
+    const suelo = sueloByParcela.get(pid);
+    return { parcelaId: pid, nombre: parcela?.nombre ?? pid.slice(0, 8), ctx, suelo };
+  });
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
-      {parcelas.map((p) => {
-        const phSt = phStatus(p.suelo_ph ?? p.ph);
-        const moSt = moStatus(p.suelo_mo_pct ?? p.mo_pct);
+      {items.map(({ parcelaId, nombre, ctx, suelo }) => {
+        const ph = suelo?.ph ?? ctx?.ph ?? null;
+        const mo = suelo?.mo_pct ?? ctx?.mo_pct ?? null;
+        const phSt = phStatus(ph);
+        const moSt = moStatus(mo);
         const overallStatus = phSt === 'critical' || moSt === 'critical' ? 'critical'
           : phSt === 'warning' || moSt === 'warning' ? 'warning'
           : phSt === 'ok' && moSt === 'ok' ? 'ok' : 'unknown';
 
         return (
-          <Card key={p.parcela_id} className="hover:shadow-md transition-shadow">
+          <Card key={parcelaId} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">{p.parcela_nombre || 'Parcela sin nombre'}</CardTitle>
+                <CardTitle className="text-base">{nombre}</CardTitle>
                 <StatusBadge status={overallStatus} />
               </div>
             </CardHeader>
@@ -137,16 +168,16 @@ export default function EstadoNutricionalTab() {
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <div className="text-center p-2 rounded-md bg-muted/50">
                   <p className="text-muted-foreground">Densidad</p>
-                  <p className="font-semibold text-foreground">{p.densidad_plantas_ha?.toLocaleString() ?? '—'}</p>
+                  <p className="font-semibold text-foreground">{ctx?.densidad_plantas_ha?.toLocaleString() ?? '—'}</p>
                   <p className="text-muted-foreground">pl/ha</p>
                 </div>
                 <div className="text-center p-2 rounded-md bg-muted/50">
                   <p className="text-muted-foreground">Sombra</p>
-                  <p className="font-semibold text-foreground">{p.sombra_pct != null ? `${p.sombra_pct}%` : '—'}</p>
+                  <p className="font-semibold text-foreground">{ctx?.sombra_pct != null ? `${ctx.sombra_pct}%` : '—'}</p>
                 </div>
                 <div className="text-center p-2 rounded-md bg-muted/50">
                   <p className="text-muted-foreground">Pendiente</p>
-                  <p className="font-semibold text-foreground">{p.pendiente_pct != null ? `${p.pendiente_pct}%` : '—'}</p>
+                  <p className="font-semibold text-foreground">{ctx?.pendiente_pct != null ? `${ctx.pendiente_pct}%` : '—'}</p>
                 </div>
               </div>
 
@@ -154,47 +185,25 @@ export default function EstadoNutricionalTab() {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   <Droplets className="h-3.5 w-3.5" /> Suelo
-                  {p.ultimo_suelo_fecha && (
+                  {suelo?.fecha_analisis && (
                     <span className="ml-auto text-muted-foreground/70">
-                      {new Date(p.ultimo_suelo_fecha).toLocaleDateString('es')}
+                      {new Date(suelo.fecha_analisis).toLocaleDateString('es')}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <div className="flex items-center gap-1">
                     <StatusIcon status={phSt} />
-                    <span>pH {(p.suelo_ph ?? p.ph)?.toFixed(1) ?? '—'}</span>
+                    <span>pH {ph?.toFixed(1) ?? '—'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <StatusIcon status={moSt} />
-                    <span>MO {(p.suelo_mo_pct ?? p.mo_pct)?.toFixed(1) ?? '—'}%</span>
+                    <span>MO {mo?.toFixed(1) ?? '—'}%</span>
                   </div>
-                  {p.suelo_p_ppm != null && (
-                    <span className="text-muted-foreground">P {p.suelo_p_ppm} ppm</span>
+                  {suelo?.p_ppm != null && (
+                    <span className="text-muted-foreground">P {suelo.p_ppm} ppm</span>
                   )}
                 </div>
-              </div>
-
-              {/* Foliar */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <Leaf className="h-3.5 w-3.5" /> Foliar
-                  {p.ultimo_hoja_fecha && (
-                    <span className="ml-auto text-muted-foreground/70">
-                      {new Date(p.ultimo_hoja_fecha).toLocaleDateString('es')}
-                    </span>
-                  )}
-                </div>
-                {p.hoja_n_pct != null ? (
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span>N {p.hoja_n_pct}%</span>
-                    <span>P {p.hoja_p_pct}%</span>
-                    <span>K {p.hoja_k_pct}%</span>
-                    <span>Ca {p.hoja_ca_pct}%</span>
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground/60">Sin análisis foliar</p>
-                )}
               </div>
             </CardContent>
           </Card>

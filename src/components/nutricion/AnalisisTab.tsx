@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { applyOrgFilter, orgWriteFields } from '@/lib/orgFilter';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { applyOrgFilter, applyLegacyOrgFilter, orgWriteFields } from '@/lib/orgFilter';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,21 +13,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FlaskConical, Droplets, Leaf, Plus, Calendar } from 'lucide-react';
+import { Droplets, Leaf, Plus, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Parcela { id: string; nombre: string; }
 
 interface SueloAnalisis {
-  id: string; parcela_id: string; fecha_muestreo: string;
+  id: string; parcela_id: string; fecha_analisis: string;
   ph: number | null; mo_pct: number | null; p_ppm: number | null;
   k_cmol: number | null; ca_cmol: number | null; mg_cmol: number | null;
   s_ppm: number | null; cice: number | null; textura: string | null;
-  recomendaciones_lab_json: any;
 }
 
 interface HojaAnalisis {
-  id: string; parcela_id: string; fecha_muestreo: string;
+  id: string; parcela_id: string; fecha_analisis: string;
   n_pct: number | null; p_pct: number | null; k_pct: number | null;
   ca_pct: number | null; mg_pct: number | null; s_pct: number | null;
   fe_ppm: number | null; mn_ppm: number | null; zn_ppm: number | null;
@@ -42,12 +41,12 @@ export default function AnalisisTab() {
   const [showHojaForm, setShowHojaForm] = useState(false);
   const [selectedParcela, setSelectedParcela] = useState<string>('');
 
-  // Fetch parcelas
+  // Fetch parcelas (legacy cooperativa_id)
   const { data: parcelas } = useQuery({
     queryKey: ['parcelas_for_nutricion', organizationId],
     queryFn: async () => {
       let q = supabase.from('parcelas').select('id, nombre');
-      q = applyOrgFilter(q, organizationId);
+      q = applyLegacyOrgFilter(q, organizationId);
       const { data, error } = await q.order('nombre');
       if (error) throw error;
       return (data ?? []) as Parcela[];
@@ -55,29 +54,32 @@ export default function AnalisisTab() {
     enabled: !!organizationId,
   });
 
-  // Fetch suelo analyses
+  // Fetch suelo analyses (real table: nutricion_analisis_suelo)
   const { data: sueloList, isLoading: loadingSuelo } = useQuery({
-    queryKey: ['ag_suelo_analisis', organizationId, selectedParcela],
+    queryKey: ['nutricion_analisis_suelo', organizationId, selectedParcela],
     queryFn: async () => {
-      let q = supabase.from('ag_suelo_analisis').select('*');
+      let q = supabase.from('nutricion_analisis_suelo').select('*');
       q = applyOrgFilter(q, organizationId);
-      if (selectedParcela) q = q.eq('parcela_id', selectedParcela);
-      const { data, error } = await q.order('fecha_muestreo', { ascending: false }).limit(20);
+      if (selectedParcela && selectedParcela !== 'all') q = q.eq('parcela_id', selectedParcela);
+      const { data, error } = await q.order('fecha_analisis', { ascending: false }).limit(20);
       if (error) throw error;
       return (data ?? []) as SueloAnalisis[];
     },
     enabled: !!organizationId,
   });
 
-  // Fetch hoja analyses
+  // Fetch hoja analyses (if table exists — graceful fallback)
   const { data: hojaList, isLoading: loadingHoja } = useQuery({
-    queryKey: ['ag_hoja_analisis', organizationId, selectedParcela],
+    queryKey: ['nutricion_analisis_foliar', organizationId, selectedParcela],
     queryFn: async () => {
-      let q = supabase.from('ag_hoja_analisis').select('*');
-      q = applyOrgFilter(q, organizationId);
-      if (selectedParcela) q = q.eq('parcela_id', selectedParcela);
-      const { data, error } = await q.order('fecha_muestreo', { ascending: false }).limit(20);
-      if (error) throw error;
+      // Try nutricion_analisis_foliar first; table may not exist yet
+      const { data, error } = await supabase
+        .from('nutricion_analisis_foliar' as any)
+        .select('*')
+        .eq('organization_id', organizationId!)
+        .order('fecha_analisis', { ascending: false })
+        .limit(20);
+      if (error) return [] as HojaAnalisis[];
       return (data ?? []) as HojaAnalisis[];
     },
     enabled: !!organizationId,
@@ -109,8 +111,8 @@ export default function AnalisisTab() {
                 organizationId={organizationId}
                 onSuccess={() => {
                   setShowSueloForm(false);
-                  queryClient.invalidateQueries({ queryKey: ['ag_suelo_analisis'] });
-                  queryClient.invalidateQueries({ queryKey: ['ag_parcela_estado_nutricion'] });
+                  queryClient.invalidateQueries({ queryKey: ['nutricion_analisis_suelo'] });
+                  queryClient.invalidateQueries({ queryKey: ['nutricion_suelo_estado'] });
                 }}
               />
             </DialogContent>
@@ -127,8 +129,7 @@ export default function AnalisisTab() {
                 organizationId={organizationId}
                 onSuccess={() => {
                   setShowHojaForm(false);
-                  queryClient.invalidateQueries({ queryKey: ['ag_hoja_analisis'] });
-                  queryClient.invalidateQueries({ queryKey: ['ag_parcela_estado_nutricion'] });
+                  queryClient.invalidateQueries({ queryKey: ['nutricion_analisis_foliar'] });
                 }}
               />
             </DialogContent>
@@ -160,7 +161,7 @@ export default function AnalisisTab() {
                       </div>
                       <Badge variant="outline" className="text-xs">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(s.fecha_muestreo).toLocaleDateString('es')}
+                        {new Date(s.fecha_analisis).toLocaleDateString('es')}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
@@ -196,7 +197,7 @@ export default function AnalisisTab() {
                       </div>
                       <Badge variant="outline" className="text-xs">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(h.fecha_muestreo).toLocaleDateString('es')}
+                        {new Date(h.fecha_analisis).toLocaleDateString('es')}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
@@ -230,15 +231,15 @@ function Metric({ label, value }: { label: string; value: number | null }) {
 // ── Suelo Form ──
 function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
   const [form, setForm] = useState({
-    parcela_id: '', fecha_muestreo: new Date().toISOString().split('T')[0],
+    parcela_id: '', fecha_analisis: new Date().toISOString().split('T')[0],
     ph: '', mo_pct: '', p_ppm: '', k_cmol: '', ca_cmol: '', mg_cmol: '', s_ppm: '', cice: '', textura: '',
   });
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('ag_suelo_analisis').insert({
+      const { error } = await supabase.from('nutricion_analisis_suelo').insert({
         parcela_id: form.parcela_id,
-        fecha_muestreo: form.fecha_muestreo,
+        fecha_analisis: form.fecha_analisis,
         ph: form.ph ? parseFloat(form.ph) : null,
         mo_pct: form.mo_pct ? parseFloat(form.mo_pct) : null,
         p_ppm: form.p_ppm ? parseFloat(form.p_ppm) : null,
@@ -270,8 +271,8 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
         </Select>
       </div>
       <div>
-        <Label>Fecha muestreo *</Label>
-        <Input type="date" value={form.fecha_muestreo} onChange={e => set('fecha_muestreo', e.target.value)} />
+        <Label>Fecha análisis *</Label>
+        <Input type="date" value={form.fecha_analisis} onChange={e => set('fecha_analisis', e.target.value)} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div><Label>pH</Label><Input type="number" step="0.1" value={form.ph} onChange={e => set('ph', e.target.value)} placeholder="5.2" /></div>
@@ -304,16 +305,16 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
 // ── Hoja Form ──
 function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
   const [form, setForm] = useState({
-    parcela_id: '', fecha_muestreo: new Date().toISOString().split('T')[0],
+    parcela_id: '', fecha_analisis: new Date().toISOString().split('T')[0],
     n_pct: '', p_pct: '', k_pct: '', ca_pct: '', mg_pct: '', s_pct: '',
     fe_ppm: '', mn_ppm: '', zn_ppm: '', b_ppm: '', cu_ppm: '', interpretacion: '',
   });
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('ag_hoja_analisis').insert({
+      const { error } = await supabase.from('nutricion_analisis_foliar' as any).insert({
         parcela_id: form.parcela_id,
-        fecha_muestreo: form.fecha_muestreo,
+        fecha_analisis: form.fecha_analisis,
         n_pct: form.n_pct ? parseFloat(form.n_pct) : null,
         p_pct: form.p_pct ? parseFloat(form.p_pct) : null,
         k_pct: form.k_pct ? parseFloat(form.k_pct) : null,
@@ -348,8 +349,8 @@ function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]
         </Select>
       </div>
       <div>
-        <Label>Fecha muestreo *</Label>
-        <Input type="date" value={form.fecha_muestreo} onChange={e => set('fecha_muestreo', e.target.value)} />
+        <Label>Fecha análisis *</Label>
+        <Input type="date" value={form.fecha_analisis} onChange={e => set('fecha_analisis', e.target.value)} />
       </div>
       <p className="text-xs font-medium text-muted-foreground">Macronutrientes (%)</p>
       <div className="grid grid-cols-3 gap-3">

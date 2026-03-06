@@ -51,6 +51,11 @@ export const TABLE = {
   MENSAJES_ORGANIZACION: 'mensajes_organizacion',
   LOTES_OFRECIDOS: 'lotes_ofrecidos',
   LOTES_OFRECIDOS_EXPORTADORES: 'lotes_ofrecidos_exportadores',
+  // Nutrition module
+  NUTRICION_CONTEXTO: 'nutricion_parcela_contexto',
+  NUTRICION_ANALISIS_SUELO: 'nutricion_analisis_suelo',
+  NUTRICION_PLANES: 'nutricion_planes',
+  NUTRICION_FRACCIONAMIENTOS: 'nutricion_fraccionamientos',
 } as const;
 
 // ── Scope types ──
