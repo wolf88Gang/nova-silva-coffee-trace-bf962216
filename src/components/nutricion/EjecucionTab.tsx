@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLogExecution } from '@/hooks/useLogExecution';
+import { useOrgContext } from '@/hooks/useOrgContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,9 +15,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import EvidenceUploader, { type EvidenceFile } from './EvidenceUploader';
 
 export default function EjecucionTab() {
   const { submit, loading, error, result, reset } = useLogExecution();
+  const { organizationId } = useOrgContext();
 
   const [planId, setPlanId] = useState('');
   const [fecha, setFecha] = useState<Date | undefined>(new Date());
@@ -28,6 +31,7 @@ export default function EjecucionTab() {
   const [cantidadKg, setCantidadKg] = useState('');
   const [costoReal, setCostoReal] = useState('');
   const [notas, setNotas] = useState('');
+  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +55,9 @@ export default function EjecucionTab() {
             P2O5_kg_ha: parseFloat(p2o5Kg) || 0,
           },
         },
+        evidencias: evidenceFiles.length
+          ? { files: evidenceFiles.map(f => ({ path: f.path, name: f.name, size: f.size, type: f.type })) }
+          : undefined,
         producto_aplicado: productoAplicado || undefined,
         cantidad_aplicada_kg: parseFloat(cantidadKg) || undefined,
         costo_real: parseFloat(costoReal) || undefined,
@@ -77,6 +84,7 @@ export default function EjecucionTab() {
     setCantidadKg('');
     setCostoReal('');
     setNotas('');
+    setEvidenceFiles([]);
     reset();
   }
 
@@ -222,6 +230,18 @@ export default function EjecucionTab() {
                 />
               </div>
             </div>
+
+            {/* Evidencias */}
+            {planId && organizationId && (
+              <div className="space-y-2">
+                <Label>Evidencias fotográficas</Label>
+                <EvidenceUploader
+                  organizationId={organizationId}
+                  planId={planId}
+                  onFilesChange={setEvidenceFiles}
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Notas / Observaciones</Label>
