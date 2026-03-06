@@ -240,6 +240,7 @@ export default function EjecucionTab() {
                   organizationId={organizationId}
                   planId={planId}
                   onFilesChange={setEvidenceFiles}
+                  onUploadingChange={setUploading}
                 />
               </div>
             )}
