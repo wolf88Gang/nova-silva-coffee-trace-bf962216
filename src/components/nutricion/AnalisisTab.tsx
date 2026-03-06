@@ -196,7 +196,7 @@ export default function AnalisisTab() {
                       </div>
                       <Badge variant="outline" className="text-xs">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(h.fecha_analisis).toLocaleDateString('es')}
+                        {new Date(h.fecha_muestreo).toLocaleDateString('es')}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
