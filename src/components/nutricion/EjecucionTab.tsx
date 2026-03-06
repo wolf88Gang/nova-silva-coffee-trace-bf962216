@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLogExecution } from '@/hooks/useLogExecution';
@@ -20,6 +21,7 @@ import EvidenceUploader, { type EvidenceFile } from './EvidenceUploader';
 export default function EjecucionTab() {
   const { submit, loading, error, result, reset } = useLogExecution();
   const { organizationId } = useOrgContext();
+  const queryClient = useQueryClient();
 
   const [uploading, setUploading] = useState(false);
   const [planId, setPlanId] = useState('');
@@ -64,6 +66,9 @@ export default function EjecucionTab() {
         costo_real: parseFloat(costoReal) || undefined,
         notas: notas || undefined,
       });
+      if (!r.cached) {
+        await queryClient.invalidateQueries({ queryKey: ['nutricion_planes', organizationId] });
+      }
       toast.success(
         r.cached
           ? 'Aplicación ya registrada (idempotente)'
