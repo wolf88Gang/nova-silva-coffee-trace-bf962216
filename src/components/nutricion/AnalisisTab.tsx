@@ -371,8 +371,12 @@ function HojaForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]
         <div><Label>Cu</Label><Input type="number" step="0.1" value={form.cu_ppm} onChange={e => set('cu_ppm', e.target.value)} /></div>
       </div>
       <div>
-        <Label>Interpretación</Label>
-        <Textarea value={form.interpretacion} onChange={e => set('interpretacion', e.target.value)} placeholder="Observaciones del laboratorio..." />
+        <Label>Laboratorio</Label>
+        <Input value={form.laboratorio} onChange={e => set('laboratorio', e.target.value)} placeholder="Nombre del laboratorio" />
+      </div>
+      <div>
+        <Label>Notas</Label>
+        <Textarea value={form.notas} onChange={e => set('notas', e.target.value)} placeholder="Observaciones del análisis..." />
       </div>
       <Button onClick={() => mutation.mutate()} disabled={!form.parcela_id || mutation.isPending} className="w-full">
         {mutation.isPending ? 'Guardando…' : 'Registrar Análisis Foliar'}
