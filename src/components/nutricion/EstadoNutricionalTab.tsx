@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { applyOrgFilter, applyLegacyOrgFilter } from '@/lib/orgFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle } from 'lucide-react';
+import { Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle, FileText } from 'lucide-react';
 
-// Ranges for coffee nutrition (simplified)
+// ── Status helpers ──
+
 function phStatus(ph: number | null): 'ok' | 'warning' | 'critical' | 'unknown' {
   if (ph == null) return 'unknown';
   if (ph >= 5.0 && ph <= 5.5) return 'ok';
@@ -42,48 +42,46 @@ function StatusBadge({ status }: { status: 'ok' | 'warning' | 'critical' | 'unkn
   return <Badge variant="outline" className={variants[status]}>{labels[status]}</Badge>;
 }
 
-interface ParcelaRow { id: string; nombre: string; }
-interface ContextoRow { parcela_id: string; densidad_plantas_ha: number | null; sombra_pct: number | null; pendiente_pct: number | null; ph: number | null; mo_pct: number | null; }
-interface SueloRow { parcela_id: string; fecha_analisis: string; ph: number | null; mo_pct: number | null; p_ppm: number | null; k_cmol: number | null; ca_cmol: number | null; mg_cmol: number | null; }
+// ── Types matching the MV / RPC return ──
+
+interface ResumenRow {
+  organization_id: string;
+  parcela_id: string;
+  parcela_nombre: string;
+  // contexto
+  variedades: string | null;
+  edad_promedio_anios: number | null;
+  altitud_msnm: number | null;
+  // último suelo
+  suelo_fecha: string | null;
+  ph_agua: number | null;
+  materia_organica_pct: number | null;
+  p_disponible: number | null;
+  k_intercambiable: number | null;
+  ca_intercambiable: number | null;
+  mg_intercambiable: number | null;
+  // último foliar
+  foliar_fecha: string | null;
+  n_pct: number | null;
+  f_p_pct: number | null;
+  k_pct: number | null;
+  ca_pct: number | null;
+  mg_pct: number | null;
+  // último plan
+  plan_id: string | null;
+  plan_estado: string | null;
+  plan_confianza: string | null;
+}
 
 export default function EstadoNutricionalTab() {
   const { organizationId } = useOrgContext();
 
-  // Parcelas (legacy cooperativa_id)
-  const { data: parcelas } = useQuery({
-    queryKey: ['parcelas_estado_nut', organizationId],
+  const { data: items, isLoading, error } = useQuery({
+    queryKey: ['nutricion_resumen', organizationId],
     queryFn: async () => {
-      let q = supabase.from('parcelas').select('id, nombre');
-      q = applyLegacyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('nombre');
+      const { data, error } = await supabase.rpc('get_nutricion_parcela_resumen');
       if (error) throw error;
-      return (data ?? []) as ParcelaRow[];
-    },
-    enabled: !!organizationId,
-  });
-
-  // Contextos (organization_id)
-  const { data: contextos } = useQuery({
-    queryKey: ['nutricion_contextos', organizationId],
-    queryFn: async () => {
-      let q = supabase.from('nutricion_parcela_contexto').select('parcela_id, densidad_plantas_ha, sombra_pct, pendiente_pct, ph, mo_pct');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as ContextoRow[];
-    },
-    enabled: !!organizationId,
-  });
-
-  // Latest suelo per parcela (organization_id)
-  const { data: sueloList, isLoading, error } = useQuery({
-    queryKey: ['nutricion_suelo_estado', organizationId],
-    queryFn: async () => {
-      let q = supabase.from('nutricion_analisis_suelo').select('parcela_id, fecha_analisis, ph, mo_pct, p_ppm, k_cmol, ca_cmol, mg_cmol');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('fecha_analisis', { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as SueloRow[];
+      return (data ?? []) as ResumenRow[];
     },
     enabled: !!organizationId,
   });
@@ -103,19 +101,13 @@ export default function EstadoNutricionalTab() {
       <Card>
         <CardContent className="p-6 text-center">
           <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Error al cargar estado nutricional. Verifica que las tablas de nutrición estén configuradas.</p>
+          <p className="text-sm text-muted-foreground">Error al cargar estado nutricional. Verifica que la RPC esté configurada.</p>
         </CardContent>
       </Card>
     );
   }
 
-  // Merge parcelas + contexto + latest suelo
-  const parcelaIds = new Set([
-    ...(parcelas?.map(p => p.id) ?? []),
-    ...(contextos?.map(c => c.parcela_id) ?? []),
-  ]);
-
-  if (parcelaIds.size === 0) {
+  if (!items || items.length === 0) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
@@ -129,82 +121,93 @@ export default function EstadoNutricionalTab() {
     );
   }
 
-  // Build merged view
-  const sueloByParcela = new Map<string, SueloRow>();
-  sueloList?.forEach(s => {
-    if (!sueloByParcela.has(s.parcela_id)) sueloByParcela.set(s.parcela_id, s);
-  });
-  const ctxByParcela = new Map(contextos?.map(c => [c.parcela_id, c]) ?? []);
-  const parcelaMap = new Map(parcelas?.map(p => [p.id, p]) ?? []);
-
-  const items = Array.from(parcelaIds).map(pid => {
-    const parcela = parcelaMap.get(pid);
-    const ctx = ctxByParcela.get(pid);
-    const suelo = sueloByParcela.get(pid);
-    return { parcelaId: pid, nombre: parcela?.nombre ?? pid.slice(0, 8), ctx, suelo };
-  });
-
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
-      {items.map(({ parcelaId, nombre, ctx, suelo }) => {
-        const ph = suelo?.ph ?? ctx?.ph ?? null;
-        const mo = suelo?.mo_pct ?? ctx?.mo_pct ?? null;
-        const phSt = phStatus(ph);
-        const moSt = moStatus(mo);
+      {items.map((row) => {
+        const phSt = phStatus(row.ph_agua);
+        const moSt = moStatus(row.materia_organica_pct);
         const overallStatus = phSt === 'critical' || moSt === 'critical' ? 'critical'
           : phSt === 'warning' || moSt === 'warning' ? 'warning'
           : phSt === 'ok' && moSt === 'ok' ? 'ok' : 'unknown';
 
         return (
-          <Card key={parcelaId} className="hover:shadow-md transition-shadow">
+          <Card key={row.parcela_id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">{nombre}</CardTitle>
+                <CardTitle className="text-base">{row.parcela_nombre}</CardTitle>
                 <StatusBadge status={overallStatus} />
               </div>
+              {row.variedades && (
+                <p className="text-xs text-muted-foreground">{row.variedades}</p>
+              )}
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* Context */}
-              <div className="grid grid-cols-3 gap-2 text-xs">
+              {/* Contexto */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="text-center p-2 rounded-md bg-muted/50">
-                  <p className="text-muted-foreground">Densidad</p>
-                  <p className="font-semibold text-foreground">{ctx?.densidad_plantas_ha?.toLocaleString() ?? '—'}</p>
-                  <p className="text-muted-foreground">pl/ha</p>
+                  <p className="text-muted-foreground">Edad</p>
+                  <p className="font-semibold text-foreground">{row.edad_promedio_anios != null ? `${row.edad_promedio_anios} años` : '—'}</p>
                 </div>
                 <div className="text-center p-2 rounded-md bg-muted/50">
-                  <p className="text-muted-foreground">Sombra</p>
-                  <p className="font-semibold text-foreground">{ctx?.sombra_pct != null ? `${ctx.sombra_pct}%` : '—'}</p>
-                </div>
-                <div className="text-center p-2 rounded-md bg-muted/50">
-                  <p className="text-muted-foreground">Pendiente</p>
-                  <p className="font-semibold text-foreground">{ctx?.pendiente_pct != null ? `${ctx.pendiente_pct}%` : '—'}</p>
+                  <p className="text-muted-foreground">Altitud</p>
+                  <p className="font-semibold text-foreground">{row.altitud_msnm != null ? `${row.altitud_msnm} msnm` : '—'}</p>
                 </div>
               </div>
 
-              {/* Soil */}
+              {/* Suelo */}
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   <Droplets className="h-3.5 w-3.5" /> Suelo
-                  {suelo?.fecha_analisis && (
+                  {row.suelo_fecha && (
                     <span className="ml-auto text-muted-foreground/70">
-                      {new Date(suelo.fecha_analisis).toLocaleDateString('es')}
+                      {new Date(row.suelo_fecha).toLocaleDateString('es')}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <div className="flex items-center gap-1">
                     <StatusIcon status={phSt} />
-                    <span>pH {ph?.toFixed(1) ?? '—'}</span>
+                    <span>pH {row.ph_agua?.toFixed(1) ?? '—'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <StatusIcon status={moSt} />
-                    <span>MO {mo?.toFixed(1) ?? '—'}%</span>
+                    <span>MO {row.materia_organica_pct?.toFixed(1) ?? '—'}%</span>
                   </div>
-                  {suelo?.p_ppm != null && (
-                    <span className="text-muted-foreground">P {suelo.p_ppm} ppm</span>
+                  {row.p_disponible != null && (
+                    <span className="text-muted-foreground">P {row.p_disponible} ppm</span>
                   )}
                 </div>
               </div>
+
+              {/* Foliar */}
+              {row.foliar_fecha && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <Leaf className="h-3.5 w-3.5" /> Foliar
+                    <span className="ml-auto text-muted-foreground/70">
+                      {new Date(row.foliar_fecha).toLocaleDateString('es')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>N {row.n_pct?.toFixed(2) ?? '—'}%</span>
+                    <span>P {row.f_p_pct?.toFixed(2) ?? '—'}%</span>
+                    <span>K {row.k_pct?.toFixed(2) ?? '—'}%</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Plan activo */}
+              {row.plan_id && (
+                <div className="flex items-center gap-1.5 text-xs pt-1 border-t border-border">
+                  <FileText className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-foreground font-medium">Plan {row.plan_estado}</span>
+                  {row.plan_confianza && (
+                    <Badge variant="outline" className="ml-auto text-[10px] px-1.5 py-0">
+                      {row.plan_confianza}
+                    </Badge>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         );
