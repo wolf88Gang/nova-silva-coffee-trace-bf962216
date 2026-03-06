@@ -4,7 +4,7 @@ import { useOrgContext } from '@/hooks/useOrgContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle, FileText } from 'lucide-react';
+import { Sprout, Droplets, Leaf, AlertTriangle, CheckCircle, HelpCircle, FileText, Download } from 'lucide-react';
 
 // ── Status helpers ──
 
@@ -60,6 +60,7 @@ interface ResumenRow {
   k_intercambiable: number | null;
   ca_intercambiable: number | null;
   mg_intercambiable: number | null;
+  suelo_archivo_url: string | null;
   // último foliar
   foliar_fecha: string | null;
   n_pct: number | null;
@@ -158,6 +159,17 @@ export default function EstadoNutricionalTab() {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   <Droplets className="h-3.5 w-3.5" /> Suelo
+                  {row.suelo_archivo_url && (
+                    <a
+                      href={row.suelo_archivo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1 text-primary hover:text-primary/80 transition-colors"
+                      title="Descargar PDF"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </a>
+                  )}
                   {row.suelo_fecha && (
                     <span className="ml-auto text-muted-foreground/70">
                       {new Date(row.suelo_fecha).toLocaleDateString('es')}
