@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLogExecution } from '@/hooks/useLogExecution';
