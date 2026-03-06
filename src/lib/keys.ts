@@ -55,7 +55,7 @@ export const TABLE = {
   NUTRICION_CONTEXTO: 'nutricion_parcela_contexto',
   NUTRICION_ANALISIS_SUELO: 'nutricion_analisis_suelo',
   NUTRICION_PLANES: 'nutricion_planes',
-  NUTRICION_FRACCIONAMIENTOS: 'nutricion_fraccionamientos',
+  NUTRICION_ANALISIS_FOLIAR: 'nutricion_analisis_foliar',
 } as const;
 
 // ── Scope types ──
