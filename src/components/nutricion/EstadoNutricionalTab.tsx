@@ -70,7 +70,7 @@ interface ResumenRow {
   // último plan
   plan_id: string | null;
   plan_estado: string | null;
-  plan_confianza: string | null;
+  nivel_confianza: string | null;
 }
 
 export default function EstadoNutricionalTab() {
@@ -201,9 +201,9 @@ export default function EstadoNutricionalTab() {
                 <div className="flex items-center gap-1.5 text-xs pt-1 border-t border-border">
                   <FileText className="h-3.5 w-3.5 text-primary" />
                   <span className="text-foreground font-medium">Plan {row.plan_estado}</span>
-                  {row.plan_confianza && (
+                  {row.nivel_confianza && (
                     <Badge variant="outline" className="ml-auto text-[10px] px-1.5 py-0">
-                      {row.plan_confianza}
+                      {row.nivel_confianza}
                     </Badge>
                   )}
                 </div>
