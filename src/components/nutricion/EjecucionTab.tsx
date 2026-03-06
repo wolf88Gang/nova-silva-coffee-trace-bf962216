@@ -21,6 +21,7 @@ export default function EjecucionTab() {
   const { submit, loading, error, result, reset } = useLogExecution();
   const { organizationId } = useOrgContext();
 
+  const [uploading, setUploading] = useState(false);
   const [planId, setPlanId] = useState('');
   const [fecha, setFecha] = useState<Date | undefined>(new Date());
   const [tipo, setTipo] = useState<'edafica' | 'foliar' | 'fertirriego' | 'otro'>('edafica');
