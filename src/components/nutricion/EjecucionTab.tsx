@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLogExecution } from '@/hooks/useLogExecution';
+import { useOrgContext } from '@/hooks/useOrgContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import EvidenceUploader, { type EvidenceFile } from './EvidenceUploader';
 
 export default function EjecucionTab() {
   const { submit, loading, error, result, reset } = useLogExecution();
