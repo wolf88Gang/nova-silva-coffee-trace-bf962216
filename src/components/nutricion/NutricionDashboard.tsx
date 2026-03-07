@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sprout, FlaskConical, FileText, Zap, ShoppingCart, ClipboardCheck } from 'lucide-react';
+import { Sprout, FlaskConical, FileText, Zap, ShoppingCart, ClipboardCheck, History } from 'lucide-react';
 import EstadoNutricionalTab from './EstadoNutricionalTab';
 import AnalisisTab from './AnalisisTab';
 import PlanesTab from './PlanesTab';
 import GeneratePlanV2 from './GeneratePlanV2';
 import CotizacionTab from './CotizacionTab';
 import EjecucionTab from './EjecucionTab';
+import HistorialTab from './HistorialTab';
 
 export default function NutricionDashboard() {
   return (
