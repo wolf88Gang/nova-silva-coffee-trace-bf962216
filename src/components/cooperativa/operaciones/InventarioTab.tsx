@@ -832,6 +832,19 @@ export default function InventarioTab() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ProveedorWizard
+        open={showProveedorWizard}
+        onOpenChange={setShowProveedorWizard}
+        onComplete={data => {
+          // Add new provider name to the local list for immediate use
+          if (data.nombre && !PROVEEDORES.includes(data.nombre)) {
+            PROVEEDORES.splice(PROVEEDORES.length - 1, 0, data.nombre);
+          }
+          setProveedor(data.nombre);
+        }}
+        contexto="inventario"
+      />
     </div>
   );
 }
