@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface PlanProgressBarProps {
   pctTotal: number;
@@ -17,20 +19,43 @@ export default function PlanProgressBar({ pctTotal, pctByNutrient, compact = fal
   const clamped = Math.min(pctTotal, 100);
   const color = clamped >= 100 ? 'text-primary' : clamped >= 50 ? 'text-accent-foreground' : 'text-muted-foreground';
 
+  // Pulse animation when value changes
+  const prevRef = useRef(pctTotal);
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    if (prevRef.current !== pctTotal) {
+      prevRef.current = pctTotal;
+      setPulse(true);
+      const t = setTimeout(() => setPulse(false), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [pctTotal]);
+
   if (compact) {
     return (
-      <div className="flex items-center gap-2 min-w-[120px]">
+      <div className={cn(
+        'flex items-center gap-2 min-w-[120px] transition-all duration-500',
+        pulse && 'animate-pulse ring-2 ring-primary/30 rounded-full px-1'
+      )}>
         <Progress value={clamped} className="h-1.5 flex-1" />
-        <span className={`text-xs font-semibold ${color}`}>{Math.round(pctTotal)}%</span>
+        <span className={cn('text-xs font-semibold transition-colors duration-500', color, pulse && 'text-primary')}>
+          {Math.round(pctTotal)}%
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className={cn(
+      'space-y-2 transition-all duration-500 rounded-lg p-2 -m-2',
+      pulse && 'ring-2 ring-primary/20 bg-primary/5'
+    )}>
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Avance total</span>
-        <Badge variant="secondary" className="text-xs">{Math.round(pctTotal)}%</Badge>
+        <Badge variant="secondary" className={cn('text-xs transition-all duration-500', pulse && 'bg-primary text-primary-foreground')}>
+          {Math.round(pctTotal)}%
+        </Badge>
       </div>
       <Progress value={clamped} className="h-2" />
 
