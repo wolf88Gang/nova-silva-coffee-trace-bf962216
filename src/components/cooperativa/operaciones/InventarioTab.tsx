@@ -29,8 +29,8 @@ interface Equipo {
   id: string; nombre: string; marca: string; modelo: string;
   tipo: 'Herramienta' | 'Maquinaria' | 'Vehículo' | 'Instrumento';
   estado: 'Operativo' | 'En Mantenimiento' | 'Fuera de servicio';
-  valor: number; fechaCompra: string; vidaUtilAnios: number;
-  horasUso?: number; horasVidaUtil?: number; combustibleMes?: number; parcelaAsignada?: string;
+  valor: number; fechaCompra: string;
+  horasUso?: number; combustibleMes?: number; parcelaAsignada?: string;
   proximoMantenimiento?: string; frecuenciaMantenimiento?: string;
   responsable?: string; notasMantenimiento?: string;
 }
@@ -73,14 +73,14 @@ const insumosInicial: Insumo[] = [
 ];
 
 const equiposInicial: Equipo[] = [
-  { id: 'e1', nombre: 'Balanza digital', marca: 'Torrey', modelo: 'EQB-50', tipo: 'Instrumento', estado: 'Operativo', valor: 95000, fechaCompra: '2023-03-15', vidaUtilAnios: 10, horasUso: 1200, horasVidaUtil: 15000, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
-  { id: 'e2', nombre: 'Bomba de fumigación', marca: 'Solo', modelo: '423', tipo: 'Maquinaria', estado: 'Operativo', valor: 185000, fechaCompra: '2023-06-20', vidaUtilAnios: 8, horasUso: 340, horasVidaUtil: 3000, combustibleMes: 8, parcelaAsignada: 'Finca El Progreso', proximoMantenimiento: '2026-04-01', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Carlos Méndez (Jefe de campo)' },
-  { id: 'e3', nombre: 'Desbrozadora', marca: 'Stihl', modelo: 'FS 120', tipo: 'Maquinaria', estado: 'En Mantenimiento', valor: 320000, fechaCompra: '2022-11-10', vidaUtilAnios: 7, horasUso: 890, horasVidaUtil: 4000, combustibleMes: 15, proximoMantenimiento: '2026-03-15', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)', notasMantenimiento: 'Filtro de aire y bujía en reemplazo' },
-  { id: 'e4', nombre: 'Medidor humedad', marca: 'Delmhorst', modelo: 'G-7', tipo: 'Instrumento', estado: 'Operativo', valor: 125000, fechaCompra: '2024-01-05', vidaUtilAnios: 10, horasUso: 200, horasVidaUtil: 10000, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
-  { id: 'e5', nombre: 'Motosierra', marca: 'Stihl', modelo: 'MS 250', tipo: 'Maquinaria', estado: 'Operativo', valor: 450000, fechaCompra: '2023-09-01', vidaUtilAnios: 8, horasUso: 560, horasVidaUtil: 5000, combustibleMes: 12, parcelaAsignada: 'Finca La Unión', frecuenciaMantenimiento: 'Cada 100 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)' },
-  { id: 'e6', nombre: 'Pick-up de trabajo', marca: 'Toyota', modelo: 'Hilux 4×4', tipo: 'Vehículo', estado: 'Operativo', valor: 12500000, fechaCompra: '2024-06-15', vidaUtilAnios: 15, horasUso: 8500, horasVidaUtil: 200000, combustibleMes: 180, parcelaAsignada: 'Ruta general', proximoMantenimiento: '2026-03-20', frecuenciaMantenimiento: 'Cada 500 hrs', responsable: 'Luis Herrera (Chofer)' },
-  { id: 'e7', nombre: 'Secadora solar', marca: 'Artesanal', modelo: 'Tipo parabólico', tipo: 'Maquinaria', estado: 'Operativo', valor: 280000, fechaCompra: '2022-02-20', vidaUtilAnios: 10, parcelaAsignada: 'Beneficio Central', responsable: 'Carlos Méndez (Jefe de campo)' },
-  { id: 'e8', nombre: 'Despulpadora', marca: 'JM Estrada', modelo: 'No. 3', tipo: 'Maquinaria', estado: 'Operativo', valor: 950000, fechaCompra: '2021-08-10', vidaUtilAnios: 20, horasUso: 2400, horasVidaUtil: 30000, parcelaAsignada: 'Beneficio Central', proximoMantenimiento: '2026-05-01', frecuenciaMantenimiento: 'Semestral', responsable: 'Carlos Méndez (Jefe de campo)' },
+  { id: 'e1', nombre: 'Balanza digital', marca: 'Torrey', modelo: 'EQB-50', tipo: 'Instrumento', estado: 'Operativo', valor: 95000, fechaCompra: '2023-03-15', horasUso: 1200, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
+  { id: 'e2', nombre: 'Bomba de fumigación', marca: 'Solo', modelo: '423', tipo: 'Maquinaria', estado: 'Operativo', valor: 185000, fechaCompra: '2023-06-20', horasUso: 340, combustibleMes: 8, parcelaAsignada: 'Finca El Progreso', proximoMantenimiento: '2026-04-01', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Carlos Méndez (Jefe de campo)' },
+  { id: 'e3', nombre: 'Desbrozadora', marca: 'Stihl', modelo: 'FS 120', tipo: 'Maquinaria', estado: 'En Mantenimiento', valor: 320000, fechaCompra: '2022-11-10', horasUso: 890, combustibleMes: 15, proximoMantenimiento: '2026-03-15', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)', notasMantenimiento: 'Filtro de aire y bujía en reemplazo' },
+  { id: 'e4', nombre: 'Medidor humedad', marca: 'Delmhorst', modelo: 'G-7', tipo: 'Instrumento', estado: 'Operativo', valor: 125000, fechaCompra: '2024-01-05', horasUso: 200, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
+  { id: 'e5', nombre: 'Motosierra', marca: 'Stihl', modelo: 'MS 250', tipo: 'Maquinaria', estado: 'Operativo', valor: 450000, fechaCompra: '2023-09-01', horasUso: 560, combustibleMes: 12, parcelaAsignada: 'Finca La Unión', frecuenciaMantenimiento: 'Cada 100 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)' },
+  { id: 'e6', nombre: 'Pick-up de trabajo', marca: 'Toyota', modelo: 'Hilux 4×4', tipo: 'Vehículo', estado: 'Operativo', valor: 12500000, fechaCompra: '2024-06-15', horasUso: 8500, combustibleMes: 180, parcelaAsignada: 'Ruta general', proximoMantenimiento: '2026-03-20', frecuenciaMantenimiento: 'Cada 500 hrs', responsable: 'Luis Herrera (Chofer)' },
+  { id: 'e7', nombre: 'Secadora solar', marca: 'Artesanal', modelo: 'Tipo parabólico', tipo: 'Maquinaria', estado: 'Operativo', valor: 280000, fechaCompra: '2022-02-20', parcelaAsignada: 'Beneficio Central', responsable: 'Carlos Méndez (Jefe de campo)' },
+  { id: 'e8', nombre: 'Despulpadora', marca: 'JM Estrada', modelo: 'No. 3', tipo: 'Maquinaria', estado: 'Operativo', valor: 950000, fechaCompra: '2021-08-10', horasUso: 2400, parcelaAsignada: 'Beneficio Central', proximoMantenimiento: '2026-05-01', frecuenciaMantenimiento: 'Semestral', responsable: 'Carlos Méndez (Jefe de campo)' },
 ];
 
 const historialInicial: Movimiento[] = [
@@ -115,18 +115,6 @@ const fmtDate = (d: string) => {
   return date.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-/** Depreciación lineal: años transcurridos / vida útil */
-const getDepreciacion = (eq: Equipo) => {
-  const aniosTranscurridos = (Date.now() - new Date(eq.fechaCompra + 'T12:00:00').getTime()) / (365.25 * 24 * 3600 * 1000);
-  const pctUsado = Math.min(100, Math.max(0, (aniosTranscurridos / eq.vidaUtilAnios) * 100));
-  const valorNeto = Math.max(0, eq.valor * (1 - pctUsado / 100));
-  return { pctUsado, valorNeto, aniosTranscurridos };
-};
-
-const horasUsoPct = (eq: Equipo) => {
-  if (!eq.horasUso || !eq.horasVidaUtil) return null;
-  return Math.min(100, (eq.horasUso / eq.horasVidaUtil) * 100);
-};
 
 function getSugerenciasSalida(insumo: Insumo): SugerenciaSalida[] {
   const sugerencias: SugerenciaSalida[] = [];
@@ -383,11 +371,7 @@ export default function InventarioTab() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredEquipos.map(eq => {
-                  const dep = getDepreciacion(eq);
-                  const hPct = horasUsoPct(eq);
-                  const depColor = dep.pctUsado > 80 ? 'bg-destructive' : dep.pctUsado > 50 ? 'bg-amber-500' : 'bg-primary';
-                  return (
+                {filteredEquipos.map(eq => (
                   <div
                     key={eq.id}
                     className="rounded-lg border border-border p-4 hover:shadow-md transition-all cursor-pointer hover:border-primary/30"
@@ -404,37 +388,15 @@ export default function InventarioTab() {
                       <Badge variant="outline" className="gap-1 text-[10px]">{equipoIcon(eq.tipo)} {eq.tipo}</Badge>
                       <span className="text-sm font-medium text-muted-foreground">{fmtCRC(eq.valor)}</span>
                     </div>
-                    {/* Depreciation bar */}
-                    <div className="mt-3 space-y-1">
-                      <div className="flex justify-between text-[10px] text-muted-foreground">
-                        <span>Depreciación ({dep.pctUsado.toFixed(0)}%)</span>
-                        <span>Valor neto: {fmtCRC(Math.round(dep.valorNeto))}</span>
-                      </div>
-                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${depColor} transition-all`} style={{ width: `${dep.pctUsado}%` }} />
-                      </div>
-                    </div>
-                    {/* Hours bar */}
-                    {hPct !== null && (
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between text-[10px] text-muted-foreground">
-                          <span>Uso {eq.horasUso?.toLocaleString()} / {eq.horasVidaUtil?.toLocaleString()} hrs</span>
-                          <span>{hPct.toFixed(0)}%</span>
-                        </div>
-                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${hPct > 80 ? 'bg-destructive' : hPct > 50 ? 'bg-amber-500' : 'bg-primary'} transition-all`} style={{ width: `${hPct}%` }} />
-                        </div>
-                      </div>
-                    )}
-                    {(eq.combustibleMes || eq.proximoMantenimiento || eq.responsable) && (
-                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
+                    {(eq.horasUso || eq.combustibleMes || eq.proximoMantenimiento) && (
+                      <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground flex-wrap">
+                        {eq.horasUso && <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {eq.horasUso.toLocaleString()} hrs</span>}
                         {eq.combustibleMes && <span className="flex items-center gap-1"><Fuel className="h-3 w-3" /> {eq.combustibleMes} L/mes</span>}
                         {eq.proximoMantenimiento && <span className="flex items-center gap-1"><Wrench className="h-3 w-3" /> Mant: {fmtDate(eq.proximoMantenimiento)}</span>}
                       </div>
                     )}
                   </div>
-                  );
-                })}
+                ))}
 
               </div>
               {filteredEquipos.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">No se encontraron equipos</p>}
@@ -553,10 +515,7 @@ export default function InventarioTab() {
           <DialogHeader><DialogTitle>Ficha de Equipo</DialogTitle></DialogHeader>
           {showDetalleEquipo && (() => {
             const eq = showDetalleEquipo;
-            const dep = getDepreciacion(eq);
-            const hPct = horasUsoPct(eq);
             const movs = movimientos.filter(m => m.itemId === eq.id);
-            const depColor = dep.pctUsado > 80 ? 'bg-destructive' : dep.pctUsado > 50 ? 'bg-amber-500' : 'bg-primary';
             return (
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -568,41 +527,11 @@ export default function InventarioTab() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Tipo</span><span className="font-bold text-foreground flex items-center gap-1.5">{equipoIcon(eq.tipo)} {eq.tipo}</span></div>
-                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor original</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
+                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Fecha compra</span><span className="text-foreground">{fmtDate(eq.fechaCompra)}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Horas uso</span><span className="text-foreground">{eq.horasUso?.toLocaleString() ?? '—'} hrs</span></div>
                 </div>
 
-                {/* Depreciación */}
-                <div className="space-y-2 border-t border-border pt-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Depreciación</p>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor neto</span><span className="font-bold text-foreground">{fmtCRC(Math.round(dep.valorNeto))}</span></div>
-                    <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Depreciado</span><span className="font-bold text-foreground">{dep.pctUsado.toFixed(1)}%</span></div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
-                      <span>0%</span><span>{dep.pctUsado.toFixed(0)}% depreciado</span><span>100%</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${depColor} transition-all`} style={{ width: `${dep.pctUsado}%` }} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Horas de uso */}
-                {hPct !== null && (
-                  <div className="space-y-2 border-t border-border pt-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Horas de Uso</p>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Acumuladas</span><span className="font-bold text-foreground">{eq.horasUso?.toLocaleString()} hrs</span></div>
-                      <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Vida útil estimada</span><span className="text-foreground">{eq.horasVidaUtil?.toLocaleString()} hrs</span></div>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${hPct > 80 ? 'bg-destructive' : hPct > 50 ? 'bg-amber-500' : 'bg-primary'} transition-all`} style={{ width: `${hPct}%` }} />
-                    </div>
-                  </div>
-                )}
 
                 {/* Operación (read-only) */}
                 <div className="space-y-2 border-t border-border pt-3">
@@ -839,11 +768,7 @@ export default function InventarioTab() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1"><Label>Fecha compra</Label><Input type="date" /></div>
-              <div className="space-y-1"><Label>Vida útil (años)</Label><Input type="number" placeholder="10" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1"><Label>Horas acumuladas</Label><Input type="number" placeholder="0" /></div>
-              <div className="space-y-1"><Label>Horas vida útil</Label><Input type="number" placeholder="5000" /></div>
             </div>
             <div className="border-t border-border pt-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Operación</p>
