@@ -97,6 +97,7 @@ const PageLoader = () => (
       muted
       playsInline
       className="w-32 h-32 object-contain"
+      ref={(el) => { if (el) el.playbackRate = 4; }}
     />
   </div>
 );
