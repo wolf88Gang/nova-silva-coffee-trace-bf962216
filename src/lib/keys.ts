@@ -51,6 +51,14 @@ export const TABLE = {
   MENSAJES_ORGANIZACION: 'mensajes_organizacion',
   LOTES_OFRECIDOS: 'lotes_ofrecidos',
   LOTES_OFRECIDOS_EXPORTADORES: 'lotes_ofrecidos_exportadores',
+  // Commercial module
+  OFERTAS_COMERCIALES: 'ofertas_comerciales',
+  OFERTAS_LOTES: 'ofertas_lotes',
+  RECLAMOS: 'reclamos_postventa',
+  COMPARACION_MUESTRAS: 'comparacion_muestras',
+  CLIENTES_COMPRADORES: 'clientes_compradores',
+  COOP_EXPORTADORES: 'cooperativa_exportadores',
+  LOTES_COMERCIALES_ACOPIO: 'lotes_comerciales_lotes_acopio',
   // Nutrition module
   NUTRICION_CONTEXTO: 'nutricion_parcela_contexto',
   NUTRICION_ANALISIS_SUELO: 'nutricion_analisis_suelo',
