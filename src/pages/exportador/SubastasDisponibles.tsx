@@ -1,6 +1,7 @@
 /**
  * SubastasDisponibles — Vista exportador para participar en subastas/ofertas públicas de cooperativas
  * Rich cards + Detail sheet (Origen/Calidad/EUDR/Mercado) + Interpretación Nova Silva + Dialog de oferta
+ * Connected to useLotesOfrecidos for real-data awareness; falls back to rich demo data.
  */
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
