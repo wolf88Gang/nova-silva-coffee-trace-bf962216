@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sprout, FlaskConical, FileText, Zap, ShoppingCart, ClipboardCheck, History, TestTube, Layers } from 'lucide-react';
+import { Sprout, FlaskConical, FileText, Zap, ShoppingCart, ClipboardCheck, History, TestTube, Layers, Calculator } from 'lucide-react';
 import EstadoNutricionalTab from './EstadoNutricionalTab';
 import AnalisisTab from './AnalisisTab';
 import PlanesTab from './PlanesTab';
@@ -9,6 +9,7 @@ import EjecucionTab from './EjecucionTab';
 import HistorialTab from './HistorialTab';
 import ProtocoloMuestreoTab from './ProtocoloMuestreoTab';
 import SoilHealthTab from './SoilHealthTab';
+import DemandaTab from './DemandaTab';
 
 export default function NutricionDashboard() {
   return (
