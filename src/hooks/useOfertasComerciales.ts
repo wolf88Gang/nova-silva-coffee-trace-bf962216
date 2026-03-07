@@ -5,12 +5,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from './useOrgContext';
+import { QUERY_KEYS } from '@/config/keys';
 
 export function useOfertasComerciales(options?: { loteComercialId?: string }) {
   const { organizationId, isLoading: orgLoading } = useOrgContext();
 
   return useQuery({
-    queryKey: ['ofertas_comerciales', organizationId, options?.loteComercialId],
+    queryKey: [...QUERY_KEYS.ofertasComerciales, organizationId, options?.loteComercialId],
     queryFn: async () => {
       if (!organizationId) return [];
       try {

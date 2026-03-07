@@ -5,12 +5,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from './useOrgContext';
+import { QUERY_KEYS } from '@/config/keys';
 
 export function useContratos(options?: { contratoId?: string; estado?: string }) {
   const { organizationId, isLoading: orgLoading } = useOrgContext();
 
   return useQuery({
-    queryKey: ['contratos', organizationId, options?.contratoId, options?.estado],
+    queryKey: [...QUERY_KEYS.contratos, organizationId, options?.contratoId, options?.estado],
     queryFn: async () => {
       if (!organizationId) return [];
       let q = supabase
