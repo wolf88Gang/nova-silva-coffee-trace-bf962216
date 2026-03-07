@@ -14,3 +14,19 @@ verify_jwt = false
 # agro-alert-evaluator: service_role, corre programada o manual
 [functions.agro-alert-evaluator]
 verify_jwt = false
+
+# log-nutrition-execution-v1: requiere JWT, registra ejecución de fertilización
+[functions.log-nutrition-execution-v1]
+verify_jwt = true
+
+# approve-nutrition-plan-v1: requiere JWT + rol tecnico/admin_org
+[functions.approve-nutrition-plan-v1]
+verify_jwt = true
+
+# revise-nutrition-plan-v1: requiere JWT + rol tecnico/admin_org
+[functions.revise-nutrition-plan-v1]
+verify_jwt = true
+
+# quote-nutrition-inputs-v1: requiere JWT, sugiere proveedores o genera cotización
+[functions.quote-nutrition-inputs-v1]
+verify_jwt = true
