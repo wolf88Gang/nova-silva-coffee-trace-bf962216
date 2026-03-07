@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Package, AlertTriangle } from 'lucide-react';
-import { DEMO_LOTES_COMERCIALES } from '@/lib/demo-data';
+import { Package, AlertTriangle, Loader2 } from 'lucide-react';
+import { useLotesComerciales } from '@/hooks/useLotesComerciales';
 
 const estadoBadge = (estado: string) => {
   const map: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
