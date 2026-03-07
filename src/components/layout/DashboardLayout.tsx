@@ -19,14 +19,16 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-        <div className="relative">
-          <img
-            src={logoNovasilva}
-            alt="Nova Silva"
-            className="w-16 h-16 object-contain animate-pulse"
-          />
-          <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ping" />
-        </div>
+        <video
+          src="/animacion_nova_silva.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="w-32 h-32 object-contain"
+          ref={(el) => { if (el) el.playbackRate = 8; }}
+        />
         <p className="text-sm text-muted-foreground">Cargando Nova Silva…</p>
       </div>
     );
