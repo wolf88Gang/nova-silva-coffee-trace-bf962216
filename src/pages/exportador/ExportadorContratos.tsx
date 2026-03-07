@@ -15,7 +15,15 @@ const estadoConfig = {
 };
 
 export default function ExportadorContratos() {
-  const [selected, setSelected] = useState<typeof contratos[0] | null>(null);
+  const { data: contratos = [], isLoading } = useContratos();
+  const [selected, setSelected] = useState<Contrato | null>(null);
+
+  const activos = contratos.filter(c => c.estado !== 'cerrado').length;
+  const totalVolumen = contratos.reduce((s, c) => s + (c.volumen ?? 0), 0);
+  const totalValor = contratos.reduce((s, c) => s + ((c.volumen ?? 0) * 69 * (c.precio_lb ?? 0)), 0);
+  const avgPrice = activos > 0 ? contratos.filter(c => c.estado !== 'cerrado').reduce((s, c) => s + (c.precio_lb ?? 0), 0) / activos : 0;
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6 animate-fade-in">
