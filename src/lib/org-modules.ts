@@ -26,6 +26,7 @@ export type OrgModule =
   | 'inventario'     // Equipment & supplies inventory
   | 'mensajes'       // Internal messaging
   | 'inclusion'      // Inclusión y equidad
+  | 'nutricion'      // Nutrición de parcelas
   | 'admin';         // Platform admin (Nova Silva internal)
 
 /** Minimal org data needed to resolve modules */

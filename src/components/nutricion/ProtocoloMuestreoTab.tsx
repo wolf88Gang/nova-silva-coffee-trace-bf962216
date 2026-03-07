@@ -136,7 +136,7 @@ export default function ProtocoloMuestreoTab() {
                   <TableCell><CumplimientoBadge pct={log.cumplimiento} /></TableCell>
                   <TableCell className="text-center">
                     {log.validado
-                      ? <CheckCircle2 className="h-4 w-4 text-emerald-600 mx-auto" />
+                      ? <CheckCircle2 className="h-4 w-4 text-primary mx-auto" />
                       : <XCircle className="h-4 w-4 text-destructive mx-auto" />}
                   </TableCell>
                 </TableRow>
