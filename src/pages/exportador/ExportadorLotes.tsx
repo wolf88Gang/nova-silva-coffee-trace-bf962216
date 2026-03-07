@@ -37,7 +37,7 @@ export default function ExportadorLotes() {
                 <th className="pb-2 pr-4">Código ICO</th><th className="pb-2 pr-4">Origen</th><th className="pb-2 pr-4">Sacos</th><th className="pb-2 pr-4">Tipo</th><th className="pb-2 pr-4">SCA</th><th className="pb-2 pr-4">EUDR</th><th className="pb-2">Estado</th>
               </tr></thead>
               <tbody>
-                {DEMO_LOTES_COMERCIALES.map((l) => (
+                {lotes.map((l) => (
                   <tr key={l.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
                     <td className="py-3 pr-4 font-medium text-foreground">{l.codigoICO}</td>
                     <td className="py-3 pr-4 text-muted-foreground">{l.origen}</td>
