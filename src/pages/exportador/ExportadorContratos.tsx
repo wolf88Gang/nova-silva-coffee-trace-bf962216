@@ -39,9 +39,7 @@ export default function ExportadorContratos() {
         <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><FileText className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Contratos activos</span></div><p className="text-2xl font-bold text-foreground">{activos}</p></CardContent></Card>
         <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><Package className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Vol. comprometido</span></div><p className="text-2xl font-bold text-foreground">{totalVolumen.toLocaleString()} sacos</p></CardContent></Card>
         <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><DollarSign className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Valor total</span></div><p className="text-2xl font-bold text-foreground">${(totalValor / 1000).toFixed(0)}K</p></CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><Calendar className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Precio prom.</span></div><p className="text-2xl font-bold text-foreground">${avgPriceent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+        <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><Calendar className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Precio prom.</span></div><p className="text-2xl font-bold text-foreground">${avgPricelassName="w-full text-sm">
               <thead><tr className="border-b text-muted-foreground text-left">
                 <th className="px-4 py-3 font-medium">Contrato</th><th className="px-4 py-3 font-medium">Cliente</th><th className="px-4 py-3 font-medium">Vol.</th><th className="px-4 py-3 font-medium">Precio</th><th className="px-4 py-3 font-medium">Incoterm</th><th className="px-4 py-3 font-medium">Ventana</th><th className="px-4 py-3 font-medium">Ejecución</th><th className="px-4 py-3 font-medium">Estado</th>
               </tr></thead>
@@ -53,9 +51,9 @@ export default function ExportadorContratos() {
                     <td className="px-4 py-3 text-foreground">{c.volumen} sacos</td>
                     <td className="px-4 py-3 font-medium text-foreground">${c.precioLb}/lb</td>
                     <td className="px-4 py-3 text-muted-foreground">{c.in_loterm}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{c.ventana}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{c._lentana}</td>
                     <td className="px-4 py-3"><Progress value={c.ejecutado} className="h-1.5 w-16" /></td>
-                    <td className="px-4 py-3"><Badge variant={estadoConfig[c.estado].variant}>{estadoConfig[c.estado].label}</Badge></td>
+                    <td className="px-4 py-3"><Badg ?? 0e variant={estadoConfig[c.estado].variant}>{estadoConfig[c.estado].label}</Badge></td>
                   </tr>
                 ))}
               </tbody>
