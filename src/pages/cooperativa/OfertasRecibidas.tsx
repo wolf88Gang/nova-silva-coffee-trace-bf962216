@@ -1,7 +1,7 @@
 /**
- * OfertasRecibidas — Vista cooperativa para gestionar ofertas de exportadores
- * Incluye tabla de ofertas pendientes, sheet de análisis con MarketIntelligenceCard,
- * e historial de ofertas respondidas.
+ * OfertasRecibidas — Vista cooperativa para gestionar ofertas de exportadores.
+ * Connected to Supabase via useOfertasComerciales + useResponderOferta.
+ * Falls back to demo data when empty.
  */
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,32 +9,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  HandCoins, Eye, CheckCircle, XCircle, Clock, TrendingUp, Package,
+  HandCoins, Eye, CheckCircle, XCircle, Clock, TrendingUp, Package, Loader2,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import MarketIntelligenceCard from '@/components/cooperativa/MarketIntelligenceCard';
-
-interface Oferta {
-  id: string; loteCode: string; exportadorNombre: string; volumenKg: number;
-  precioOfertado: number; condicionesPago: string; fechaOferta: string; notas: string;
-  riesgo: 'bajo' | 'medio' | 'alto'; estado: 'pendiente' | 'aceptada' | 'rechazada' | 'contraoferta';
-  esVIP: boolean; fechaRespuesta?: string;
-}
-
-const ofertasIniciales: Oferta[] = [
-  { id: '1', loteCode: 'SOL-2024-001', exportadorNombre: 'Volcafe S.A.', volumenKg: 1500, precioOfertado: 4.15, condicionesPago: 'Net 30', fechaOferta: '2026-02-20', notas: 'Interesados en volumen completo. Posibilidad de contrato anual.', riesgo: 'bajo', estado: 'pendiente', esVIP: true },
-  { id: '2', loteCode: 'MV-2024-015', exportadorNombre: 'Nordic Approach', volumenKg: 2200, precioOfertado: 4.65, condicionesPago: 'Net 0 (pago inmediato)', fechaOferta: '2026-02-18', notas: 'Specialty buyer. Interés en trazabilidad completa y perfil de tueste.', riesgo: 'bajo', estado: 'pendiente', esVIP: false },
-  { id: '3', loteCode: 'SN-2024-008', exportadorNombre: 'Mercon Coffee', volumenKg: 850, precioOfertado: 3.80, condicionesPago: 'Net 90', fechaOferta: '2026-02-15', notas: 'Oferta condicional a certificación completa EUDR.', riesgo: 'medio', estado: 'pendiente', esVIP: false },
-  { id: '4', loteCode: 'SOL-2024-002', exportadorNombre: 'CECA Trading', volumenKg: 680, precioOfertado: 3.95, condicionesPago: 'Net 60', fechaOferta: '2026-02-10', notas: '', riesgo: 'bajo', estado: 'aceptada', esVIP: true, fechaRespuesta: '2026-02-12' },
-  { id: '5', loteCode: 'MV-2024-015', exportadorNombre: 'Specialty Imports LLC', volumenKg: 2200, precioOfertado: 4.30, condicionesPago: 'Net 45', fechaOferta: '2026-02-08', notas: 'Para programa de microroasters US', riesgo: 'bajo', estado: 'rechazada', esVIP: false, fechaRespuesta: '2026-02-14' },
-];
+import { useOfertasComerciales, useResponderOferta, type OfertaComercial } from '@/hooks/useOfertasComerciales';
 
 const PRECIO_MERCADO = 4.25; // NY + diferencial referencia
 
-const riesgoBadge = (r: string) => {
+const riesgoBadge = (r: string | null) => {
   if (r === 'bajo') return <Badge className="bg-emerald-600 text-white border-0 text-xs">Bajo</Badge>;
   if (r === 'medio') return <Badge className="bg-amber-500 text-white border-0 text-xs">Medio</Badge>;
-  return <Badge variant="destructive" className="text-xs">Alto</Badge>;
+  if (r === 'alto') return <Badge variant="destructive" className="text-xs">Alto</Badge>;
+  return <Badge variant="outline" className="text-xs">—</Badge>;
 };
 
 const estadoBadge = (e: string) => {
@@ -45,16 +31,19 @@ const estadoBadge = (e: string) => {
 };
 
 export default function OfertasRecibidas() {
-  const [ofertas, setOfertas] = useState(ofertasIniciales);
-  const [analisis, setAnalisis] = useState<Oferta | null>(null);
+  const { data: ofertas = [], isLoading } = useOfertasComerciales();
+  const responder = useResponderOferta();
+  const [analisis, setAnalisis] = useState<OfertaComercial | null>(null);
 
   const pendientes = ofertas.filter(o => o.estado === 'pendiente');
   const respondidas = ofertas.filter(o => o.estado !== 'pendiente');
 
   const handleResponder = (id: string, estado: 'aceptada' | 'rechazada' | 'contraoferta') => {
-    setOfertas(prev => prev.map(o => o.id === id ? { ...o, estado, fechaRespuesta: new Date().toISOString().slice(0, 10) } : o));
+    responder.mutate({ id, estado });
     setAnalisis(null);
   };
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -64,8 +53,8 @@ export default function OfertasRecibidas() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><Clock className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Pendientes</span></div><p className="text-xl font-bold text-foreground">{pendientes.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><CheckCircle className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Aceptadas</span></div><p className="text-xl font-bold text-foreground">{ofertas.filter(o => o.estado === 'aceptada').length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><Package className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">kg en oferta</span></div><p className="text-xl font-bold text-foreground">{pendientes.reduce((s, o) => s + o.volumenKg, 0).toLocaleString()}</p></CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><TrendingUp className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Precio promedio</span></div><p className="text-xl font-bold text-foreground">${pendientes.length > 0 ? (pendientes.reduce((s, o) => s + o.precioOfertado, 0) / pendientes.length).toFixed(2) : '0.00'}/lb</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><Package className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">kg en oferta</span></div><p className="text-xl font-bold text-foreground">{pendientes.reduce((s, o) => s + (o.volumen_kg ?? 0), 0).toLocaleString()}</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><TrendingUp className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Precio promedio</span></div><p className="text-xl font-bold text-foreground">${pendientes.length > 0 ? (pendientes.reduce((s, o) => s + (o.precio_ofertado ?? 0), 0) / pendientes.length).toFixed(2) : '0.00'}/lb</p></CardContent></Card>
       </div>
 
       {/* Pending offers table */}
@@ -86,11 +75,11 @@ export default function OfertasRecibidas() {
               <tbody>
                 {pendientes.map(o => (
                   <tr key={o.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-foreground">{o.loteCode}</td>
-                    <td className="px-4 py-3"><div><span className="text-foreground">{o.exportadorNombre}</span>{o.esVIP && <Badge variant="outline" className="ml-2 text-[10px]">VIP</Badge>}</div></td>
-                    <td className="px-4 py-3 text-foreground">{o.volumenKg.toLocaleString()} kg</td>
-                    <td className="px-4 py-3 font-bold text-primary">${o.precioOfertado.toFixed(2)}/lb</td>
-                    <td className="px-4 py-3 text-muted-foreground">{o.fechaOferta}</td>
+                    <td className="px-4 py-3 font-medium text-foreground">{o.lote_code}</td>
+                    <td className="px-4 py-3"><div><span className="text-foreground">{o.exportador_nombre}</span>{o.es_vip && <Badge variant="outline" className="ml-2 text-[10px]">VIP</Badge>}</div></td>
+                    <td className="px-4 py-3 text-foreground">{(o.volumen_kg ?? 0).toLocaleString()} kg</td>
+                    <td className="px-4 py-3 font-bold text-primary">${(o.precio_ofertado ?? 0).toFixed(2)}/lb</td>
+                    <td className="px-4 py-3 text-muted-foreground">{o.fecha_oferta}</td>
                     <td className="px-4 py-3">{riesgoBadge(o.riesgo)}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
@@ -128,12 +117,12 @@ export default function OfertasRecibidas() {
                 <tbody>
                   {respondidas.map(o => (
                     <tr key={o.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-foreground">{o.loteCode}</td>
-                      <td className="px-4 py-3 text-foreground">{o.exportadorNombre}</td>
-                      <td className="px-4 py-3">{o.volumenKg.toLocaleString()} kg</td>
-                      <td className="px-4 py-3 font-medium">${o.precioOfertado.toFixed(2)}/lb</td>
+                      <td className="px-4 py-3 font-medium text-foreground">{o.lote_code}</td>
+                      <td className="px-4 py-3 text-foreground">{o.exportador_nombre}</td>
+                      <td className="px-4 py-3">{(o.volumen_kg ?? 0).toLocaleString()} kg</td>
+                      <td className="px-4 py-3 font-medium">${(o.precio_ofertado ?? 0).toFixed(2)}/lb</td>
                       <td className="px-4 py-3">{estadoBadge(o.estado)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{o.fechaRespuesta}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{o.fecha_respuesta}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -150,28 +139,26 @@ export default function OfertasRecibidas() {
             <>
               <DialogHeader><DialogTitle className="flex items-center gap-2"><HandCoins className="h-5 w-5 text-primary" /> Análisis de Oferta</DialogTitle></DialogHeader>
               <div className="space-y-4">
-                {/* Offer data */}
                 <div className="p-4 rounded-lg bg-muted/50 space-y-2">
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div><span className="text-muted-foreground text-xs">Exportador</span><p className="font-medium text-foreground">{analisis.exportadorNombre}{analisis.esVIP && <Badge variant="outline" className="ml-2 text-[10px]">VIP</Badge>}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Lote</span><p className="font-medium text-foreground">{analisis.loteCode}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Volumen</span><p className="font-medium text-foreground">{analisis.volumenKg.toLocaleString()} kg</p></div>
-                    <div><span className="text-muted-foreground text-xs">Precio</span><p className="font-bold text-primary">${analisis.precioOfertado.toFixed(2)}/lb</p></div>
-                    <div><span className="text-muted-foreground text-xs">Condiciones</span><p className="font-medium text-foreground">{analisis.condicionesPago}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Fecha</span><p className="font-medium text-foreground">{analisis.fechaOferta}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Exportador</span><p className="font-medium text-foreground">{analisis.exportador_nombre}{analisis.es_vip && <Badge variant="outline" className="ml-2 text-[10px]">VIP</Badge>}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Lote</span><p className="font-medium text-foreground">{analisis.lote_code}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Volumen</span><p className="font-medium text-foreground">{(analisis.volumen_kg ?? 0).toLocaleString()} kg</p></div>
+                    <div><span className="text-muted-foreground text-xs">Precio</span><p className="font-bold text-primary">${(analisis.precio_ofertado ?? 0).toFixed(2)}/lb</p></div>
+                    <div><span className="text-muted-foreground text-xs">Condiciones</span><p className="font-medium text-foreground">{analisis.condiciones_pago}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Fecha</span><p className="font-medium text-foreground">{analisis.fecha_oferta}</p></div>
                   </div>
                   {analisis.notas && <p className="text-xs text-muted-foreground italic mt-2">"{analisis.notas}"</p>}
                 </div>
 
-                {/* MarketIntelligenceCard */}
                 <MarketIntelligenceCard
-                  precioOferta={analisis.precioOfertado}
+                  precioOferta={analisis.precio_ofertado ?? 0}
                   precioMercado={PRECIO_MERCADO}
-                  exportadorNombre={analisis.exportadorNombre}
-                  loteCode={analisis.loteCode}
-                  volumenKg={analisis.volumenKg}
-                  esVIP={analisis.esVIP}
-                  condicionesPago={analisis.condicionesPago}
+                  exportadorNombre={analisis.exportador_nombre ?? ''}
+                  loteCode={analisis.lote_code ?? ''}
+                  volumenKg={analisis.volumen_kg ?? 0}
+                  esVIP={analisis.es_vip}
+                  condicionesPago={analisis.condiciones_pago ?? ''}
                   onAceptar={() => handleResponder(analisis.id, 'aceptada')}
                   onContraofertar={() => handleResponder(analisis.id, 'contraoferta')}
                   onRechazar={() => handleResponder(analisis.id, 'rechazada')}

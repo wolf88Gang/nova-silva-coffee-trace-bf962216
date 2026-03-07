@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { ORG_KEY } from '@/lib/keys';
+import { ORG_KEY, TABLE } from '@/lib/keys';
 
 export interface Reclamo {
   id: string;
