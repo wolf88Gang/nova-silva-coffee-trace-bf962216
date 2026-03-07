@@ -691,9 +691,14 @@ export default function InventarioTab() {
               </div>
               {showMovimiento.tipo === 'entrada' && (
                 <div className="space-y-2"><Label>Proveedor</Label>
-                  <Select value={proveedor} onValueChange={setProveedor}><SelectTrigger><SelectValue placeholder="Seleccione proveedor..." /></SelectTrigger>
-                    <SelectContent>{PROVEEDORES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select value={proveedor} onValueChange={setProveedor}><SelectTrigger className="flex-1"><SelectValue placeholder="Seleccione proveedor..." /></SelectTrigger>
+                      <SelectContent>{PROVEEDORES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" className="shrink-0" title="Registrar nuevo proveedor" onClick={() => setShowProveedorWizard(true)}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               )}
               {showMovimiento.tipo === 'salida' && (
