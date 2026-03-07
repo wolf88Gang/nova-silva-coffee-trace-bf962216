@@ -41,7 +41,7 @@ export function useOfertasComerciales() {
     enabled: !!organizationId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ofertas_comerciales')
+        .from(TABLE.OFERTAS_COMERCIALES)
         .select('*')
         .eq(ORG_KEY, organizationId!)
         .order('created_at', { ascending: false });
