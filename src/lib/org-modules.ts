@@ -26,6 +26,7 @@ export type OrgModule =
   | 'inventario'     // Equipment & supplies inventory
   | 'mensajes'       // Internal messaging
   | 'inclusion'      // Inclusión y equidad
+  | 'nutricion'      // Nutrición de parcelas
   | 'admin';         // Platform admin (Nova Silva internal)
 
 /** Minimal org data needed to resolve modules */
@@ -72,7 +73,7 @@ export function getOrgDefaultModules(orgTipo: string | null | undefined): OrgMod
       return [
         'core', 'productores', 'parcelas', 'entregas', 'lotes_acopio',
         'calidad', 'vital', 'finanzas', 'creditos', 'jornales',
-        'inventario', 'mensajes', 'inclusion',
+        'inventario', 'mensajes', 'inclusion', 'nutricion',
       ];
 
     case 'exportador':

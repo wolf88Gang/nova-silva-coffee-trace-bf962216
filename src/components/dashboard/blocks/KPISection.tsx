@@ -1,10 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { LucideIcon, Users, Package, Shield, Wallet, AlertTriangle, MapPin, Ship, FileText, ShieldCheck, Leaf, Boxes, Calendar } from 'lucide-react';
+import { LucideIcon, Users, Package, Shield, Wallet, AlertTriangle, MapPin, Ship, FileText, ShieldCheck, Leaf, Boxes, Calendar, Sprout, Activity, FlaskConical } from 'lucide-react';
 import { hasModule, type OrgModule } from '@/lib/org-modules';
 import { getActorsLabel } from '@/lib/org-terminology';
 import {
-  getCooperativaStats, getExportadorStats, getProductorStats, getTecnicoStats,
+  getCooperativaStats, getExportadorStats, getProductorStats, getTecnicoStats, getNutricionStats,
 } from '@/lib/demo-data';
 
 interface KPI {
@@ -18,6 +18,7 @@ interface KPI {
 
 function buildCooperativaKPIs(orgTipo: string | null): KPI[] {
   const s = getCooperativaStats();
+  const n = getNutricionStats();
   const actorsLabel = getActorsLabel(orgTipo);
   return [
     { label: `${actorsLabel} activos`, value: s.totalProductores, sub: 'Registrados', icon: Users, route: '/cooperativa/productores-hub', module: 'productores' },
@@ -26,6 +27,10 @@ function buildCooperativaKPIs(orgTipo: string | null): KPI[] {
     { label: 'VITAL promedio', value: `${s.promedioVITAL}/100`, sub: 'Score organizacional', icon: Shield, route: '/cooperativa/vital', module: 'vital' },
     { label: 'Créditos activos', value: `$${s.creditosActivos.toLocaleString()}`, icon: Wallet, route: '/cooperativa/finanzas-hub', module: 'creditos' },
     { label: 'Alertas', value: s.alertasPendientes, sub: 'Requieren atención', icon: AlertTriangle },
+    // Nutrición KPIs (§3.8.1 Fase 3)
+    { label: 'Planes nutrición activos', value: `${n.pctPlanActivo}%`, sub: `${n.parcelasConPlan}/${n.parcelasTotales} parcelas`, icon: Sprout, route: '/cooperativa/nutricion', module: 'nutricion' },
+    { label: 'Ejecución ≥70%', value: `${n.pctEjecucion70}%`, sub: `Desviación: ${n.desviacionPromedio}%`, icon: Activity, route: '/cooperativa/nutricion', module: 'nutricion' },
+    { label: 'Análisis válidos', value: `${n.analisisValidos}/${n.analisisTotales}`, sub: `${n.analisisVencidos} vencidos`, icon: FlaskConical, route: '/cooperativa/nutricion', module: 'nutricion' },
   ];
 }
 
