@@ -19,14 +19,14 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Leaf className="h-6 w-6 text-primary animate-pulse" />
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
-          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
-          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
-        </div>
+        <video
+          src="/animacion_nova_silva.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-32 h-32 object-contain"
+        />
         <p className="text-sm text-muted-foreground">Cargando Nova Silva…</p>
       </div>
     );
