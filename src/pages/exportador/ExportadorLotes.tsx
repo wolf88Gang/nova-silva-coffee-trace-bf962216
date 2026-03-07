@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Package, AlertTriangle } from 'lucide-react';
-import { DEMO_LOTES_COMERCIALES } from '@/lib/demo-data';
+import { Package, AlertTriangle, Loader2 } from 'lucide-react';
+import { useLotesComerciales } from '@/hooks/useLotesComerciales';
 
 const estadoBadge = (estado: string) => {
   const map: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
@@ -16,6 +16,10 @@ const estadoBadge = (estado: string) => {
 };
 
 export default function ExportadorLotes() {
+  const { data: lotes = [], isLoading } = useLotesComerciales();
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
   return (
     <div className="space-y-6 animate-fade-in">
       <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
@@ -33,7 +37,7 @@ export default function ExportadorLotes() {
                 <th className="pb-2 pr-4">Código ICO</th><th className="pb-2 pr-4">Origen</th><th className="pb-2 pr-4">Sacos</th><th className="pb-2 pr-4">Tipo</th><th className="pb-2 pr-4">SCA</th><th className="pb-2 pr-4">EUDR</th><th className="pb-2">Estado</th>
               </tr></thead>
               <tbody>
-                {DEMO_LOTES_COMERCIALES.map((l) => (
+                {lotes.map((l) => (
                   <tr key={l.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
                     <td className="py-3 pr-4 font-medium text-foreground">{l.codigoICO}</td>
                     <td className="py-3 pr-4 text-muted-foreground">{l.origen}</td>
