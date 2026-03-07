@@ -39,7 +39,7 @@ export default function ExportadorContratos() {
         <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><FileText className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Contratos activos</span></div><p className="text-2xl font-bold text-foreground">{activos}</p></CardContent></Card>
         <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><Package className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Vol. comprometido</span></div><p className="text-2xl font-bold text-foreground">{totalVolumen.toLocaleString()} sacos</p></CardContent></Card>
         <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><DollarSign className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Valor total</span></div><p className="text-2xl font-bold text-foreground">${(totalValor / 1000).toFixed(0)}K</p></CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><Calendar className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Precio prom.</span></div><p className="text-2xl font-bold text-foreground">${(contratos.filter(c => c.estado !== 'cerrado').reduce((s, c) => s + c.precioLb, 0) / activos).toFixed(2)}/lb</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3 px-4"><div className="flex items-center gap-2 mb-1"><Calendar className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Precio prom.</span></div><p className="text-2xl font-bold text-foreground">${avgPrice.toFixed(2)}/lb</p></CardContent></Card>
       </div>
 
       <Card>
