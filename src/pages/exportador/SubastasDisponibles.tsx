@@ -15,9 +15,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import {
   Gavel, MapPin, Coffee, Shield, Leaf, Brain, DollarSign, TrendingUp,
-  Clock, Eye, Send, Users, Mountain, Droplets, Sun, ThermometerSun,
+  Clock, Eye, Send, Users, Mountain, Droplets, Sun, ThermometerSun, Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLotesOfrecidos } from '@/hooks/useLotesOfrecidos';
 
 // ── Demo auction lots ──
 const lotesSubasta = [
