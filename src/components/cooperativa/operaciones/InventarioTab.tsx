@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Boxes, AlertTriangle, Wallet, Plus, Minus, Edit2, PackagePlus, History,
   MapPin, Wrench, ChevronRight, Fuel, Tractor, Truck, Scale, Thermometer,
-  Sprout, Shield, Clock, Search, Filter, Package, Cog
+  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
