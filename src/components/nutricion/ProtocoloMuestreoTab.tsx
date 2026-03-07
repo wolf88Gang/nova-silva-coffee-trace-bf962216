@@ -42,8 +42,8 @@ const DEMO_LOGS: SamplingLog[] = [
 ];
 
 function CumplimientoBadge({ pct }: { pct: number }) {
-  if (pct >= 80) return <Badge className="bg-emerald-600/15 text-emerald-700 border-emerald-300">Válido ({pct}%)</Badge>;
-  if (pct >= 50) return <Badge variant="secondary" className="bg-amber-500/15 text-amber-700 border-amber-300">Heurístico ({pct}%)</Badge>;
+  if (pct >= 80) return <Badge className="bg-primary/15 text-primary border-primary/30">Válido ({pct}%)</Badge>;
+  if (pct >= 50) return <Badge variant="secondary">Heurístico ({pct}%)</Badge>;
   return <Badge variant="destructive">Rechazado ({pct}%)</Badge>;
 }
 
