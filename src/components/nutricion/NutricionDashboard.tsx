@@ -38,6 +38,7 @@ export default function NutricionDashboard() {
         <TabsContent value="estado" className="mt-4"><EstadoNutricionalTab /></TabsContent>
         <TabsContent value="analisis" className="mt-4"><AnalisisTab /></TabsContent>
         <TabsContent value="suelo" className="mt-4"><SoilHealthTab /></TabsContent>
+        <TabsContent value="demanda" className="mt-4"><DemandaTab /></TabsContent>
         <TabsContent value="planes" className="mt-4"><PlanesTab /></TabsContent>
         <TabsContent value="generar" className="mt-4"><GeneratePlanV2 /></TabsContent>
         <TabsContent value="cotizacion" className="mt-4"><CotizacionTab /></TabsContent>
