@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Boxes, AlertTriangle, Wallet, Plus, Minus, Edit2, PackagePlus, History,
   MapPin, Wrench, ChevronRight, Fuel, Tractor, Truck, Scale, Thermometer,
-  Sprout, Shield, Clock, Search, Filter, Package, Cog
+  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -383,7 +383,11 @@ export default function InventarioTab() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredEquipos.map(eq => (
+                {filteredEquipos.map(eq => {
+                  const dep = getDepreciacion(eq);
+                  const hPct = horasUsoPct(eq);
+                  const depColor = dep.pctUsado > 80 ? 'bg-destructive' : dep.pctUsado > 50 ? 'bg-amber-500' : 'bg-primary';
+                  return (
                   <div
                     key={eq.id}
                     className="rounded-lg border border-border p-4 hover:shadow-md transition-all cursor-pointer hover:border-primary/30"
@@ -400,15 +404,38 @@ export default function InventarioTab() {
                       <Badge variant="outline" className="gap-1 text-[10px]">{equipoIcon(eq.tipo)} {eq.tipo}</Badge>
                       <span className="text-sm font-medium text-muted-foreground">{fmtCRC(eq.valor)}</span>
                     </div>
-                    {(eq.horasUso || eq.combustibleMes || eq.proximoMantenimiento) && (
+                    {/* Depreciation bar */}
+                    <div className="mt-3 space-y-1">
+                      <div className="flex justify-between text-[10px] text-muted-foreground">
+                        <span>Depreciación ({dep.pctUsado.toFixed(0)}%)</span>
+                        <span>Valor neto: {fmtCRC(Math.round(dep.valorNeto))}</span>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${depColor} transition-all`} style={{ width: `${dep.pctUsado}%` }} />
+                      </div>
+                    </div>
+                    {/* Hours bar */}
+                    {hPct !== null && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>Uso {eq.horasUso?.toLocaleString()} / {eq.horasVidaUtil?.toLocaleString()} hrs</span>
+                          <span>{hPct.toFixed(0)}%</span>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${hPct > 80 ? 'bg-destructive' : hPct > 50 ? 'bg-amber-500' : 'bg-primary'} transition-all`} style={{ width: `${hPct}%` }} />
+                        </div>
+                      </div>
+                    )}
+                    {(eq.combustibleMes || eq.proximoMantenimiento || eq.responsable) && (
                       <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
-                        {eq.horasUso && <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {eq.horasUso.toLocaleString()} hrs</span>}
                         {eq.combustibleMes && <span className="flex items-center gap-1"><Fuel className="h-3 w-3" /> {eq.combustibleMes} L/mes</span>}
                         {eq.proximoMantenimiento && <span className="flex items-center gap-1"><Wrench className="h-3 w-3" /> Mant: {fmtDate(eq.proximoMantenimiento)}</span>}
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
+
               </div>
               {filteredEquipos.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">No se encontraron equipos</p>}
             </CardContent>
@@ -526,7 +553,10 @@ export default function InventarioTab() {
           <DialogHeader><DialogTitle>Ficha de Equipo</DialogTitle></DialogHeader>
           {showDetalleEquipo && (() => {
             const eq = showDetalleEquipo;
+            const dep = getDepreciacion(eq);
+            const hPct = horasUsoPct(eq);
             const movs = movimientos.filter(m => m.itemId === eq.id);
+            const depColor = dep.pctUsado > 80 ? 'bg-destructive' : dep.pctUsado > 50 ? 'bg-amber-500' : 'bg-primary';
             return (
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -538,22 +568,76 @@ export default function InventarioTab() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Tipo</span><span className="font-bold text-foreground flex items-center gap-1.5">{equipoIcon(eq.tipo)} {eq.tipo}</span></div>
-                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor original</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Fecha compra</span><span className="text-foreground">{fmtDate(eq.fechaCompra)}</span></div>
-                  {eq.horasUso && <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Horas uso</span><span className="text-foreground font-medium">{eq.horasUso.toLocaleString()} hrs</span></div>}
+                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Vida útil</span><span className="text-foreground">{eq.vidaUtilAnios} años</span></div>
                 </div>
-                {(eq.combustibleMes || eq.parcelaAsignada || eq.proximoMantenimiento) && (
+
+                {/* Depreciación */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Depreciación</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor neto</span><span className="font-bold text-foreground">{fmtCRC(Math.round(dep.valorNeto))}</span></div>
+                    <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Depreciado</span><span className="font-bold text-foreground">{dep.pctUsado.toFixed(1)}%</span></div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>0%</span><span>{dep.pctUsado.toFixed(0)}% depreciado</span><span>100%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${depColor} transition-all`} style={{ width: `${dep.pctUsado}%` }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Horas de uso */}
+                {hPct !== null && (
                   <div className="space-y-2 border-t border-border pt-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Operación</p>
-                    <div className="text-sm space-y-1">
-                      {eq.parcelaAsignada && <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.parcelaAsignada}</span></div>}
-                      {eq.combustibleMes && <div className="flex items-center gap-2"><Fuel className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.combustibleMes} litros/mes</span></div>}
-                      {eq.proximoMantenimiento && <div className="flex items-center gap-2"><Wrench className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">Próximo: {fmtDate(eq.proximoMantenimiento)}</span></div>}
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Horas de Uso</p>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Acumuladas</span><span className="font-bold text-foreground">{eq.horasUso?.toLocaleString()} hrs</span></div>
+                      <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Vida útil estimada</span><span className="text-foreground">{eq.horasVidaUtil?.toLocaleString()} hrs</span></div>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${hPct > 80 ? 'bg-destructive' : hPct > 50 ? 'bg-amber-500' : 'bg-primary'} transition-all`} style={{ width: `${hPct}%` }} />
                     </div>
                   </div>
                 )}
+
+                {/* Operación y Mantenimiento */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Operación y Mantenimiento</p>
+                  <div className="text-sm space-y-2">
+                    {eq.responsable && (
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20">
+                        <Users className="h-4 w-4 text-primary" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block">Responsable (Jornales)</span>
+                          <span className="text-foreground font-medium text-sm">{eq.responsable}</span>
+                        </div>
+                      </div>
+                    )}
+                    {eq.parcelaAsignada && <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.parcelaAsignada}</span></div>}
+                    {eq.combustibleMes && <div className="flex items-center gap-2"><Fuel className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.combustibleMes} litros/mes</span></div>}
+                    {eq.proximoMantenimiento && (
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                        <Wrench className="h-4 w-4 text-amber-500" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block">Próximo mantenimiento</span>
+                          <span className="text-foreground font-medium">{fmtDate(eq.proximoMantenimiento)}</span>
+                          {eq.frecuenciaMantenimiento && <span className="text-muted-foreground text-xs ml-2">({eq.frecuenciaMantenimiento})</span>}
+                        </div>
+                      </div>
+                    )}
+                    {eq.notasMantenimiento && (
+                      <div className="p-2.5 rounded-lg bg-muted/50 text-sm">
+                        <span className="text-muted-foreground text-xs block">Notas mantenimiento</span>
+                        <span className="text-foreground">{eq.notasMantenimiento}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {movs.length > 0 && (
                   <div className="space-y-2 border-t border-border pt-3">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Historial</p>
@@ -607,6 +691,13 @@ export default function InventarioTab() {
                   <SelectContent>{(showMovimiento.tipo === 'salida' ? MOTIVOS_SALIDA : MOTIVOS_ENTRADA).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              {showMovimiento.tipo === 'entrada' && (
+                <div className="space-y-2"><Label>Proveedor</Label>
+                  <Select value={proveedor} onValueChange={setProveedor}><SelectTrigger><SelectValue placeholder="Seleccione proveedor..." /></SelectTrigger>
+                    <SelectContent>{PROVEEDORES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              )}
               {showMovimiento.tipo === 'salida' && (
                 <div className="space-y-2"><Label>Destino / Finca *</Label>
                   <Select value={destino} onValueChange={setDestino}><SelectTrigger><SelectValue placeholder="Seleccione destino..." /></SelectTrigger>
@@ -656,12 +747,67 @@ export default function InventarioTab() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── ADD EQUIPO (placeholder) ─── */}
+      {/* ─── ADD EQUIPO ─── */}
       <Dialog open={showAddEquipo} onOpenChange={setShowAddEquipo}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Cog className="h-5 w-5 text-primary" /> Agregar Equipo</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground text-center py-4">Formulario de registro de equipo próximamente disponible con integración a Jornales y combustible.</p>
-          <Button variant="outline" className="w-full" onClick={() => setShowAddEquipo(false)}>Cerrar</Button>
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>Nombre *</Label><Input placeholder="Ej: Bomba de fumigación" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Marca</Label><Input placeholder="Ej: Stihl" /></div>
+              <div className="space-y-1"><Label>Modelo</Label><Input placeholder="Ej: FS 120" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Tipo</Label>
+                <Select defaultValue="Maquinaria"><SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Maquinaria">Maquinaria</SelectItem>
+                    <SelectItem value="Vehículo">Vehículo</SelectItem>
+                    <SelectItem value="Instrumento">Instrumento</SelectItem>
+                    <SelectItem value="Herramienta">Herramienta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1"><Label>Valor (₡)</Label><Input type="number" placeholder="0" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Fecha compra</Label><Input type="date" /></div>
+              <div className="space-y-1"><Label>Vida útil (años)</Label><Input type="number" placeholder="10" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Horas acumuladas</Label><Input type="number" placeholder="0" /></div>
+              <div className="space-y-1"><Label>Horas vida útil</Label><Input type="number" placeholder="5000" /></div>
+            </div>
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Operación</p>
+              <div className="space-y-2">
+                <div className="space-y-1"><Label>Combustible mensual (L)</Label><Input type="number" placeholder="0" /></div>
+                <div className="space-y-1"><Label>Ubicación / Parcela</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Seleccione ubicación..." /></SelectTrigger>
+                    <SelectContent>{FINCAS_DESTINO.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1"><Label>Responsable (Jornales)</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Asignar responsable..." /></SelectTrigger>
+                    <SelectContent>{RESPONSABLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Mantenimiento</p>
+              <div className="space-y-2">
+                <div className="space-y-1"><Label>Frecuencia</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Seleccione frecuencia..." /></SelectTrigger>
+                    <SelectContent>{FRECUENCIAS_MANT.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1"><Label>Próximo mantenimiento</Label><Input type="date" /></div>
+                <div className="space-y-1"><Label>Notas</Label><Textarea rows={2} placeholder="Estado actual, observaciones..." /></div>
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => { toast.success('Equipo registrado'); setShowAddEquipo(false); }}>Agregar Equipo</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
