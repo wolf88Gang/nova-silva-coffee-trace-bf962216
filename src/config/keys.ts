@@ -20,6 +20,13 @@ export const TABLE = {
   disease_assessments: 'disease_assessments',
   resilience_assessments: 'resilience_assessments',
   cycle_learning_log: 'cycle_learning_log',
+  ag_active_ingredients: 'ag_active_ingredients',
+  ag_commercial_products: 'ag_commercial_products',
+  ag_product_ingredients: 'ag_product_ingredients',
+  ag_market_mrls: 'ag_market_mrls',
+  ag_certification_rules: 'ag_certification_rules',
+  org_certifications: 'org_certifications',
+  org_export_markets: 'org_export_markets',
 } as const;
 
 export const QUERY_KEYS = {
@@ -35,4 +42,8 @@ export const QUERY_KEYS = {
   clientesCompradores: [TABLE.clientes_compradores] as const,
   lotesExportacion: [TABLE.lotes_exportacion] as const,
   moduleSnapshot: ['module-snapshot'] as const,
+  blockedIngredients: ['blocked-ingredients'] as const,
+  phaseoutIngredients: ['phaseout-ingredients'] as const,
+  orgCertifications: [TABLE.org_certifications] as const,
+  orgExportMarkets: [TABLE.org_export_markets] as const,
 } as const;
