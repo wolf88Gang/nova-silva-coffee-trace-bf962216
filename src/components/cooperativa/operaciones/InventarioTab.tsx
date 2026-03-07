@@ -182,6 +182,7 @@ export default function InventarioTab() {
   const [motivo, setMotivo] = useState('');
   const [destino, setDestino] = useState('');
   const [observaciones, setObservaciones] = useState('');
+  const [proveedor, setProveedor] = useState('');
 
   // Add insumo form
   const [nuevoInsumo, setNuevoInsumo] = useState({ producto: '', cat: 'Fertilizantes', stock: '', minimo: '', unidad: '', costoUnitario: '', ingredienteActivo: '', indicaciones: '', dosisSugerida: '' });
