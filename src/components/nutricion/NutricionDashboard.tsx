@@ -28,6 +28,7 @@ export default function NutricionDashboard() {
           <TabsTrigger value="cotizacion"><ShoppingCart className="h-4 w-4 mr-1" /> Cotización</TabsTrigger>
           <TabsTrigger value="ejecucion"><ClipboardCheck className="h-4 w-4 mr-1" /> Ejecución</TabsTrigger>
           <TabsTrigger value="historial"><History className="h-4 w-4 mr-1" /> Historial</TabsTrigger>
+          <TabsTrigger value="protocolo"><TestTube className="h-4 w-4 mr-1" /> Protocolo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="estado" className="mt-4"><EstadoNutricionalTab /></TabsContent>
@@ -37,6 +38,7 @@ export default function NutricionDashboard() {
         <TabsContent value="cotizacion" className="mt-4"><CotizacionTab /></TabsContent>
         <TabsContent value="ejecucion" className="mt-4"><EjecucionTab /></TabsContent>
         <TabsContent value="historial" className="mt-4"><HistorialTab /></TabsContent>
+        <TabsContent value="protocolo" className="mt-4"><ProtocoloMuestreoTab /></TabsContent>
       </Tabs>
     </div>
   );

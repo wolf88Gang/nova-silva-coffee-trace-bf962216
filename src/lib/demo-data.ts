@@ -174,3 +174,18 @@ export function getProductorStats() {
     avisosNoLeidos: 2,
   };
 }
+
+// ───── NUTRICIÓN KPIs (§3.8 Fase 3) ─────
+export function getNutricionStats() {
+  return {
+    parcelasConPlan: 6,
+    parcelasTotales: 8,
+    pctPlanActivo: 75,
+    pctEjecucion70: 62,
+    desviacionPromedio: 12,
+    analisisValidos: 5,
+    analisisVencidos: 1,
+    analisisTotales: 7,
+    parcelasSinVariedad: 2,
+  };
+}
