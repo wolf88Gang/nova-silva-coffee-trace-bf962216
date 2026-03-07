@@ -547,7 +547,7 @@ export default function InventarioTab() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── DETALLE EQUIPO ─── */}
+      {/* ─── DETALLE EQUIPO (EDITABLE) ─── */}
       <Dialog open={!!showDetalleEquipo} onOpenChange={() => setShowDetalleEquipo(null)}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Ficha de Equipo</DialogTitle></DialogHeader>
@@ -570,7 +570,7 @@ export default function InventarioTab() {
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Tipo</span><span className="font-bold text-foreground flex items-center gap-1.5">{equipoIcon(eq.tipo)} {eq.tipo}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor original</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Fecha compra</span><span className="text-foreground">{fmtDate(eq.fechaCompra)}</span></div>
-                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Vida útil</span><span className="text-foreground">{eq.vidaUtilAnios} años</span></div>
+                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Horas uso</span><span className="text-foreground">{eq.horasUso?.toLocaleString() ?? '—'} hrs</span></div>
                 </div>
 
                 {/* Depreciación */}
@@ -604,37 +604,97 @@ export default function InventarioTab() {
                   </div>
                 )}
 
-                {/* Operación y Mantenimiento */}
+                {/* Operación (read-only) */}
                 <div className="space-y-2 border-t border-border pt-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Operación y Mantenimiento</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Operación</p>
                   <div className="text-sm space-y-2">
-                    {eq.responsable && (
-                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20">
-                        <Users className="h-4 w-4 text-primary" />
-                        <div>
-                          <span className="text-[10px] text-muted-foreground block">Responsable (Jornales)</span>
-                          <span className="text-foreground font-medium text-sm">{eq.responsable}</span>
-                        </div>
-                      </div>
-                    )}
                     {eq.parcelaAsignada && <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.parcelaAsignada}</span></div>}
                     {eq.combustibleMes && <div className="flex items-center gap-2"><Fuel className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.combustibleMes} litros/mes</span></div>}
-                    {eq.proximoMantenimiento && (
-                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/20">
-                        <Wrench className="h-4 w-4 text-amber-500" />
-                        <div>
-                          <span className="text-[10px] text-muted-foreground block">Próximo mantenimiento</span>
-                          <span className="text-foreground font-medium">{fmtDate(eq.proximoMantenimiento)}</span>
-                          {eq.frecuenciaMantenimiento && <span className="text-muted-foreground text-xs ml-2">({eq.frecuenciaMantenimiento})</span>}
-                        </div>
-                      </div>
-                    )}
-                    {eq.notasMantenimiento && (
-                      <div className="p-2.5 rounded-lg bg-muted/50 text-sm">
-                        <span className="text-muted-foreground text-xs block">Notas mantenimiento</span>
-                        <span className="text-foreground">{eq.notasMantenimiento}</span>
-                      </div>
-                    )}
+                  </div>
+                </div>
+
+                {/* Responsable (editable) */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Responsable (Jornales)</p>
+                  <Select value={eq.responsable || ''} onValueChange={v => {
+                    const updated = { ...eq, responsable: v };
+                    setShowDetalleEquipo(updated);
+                    setEquipos(prev => prev.map(e => e.id === eq.id ? updated : e));
+                  }}>
+                    <SelectTrigger><SelectValue placeholder="Asignar responsable..." /></SelectTrigger>
+                    <SelectContent>{RESPONSABLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+
+                {/* Mantenimiento (editable) */}
+                <div className="space-y-3 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Wrench className="h-3.5 w-3.5" /> Mantenimiento</p>
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Frecuencia</Label>
+                      <Select value={eq.frecuenciaMantenimiento || ''} onValueChange={v => {
+                        const updated = { ...eq, frecuenciaMantenimiento: v };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e => e.id === eq.id ? updated : e));
+                      }}>
+                        <SelectTrigger><SelectValue placeholder="Seleccione frecuencia..." /></SelectTrigger>
+                        <SelectContent>{FRECUENCIAS_MANT.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Próximo mantenimiento</Label>
+                      <Input type="date" value={eq.proximoMantenimiento || ''} onChange={e => {
+                        const updated = { ...eq, proximoMantenimiento: e.target.value };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                      }} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Estado del equipo</Label>
+                      <Select value={eq.estado} onValueChange={v => {
+                        const updated = { ...eq, estado: v as Equipo['estado'] };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e => e.id === eq.id ? updated : e));
+                      }}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Operativo">Operativo</SelectItem>
+                          <SelectItem value="En Mantenimiento">En Mantenimiento</SelectItem>
+                          <SelectItem value="Fuera de servicio">Fuera de servicio</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Notas de mantenimiento</Label>
+                      <Textarea rows={2} placeholder="Estado actual, observaciones..." value={eq.notasMantenimiento || ''} onChange={e => {
+                        const updated = { ...eq, notasMantenimiento: e.target.value };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                      }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Horas de uso editable */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Registrar Horas</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Horas acumuladas</Label>
+                      <Input type="number" value={eq.horasUso ?? ''} onChange={e => {
+                        const updated = { ...eq, horasUso: Number(e.target.value) || 0 };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                      }} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Combustible mes (L)</Label>
+                      <Input type="number" value={eq.combustibleMes ?? ''} onChange={e => {
+                        const updated = { ...eq, combustibleMes: Number(e.target.value) || 0 };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                      }} />
+                    </div>
                   </div>
                 </div>
 
@@ -649,6 +709,13 @@ export default function InventarioTab() {
                     ))}
                   </div>
                 )}
+
+                <Button className="w-full" variant="outline" onClick={() => {
+                  toast.success(`Equipo "${eq.nombre}" actualizado`);
+                  setShowDetalleEquipo(null);
+                }}>
+                  Guardar Cambios
+                </Button>
               </div>
             );
           })()}
