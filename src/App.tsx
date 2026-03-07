@@ -90,9 +90,16 @@ const queryClient = new QueryClient({
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="relative">
-      <div className="w-12 h-12 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-    </div>
+    <video
+      src="/animacion_nova_silva.mp4"
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="auto"
+      className="w-32 h-32 object-contain"
+      ref={(el) => { if (el) el.playbackRate = 8; }}
+    />
   </div>
 );
 
