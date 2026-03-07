@@ -515,10 +515,7 @@ export default function InventarioTab() {
           <DialogHeader><DialogTitle>Ficha de Equipo</DialogTitle></DialogHeader>
           {showDetalleEquipo && (() => {
             const eq = showDetalleEquipo;
-            const dep = getDepreciacion(eq);
-            const hPct = horasUsoPct(eq);
             const movs = movimientos.filter(m => m.itemId === eq.id);
-            const depColor = dep.pctUsado > 80 ? 'bg-destructive' : dep.pctUsado > 50 ? 'bg-amber-500' : 'bg-primary';
             return (
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -530,7 +527,7 @@ export default function InventarioTab() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Tipo</span><span className="font-bold text-foreground flex items-center gap-1.5">{equipoIcon(eq.tipo)} {eq.tipo}</span></div>
-                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor original</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
+                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Fecha compra</span><span className="text-foreground">{fmtDate(eq.fechaCompra)}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Horas uso</span><span className="text-foreground">{eq.horasUso?.toLocaleString() ?? '—'} hrs</span></div>
                 </div>
