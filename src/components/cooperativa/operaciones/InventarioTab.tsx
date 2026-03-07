@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Boxes, AlertTriangle, Wallet, Plus, Minus, Edit2, PackagePlus, History,
   MapPin, Wrench, ChevronRight, Fuel, Tractor, Truck, Scale, Thermometer,
-  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users
+  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users, CreditCard, Banknote
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ProveedorWizard, { type ProveedorData } from '@/components/proveedores/ProveedorWizard';
@@ -34,6 +34,10 @@ interface Equipo {
   horasUso?: number; combustibleMes?: number; parcelaAsignada?: string;
   proximoMantenimiento?: string; frecuenciaMantenimiento?: string;
   responsable?: string; notasMantenimiento?: string;
+  // Financiamiento
+  metodoPago?: 'contado' | 'financiado' | 'leasing';
+  montoFinanciado?: number; cuotasMensuales?: number; cuotasPagadas?: number;
+  cuotaMonto?: number; entidadFinanciera?: string;
 }
 
 interface Movimiento {
@@ -77,11 +81,11 @@ const equiposInicial: Equipo[] = [
   { id: 'e1', nombre: 'Balanza digital', marca: 'Torrey', modelo: 'EQB-50', tipo: 'Instrumento', estado: 'Operativo', valor: 95000, fechaCompra: '2023-03-15', horasUso: 1200, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
   { id: 'e2', nombre: 'Bomba de fumigación', marca: 'Solo', modelo: '423', tipo: 'Maquinaria', estado: 'Operativo', valor: 185000, fechaCompra: '2023-06-20', horasUso: 340, combustibleMes: 8, parcelaAsignada: 'Finca El Progreso', proximoMantenimiento: '2026-04-01', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Carlos Méndez (Jefe de campo)' },
   { id: 'e3', nombre: 'Desbrozadora', marca: 'Stihl', modelo: 'FS 120', tipo: 'Maquinaria', estado: 'En Mantenimiento', valor: 320000, fechaCompra: '2022-11-10', horasUso: 890, combustibleMes: 15, proximoMantenimiento: '2026-03-15', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)', notasMantenimiento: 'Filtro de aire y bujía en reemplazo' },
-  { id: 'e4', nombre: 'Medidor humedad', marca: 'Delmhorst', modelo: 'G-7', tipo: 'Instrumento', estado: 'Operativo', valor: 125000, fechaCompra: '2024-01-05', horasUso: 200, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
-  { id: 'e5', nombre: 'Motosierra', marca: 'Stihl', modelo: 'MS 250', tipo: 'Maquinaria', estado: 'Operativo', valor: 450000, fechaCompra: '2023-09-01', horasUso: 560, combustibleMes: 12, parcelaAsignada: 'Finca La Unión', frecuenciaMantenimiento: 'Cada 100 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)' },
-  { id: 'e6', nombre: 'Pick-up de trabajo', marca: 'Toyota', modelo: 'Hilux 4×4', tipo: 'Vehículo', estado: 'Operativo', valor: 12500000, fechaCompra: '2024-06-15', horasUso: 8500, combustibleMes: 180, parcelaAsignada: 'Ruta general', proximoMantenimiento: '2026-03-20', frecuenciaMantenimiento: 'Cada 500 hrs', responsable: 'Luis Herrera (Chofer)' },
-  { id: 'e7', nombre: 'Secadora solar', marca: 'Artesanal', modelo: 'Tipo parabólico', tipo: 'Maquinaria', estado: 'Operativo', valor: 280000, fechaCompra: '2022-02-20', parcelaAsignada: 'Beneficio Central', responsable: 'Carlos Méndez (Jefe de campo)' },
-  { id: 'e8', nombre: 'Despulpadora', marca: 'JM Estrada', modelo: 'No. 3', tipo: 'Maquinaria', estado: 'Operativo', valor: 950000, fechaCompra: '2021-08-10', horasUso: 2400, parcelaAsignada: 'Beneficio Central', proximoMantenimiento: '2026-05-01', frecuenciaMantenimiento: 'Semestral', responsable: 'Carlos Méndez (Jefe de campo)' },
+  { id: 'e4', nombre: 'Medidor humedad', marca: 'Delmhorst', modelo: 'G-7', tipo: 'Instrumento', estado: 'Operativo', valor: 125000, fechaCompra: '2024-01-05', horasUso: 200, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)', metodoPago: 'contado' },
+  { id: 'e5', nombre: 'Motosierra', marca: 'Stihl', modelo: 'MS 250', tipo: 'Maquinaria', estado: 'Operativo', valor: 450000, fechaCompra: '2023-09-01', horasUso: 560, combustibleMes: 12, parcelaAsignada: 'Finca La Unión', frecuenciaMantenimiento: 'Cada 100 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)', metodoPago: 'financiado', montoFinanciado: 450000, cuotasMensuales: 12, cuotasPagadas: 10, cuotaMonto: 41250, entidadFinanciera: 'Coopealianza' },
+  { id: 'e6', nombre: 'Pick-up de trabajo', marca: 'Toyota', modelo: 'Hilux 4×4', tipo: 'Vehículo', estado: 'Operativo', valor: 12500000, fechaCompra: '2024-06-15', horasUso: 8500, combustibleMes: 180, parcelaAsignada: 'Ruta general', proximoMantenimiento: '2026-03-20', frecuenciaMantenimiento: 'Cada 500 hrs', responsable: 'Luis Herrera (Chofer)', metodoPago: 'leasing', montoFinanciado: 12500000, cuotasMensuales: 60, cuotasPagadas: 9, cuotaMonto: 245000, entidadFinanciera: 'BAC Leasing' },
+  { id: 'e7', nombre: 'Secadora solar', marca: 'Artesanal', modelo: 'Tipo parabólico', tipo: 'Maquinaria', estado: 'Operativo', valor: 280000, fechaCompra: '2022-02-20', parcelaAsignada: 'Beneficio Central', responsable: 'Carlos Méndez (Jefe de campo)', metodoPago: 'contado' },
+  { id: 'e8', nombre: 'Despulpadora', marca: 'JM Estrada', modelo: 'No. 3', tipo: 'Maquinaria', estado: 'Operativo', valor: 950000, fechaCompra: '2021-08-10', horasUso: 2400, parcelaAsignada: 'Beneficio Central', proximoMantenimiento: '2026-05-01', frecuenciaMantenimiento: 'Semestral', responsable: 'Carlos Méndez (Jefe de campo)', metodoPago: 'financiado', montoFinanciado: 950000, cuotasMensuales: 24, cuotasPagadas: 24, cuotaMonto: 43500, entidadFinanciera: 'Banco Nacional' },
 ];
 
 const historialInicial: Movimiento[] = [
@@ -116,6 +120,19 @@ const fmtDate = (d: string) => {
   return date.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+const financingBadge = (eq: Equipo) => {
+  if (!eq.metodoPago || eq.metodoPago === 'contado') return null;
+  const pagado = eq.cuotasPagadas && eq.cuotasMensuales && eq.cuotasPagadas >= eq.cuotasMensuales;
+  if (pagado) return <Badge className="bg-emerald-600/90 text-white border-0 text-[10px] gap-1"><CreditCard className="h-3 w-3" /> Pagado</Badge>;
+  const label = eq.metodoPago === 'leasing' ? 'Leasing' : 'Financiado';
+  return <Badge className="bg-blue-500/90 text-white border-0 text-[10px] gap-1"><CreditCard className="h-3 w-3" /> {label}</Badge>;
+};
+
+const METODOS_PAGO = [
+  { value: 'contado', label: 'Contado' },
+  { value: 'financiado', label: 'Financiado' },
+  { value: 'leasing', label: 'Leasing' },
+];
 
 function getSugerenciasSalida(insumo: Insumo): SugerenciaSalida[] {
   const sugerencias: SugerenciaSalida[] = [];
@@ -384,11 +401,17 @@ export default function InventarioTab() {
                         <p className="font-semibold text-foreground">{eq.nombre}</p>
                         <p className="text-sm text-muted-foreground">{eq.marca} - {eq.modelo}</p>
                       </div>
-                      {estadoEquipoBadge(eq.estado)}
+                      <div className="flex items-center gap-1.5">
+                        {financingBadge(eq)}
+                        {estadoEquipoBadge(eq.estado)}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 mt-3 flex-wrap">
                       <Badge variant="outline" className="gap-1 text-[10px]">{equipoIcon(eq.tipo)} {eq.tipo}</Badge>
                       <span className="text-sm font-medium text-muted-foreground">{fmtCRC(eq.valor)}</span>
+                      {eq.metodoPago && eq.metodoPago !== 'contado' && eq.cuotasPagadas !== undefined && eq.cuotasMensuales && eq.cuotasPagadas < eq.cuotasMensuales && (
+                        <span className="text-xs text-blue-400">{eq.cuotasPagadas}/{eq.cuotasMensuales} cuotas</span>
+                      )}
                     </div>
                     {(eq.horasUso || eq.combustibleMes || eq.proximoMantenimiento) && (
                       <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground flex-wrap">
@@ -534,6 +557,88 @@ export default function InventarioTab() {
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Horas uso</span><span className="text-foreground">{eq.horasUso?.toLocaleString() ?? '—'} hrs</span></div>
                 </div>
 
+                {/* Financiamiento */}
+                <div className="space-y-3 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Banknote className="h-3.5 w-3.5" /> Financiamiento</p>
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Método de pago</Label>
+                      <Select value={eq.metodoPago || 'contado'} onValueChange={v => {
+                        const updated = { ...eq, metodoPago: v as Equipo['metodoPago'] };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e => e.id === eq.id ? updated : e));
+                      }}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{METODOS_PAGO.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    {(eq.metodoPago === 'financiado' || eq.metodoPago === 'leasing') && (
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Monto financiado</Label>
+                            <Input type="number" value={eq.montoFinanciado ?? eq.valor} onChange={e => {
+                              const updated = { ...eq, montoFinanciado: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Entidad financiera</Label>
+                            <Input value={eq.entidadFinanciera ?? ''} onChange={e => {
+                              const updated = { ...eq, entidadFinanciera: e.target.value };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} placeholder="Ej: BAC, Banco Nacional" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Total cuotas</Label>
+                            <Input type="number" value={eq.cuotasMensuales ?? ''} onChange={e => {
+                              const updated = { ...eq, cuotasMensuales: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Cuotas pagadas</Label>
+                            <Input type="number" value={eq.cuotasPagadas ?? 0} onChange={e => {
+                              const updated = { ...eq, cuotasPagadas: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Monto cuota</Label>
+                            <Input type="number" value={eq.cuotaMonto ?? ''} onChange={e => {
+                              const updated = { ...eq, cuotaMonto: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                        </div>
+                        {eq.cuotasMensuales && eq.cuotasMensuales > 0 && (
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-[10px] text-muted-foreground">
+                              <span>Progreso: {eq.cuotasPagadas ?? 0}/{eq.cuotasMensuales} cuotas</span>
+                              <span>Saldo: {fmtCRC(Math.max(0, (eq.cuotaMonto ?? 0) * (eq.cuotasMensuales - (eq.cuotasPagadas ?? 0))))}</span>
+                            </div>
+                            <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${(eq.cuotasPagadas ?? 0) >= eq.cuotasMensuales ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                style={{ width: `${Math.min(100, ((eq.cuotasPagadas ?? 0) / eq.cuotasMensuales) * 100)}%` }}
+                              />
+                            </div>
+                            {eq.entidadFinanciera && (
+                              <p className="text-[10px] text-muted-foreground flex items-center gap-1"><CreditCard className="h-3 w-3" /> {eq.entidadFinanciera}</p>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
 
                 {/* Operación (read-only) */}
                 <div className="space-y-2 border-t border-border pt-3">
