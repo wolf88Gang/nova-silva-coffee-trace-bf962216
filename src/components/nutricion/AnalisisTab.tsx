@@ -23,6 +23,7 @@ interface SueloAnalisis {
   ph: number | null; mo_pct: number | null; p_ppm: number | null;
   k_cmol: number | null; ca_cmol: number | null; mg_cmol: number | null;
   s_ppm: number | null; cice: number | null; textura: string | null;
+  al_cmol: number | null;
 }
 
 interface HojaAnalisis {
