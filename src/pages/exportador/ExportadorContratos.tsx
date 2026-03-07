@@ -4,26 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileText, DollarSign, Calendar, Package, ChevronRight, Plus } from 'lucide-react';
+import { FileText, DollarSign, Calendar, Package, Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const contratos = [
-  { id: 'C-001', numero: 'NS-2026-001', cliente: 'European Coffee Trading GmbH', pais: 'Alemania', volumen: 250, unidad: 'sacos 69kg', precioLb: 4.20, incoterm: 'FOB', ventana: 'Mar-Abr 2026', estado: 'activo' as const, ejecutado: 60, lotes: ['LOT-EXP-041', 'LOT-EXP-035'], notas: 'SHB EP, preparación europea. Score mínimo 82.' },
-  { id: 'C-002', numero: 'NS-2026-002', cliente: 'Nordic Roasters AB', pais: 'Suecia', volumen: 180, unidad: 'sacos 69kg', precioLb: 4.50, incoterm: 'CIF', ventana: 'Feb-Mar 2026', estado: 'en_ejecucion' as const, ejecutado: 85, lotes: ['LOT-EXP-039'], notas: 'Micro-lot Geisha. CIF Gotemburgo. Score >85.' },
-  { id: 'C-003', numero: 'NS-2025-015', cliente: 'Specialty Imports LLC', pais: 'USA', volumen: 320, unidad: 'sacos 69kg', precioLb: 3.80, incoterm: 'FOB', ventana: 'Nov-Dic 2025', estado: 'cerrado' as const, ejecutado: 100, lotes: ['LOT-EXP-028', 'LOT-EXP-025'], notas: 'HB, preparación americana.' },
-  { id: 'C-004', numero: 'NS-2026-003', cliente: 'Tokyo Beans Co.', pais: 'Japón', volumen: 120, unidad: 'sacos 69kg', precioLb: 5.10, incoterm: 'CIF', ventana: 'Abr-May 2026', estado: 'activo' as const, ejecutado: 0, lotes: [], notas: 'Geisha natural process. CIF Yokohama. Score >88.' },
-  { id: 'C-005', numero: 'NS-2026-004', cliente: 'Melbourne Roast Co.', pais: 'Australia', volumen: 90, unidad: 'sacos 69kg', precioLb: 4.75, incoterm: 'CIF', ventana: 'May-Jun 2026', estado: 'activo' as const, ejecutado: 0, lotes: [], notas: 'SHB honey process. CIF Melbourne.' },
-];
+import { useContratos, type Contrato } from '@/hooks/useContratos';
 
 const estadoConfig = {
   activo: { label: 'Activo', variant: 'default' as const },
   en_ejecucion: { label: 'En ejecución', variant: 'outline' as const },
   cerrado: { label: 'Cerrado', variant: 'secondary' as const },
 };
-
-const totalVolumen = contratos.reduce((s, c) => s + c.volumen, 0);
-const totalValor = contratos.reduce((s, c) => s + (c.volumen * 69 * c.precioLb), 0);
-const activos = contratos.filter(c => c.estado !== 'cerrado').length;
 
 export default function ExportadorContratos() {
   const [selected, setSelected] = useState<typeof contratos[0] | null>(null);
