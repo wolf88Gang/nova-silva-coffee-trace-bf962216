@@ -49,6 +49,10 @@ interface SugerenciaSalida {
 /* ═══════════════════════════════════════════
    CONSTANTS & DEMO DATA
    ═══════════════════════════════════════════ */
+const PROVEEDORES = ['AgroInsumos del Valle', 'Fertiquímica S.A.', 'BioControl Centroamérica', 'Agroveterinaria La Unión', 'Café Import Export', 'Distribuidora Nacional', 'Otro'];
+const RESPONSABLES = ['Carlos Méndez (Jefe de campo)', 'María López (Técnica agrícola)', 'Roberto Jiménez (Operador maquinaria)', 'Ana Solano (Bodega)', 'Luis Herrera (Chofer)', 'Sin asignar'];
+const FRECUENCIAS_MANT = ['Cada 100 hrs', 'Cada 250 hrs', 'Cada 500 hrs', 'Mensual', 'Trimestral', 'Semestral', 'Anual'];
+
 const MOTIVOS_SALIDA = ['Aplicación programada', 'Recomendación Nova Guard', 'Recomendación VITAL', 'Plan de nutrición', 'Entrega a productor', 'Despacho a finca', 'Mantenimiento de equipo', 'Combustible maquinaria', 'Merma / Vencimiento', 'Otro'];
 const MOTIVOS_ENTRADA = ['Compra a proveedor', 'Donación', 'Devolución de productor', 'Transferencia entre bodegas', 'Otro'];
 const FINCAS_DESTINO = ['Finca El Progreso - Vereda Norte', 'Finca La Unión - Vereda Sur', 'Finca San José - Vereda Central', 'Finca Las Flores - Vereda Este', 'Bodega Central', 'Entrega directa a productor'];
