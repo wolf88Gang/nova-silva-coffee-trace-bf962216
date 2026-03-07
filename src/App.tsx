@@ -90,7 +90,14 @@ const queryClient = new QueryClient({
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
-    <p className="text-muted-foreground">Cargando…</p>
+    <video
+      src="/animacion_nova_silva.mp4"
+      autoPlay
+      loop
+      muted
+      playsInline
+      className="w-32 h-32 object-contain"
+    />
   </div>
 );
 
