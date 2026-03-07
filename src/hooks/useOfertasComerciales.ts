@@ -59,7 +59,7 @@ export function useResponderOferta() {
   return useMutation({
     mutationFn: async ({ id, estado }: { id: string; estado: 'aceptada' | 'rechazada' | 'contraoferta' }) => {
       const { error } = await supabase
-        .from('ofertas_comerciales')
+        .from(TABLE.OFERTAS_COMERCIALES)
         .update({ estado, fecha_respuesta: new Date().toISOString() })
         .eq('id', id);
       if (error) throw error;

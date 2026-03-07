@@ -46,7 +46,7 @@ export function useCreateReclamo() {
   return useMutation({
     mutationFn: async (input: Omit<Reclamo, 'id' | 'organization_id' | 'created_at' | 'updated_at' | 'estado'>) => {
       const { data, error } = await supabase
-        .from('reclamos_postventa')
+        .from(TABLE.RECLAMOS)
         .insert({
           organization_id: organizationId!,
           ...input,
