@@ -16,6 +16,10 @@ export const TABLE = {
   comparacion_muestras: 'comparacion_muestras',
   clientes_compradores: 'clientes_compradores',
   lotes_exportacion: 'lotes_exportacion',
+  plot_module_snapshot: 'plot_module_snapshot',
+  disease_assessments: 'disease_assessments',
+  resilience_assessments: 'resilience_assessments',
+  cycle_learning_log: 'cycle_learning_log',
 } as const;
 
 export const QUERY_KEYS = {
@@ -30,4 +34,5 @@ export const QUERY_KEYS = {
   rankingCooperativas: ['ranking_cooperativas'] as const,
   clientesCompradores: [TABLE.clientes_compradores] as const,
   lotesExportacion: [TABLE.lotes_exportacion] as const,
+  moduleSnapshot: ['module-snapshot'] as const,
 } as const;
