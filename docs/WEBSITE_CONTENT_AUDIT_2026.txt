@@ -1,0 +1,325 @@
+Nova Silva — Contenido Actual del Sitio Web (Marketing)
+**Fecha de generación:** 2026-03-07  
+**Propósito:** Documento maestro para comparar con la plataforma (app.novasilva.co) e identificar brechas.
+---
+## ARQUITECTURA DEL SITIO
+### Rutas
+| Ruta | Página | Estado |
+|------|--------|--------|
+| `/` | Inicio (landing) | ✅ Activa |
+| `/nosotros` | Nosotros | ✅ Activa |
+| `/soluciones` | Soluciones | ✅ Activa |
+| `/clientes` | Clientes (3 segmentos) | ✅ Activa |
+| `/exportadores` | Exportadores (dedicada) | ✅ Activa |
+| `/cumplimiento` | Cumplimiento | ✅ Activa |
+| `/protocolo-vital` | Protocolo VITAL | ✅ Activa |
+| `/impacto` | Impacto | ✅ Activa |
+| `/jornales` | Jornales | ✅ Activa |
+| `/contacto` | Contacto | ✅ Activa |
+### Navegación (Navbar)
+- Nosotros, Soluciones, Clientes (dropdown: Cooperativas / Exportadores / Certificadoras), Cumplimiento, Protocolo VITAL, Impacto, Contacto
+- Link externo: "Iniciar sesión" → app.novasilva.co
+- CTA: "Solicitar demo" (abre WaitingListModal)
+- **Nota:** Jornales NO aparece en la navbar principal (solo accesible directamente).
+---
+## PÁGINA: INICIO (`/`)
+### Componentes en orden:
+1. **HeroSimplified**
+2. **ProtocoloVitalSection**
+3. **ModulosNovaSection**
+4. **ComoFuncionaSection**
+5. **ParaQuienSection**
+6. **GobernanzaSection**
+7. **EstadoActualSection**
+### 1. Hero
+- **Título:** "Sistema Operativo para la Resiliencia Agrícola"
+- **Subtítulo:** Integra datos agronómicos, trazabilidad EUDR, gobernanza documental y acceso a financiamiento.
+- **Párrafo:** Protocolo VITAL estructura los datos; los módulos los convierten en decisiones.
+- **CTAs:** Solicitar Demo, Ver Plataforma, Conocer Protocolo VITAL
+- **Credibility anchors:** Protocolo VITAL, Trazabilidad EUDR, Score de Solidez
+### 2. Protocolo VITAL Section
+- Acrónimo VITAL: Vigilancia, Innovación, Trazabilidad, Adaptación, Legalidad
+- "VITAL en la práctica": En campo / En cooperativa / En exportación
+- Link a `/protocolo-vital`
+### 3. Módulos de Nova Silva (ModulosNovaSection)
+| Módulo | Subtítulo | Para quién |
+|--------|-----------|------------|
+| Nova Yield | Predicción de Cosecha | Técnicos, gerentes de acopio, exportadores |
+| Nova Guard | Alerta Fitosanitaria | Técnicos, cooperativas, programas de sanidad |
+| Nova Cup | Catación Digital | Catadores, cooperativas, exportadores de especialidad |
+| Gobernanza y Compliance | Hub de Cumplimiento | Gerentes de calidad, sostenibilidad, exportadoras |
+| Equidad e Inclusión | Modelo de Género | Cooperativas con compromisos de equidad |
+| Carbono / MRV | Bonos Verificables | Cooperativas agroforestales, proyectos de carbono |
+| Reportes de Auditoría | Generación Automática | Certificadoras, compradores, bancos |
+### 4. Cómo Funciona (ComoFuncionaSection)
+4 pasos:
+1. **Captura en campo** — Registro offline, IA en dispositivo para contar frutos/detectar síntomas
+2. **Organización y gobernanza** — Datos por productor/parcela/momento, validación satelital, roles
+3. **Evaluación con Protocolo VITAL** — Perfil de solidez (exposición, sensibilidad, adaptación)
+4. **Gestión y decisiones** — Cooperativas priorizan, exportadores identifican bajo riesgo, bancos evalúan
+### 5. Para Quién (ParaQuienSection)
+4 segmentos:
+1. **Cooperativas** — Panel de gestión, indicadores de solidez, alertas, captura offline
+2. **Fincas grandes y empresas agrícolas** — Nova Yield, Jornales, Perfil de Solidez, créditos verdes
+3. **Exportadores** — Módulo comercial, generador EUDR, ranking de proveedores
+4. **Aliados técnicos, financieros e institucionales** — Datos estructurados, certificadoras, bancos
+### 6. Gobernanza (GobernanzaSection)
+4 pilares:
+1. **Gobernanza de datos** — PostgreSQL RLS, sincronización offline-first
+2. **Evidencia audit-ready** — Coordenadas, timestamp, validación satelital
+3. **EUDR como capa, no como centro** — Sirve para múltiples normas (Rainforest, Fairtrade, ISO)
+4. **Anclajes de integridad** — Hashes SHA-256, ledger público (⚠️ menciona "Blockchain anchors")
+- **Kill Switch EUDR:** Bloqueo automático si se detecta conflicto geolocalización vs. deforestación
+### 7. Estado Actual (EstadoActualSection)
+**Ya operativo:**
+- Dashboards activos por cooperativa con índice de cumplimiento dinámico
+- Módulos de trazabilidad, Protocolo VITAL y generador EUDR funcionando
+- Pilotos en Costa Rica y Nicaragua con cooperativas de café y cacao
+- Reducción de ~50% en tiempo de preparación de auditorías
+- Portal administrativo para monitoreo de consumo vs. límites de suscripción
+**En implementación:**
+- Piloto de carbono bajo estándares ISO 14064
+- Integración con certificadoras locales
+- Certificación del Protocolo de Género
+- Expansión a nuevos cultivos y geografías
+---
+## PÁGINA: SOLUCIONES (`/soluciones`)
+### Hero
+- Título: "Cuatro pilares para ordenar datos"
+- Subtítulo: Trazabilidad, Protocolo VITAL, mano de obra y comercialización
+### Cuatro Pilares
+1. **Trazabilidad y EUDR** (por lote) — Georreferenciación, indicador EUDR, Paquete EUDR
+2. **Protocolo VITAL** (marco metodológico) — Evaluación por finca, Score de Solidez, Motor RADIX Nova, Escala de Madurez
+3. **Jornales** (gestión de personal) — Campañas, cuadrillas, registros diarios, panel de productividad
+4. **Módulo Comercial** (para exportadores) — Inventario, contratos, ranking proveedores EUDR, precios de mercado
+### Flujo de Trazabilidad EUDR
+Finca → Parcela → Acopio → Lote → Exportador → EUDR
+- Registro de origen (geodatos, pre-2020)
+- Lotes trazables (validación superficie/volúmenes/satélite)
+- Paquete EUDR (PDF/JSON)
+### Qué ve cada usuario
+| Rol | Descripción |
+|-----|-------------|
+| Cooperativas | Panel de gestión, productores, parcelas, indicadores, Perfil VITAL, mensajería |
+| Exportadores | Lotes comerciales, contratos, eventos, cartera, generador EUDR |
+| Fincas | Panel personal con parcelas, entregas, Perfil de Solidez VITAL |
+| Certificadoras | Panel de auditoría con lotes, riesgo, vistas pseudonimizadas |
+### Modos Independientes
+- **Cooperativa autónoma:** Funciona sin que el exportador use NS
+- **Exportador independiente:** Funciona sin que proveedores usen NS
+---
+## PÁGINA: EXPORTADORES (`/exportadores`)
+### Problemas que presenta:
+- Info dispersa entre sistemas, correos, hojas de cálculo
+- Dificultad para demostrar origen y cumplimiento lote por lote
+- Procesos manuales para expedientes de exportación
+- Poca visibilidad de % trazable de la cartera
+### Funcionalidades:
+- Visión de cartera de proveedores y orígenes
+- Trazabilidad lote a parcela
+- Documentación de cumplimiento (paquetes por lote)
+- Indicadores de riesgo y priorización
+### Casos de uso:
+- Construcción de lotes de exportación
+- Respuesta a solicitudes de clientes
+- Planificación de programas de origen
+### Beneficios:
+- Menos tiempo buscando info dispersa
+- Mayor seguridad al firmar contratos
+- Mejor priorización de orígenes/proveedores
+- Mayor confianza de clientes y aliados
+---
+## PÁGINA: CUMPLIMIENTO (`/cumplimiento`)
+### Hero
+- "Organice el cumplimiento desde los datos, no desde carpetas sueltas"
+### Contenido:
+- Contexto regulatorio (EUDR y otros marcos de debida diligencia)
+- **Motor de Debida Diligencia EUDR: Protocolo VITAL**
+  - Blindaje Legal: Rating de Riesgo de Proveedor (50 indicadores P21-P30)
+  - Trazabilidad Inmutable: Polígonos GPS, riesgo deforestación post-2020 (LUC)
+  - Evidencia de Auditoría: ⚠️ Menciona "capa de Blockchain Integrity" y "hashes inmutables"
+- Funcionalidades: Estructura de datos, evidencias conectadas, reportes, soporte auditorías
+- Tipos de evidencias: Geodatos, documentación legal, formularios, visitas técnicas, acciones de adaptación
+- Beneficios: Preparación para regulaciones, menos tiempo en auditorías, credibilidad, base de datos sólida
+---
+## PÁGINA: PROTOCOLO VITAL (`/protocolo-vital`)
+### Hero
+- "Construya el Perfil de Solidez de cada finca"
+### Acrónimo VITAL
+V-I-T-A-L (Vigilancia, Innovación, Trazabilidad, Adaptación, Legalidad)
+### Las 3 Dimensiones de Solidez
+1. **Capital Natural** (Integridad Ecosistémica) — Seguridad hídrica, salud del suelo, biodiversidad, paisaje
+2. **Capital Productivo** (Eficiencia Operativa) — Estructura del cafetal, salud planta, poscosecha, rendimiento
+3. **Capital de Soporte** (Viabilidad Institucional) — Diversificación, financiamiento, digitalización, conexión cooperativa
+### Beneficios de VITAL
+- De "Riesgo" a "Madurez" (escala Vulnerable → Resiliente)
+- Cumplimiento sin Fricción (alimenta requisitos EUDR automáticamente)
+- Evidencia Digital (fotos, coordenadas, datos) — ⚠️ menciona "anclada en blockchain"
+- Visibilidad Estratégica (productores blindados vs. necesitan acompañamiento)
+### CTA
+- "Evaluar la Solidez de mi Cadena de Suministro"
+- Menciona "motor RADIX Nova"
+---
+## PÁGINA: IMPACTO (`/impacto`)
+### 4 Ejes de Impacto:
+**Eje 1: Impacto Productivo**
+- Planificación basada en datos reales
+- Control operativo por finca y parcela
+- Reducción de tareas manuales
+**Eje 2: Impacto en Cumplimiento y Gobernanza**
+- Reducción de riesgo normativo
+- Evidencia audit-ready (PDF/JSON)
+- Transparencia operativa (roles diferenciados)
+**Eje 3: Impacto en Género e Inclusión**
+- Registro desagregado por género
+- Visibilidad de participación de mujeres (titularidad, trabajo, gobernanza)
+- Reportes de inclusión estructurados
+- Respuesta a requerimientos de género con evidencia
+- Áreas de visibilidad: Titularidad, Trabajo, Toma de decisiones
+- Reportes para: Cooperativas, Compradores, Fondos e instituciones
+**Eje 4: Impacto Institucional y de Mercado**
+- Base objetiva para financiamiento (Score de Solidez)
+- Confianza para aliados institucionales
+- Acceso a mercados con requisitos de gobernanza social
+---
+## PÁGINA: JORNALES (`/jornales`)
+### Hero
+- "Jornales: gestión de personal de cosecha"
+### Contenido:
+- Problema: Gestión de cosecha sin datos estructurados (cuadernos, planillas desconectadas)
+- **Funcionalidades:** Campañas de cosecha, bloques de trabajo, cuadrillas y asignaciones, registros diarios, tablero de brecha (14 días), Interpretación Nova Silva
+- **Interpretación NS:** Bloques con bajo rendimiento, cuadrillas que necesitan refuerzo, tendencias, alertas de brecha
+- **Beneficios:** Visibilidad en tiempo real, detección temprana de problemas, datos para futuras campañas
+- Integrado con el resto de Nova Silva (productores, parcelas, trazabilidad, riesgo)
+---
+## PÁGINA: CLIENTES (`/clientes`)
+### Segmento 1: Cooperativas agrícolas (#cooperativas)
+- Panel integral (productores, parcelas, lotes, EUDR, Jornales, mensajería)
+- Funciona independientemente del exportador
+- **Beneficios visibles:** Auditorías más ágiles, visibilidad con Jornales, menor riesgo no conformidades, comunicación con productores
+- **Panel de gestión:** Métricas, documentos, georreferenciación, lotes, indicador EUDR, panel de riesgos, Perfil de Solidez
+- **Mi Finca (Portal del productor):** Parcelas, área, entregas, documentación por parcela, Perfil VITAL con plan de acciones, evidencias y mensajería
+- **Interpretación Nova Silva:** Riesgos con plan de acciones, lectura conjunta riesgos + diagnóstico organizacional, auto-respuesta en evidencias (24h)
+### Segmento 2: Casas exportadoras (#exportadores)
+- Inventario de lotes, riesgo EUDR, contratos, proveedores con ranking, Paquete EUDR PDF/JSON
+- Funciona sin que proveedores usen Nova Silva
+- **Beneficios:** Control de riesgo, Paquetes EUDR, Ranking proveedores, Precios de mercado
+- **Panel:** Inventario con EUDR, contratos/pagos, eventos logísticos, reclamos post-venta, cartera de proveedores
+### Segmento 3: Certificadoras (#certificadoras)
+- Panel de auditoría con lotes, distribución de riesgos, vistas pseudonimizadas
+- Información preorganizada para auditorías
+---
+## PÁGINA: NOSOTROS (`/nosotros`)
+### Hero
+- "Personas de campo y datos"
+- Experiencia en cooperativas, fincas, proyectos de sostenibilidad en Latinoamérica
+### Propósito / Visión / Misión
+- **Propósito:** Acompañar hacia cadenas más ordenadas, transparentes y resilientes
+- **Visión:** Referencia latinoamericana en trazabilidad y clima para cadenas agrícolas — ⚠️ menciona "clima"
+- **Misión:** Plataforma que conecte campo, análisis geoespacial y evidencia de cumplimiento
+### Principios
+- Respeto por el campo, Datos con propósito, Transparencia, Rigurosidad técnica, Colaboración, Implementación gradual
+### Capacidades del equipo
+- Cooperativas agrícolas y cadenas de suministro
+- Cumplimiento normativo y certificaciones
+- Análisis geoespacial y monitoreo satelital
+- Ciencia de datos y desarrollo de software
+---
+## PÁGINA: CONTACTO (`/contacto`)
+### Hero
+- "Solicite una demo personalizada"
+### Formulario
+- Campos: Nombre*, Email*, Tipo de organización* (Cooperativa/Exportador/Certificadora/Otro), País, Mensaje
+- Honeypot anti-spam
+- Consentimiento de datos
+- Envía vía Edge Function (`send-contact-email`)
+### Sidebar
+- Demos adaptadas: Cooperativa, Casa exportadora, Certificadora
+- Contacto directo: info@novasilva.co, WhatsApp (+506 8962 7930)
+---
+## COMPONENTES NO USADOS (existen pero no se importan en ninguna página activa)
+| Componente | Descripción |
+|------------|-------------|
+| `ModulesSection.tsx` | 8 módulos de plataforma (Trazabilidad, Exportadores, Resiliencia, Jornales, Portal productor, GIS, Integridad, Gobernanza) |
+| `PlansServicesSection.tsx` | 3 planes (Nova Lite, Nova Smart, Nova Plus+CLIMA) + servicios adicionales |
+| `ValuePropositionStrip.tsx` | Strip con Trazabilidad, Cumplimiento, Resiliencia |
+| `Hero.tsx` | Hero anterior (no simplificado) |
+| `FourPillarsSection.tsx` | Versión anterior de pilares |
+| `PainPointsSection.tsx` | Pain points anteriores |
+| `ProblemSolutionSection.tsx` | Problema/Solución anterior |
+| `HowItWorksStepsSection.tsx` | Pasos anterior versión |
+| `SegmentationSection.tsx` | Segmentación anterior |
+| `TechTeaseSection.tsx` | Teaser tecnológico |
+| `IndependentModesSection.tsx` | Modos independientes (versión anterior) |
+| `ImpactSocialProof.tsx` | Social proof |
+| `ImpactTrustSection.tsx` | Trust section |
+| `BenefitsProfileSection.tsx` | Beneficios anterior |
+| `VitalPillarsSection.tsx` | Pilares VITAL anterior |
+| `AIInterpretationSection.tsx` | Sección IA anterior |
+| `FooterCTA.tsx` | CTA footer anterior |
+---
+## ⚠️ PROBLEMAS CONOCIDOS / INCONSISTENCIAS
+### Terminología prohibida que aún aparece:
+1. **"Blockchain"** — Aparece en:
+   - `GobernanzaSection.tsx`: "Blockchain anchors" (detalle técnico)
+   - `Cumplimiento.tsx`: "capa de Blockchain Integrity"
+   - `ProtocoloVital.tsx`: "anclada en blockchain"
+   - **Correcto:** "Hashes criptográficos SHA-256" / "Anclajes de integridad"
+2. **"clima" / "climática"** — Aparece en:
+   - `Nosotros.tsx`: Visión menciona "trazabilidad y clima"
+   - `ComoFuncionaSection.tsx`: "criterios agronómicos y climáticos" (aceptable como referencia técnica)
+   - **Verificar** que no se use en contexto de "Plan CLIMA" (prohibido)
+### Módulos mencionados sin implementación verificada:
+- **Nova Yield** (Predicción de Cosecha) — ¿Existe en app.novasilva.co?
+- **Nova Guard** (Alerta Fitosanitaria) — ¿Existe en app.novasilva.co?
+- **Nova Cup** (Catación Digital) — Se sabe que está en desarrollo
+- **Carbono / MRV** (Bonos Verificables) — En "implementación" según Estado Actual
+### Claims cuantitativos:
+- "Reducción de ~50% en tiempo de preparación de auditorías" — ¿Verificable?
+### Datos de contacto:
+- Email: info@novasilva.co
+- WhatsApp: +506 8962 7930
+### Imágenes de fondo actuales:
+- Home: `/hero-home-bg.jpg` (gato-mourisco-plantacion-camino)
+- Nosotros: `/hero-nosotros-bg.jpg` (gato-mourisco-flores-paisaje)
+- Contacto: `/hero-contacto.jpg` (gato-mourisco-cerezas-secadero)
+- Soluciones: `/hero-soluciones.jpg` (gato-mourisco-secado-montanas)
+- Protocolo VITAL: `/hero-protocolo-vital.jpg`
+- Cumplimiento: `/hero-cumplimiento.png`
+- Impacto: `/hero-impacto.png`
+- Jornales: `/hero-background.webp` (genérica)
+---
+## FUNCIONALIDADES DE LA PLATAFORMA QUE EL SITIO WEB YA MENCIONA
+✅ Trazabilidad georreferenciada (productores, parcelas, lotes)
+✅ Indicador EUDR dinámico por parcela
+✅ Paquete EUDR en PDF y JSON
+✅ Protocolo VITAL con 3 Capitales (Natural, Productivo, Soporte)
+✅ Score / Perfil de Solidez
+✅ Motor RADIX Nova (mencionado pero no explicado)
+✅ Jornales (campañas, bloques, cuadrillas, registros diarios, brecha 14 días)
+✅ Módulo Comercial para exportadores (inventario, contratos, ranking)
+✅ Portal del productor ("Mi Finca")
+✅ Modos independientes (cooperativa y exportador)
+✅ Interpretación Nova Silva (3 capas: VITAL, conjunta, auto-respuesta 24h)
+✅ Validación satelital (Sentinel, NDVI)
+✅ Hashes SHA-256 / anclajes de integridad
+✅ Roles diferenciados (cooperativa, exportador, certificadora, productor)
+✅ Evidencias de campo con validación
+✅ Mensajería bidireccional
+✅ Diagnóstico organizacional (mencionado como "evaluación organizacional" en Interpretación NS)
+✅ Género e inclusión (datos desagregados, titularidad, participación)
+✅ Precios de mercado
+✅ Reclamos post-venta
+✅ Eventos logísticos
+## FUNCIONALIDADES DE LA PLATAFORMA QUE EL SITIO WEB NO MENCIONA O SUBMENCIONA
+(Basado en memoria del proyecto — comparar con app.novasilva.co actual)
+❓ Nova Yield — ¿realmente existe o es aspiracional?
+❓ Nova Guard — ¿realmente existe o es aspiracional?
+❓ Nova Cup — En desarrollo, pero se presenta como módulo activo
+❓ Carbono / MRV — Listado como "en implementación" pero aparece en módulos activos
+❓ Diagnóstico organizacional — Mencionado indirectamente pero no tiene sección propia
+❓ Avisos/noticias internas de cooperativa — Implementado pero poco visible en marketing
+❓ Captura offline — Mencionado pero ¿realmente implementado?
+❓ IA en dispositivo (contar frutos, detectar síntomas) — ¿Implementado?
+---
+*Este documento refleja TODO el contenido textual e informacional presente en el sitio web de marketing de Nova Silva al 2026-03-07. Comparar línea por línea con las funcionalidades reales de app.novasilva.co para identificar brechas, excesos y actualizaciones necesarias.*
