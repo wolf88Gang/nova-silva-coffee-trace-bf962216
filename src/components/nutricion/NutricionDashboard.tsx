@@ -26,6 +26,7 @@ export default function NutricionDashboard() {
           <TabsTrigger value="generar"><Zap className="h-4 w-4 mr-1" /> Generar Plan</TabsTrigger>
           <TabsTrigger value="cotizacion"><ShoppingCart className="h-4 w-4 mr-1" /> Cotización</TabsTrigger>
           <TabsTrigger value="ejecucion"><ClipboardCheck className="h-4 w-4 mr-1" /> Ejecución</TabsTrigger>
+          <TabsTrigger value="historial"><History className="h-4 w-4 mr-1" /> Historial</TabsTrigger>
         </TabsList>
 
         <TabsContent value="estado" className="mt-4"><EstadoNutricionalTab /></TabsContent>
@@ -34,6 +35,7 @@ export default function NutricionDashboard() {
         <TabsContent value="generar" className="mt-4"><GeneratePlanV2 /></TabsContent>
         <TabsContent value="cotizacion" className="mt-4"><CotizacionTab /></TabsContent>
         <TabsContent value="ejecucion" className="mt-4"><EjecucionTab /></TabsContent>
+        <TabsContent value="historial" className="mt-4"><HistorialTab /></TabsContent>
       </Tabs>
     </div>
   );
