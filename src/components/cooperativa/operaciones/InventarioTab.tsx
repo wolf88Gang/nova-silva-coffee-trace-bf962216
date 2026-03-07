@@ -120,6 +120,19 @@ const fmtDate = (d: string) => {
   return date.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+const financingBadge = (eq: Equipo) => {
+  if (!eq.metodoPago || eq.metodoPago === 'contado') return null;
+  const pagado = eq.cuotasPagadas && eq.cuotasMensuales && eq.cuotasPagadas >= eq.cuotasMensuales;
+  if (pagado) return <Badge className="bg-emerald-600/90 text-white border-0 text-[10px] gap-1"><CreditCard className="h-3 w-3" /> Pagado</Badge>;
+  const label = eq.metodoPago === 'leasing' ? 'Leasing' : 'Financiado';
+  return <Badge className="bg-blue-500/90 text-white border-0 text-[10px] gap-1"><CreditCard className="h-3 w-3" /> {label}</Badge>;
+};
+
+const METODOS_PAGO = [
+  { value: 'contado', label: 'Contado' },
+  { value: 'financiado', label: 'Financiado' },
+  { value: 'leasing', label: 'Leasing' },
+];
 
 function getSugerenciasSalida(insumo: Insumo): SugerenciaSalida[] {
   const sugerencias: SugerenciaSalida[] = [];
