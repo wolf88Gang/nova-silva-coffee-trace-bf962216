@@ -691,6 +691,13 @@ export default function InventarioTab() {
                   <SelectContent>{(showMovimiento.tipo === 'salida' ? MOTIVOS_SALIDA : MOTIVOS_ENTRADA).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              {showMovimiento.tipo === 'entrada' && (
+                <div className="space-y-2"><Label>Proveedor</Label>
+                  <Select value={proveedor} onValueChange={setProveedor}><SelectTrigger><SelectValue placeholder="Seleccione proveedor..." /></SelectTrigger>
+                    <SelectContent>{PROVEEDORES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              )}
               {showMovimiento.tipo === 'salida' && (
                 <div className="space-y-2"><Label>Destino / Finca *</Label>
                   <Select value={destino} onValueChange={setDestino}><SelectTrigger><SelectValue placeholder="Seleccione destino..." /></SelectTrigger>
