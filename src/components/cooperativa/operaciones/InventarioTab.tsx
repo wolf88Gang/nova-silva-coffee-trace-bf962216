@@ -747,12 +747,67 @@ export default function InventarioTab() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── ADD EQUIPO (placeholder) ─── */}
+      {/* ─── ADD EQUIPO ─── */}
       <Dialog open={showAddEquipo} onOpenChange={setShowAddEquipo}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Cog className="h-5 w-5 text-primary" /> Agregar Equipo</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground text-center py-4">Formulario de registro de equipo próximamente disponible con integración a Jornales y combustible.</p>
-          <Button variant="outline" className="w-full" onClick={() => setShowAddEquipo(false)}>Cerrar</Button>
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>Nombre *</Label><Input placeholder="Ej: Bomba de fumigación" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Marca</Label><Input placeholder="Ej: Stihl" /></div>
+              <div className="space-y-1"><Label>Modelo</Label><Input placeholder="Ej: FS 120" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Tipo</Label>
+                <Select defaultValue="Maquinaria"><SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Maquinaria">Maquinaria</SelectItem>
+                    <SelectItem value="Vehículo">Vehículo</SelectItem>
+                    <SelectItem value="Instrumento">Instrumento</SelectItem>
+                    <SelectItem value="Herramienta">Herramienta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1"><Label>Valor (₡)</Label><Input type="number" placeholder="0" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Fecha compra</Label><Input type="date" /></div>
+              <div className="space-y-1"><Label>Vida útil (años)</Label><Input type="number" placeholder="10" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1"><Label>Horas acumuladas</Label><Input type="number" placeholder="0" /></div>
+              <div className="space-y-1"><Label>Horas vida útil</Label><Input type="number" placeholder="5000" /></div>
+            </div>
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Operación</p>
+              <div className="space-y-2">
+                <div className="space-y-1"><Label>Combustible mensual (L)</Label><Input type="number" placeholder="0" /></div>
+                <div className="space-y-1"><Label>Ubicación / Parcela</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Seleccione ubicación..." /></SelectTrigger>
+                    <SelectContent>{FINCAS_DESTINO.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1"><Label>Responsable (Jornales)</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Asignar responsable..." /></SelectTrigger>
+                    <SelectContent>{RESPONSABLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Mantenimiento</p>
+              <div className="space-y-2">
+                <div className="space-y-1"><Label>Frecuencia</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Seleccione frecuencia..." /></SelectTrigger>
+                    <SelectContent>{FRECUENCIAS_MANT.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1"><Label>Próximo mantenimiento</Label><Input type="date" /></div>
+                <div className="space-y-1"><Label>Notas</Label><Textarea rows={2} placeholder="Estado actual, observaciones..." /></div>
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => { toast.success('Equipo registrado'); setShowAddEquipo(false); }}>Agregar Equipo</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
