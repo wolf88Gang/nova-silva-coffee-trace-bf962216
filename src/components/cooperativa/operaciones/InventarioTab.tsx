@@ -29,9 +29,10 @@ interface Equipo {
   id: string; nombre: string; marca: string; modelo: string;
   tipo: 'Herramienta' | 'Maquinaria' | 'Vehículo' | 'Instrumento';
   estado: 'Operativo' | 'En Mantenimiento' | 'Fuera de servicio';
-  valor: number; fechaCompra: string;
-  horasUso?: number; combustibleMes?: number; parcelaAsignada?: string;
-  proximoMantenimiento?: string;
+  valor: number; fechaCompra: string; vidaUtilAnios: number;
+  horasUso?: number; horasVidaUtil?: number; combustibleMes?: number; parcelaAsignada?: string;
+  proximoMantenimiento?: string; frecuenciaMantenimiento?: string;
+  responsable?: string; notasMantenimiento?: string;
 }
 
 interface Movimiento {
@@ -48,6 +49,10 @@ interface SugerenciaSalida {
 /* ═══════════════════════════════════════════
    CONSTANTS & DEMO DATA
    ═══════════════════════════════════════════ */
+const PROVEEDORES = ['AgroInsumos del Valle', 'Fertiquímica S.A.', 'BioControl Centroamérica', 'Agroveterinaria La Unión', 'Café Import Export', 'Distribuidora Nacional', 'Otro'];
+const RESPONSABLES = ['Carlos Méndez (Jefe de campo)', 'María López (Técnica agrícola)', 'Roberto Jiménez (Operador maquinaria)', 'Ana Solano (Bodega)', 'Luis Herrera (Chofer)', 'Sin asignar'];
+const FRECUENCIAS_MANT = ['Cada 100 hrs', 'Cada 250 hrs', 'Cada 500 hrs', 'Mensual', 'Trimestral', 'Semestral', 'Anual'];
+
 const MOTIVOS_SALIDA = ['Aplicación programada', 'Recomendación Nova Guard', 'Recomendación VITAL', 'Plan de nutrición', 'Entrega a productor', 'Despacho a finca', 'Mantenimiento de equipo', 'Combustible maquinaria', 'Merma / Vencimiento', 'Otro'];
 const MOTIVOS_ENTRADA = ['Compra a proveedor', 'Donación', 'Devolución de productor', 'Transferencia entre bodegas', 'Otro'];
 const FINCAS_DESTINO = ['Finca El Progreso - Vereda Norte', 'Finca La Unión - Vereda Sur', 'Finca San José - Vereda Central', 'Finca Las Flores - Vereda Este', 'Bodega Central', 'Entrega directa a productor'];
@@ -68,14 +73,14 @@ const insumosInicial: Insumo[] = [
 ];
 
 const equiposInicial: Equipo[] = [
-  { id: 'e1', nombre: 'Balanza digital', marca: 'Torrey', modelo: 'EQB-50', tipo: 'Instrumento', estado: 'Operativo', valor: 95000, fechaCompra: '2023-03-15', horasUso: 1200, parcelaAsignada: 'Bodega Central' },
-  { id: 'e2', nombre: 'Bomba de fumigación', marca: 'Solo', modelo: '423', tipo: 'Maquinaria', estado: 'Operativo', valor: 185000, fechaCompra: '2023-06-20', horasUso: 340, combustibleMes: 8, parcelaAsignada: 'Finca El Progreso', proximoMantenimiento: '2026-04-01' },
-  { id: 'e3', nombre: 'Desbrozadora', marca: 'Stihl', modelo: 'FS 120', tipo: 'Maquinaria', estado: 'En Mantenimiento', valor: 320000, fechaCompra: '2022-11-10', horasUso: 890, combustibleMes: 15, proximoMantenimiento: '2026-03-15' },
-  { id: 'e4', nombre: 'Medidor humedad', marca: 'Delmhorst', modelo: 'G-7', tipo: 'Instrumento', estado: 'Operativo', valor: 125000, fechaCompra: '2024-01-05', horasUso: 200, parcelaAsignada: 'Bodega Central' },
-  { id: 'e5', nombre: 'Motosierra', marca: 'Stihl', modelo: 'MS 250', tipo: 'Maquinaria', estado: 'Operativo', valor: 450000, fechaCompra: '2023-09-01', horasUso: 560, combustibleMes: 12, parcelaAsignada: 'Finca La Unión' },
-  { id: 'e6', nombre: 'Pick-up de trabajo', marca: 'Toyota', modelo: 'Hilux 4×4', tipo: 'Vehículo', estado: 'Operativo', valor: 12500000, fechaCompra: '2024-06-15', horasUso: 8500, combustibleMes: 180, parcelaAsignada: 'Ruta general', proximoMantenimiento: '2026-03-20' },
-  { id: 'e7', nombre: 'Secadora solar', marca: 'Artesanal', modelo: 'Tipo parabólico', tipo: 'Maquinaria', estado: 'Operativo', valor: 280000, fechaCompra: '2022-02-20', parcelaAsignada: 'Beneficio Central' },
-  { id: 'e8', nombre: 'Despulpadora', marca: 'JM Estrada', modelo: 'No. 3', tipo: 'Maquinaria', estado: 'Operativo', valor: 950000, fechaCompra: '2021-08-10', horasUso: 2400, parcelaAsignada: 'Beneficio Central', proximoMantenimiento: '2026-05-01' },
+  { id: 'e1', nombre: 'Balanza digital', marca: 'Torrey', modelo: 'EQB-50', tipo: 'Instrumento', estado: 'Operativo', valor: 95000, fechaCompra: '2023-03-15', vidaUtilAnios: 10, horasUso: 1200, horasVidaUtil: 15000, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
+  { id: 'e2', nombre: 'Bomba de fumigación', marca: 'Solo', modelo: '423', tipo: 'Maquinaria', estado: 'Operativo', valor: 185000, fechaCompra: '2023-06-20', vidaUtilAnios: 8, horasUso: 340, horasVidaUtil: 3000, combustibleMes: 8, parcelaAsignada: 'Finca El Progreso', proximoMantenimiento: '2026-04-01', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Carlos Méndez (Jefe de campo)' },
+  { id: 'e3', nombre: 'Desbrozadora', marca: 'Stihl', modelo: 'FS 120', tipo: 'Maquinaria', estado: 'En Mantenimiento', valor: 320000, fechaCompra: '2022-11-10', vidaUtilAnios: 7, horasUso: 890, horasVidaUtil: 4000, combustibleMes: 15, proximoMantenimiento: '2026-03-15', frecuenciaMantenimiento: 'Cada 250 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)', notasMantenimiento: 'Filtro de aire y bujía en reemplazo' },
+  { id: 'e4', nombre: 'Medidor humedad', marca: 'Delmhorst', modelo: 'G-7', tipo: 'Instrumento', estado: 'Operativo', valor: 125000, fechaCompra: '2024-01-05', vidaUtilAnios: 10, horasUso: 200, horasVidaUtil: 10000, parcelaAsignada: 'Bodega Central', responsable: 'Ana Solano (Bodega)' },
+  { id: 'e5', nombre: 'Motosierra', marca: 'Stihl', modelo: 'MS 250', tipo: 'Maquinaria', estado: 'Operativo', valor: 450000, fechaCompra: '2023-09-01', vidaUtilAnios: 8, horasUso: 560, horasVidaUtil: 5000, combustibleMes: 12, parcelaAsignada: 'Finca La Unión', frecuenciaMantenimiento: 'Cada 100 hrs', responsable: 'Roberto Jiménez (Operador maquinaria)' },
+  { id: 'e6', nombre: 'Pick-up de trabajo', marca: 'Toyota', modelo: 'Hilux 4×4', tipo: 'Vehículo', estado: 'Operativo', valor: 12500000, fechaCompra: '2024-06-15', vidaUtilAnios: 15, horasUso: 8500, horasVidaUtil: 200000, combustibleMes: 180, parcelaAsignada: 'Ruta general', proximoMantenimiento: '2026-03-20', frecuenciaMantenimiento: 'Cada 500 hrs', responsable: 'Luis Herrera (Chofer)' },
+  { id: 'e7', nombre: 'Secadora solar', marca: 'Artesanal', modelo: 'Tipo parabólico', tipo: 'Maquinaria', estado: 'Operativo', valor: 280000, fechaCompra: '2022-02-20', vidaUtilAnios: 10, parcelaAsignada: 'Beneficio Central', responsable: 'Carlos Méndez (Jefe de campo)' },
+  { id: 'e8', nombre: 'Despulpadora', marca: 'JM Estrada', modelo: 'No. 3', tipo: 'Maquinaria', estado: 'Operativo', valor: 950000, fechaCompra: '2021-08-10', vidaUtilAnios: 20, horasUso: 2400, horasVidaUtil: 30000, parcelaAsignada: 'Beneficio Central', proximoMantenimiento: '2026-05-01', frecuenciaMantenimiento: 'Semestral', responsable: 'Carlos Méndez (Jefe de campo)' },
 ];
 
 const historialInicial: Movimiento[] = [
@@ -108,6 +113,19 @@ const fmtCRC = (n: number) => `₡${n.toLocaleString()}`;
 const fmtDate = (d: string) => {
   const date = new Date(d + 'T12:00:00');
   return date.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+/** Depreciación lineal: años transcurridos / vida útil */
+const getDepreciacion = (eq: Equipo) => {
+  const aniosTranscurridos = (Date.now() - new Date(eq.fechaCompra + 'T12:00:00').getTime()) / (365.25 * 24 * 3600 * 1000);
+  const pctUsado = Math.min(100, Math.max(0, (aniosTranscurridos / eq.vidaUtilAnios) * 100));
+  const valorNeto = Math.max(0, eq.valor * (1 - pctUsado / 100));
+  return { pctUsado, valorNeto, aniosTranscurridos };
+};
+
+const horasUsoPct = (eq: Equipo) => {
+  if (!eq.horasUso || !eq.horasVidaUtil) return null;
+  return Math.min(100, (eq.horasUso / eq.horasVidaUtil) * 100);
 };
 
 function getSugerenciasSalida(insumo: Insumo): SugerenciaSalida[] {
@@ -164,6 +182,7 @@ export default function InventarioTab() {
   const [motivo, setMotivo] = useState('');
   const [destino, setDestino] = useState('');
   const [observaciones, setObservaciones] = useState('');
+  const [proveedor, setProveedor] = useState('');
 
   // Add insumo form
   const [nuevoInsumo, setNuevoInsumo] = useState({ producto: '', cat: 'Fertilizantes', stock: '', minimo: '', unidad: '', costoUnitario: '', ingredienteActivo: '', indicaciones: '', dosisSugerida: '' });
@@ -205,7 +224,7 @@ export default function InventarioTab() {
   }, [movimientos, filterHistorial]);
 
   // Handlers
-  const resetMovForm = () => { setCantidad(''); setMotivo(''); setDestino(''); setObservaciones(''); };
+  const resetMovForm = () => { setCantidad(''); setMotivo(''); setDestino(''); setObservaciones(''); setProveedor(''); };
   const applySugerencia = (s: SugerenciaSalida) => { setCantidad(String(s.cantidadSugerida)); setMotivo(s.motivo); setDestino(s.destino); setObservaciones(s.fuente); };
 
   const handleMovimiento = () => {
