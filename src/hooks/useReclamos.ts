@@ -29,7 +29,7 @@ export function useReclamos() {
     enabled: !!organizationId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('reclamos_postventa')
+        .from(TABLE.RECLAMOS)
         .select('*')
         .eq(ORG_KEY, organizationId!)
         .order('created_at', { ascending: false });
