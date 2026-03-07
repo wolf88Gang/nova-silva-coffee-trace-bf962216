@@ -22,17 +22,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Easter egg: Ctrl+Shift+D → /demo
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        e.preventDefault();
-        navigate('/demo');
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
