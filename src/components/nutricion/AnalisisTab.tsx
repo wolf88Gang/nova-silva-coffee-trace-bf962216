@@ -283,6 +283,8 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
         <div><Label>Mg (cmol/L)</Label><Input type="number" step="0.01" value={form.mg_cmol} onChange={e => set('mg_cmol', e.target.value)} /></div>
         <div><Label>S (ppm)</Label><Input type="number" step="0.1" value={form.s_ppm} onChange={e => set('s_ppm', e.target.value)} /></div>
         <div><Label>CICE</Label><Input type="number" step="0.1" value={form.cice} onChange={e => set('cice', e.target.value)} /></div>
+        <div><Label>Al (cmol)</Label><Input type="number" step="0.01" value={form.al_cmol} onChange={e => set('al_cmol', e.target.value)} placeholder="0.30" /></div>
+        <div className="flex items-end"><p className="text-[10px] text-muted-foreground pb-2">Al intercambiable — clave para cálculo de encalado Kamprath</p></div>
       </div>
       <div>
         <Label>Textura</Label>
