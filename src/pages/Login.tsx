@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,18 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Easter egg: Ctrl+Shift+D → /demo
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        navigate('/demo');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,11 +148,7 @@ const Login = () => {
                   Crear cuenta
                 </Link>
               </p>
-              <p>
-                <Link to="/demo" className="text-white/40 hover:text-white/70 text-xs transition-colors">
-                  Probar en modo demo →
-                </Link>
-              </p>
+              {/* Demo accesible via Ctrl+Shift+D */}
             </div>
           </>
         ) : (
