@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Boxes, AlertTriangle, Wallet, Plus, Minus, Edit2, PackagePlus, History,
   MapPin, Wrench, ChevronRight, Fuel, Tractor, Truck, Scale, Thermometer,
-  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users
+  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users, CreditCard, Banknote
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ProveedorWizard, { type ProveedorData } from '@/components/proveedores/ProveedorWizard';
