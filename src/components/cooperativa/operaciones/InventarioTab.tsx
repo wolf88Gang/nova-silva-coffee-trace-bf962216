@@ -15,6 +15,7 @@ import {
   Sprout, Shield, Clock, Search, Filter, Package, Cog, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ProveedorWizard, { type ProveedorData } from '@/components/proveedores/ProveedorWizard';
 
 /* ═══════════════════════════════════════════
    TYPES
