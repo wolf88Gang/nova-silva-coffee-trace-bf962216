@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sprout, FlaskConical, FileText, Zap, ShoppingCart, ClipboardCheck, History, TestTube, Layers } from 'lucide-react';
+import { Sprout, FlaskConical, FileText, Zap, ShoppingCart, ClipboardCheck, History, TestTube, Layers, Calculator } from 'lucide-react';
 import EstadoNutricionalTab from './EstadoNutricionalTab';
 import AnalisisTab from './AnalisisTab';
 import PlanesTab from './PlanesTab';
@@ -9,6 +9,7 @@ import EjecucionTab from './EjecucionTab';
 import HistorialTab from './HistorialTab';
 import ProtocoloMuestreoTab from './ProtocoloMuestreoTab';
 import SoilHealthTab from './SoilHealthTab';
+import DemandaTab from './DemandaTab';
 
 export default function NutricionDashboard() {
   return (
@@ -25,6 +26,7 @@ export default function NutricionDashboard() {
           <TabsTrigger value="estado"><Sprout className="h-4 w-4 mr-1" /> Estado</TabsTrigger>
           <TabsTrigger value="analisis"><FlaskConical className="h-4 w-4 mr-1" /> Análisis</TabsTrigger>
           <TabsTrigger value="suelo"><Layers className="h-4 w-4 mr-1" /> Suelo</TabsTrigger>
+          <TabsTrigger value="demanda"><Calculator className="h-4 w-4 mr-1" /> Demanda</TabsTrigger>
           <TabsTrigger value="planes"><FileText className="h-4 w-4 mr-1" /> Planes</TabsTrigger>
           <TabsTrigger value="generar"><Zap className="h-4 w-4 mr-1" /> Generar Plan</TabsTrigger>
           <TabsTrigger value="cotizacion"><ShoppingCart className="h-4 w-4 mr-1" /> Cotización</TabsTrigger>
@@ -36,6 +38,7 @@ export default function NutricionDashboard() {
         <TabsContent value="estado" className="mt-4"><EstadoNutricionalTab /></TabsContent>
         <TabsContent value="analisis" className="mt-4"><AnalisisTab /></TabsContent>
         <TabsContent value="suelo" className="mt-4"><SoilHealthTab /></TabsContent>
+        <TabsContent value="demanda" className="mt-4"><DemandaTab /></TabsContent>
         <TabsContent value="planes" className="mt-4"><PlanesTab /></TabsContent>
         <TabsContent value="generar" className="mt-4"><GeneratePlanV2 /></TabsContent>
         <TabsContent value="cotizacion" className="mt-4"><CotizacionTab /></TabsContent>
