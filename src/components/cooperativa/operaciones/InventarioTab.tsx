@@ -29,9 +29,10 @@ interface Equipo {
   id: string; nombre: string; marca: string; modelo: string;
   tipo: 'Herramienta' | 'Maquinaria' | 'Vehículo' | 'Instrumento';
   estado: 'Operativo' | 'En Mantenimiento' | 'Fuera de servicio';
-  valor: number; fechaCompra: string;
-  horasUso?: number; combustibleMes?: number; parcelaAsignada?: string;
-  proximoMantenimiento?: string;
+  valor: number; fechaCompra: string; vidaUtilAnios: number;
+  horasUso?: number; horasVidaUtil?: number; combustibleMes?: number; parcelaAsignada?: string;
+  proximoMantenimiento?: string; frecuenciaMantenimiento?: string;
+  responsable?: string; notasMantenimiento?: string;
 }
 
 interface Movimiento {
