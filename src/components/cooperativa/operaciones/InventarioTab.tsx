@@ -383,7 +383,11 @@ export default function InventarioTab() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredEquipos.map(eq => (
+                {filteredEquipos.map(eq => {
+                  const dep = getDepreciacion(eq);
+                  const hPct = horasUsoPct(eq);
+                  const depColor = dep.pctUsado > 80 ? 'bg-destructive' : dep.pctUsado > 50 ? 'bg-amber-500' : 'bg-primary';
+                  return (
                   <div
                     key={eq.id}
                     className="rounded-lg border border-border p-4 hover:shadow-md transition-all cursor-pointer hover:border-primary/30"
@@ -400,14 +404,37 @@ export default function InventarioTab() {
                       <Badge variant="outline" className="gap-1 text-[10px]">{equipoIcon(eq.tipo)} {eq.tipo}</Badge>
                       <span className="text-sm font-medium text-muted-foreground">{fmtCRC(eq.valor)}</span>
                     </div>
-                    {(eq.horasUso || eq.combustibleMes || eq.proximoMantenimiento) && (
+                    {/* Depreciation bar */}
+                    <div className="mt-3 space-y-1">
+                      <div className="flex justify-between text-[10px] text-muted-foreground">
+                        <span>Depreciación ({dep.pctUsado.toFixed(0)}%)</span>
+                        <span>Valor neto: {fmtCRC(Math.round(dep.valorNeto))}</span>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${depColor} transition-all`} style={{ width: `${dep.pctUsado}%` }} />
+                      </div>
+                    </div>
+                    {/* Hours bar */}
+                    {hPct !== null && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>Uso {eq.horasUso?.toLocaleString()} / {eq.horasVidaUtil?.toLocaleString()} hrs</span>
+                          <span>{hPct.toFixed(0)}%</span>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${hPct > 80 ? 'bg-destructive' : hPct > 50 ? 'bg-amber-500' : 'bg-primary'} transition-all`} style={{ width: `${hPct}%` }} />
+                        </div>
+                      </div>
+                    )}
+                    {(eq.combustibleMes || eq.proximoMantenimiento || eq.responsable) && (
                       <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
-                        {eq.horasUso && <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {eq.horasUso.toLocaleString()} hrs</span>}
                         {eq.combustibleMes && <span className="flex items-center gap-1"><Fuel className="h-3 w-3" /> {eq.combustibleMes} L/mes</span>}
                         {eq.proximoMantenimiento && <span className="flex items-center gap-1"><Wrench className="h-3 w-3" /> Mant: {fmtDate(eq.proximoMantenimiento)}</span>}
                       </div>
                     )}
                   </div>
+                  );
+                })}
                 ))}
               </div>
               {filteredEquipos.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">No se encontraron equipos</p>}
