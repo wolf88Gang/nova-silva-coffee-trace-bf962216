@@ -26,6 +26,7 @@ export default function NutricionDashboard() {
           <TabsTrigger value="estado"><Sprout className="h-4 w-4 mr-1" /> Estado</TabsTrigger>
           <TabsTrigger value="analisis"><FlaskConical className="h-4 w-4 mr-1" /> Análisis</TabsTrigger>
           <TabsTrigger value="suelo"><Layers className="h-4 w-4 mr-1" /> Suelo</TabsTrigger>
+          <TabsTrigger value="demanda"><Calculator className="h-4 w-4 mr-1" /> Demanda</TabsTrigger>
           <TabsTrigger value="planes"><FileText className="h-4 w-4 mr-1" /> Planes</TabsTrigger>
           <TabsTrigger value="generar"><Zap className="h-4 w-4 mr-1" /> Generar Plan</TabsTrigger>
           <TabsTrigger value="cotizacion"><ShoppingCart className="h-4 w-4 mr-1" /> Cotización</TabsTrigger>
