@@ -64,6 +64,19 @@ export const TABLE = {
   NUTRICION_ANALISIS_SUELO: 'nutricion_analisis_suelo',
   NUTRICION_PLANES: 'nutricion_planes',
   NUTRICION_ANALISIS_FOLIAR: 'nutricion_analisis_foliar',
+  // Tramo B — Inter-modular
+  PLOT_MODULE_SNAPSHOT: 'plot_module_snapshot',
+  DISEASE_ASSESSMENTS: 'disease_assessments',
+  RESILIENCE_ASSESSMENTS: 'resilience_assessments',
+  CYCLE_LEARNING_LOG: 'cycle_learning_log',
+  // Agroquímicos — Cumplimiento
+  AG_ACTIVE_INGREDIENTS: 'ag_active_ingredients',
+  AG_COMMERCIAL_PRODUCTS: 'ag_commercial_products',
+  AG_PRODUCT_INGREDIENTS: 'ag_product_ingredients',
+  AG_MARKET_MRLS: 'ag_market_mrls',
+  AG_CERTIFICATION_RULES: 'ag_certification_rules',
+  ORG_CERTIFICATIONS: 'org_certifications',
+  ORG_EXPORT_MARKETS: 'org_export_markets',
 } as const;
 
 // ── Scope types ──
