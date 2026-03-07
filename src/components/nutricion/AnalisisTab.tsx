@@ -247,6 +247,7 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
         mg_cmol: form.mg_cmol ? parseFloat(form.mg_cmol) : null,
         s_ppm: form.s_ppm ? parseFloat(form.s_ppm) : null,
         cice: form.cice ? parseFloat(form.cice) : null,
+        al_cmol: form.al_cmol ? parseFloat(form.al_cmol) : null,
         textura: form.textura || null,
         ...orgWriteFields(organizationId),
       });
