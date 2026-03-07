@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, XCircle, AlertTriangle, ClipboardCheck, Ruler, Layers, Beaker, Camera } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, ClipboardCheck, Ruler, Layers, Beaker, Camera, FlaskConical, Grape, Clock } from 'lucide-react';
+import { getNutricionStats } from '@/lib/demo-data';
 
 /* ── Protocolo mínimo obligatorio (§3.2.1 Fase 3) ── */
 interface ProtocolItem {
