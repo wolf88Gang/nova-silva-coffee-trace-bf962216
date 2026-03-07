@@ -34,6 +34,10 @@ interface Equipo {
   horasUso?: number; combustibleMes?: number; parcelaAsignada?: string;
   proximoMantenimiento?: string; frecuenciaMantenimiento?: string;
   responsable?: string; notasMantenimiento?: string;
+  // Financiamiento
+  metodoPago?: 'contado' | 'financiado' | 'leasing';
+  montoFinanciado?: number; cuotasMensuales?: number; cuotasPagadas?: number;
+  cuotaMonto?: number; entidadFinanciera?: string;
 }
 
 interface Movimiento {
