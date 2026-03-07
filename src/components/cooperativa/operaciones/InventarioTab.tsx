@@ -768,11 +768,7 @@ export default function InventarioTab() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1"><Label>Fecha compra</Label><Input type="date" /></div>
-              <div className="space-y-1"><Label>Vida útil (años)</Label><Input type="number" placeholder="10" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1"><Label>Horas acumuladas</Label><Input type="number" placeholder="0" /></div>
-              <div className="space-y-1"><Label>Horas vida útil</Label><Input type="number" placeholder="5000" /></div>
             </div>
             <div className="border-t border-border pt-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Operación</p>
