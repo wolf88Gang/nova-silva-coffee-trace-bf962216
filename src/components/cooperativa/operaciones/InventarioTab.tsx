@@ -401,11 +401,17 @@ export default function InventarioTab() {
                         <p className="font-semibold text-foreground">{eq.nombre}</p>
                         <p className="text-sm text-muted-foreground">{eq.marca} - {eq.modelo}</p>
                       </div>
-                      {estadoEquipoBadge(eq.estado)}
+                      <div className="flex items-center gap-1.5">
+                        {financingBadge(eq)}
+                        {estadoEquipoBadge(eq.estado)}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 mt-3 flex-wrap">
                       <Badge variant="outline" className="gap-1 text-[10px]">{equipoIcon(eq.tipo)} {eq.tipo}</Badge>
                       <span className="text-sm font-medium text-muted-foreground">{fmtCRC(eq.valor)}</span>
+                      {eq.metodoPago && eq.metodoPago !== 'contado' && eq.cuotasPagadas !== undefined && eq.cuotasMensuales && eq.cuotasPagadas < eq.cuotasMensuales && (
+                        <span className="text-xs text-blue-400">{eq.cuotasPagadas}/{eq.cuotasMensuales} cuotas</span>
+                      )}
                     </div>
                     {(eq.horasUso || eq.combustibleMes || eq.proximoMantenimiento) && (
                       <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground flex-wrap">
