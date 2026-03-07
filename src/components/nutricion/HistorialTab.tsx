@@ -40,7 +40,7 @@ export default function HistorialTab() {
     queryKey: ['nutricion_aplicaciones_historial', organizationId, filterPlanId],
     queryFn: async () => {
       let q = supabase
-        .from('nutricion_aplicaciones')
+        .from('v_nutricion_aplicaciones_min')
         .select('id, plan_id, fecha_aplicacion, tipo_aplicacion, producto_aplicado, cantidad_aplicada_kg, costo_real, dosis_aplicada_json, evidencias, notas, created_at')
         .order('fecha_aplicacion', { ascending: false })
         .limit(50);
