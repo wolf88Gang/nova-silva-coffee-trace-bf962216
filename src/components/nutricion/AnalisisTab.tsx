@@ -231,7 +231,7 @@ function Metric({ label, value }: { label: string; value: number | null }) {
 function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
   const [form, setForm] = useState({
     parcela_id: '', fecha_analisis: new Date().toISOString().split('T')[0],
-    ph: '', mo_pct: '', p_ppm: '', k_cmol: '', ca_cmol: '', mg_cmol: '', s_ppm: '', cice: '', textura: '',
+    ph: '', mo_pct: '', p_ppm: '', k_cmol: '', ca_cmol: '', mg_cmol: '', s_ppm: '', cice: '', al_cmol: '', textura: '',
   });
 
   const mutation = useMutation({
