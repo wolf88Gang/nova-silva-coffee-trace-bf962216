@@ -220,11 +220,11 @@ export default function AnalisisTab() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number | null }) {
+function Metric({ label, value, highlight }: { label: string; value: number | null; highlight?: boolean }) {
   return (
-    <div className="text-center p-1.5 rounded bg-muted/50">
+    <div className={`text-center p-1.5 rounded ${highlight ? 'bg-destructive/10 ring-1 ring-destructive/30' : 'bg-muted/50'}`}>
       <p className="text-muted-foreground">{label}</p>
-      <p className="font-semibold text-foreground">{value?.toFixed(1) ?? '—'}</p>
+      <p className={`font-semibold ${highlight ? 'text-destructive' : 'text-foreground'}`}>{value?.toFixed(value < 1 ? 2 : 1) ?? '—'}</p>
     </div>
   );
 }
