@@ -21,16 +21,11 @@ export interface PhaseoutIngredient {
 }
 
 export function useBlockedIngredients() {
-  const { organizationId } = useOrgContext();
-
   return useQuery<BlockedIngredient[]>({
-    queryKey: ['blockedIngredients', organizationId],
-    enabled: !!organizationId,
+    queryKey: ['blockedIngredients'],
     staleTime: 30 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_blocked_ingredients', {
-        _org_id: organizationId!,
-      });
+      const { data, error } = await supabase.rpc('get_my_blocked_ingredients' as any);
       if (error) throw error;
       return (data as BlockedIngredient[]) ?? [];
     },
