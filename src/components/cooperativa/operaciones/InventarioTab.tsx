@@ -162,6 +162,7 @@ export default function InventarioTab() {
   const [showAdd, setShowAdd] = useState(false);
   const [showAddEquipo, setShowAddEquipo] = useState(false);
   const [showMovimiento, setShowMovimiento] = useState<{ insumo: Insumo; tipo: 'entrada' | 'salida' } | null>(null);
+  const [showProveedorWizard, setShowProveedorWizard] = useState(false);
   const [showEdit, setShowEdit] = useState<Insumo | null>(null);
   const [showDetalle, setShowDetalle] = useState<Insumo | null>(null);
   const [showDetalleEquipo, setShowDetalleEquipo] = useState<Equipo | null>(null);
