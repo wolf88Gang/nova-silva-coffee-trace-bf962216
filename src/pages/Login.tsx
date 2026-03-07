@@ -148,11 +148,7 @@ const Login = () => {
                   Crear cuenta
                 </Link>
               </p>
-              <p>
-                <Link to="/demo" className="text-white/40 hover:text-white/70 text-xs transition-colors">
-                  Probar en modo demo →
-                </Link>
-              </p>
+              {/* Demo accesible via Ctrl+Shift+D */}
             </div>
           </>
         ) : (
