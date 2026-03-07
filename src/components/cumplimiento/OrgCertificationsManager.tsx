@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Award, Plus } from 'lucide-react';
-import { useOrgCertifications } from '@/hooks/useOrgCertifications';
+import { useOrgCertifications, type OrgCertification } from '@/hooks/useOrgCertifications';
+import { DEMO_CERTIFICATIONS } from '@/lib/demoInsightsData';
 import { toast } from 'sonner';
 
 const CERTIFICADORAS = ['fairtrade', 'rainforest_alliance', 'gcp', 'organic_usda', 'organic_eu', 'utz', '4c'] as const;
@@ -16,6 +17,10 @@ export default function OrgCertificationsManager() {
   const { certifications, isLoading, addCert, toggleCert } = useOrgCertifications();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ certificadora: '', codigo: '', fecha_emision: '', fecha_vencimiento: '' });
+
+  // Use demo data if real data fails/empty
+  const displayCerts: OrgCertification[] = certifications.length > 0 ? certifications : DEMO_CERTIFICATIONS;
+  const isDemo = certifications.length === 0;
 
   function handleAdd() {
     if (!form.certificadora) { toast.error('Seleccione una certificadora'); return; }
@@ -50,18 +55,20 @@ export default function OrgCertificationsManager() {
         </Dialog>
       </CardHeader>
       <CardContent>
-        {isLoading ? <p className="text-muted-foreground text-sm">Cargando...</p> : certifications.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No hay certificaciones configuradas.</p>
-        ) : (
+        {isLoading ? <p className="text-muted-foreground text-sm">Cargando...</p> : (
           <div className="space-y-2">
-            {certifications.map((c) => (
+            {displayCerts.map((c) => (
               <div key={c.id} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0">
                 <div>
                   <span className="font-medium capitalize">{c.certificadora.replace('_', ' ')}</span>
                   {c.codigo && <span className="text-muted-foreground ml-2">#{c.codigo}</span>}
                   {c.fecha_vencimiento && <span className="text-muted-foreground ml-2 text-xs">Vence: {c.fecha_vencimiento}</span>}
                 </div>
-                <Switch checked={c.activo} onCheckedChange={(v) => toggleCert.mutate({ id: c.id, activo: v })} />
+                <Switch
+                  checked={c.activo}
+                  onCheckedChange={(v) => !isDemo && toggleCert.mutate({ id: c.id, activo: v })}
+                  disabled={isDemo}
+                />
               </div>
             ))}
           </div>

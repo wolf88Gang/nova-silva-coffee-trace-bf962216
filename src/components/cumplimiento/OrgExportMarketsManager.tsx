@@ -2,11 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Globe, Star } from 'lucide-react';
 import { useOrgExportMarkets, MARKETS } from '@/hooks/useOrgExportMarkets';
+import { DEMO_EXPORT_MARKETS } from '@/lib/demoInsightsData';
 
 export default function OrgExportMarketsManager() {
   const { markets, isLoading, toggleMarket, setPrincipal } = useOrgExportMarkets();
 
-  const activeSet = new Set(markets.map((m) => m.mercado));
+  const displayMarkets = markets.length > 0 ? markets : DEMO_EXPORT_MARKETS;
+  const isDemo = markets.length === 0;
+  const activeSet = new Set(displayMarkets.map((m) => m.mercado));
 
   return (
     <Card>
@@ -18,21 +21,22 @@ export default function OrgExportMarketsManager() {
           <div className="flex flex-wrap gap-2">
             {MARKETS.map((m) => {
               const active = activeSet.has(m);
-              const market = markets.find((mk) => mk.mercado === m);
+              const market = displayMarkets.find((mk) => mk.mercado === m);
               return (
                 <div key={m} className="flex items-center gap-1">
                   <Badge
                     variant={active ? 'default' : 'outline'}
                     className="cursor-pointer"
-                    onClick={() => toggleMarket.mutate(m)}
+                    onClick={() => !isDemo && toggleMarket.mutate(m)}
                   >
                     {m}
                   </Badge>
                   {active && market && (
                     <button
-                      onClick={() => setPrincipal.mutate(market.id)}
+                      onClick={() => !isDemo && setPrincipal.mutate(market.id)}
                       className="text-muted-foreground hover:text-primary transition-colors"
                       title="Marcar como principal"
+                      disabled={isDemo}
                     >
                       <Star className={`h-3 w-3 ${market.principal ? 'fill-primary text-primary' : ''}`} />
                     </button>
