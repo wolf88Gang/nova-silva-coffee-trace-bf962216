@@ -72,10 +72,10 @@ export default function ExportadorContratos() {
                 {[
                   { l: 'Cliente', v: `${selected.cliente} (${selected.pais})` },
                   { l: 'Volumen', v: `${selected.volumen} ${selected.unidad}` },
-                  { l: 'Precio', v: `USD ${selected.precioLb}/lb` },
+                  { l: 'Precio', v: `USD ${selected.precio_lb}/lb` },
                   { l: 'Incoterm', v: selected.incoterm },
                   { l: 'Ventana', v: selected.ventana },
-                  { l: 'Valor total', v: `$${(selected.volumen * 69 * selected.precioLb).toLocaleString()}` },
+                  { l: 'Valor total', v: `$${((selected.volumen ?? 0) * 69 * (selected.precio_lb ?? 0)).toLocaleString()}` },
                 ].map(i => (
                   <div key={i.l} className="p-3 rounded-lg bg-muted/50">
                     <p className="text-xs text-muted-foreground">{i.l}</p>
@@ -84,17 +84,9 @@ export default function ExportadorContratos() {
                 ))}
               </div>
               <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Ejecución</span><span>{selected.ejecutado}%</span></div>
-                <Progress value={selected.ejecutado} className="h-2.5" />
+                <div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Ejecución</span><span>{selected.ejecutado ?? 0}%</span></div>
+                <Progress value={selected.ejecutado ?? 0} className="h-2.5" />
               </div>
-              {selected.lotes.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-foreground mb-1">Lotes asignados</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selected.lotes.map(l => <Badge key={l} variant="outline">{l}</Badge>)}
-                  </div>
-                </div>
-              )}
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-xs font-medium text-foreground mb-1">Notas</p>
                 <p className="text-xs text-muted-foreground">{selected.notas}</p>
