@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useOrgContext } from '@/hooks/useOrgContext';
-import { TABLE, ORG_KEY } from '@/lib/keys';
+import { TABLE } from '@/lib/keys';
 
 export interface OrgCertification {
   id: string;
@@ -14,19 +13,13 @@ export interface OrgCertification {
 }
 
 export function useOrgCertifications() {
-  const { organizationId } = useOrgContext();
   const qc = useQueryClient();
-  const key = ['orgCertifications', organizationId];
+  const key = ['orgCertifications'];
 
   const query = useQuery<OrgCertification[]>({
     queryKey: key,
-    enabled: !!organizationId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(TABLE.ORG_CERTIFICATIONS)
-        .select('*')
-        .eq(ORG_KEY, organizationId!)
-        .order('certificadora');
+      const { data, error } = await supabase.rpc('get_my_certifications' as any);
       if (error) throw error;
       return (data as OrgCertification[]) ?? [];
     },
@@ -36,7 +29,7 @@ export function useOrgCertifications() {
     mutationFn: async (cert: Omit<OrgCertification, 'id' | 'organization_id'>) => {
       const { error } = await supabase
         .from(TABLE.ORG_CERTIFICATIONS)
-        .insert({ ...cert, [ORG_KEY]: organizationId });
+        .insert(cert as any);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
