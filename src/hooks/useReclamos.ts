@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { ORG_KEY } from '@/lib/keys';
+import { ORG_KEY, TABLE } from '@/lib/keys';
 
 export interface Reclamo {
   id: string;
@@ -29,7 +29,7 @@ export function useReclamos() {
     enabled: !!organizationId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('reclamos_postventa')
+        .from(TABLE.RECLAMOS)
         .select('*')
         .eq(ORG_KEY, organizationId!)
         .order('created_at', { ascending: false });
@@ -46,7 +46,7 @@ export function useCreateReclamo() {
   return useMutation({
     mutationFn: async (input: Omit<Reclamo, 'id' | 'organization_id' | 'created_at' | 'updated_at' | 'estado'>) => {
       const { data, error } = await supabase
-        .from('reclamos_postventa')
+        .from(TABLE.RECLAMOS)
         .insert({
           organization_id: organizationId!,
           ...input,

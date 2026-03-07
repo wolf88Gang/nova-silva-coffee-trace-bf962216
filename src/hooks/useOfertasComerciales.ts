@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { ORG_KEY } from '@/lib/keys';
+import { ORG_KEY, TABLE } from '@/lib/keys';
 
 export interface OfertaComercial {
   id: string;
@@ -41,7 +41,7 @@ export function useOfertasComerciales() {
     enabled: !!organizationId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ofertas_comerciales')
+        .from(TABLE.OFERTAS_COMERCIALES)
         .select('*')
         .eq(ORG_KEY, organizationId!)
         .order('created_at', { ascending: false });
@@ -59,7 +59,7 @@ export function useResponderOferta() {
   return useMutation({
     mutationFn: async ({ id, estado }: { id: string; estado: 'aceptada' | 'rechazada' | 'contraoferta' }) => {
       const { error } = await supabase
-        .from('ofertas_comerciales')
+        .from(TABLE.OFERTAS_COMERCIALES)
         .update({ estado, fecha_respuesta: new Date().toISOString() })
         .eq('id', id);
       if (error) throw error;
