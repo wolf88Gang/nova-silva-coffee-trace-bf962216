@@ -23,6 +23,7 @@ interface SueloAnalisis {
   ph: number | null; mo_pct: number | null; p_ppm: number | null;
   k_cmol: number | null; ca_cmol: number | null; mg_cmol: number | null;
   s_ppm: number | null; cice: number | null; textura: string | null;
+  al_cmol: number | null;
 }
 
 interface HojaAnalisis {
@@ -163,13 +164,14 @@ export default function AnalisisTab() {
                         {new Date(s.fecha_analisis).toLocaleDateString('es')}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
+                    <div className="grid grid-cols-3 sm:grid-cols-7 gap-2 text-xs">
                       <Metric label="pH" value={s.ph} />
                       <Metric label="MO %" value={s.mo_pct} />
                       <Metric label="P ppm" value={s.p_ppm} />
                       <Metric label="K cmol" value={s.k_cmol} />
                       <Metric label="Ca cmol" value={s.ca_cmol} />
                       <Metric label="Mg cmol" value={s.mg_cmol} />
+                      <Metric label="Al cmol" value={s.al_cmol} highlight={s.al_cmol != null && s.al_cmol > 0.3} />
                     </div>
                     {s.textura && <p className="text-xs text-muted-foreground mt-2">Textura: {s.textura}</p>}
                   </CardContent>
@@ -218,11 +220,11 @@ export default function AnalisisTab() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number | null }) {
+function Metric({ label, value, highlight }: { label: string; value: number | null; highlight?: boolean }) {
   return (
-    <div className="text-center p-1.5 rounded bg-muted/50">
+    <div className={`text-center p-1.5 rounded ${highlight ? 'bg-destructive/10 ring-1 ring-destructive/30' : 'bg-muted/50'}`}>
       <p className="text-muted-foreground">{label}</p>
-      <p className="font-semibold text-foreground">{value?.toFixed(1) ?? '—'}</p>
+      <p className={`font-semibold ${highlight ? 'text-destructive' : 'text-foreground'}`}>{value?.toFixed(value < 1 ? 2 : 1) ?? '—'}</p>
     </div>
   );
 }
@@ -231,7 +233,7 @@ function Metric({ label, value }: { label: string; value: number | null }) {
 function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[]; organizationId: string | null; onSuccess: () => void }) {
   const [form, setForm] = useState({
     parcela_id: '', fecha_analisis: new Date().toISOString().split('T')[0],
-    ph: '', mo_pct: '', p_ppm: '', k_cmol: '', ca_cmol: '', mg_cmol: '', s_ppm: '', cice: '', textura: '',
+    ph: '', mo_pct: '', p_ppm: '', k_cmol: '', ca_cmol: '', mg_cmol: '', s_ppm: '', cice: '', al_cmol: '', textura: '',
   });
 
   const mutation = useMutation({
@@ -247,6 +249,7 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
         mg_cmol: form.mg_cmol ? parseFloat(form.mg_cmol) : null,
         s_ppm: form.s_ppm ? parseFloat(form.s_ppm) : null,
         cice: form.cice ? parseFloat(form.cice) : null,
+        al_cmol: form.al_cmol ? parseFloat(form.al_cmol) : null,
         textura: form.textura || null,
         ...orgWriteFields(organizationId),
       });
@@ -282,6 +285,8 @@ function SueloForm({ parcelas, organizationId, onSuccess }: { parcelas: Parcela[
         <div><Label>Mg (cmol/L)</Label><Input type="number" step="0.01" value={form.mg_cmol} onChange={e => set('mg_cmol', e.target.value)} /></div>
         <div><Label>S (ppm)</Label><Input type="number" step="0.1" value={form.s_ppm} onChange={e => set('s_ppm', e.target.value)} /></div>
         <div><Label>CICE</Label><Input type="number" step="0.1" value={form.cice} onChange={e => set('cice', e.target.value)} /></div>
+        <div><Label>Al (cmol)</Label><Input type="number" step="0.01" value={form.al_cmol} onChange={e => set('al_cmol', e.target.value)} placeholder="0.30" /></div>
+        <div className="flex items-end"><p className="text-[10px] text-muted-foreground pb-2">Al intercambiable — clave para cálculo de encalado Kamprath</p></div>
       </div>
       <div>
         <Label>Textura</Label>
