@@ -557,6 +557,88 @@ export default function InventarioTab() {
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Horas uso</span><span className="text-foreground">{eq.horasUso?.toLocaleString() ?? '—'} hrs</span></div>
                 </div>
 
+                {/* Financiamiento */}
+                <div className="space-y-3 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><Banknote className="h-3.5 w-3.5" /> Financiamiento</p>
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Método de pago</Label>
+                      <Select value={eq.metodoPago || 'contado'} onValueChange={v => {
+                        const updated = { ...eq, metodoPago: v as Equipo['metodoPago'] };
+                        setShowDetalleEquipo(updated);
+                        setEquipos(prev => prev.map(e => e.id === eq.id ? updated : e));
+                      }}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{METODOS_PAGO.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    {(eq.metodoPago === 'financiado' || eq.metodoPago === 'leasing') && (
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Monto financiado</Label>
+                            <Input type="number" value={eq.montoFinanciado ?? eq.valor} onChange={e => {
+                              const updated = { ...eq, montoFinanciado: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Entidad financiera</Label>
+                            <Input value={eq.entidadFinanciera ?? ''} onChange={e => {
+                              const updated = { ...eq, entidadFinanciera: e.target.value };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} placeholder="Ej: BAC, Banco Nacional" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Total cuotas</Label>
+                            <Input type="number" value={eq.cuotasMensuales ?? ''} onChange={e => {
+                              const updated = { ...eq, cuotasMensuales: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Cuotas pagadas</Label>
+                            <Input type="number" value={eq.cuotasPagadas ?? 0} onChange={e => {
+                              const updated = { ...eq, cuotasPagadas: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Monto cuota</Label>
+                            <Input type="number" value={eq.cuotaMonto ?? ''} onChange={e => {
+                              const updated = { ...eq, cuotaMonto: Number(e.target.value) || 0 };
+                              setShowDetalleEquipo(updated);
+                              setEquipos(prev => prev.map(e2 => e2.id === eq.id ? updated : e2));
+                            }} />
+                          </div>
+                        </div>
+                        {eq.cuotasMensuales && eq.cuotasMensuales > 0 && (
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-[10px] text-muted-foreground">
+                              <span>Progreso: {eq.cuotasPagadas ?? 0}/{eq.cuotasMensuales} cuotas</span>
+                              <span>Saldo: {fmtCRC(Math.max(0, (eq.cuotaMonto ?? 0) * (eq.cuotasMensuales - (eq.cuotasPagadas ?? 0))))}</span>
+                            </div>
+                            <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${(eq.cuotasPagadas ?? 0) >= eq.cuotasMensuales ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                style={{ width: `${Math.min(100, ((eq.cuotasPagadas ?? 0) / eq.cuotasMensuales) * 100)}%` }}
+                              />
+                            </div>
+                            {eq.entidadFinanciera && (
+                              <p className="text-[10px] text-muted-foreground flex items-center gap-1"><CreditCard className="h-3 w-3" /> {eq.entidadFinanciera}</p>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
 
                 {/* Operación (read-only) */}
                 <div className="space-y-2 border-t border-border pt-3">
