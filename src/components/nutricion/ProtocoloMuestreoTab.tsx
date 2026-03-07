@@ -51,9 +51,55 @@ function CumplimientoBadge({ pct }: { pct: number }) {
 export default function ProtocoloMuestreoTab() {
   const validados = DEMO_LOGS.filter(l => l.validado).length;
   const cumplimientoPromedio = Math.round(DEMO_LOGS.reduce((s, l) => s + l.cumplimiento, 0) / DEMO_LOGS.length);
+  const stats = getNutricionStats();
 
   return (
     <div className="space-y-6">
+      {/* ── Calidad de datos §3.8.2 ── */}
+      <Card className="border-dashed border-accent">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FlaskConical className="h-5 w-5 text-accent-foreground" />
+            Calidad de datos — Indicadores operativos
+          </CardTitle>
+          <CardDescription>§3.8.2 — Métricas de completitud y vigencia de los análisis de suelo</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Análisis válidos vs total */}
+            <div className="rounded-lg border border-border p-4 space-y-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                Análisis válidos
+              </div>
+              <p className="text-2xl font-bold text-foreground">{stats.analisisValidos}/{stats.analisisTotales}</p>
+              <Progress value={Math.round((stats.analisisValidos / stats.analisisTotales) * 100)} className="h-2" />
+              <p className="text-xs text-muted-foreground">{Math.round((stats.analisisValidos / stats.analisisTotales) * 100)}% vigentes</p>
+            </div>
+
+            {/* Análisis vencidos */}
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Clock className="h-4 w-4 text-destructive" />
+                Análisis vencidos
+              </div>
+              <p className="text-2xl font-bold text-destructive">{stats.analisisVencidos}</p>
+              <p className="text-xs text-muted-foreground">Requieren nuevo muestreo para ser válidos</p>
+            </div>
+
+            {/* Parcelas sin variedad */}
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Grape className="h-4 w-4 text-amber-600" />
+                Sin variedad definida
+              </div>
+              <p className="text-2xl font-bold text-foreground">{stats.parcelasSinVariedad}</p>
+              <p className="text-xs text-muted-foreground">Parcelas sin variedad — afecta cálculo de dosis</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ── Resumen ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
