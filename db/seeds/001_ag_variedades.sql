@@ -1,0 +1,55 @@
+-- Seed: ag_variedades (30 variedades de Coffea arabica)
+-- Idempotente: INSERT ... ON CONFLICT (nombre_comun) DO UPDATE
+-- Ejecutar: psql -f db/seeds/001_ag_variedades.sql
+
+INSERT INTO public.ag_variedades (
+  nombre_comun,
+  grupo_morfologico,
+  factor_demanda_base,
+  micros_multiplier,
+  limite_yield_sostenible_kg_ha,
+  sens_exceso_n,
+  sens_deficit_k,
+  tolerancia_sequia,
+  tolerancia_calor
+) VALUES
+  ('Caturra', 'compacto', 1.00, 1.00, 4000, 'media', 'alta', 'media', 'media'),
+  ('Catuaí', 'compacto', 1.05, 1.00, 4200, 'media', 'alta', 'media', 'media'),
+  ('Bourbon', 'alto', 0.90, 1.00, 3000, 'alta', 'media', 'baja', 'baja'),
+  ('Typica', 'alto', 0.85, 1.00, 3000, 'alta', 'media', 'baja', 'baja'),
+  ('Colombia', 'compuesto', 1.12, 1.00, 4500, 'media', 'alta', 'media', 'media'),
+  ('Castillo', 'compuesto', 1.15, 1.00, 4500, 'media', 'alta', 'media', 'media'),
+  ('Tabi', 'compuesto', 1.10, 1.00, 4200, 'media', 'media', 'media', 'media'),
+  ('Geisha', 'exotico', 0.90, 1.30, 2500, 'alta', 'media', 'baja', 'baja'),
+  ('SL28', 'exotico', 0.95, 1.05, 3500, 'media', 'alta', 'media', 'media'),
+  ('SL34', 'exotico', 1.00, 1.05, 3800, 'media', 'alta', 'media', 'media'),
+  ('Pacamara', 'exotico', 1.05, 1.10, 3500, 'media', 'media', 'baja', 'media'),
+  ('Maragogipe', 'alto', 0.95, 1.00, 2800, 'media', 'media', 'baja', 'baja'),
+  ('Mundo Novo', 'alto', 1.00, 1.00, 3800, 'media', 'media', 'media', 'media'),
+  ('Villa Sarchí', 'compacto', 0.95, 1.00, 3800, 'media', 'alta', 'media', 'media'),
+  ('Obatã', 'compuesto', 1.15, 1.00, 4500, 'media', 'alta', 'media', 'media'),
+  ('Catimor', 'compuesto', 1.10, 1.00, 4000, 'media', 'media', 'alta', 'media'),
+  ('Sarchimor', 'compuesto', 1.12, 1.00, 4200, 'media', 'alta', 'media', 'media'),
+  ('Marsellesa', 'compuesto', 1.12, 1.00, 4200, 'media', 'alta', 'media', 'media'),
+  ('Starmaya', 'f1', 1.18, 1.05, 4500, 'media', 'alta', 'media', 'media'),
+  ('H1 Centroamérica Oro', 'f1', 1.20, 1.05, 4500, 'media', 'alta', 'alta', 'media'),
+  ('Parainema', 'compuesto', 1.10, 1.00, 4000, 'media', 'media', 'alta', 'media'),
+  ('IHCAFE 90', 'compuesto', 1.12, 1.00, 4200, 'media', 'alta', 'media', 'media'),
+  ('Costa Rica 95', 'compuesto', 1.12, 1.00, 4200, 'media', 'alta', 'media', 'media'),
+  ('Batian', 'compuesto', 1.15, 1.00, 4000, 'media', 'alta', 'media', 'media'),
+  ('Ruiru 11', 'compuesto', 1.15, 1.00, 4000, 'media', 'media', 'alta', 'media'),
+  ('K7', 'compuesto', 1.10, 1.00, 3800, 'media', 'media', 'media', 'media'),
+  ('Anacafé 14', 'compuesto', 1.12, 1.00, 4200, 'media', 'alta', 'media', 'media'),
+  ('Lempira', 'compuesto', 1.15, 1.00, 4500, 'media', 'alta', 'media', 'media'),
+  ('Java', 'alto', 0.95, 1.00, 3500, 'media', 'media', 'media', 'media'),
+  ('Mokka', 'compacto', 0.90, 1.15, 2200, 'alta', 'media', 'baja', 'baja')
+ON CONFLICT (nombre_comun) DO UPDATE SET
+  grupo_morfologico = EXCLUDED.grupo_morfologico,
+  factor_demanda_base = EXCLUDED.factor_demanda_base,
+  micros_multiplier = EXCLUDED.micros_multiplier,
+  limite_yield_sostenible_kg_ha = EXCLUDED.limite_yield_sostenible_kg_ha,
+  sens_exceso_n = EXCLUDED.sens_exceso_n,
+  sens_deficit_k = EXCLUDED.sens_deficit_k,
+  tolerancia_sequia = EXCLUDED.tolerancia_sequia,
+  tolerancia_calor = EXCLUDED.tolerancia_calor,
+  updated_at = now();
