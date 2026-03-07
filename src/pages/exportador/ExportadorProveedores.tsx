@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, MapPin, TrendingUp, DollarSign, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, MapPin, TrendingUp, DollarSign, Loader2, Plus } from 'lucide-react';
 import { useRankingCooperativas } from '@/hooks/useRankingCooperativas';
+import ProveedorWizard from '@/components/proveedores/ProveedorWizard';
 
 const DEMO_PROVEEDORES = [
   { id: '1', nombre: 'Cooperativa Café de la Selva', pais: 'Guatemala', region: 'Huehuetenango', productores: 120, volumenHistorico: '450 sacos', compliance: 'compliant' as const },
@@ -21,6 +24,7 @@ const eudrBadge = (estado: string) => {
 
 export default function ExportadorProveedores() {
   const { data: ranking, isLoading } = useRankingCooperativas();
+  const [showWizard, setShowWizard] = useState(false);
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
@@ -38,7 +42,12 @@ export default function ExportadorProveedores() {
   return (
     <div className="space-y-6 animate-fade-in">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Red de Proveedores</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Red de Proveedores</CardTitle>
+            <Button size="sm" onClick={() => setShowWizard(true)}><Plus className="h-4 w-4 mr-1" /> Registrar proveedor</Button>
+          </div>
+        </CardHeader>
         <CardContent className="space-y-3">
           {proveedores.map((p) => (
             <div key={p.id} className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors">
@@ -62,6 +71,13 @@ export default function ExportadorProveedores() {
           ))}
         </CardContent>
       </Card>
+
+      <ProveedorWizard
+        open={showWizard}
+        onOpenChange={setShowWizard}
+        onComplete={data => console.log('Nuevo proveedor comercial:', data)}
+        contexto="comercial"
+      />
     </div>
   );
 }

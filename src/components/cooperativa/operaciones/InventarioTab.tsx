@@ -15,6 +15,7 @@ import {
   Sprout, Shield, Clock, Search, Filter, Package, Cog, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ProveedorWizard, { type ProveedorData } from '@/components/proveedores/ProveedorWizard';
 
 /* ═══════════════════════════════════════════
    TYPES
@@ -161,6 +162,7 @@ export default function InventarioTab() {
   const [showAdd, setShowAdd] = useState(false);
   const [showAddEquipo, setShowAddEquipo] = useState(false);
   const [showMovimiento, setShowMovimiento] = useState<{ insumo: Insumo; tipo: 'entrada' | 'salida' } | null>(null);
+  const [showProveedorWizard, setShowProveedorWizard] = useState(false);
   const [showEdit, setShowEdit] = useState<Insumo | null>(null);
   const [showDetalle, setShowDetalle] = useState<Insumo | null>(null);
   const [showDetalleEquipo, setShowDetalleEquipo] = useState<Equipo | null>(null);
@@ -689,9 +691,14 @@ export default function InventarioTab() {
               </div>
               {showMovimiento.tipo === 'entrada' && (
                 <div className="space-y-2"><Label>Proveedor</Label>
-                  <Select value={proveedor} onValueChange={setProveedor}><SelectTrigger><SelectValue placeholder="Seleccione proveedor..." /></SelectTrigger>
-                    <SelectContent>{PROVEEDORES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select value={proveedor} onValueChange={setProveedor}><SelectTrigger className="flex-1"><SelectValue placeholder="Seleccione proveedor..." /></SelectTrigger>
+                      <SelectContent>{PROVEEDORES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" className="shrink-0" title="Registrar nuevo proveedor" onClick={() => setShowProveedorWizard(true)}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               )}
               {showMovimiento.tipo === 'salida' && (
@@ -825,6 +832,19 @@ export default function InventarioTab() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ProveedorWizard
+        open={showProveedorWizard}
+        onOpenChange={setShowProveedorWizard}
+        onComplete={data => {
+          // Add new provider name to the local list for immediate use
+          if (data.nombre && !PROVEEDORES.includes(data.nombre)) {
+            PROVEEDORES.splice(PROVEEDORES.length - 1, 0, data.nombre);
+          }
+          setProveedor(data.nombre);
+        }}
+        contexto="inventario"
+      />
     </div>
   );
 }
