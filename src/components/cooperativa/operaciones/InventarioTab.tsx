@@ -434,8 +434,7 @@ export default function InventarioTab() {
                     )}
                   </div>
                   );
-                })}
-                ))}
+                })
               </div>
               {filteredEquipos.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">No se encontraron equipos</p>}
             </CardContent>
