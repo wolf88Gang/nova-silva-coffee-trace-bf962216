@@ -115,18 +115,6 @@ const fmtDate = (d: string) => {
   return date.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-/** Depreciación lineal: años transcurridos / vida útil */
-const getDepreciacion = (eq: Equipo) => {
-  const aniosTranscurridos = (Date.now() - new Date(eq.fechaCompra + 'T12:00:00').getTime()) / (365.25 * 24 * 3600 * 1000);
-  const pctUsado = Math.min(100, Math.max(0, (aniosTranscurridos / eq.vidaUtilAnios) * 100));
-  const valorNeto = Math.max(0, eq.valor * (1 - pctUsado / 100));
-  return { pctUsado, valorNeto, aniosTranscurridos };
-};
-
-const horasUsoPct = (eq: Equipo) => {
-  if (!eq.horasUso || !eq.horasVidaUtil) return null;
-  return Math.min(100, (eq.horasUso / eq.horasVidaUtil) * 100);
-};
 
 function getSugerenciasSalida(insumo: Insumo): SugerenciaSalida[] {
   const sugerencias: SugerenciaSalida[] = [];
