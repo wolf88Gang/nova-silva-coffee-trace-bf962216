@@ -2,20 +2,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import { usePlotSnapshotsHistory } from '@/hooks/usePlotSnapshotsHistory';
+import { DEMO_SNAPSHOTS_HISTORY } from '@/lib/demoInsightsData';
 
 interface Props {
   parcelaId: string | null;
+  useDemo?: boolean;
 }
 
-export default function ProductivityGapChart({ parcelaId }: Props) {
+export default function ProductivityGapChart({ parcelaId, useDemo }: Props) {
   const { data, isLoading } = usePlotSnapshotsHistory(parcelaId);
 
-  const chartData = (data ?? []).map((row: Record<string, unknown>) => ({
+  const realData = (data ?? []).map((row: Record<string, unknown>) => ({
     ciclo: row.ciclo as string,
     expected: row.yield_expected as number,
     adjusted: row.yield_adjusted as number,
     real: (row as Record<string, unknown>).yield_real as number ?? null,
   }));
+
+  const chartData = realData.length > 0 ? realData : useDemo ? DEMO_SNAPSHOTS_HISTORY.map(d => ({
+    ciclo: d.ciclo,
+    expected: d.yield_expected,
+    adjusted: d.yield_adjusted,
+    real: d.yield_real,
+  })) : [];
 
   return (
     <Card>

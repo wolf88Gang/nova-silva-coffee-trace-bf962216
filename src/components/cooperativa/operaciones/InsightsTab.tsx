@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ChevronDown } from 'lucide-react';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { useModuleSnapshot } from '@/hooks/useModuleSnapshot';
@@ -15,6 +16,7 @@ import InsightsPanel from '@/components/insights/InsightsPanel';
 import ProductivityGapChart from '@/components/insights/ProductivityGapChart';
 import DiseaseAssessmentForm from '@/components/guard/DiseaseAssessmentForm';
 import ResilienceAssessmentForm from '@/components/vital/ResilienceAssessmentForm';
+import { DEMO_SNAPSHOT } from '@/lib/demoInsightsData';
 
 export default function InsightsTab() {
   const { organizationId } = useOrgContext();
@@ -31,7 +33,6 @@ export default function InsightsTab() {
         .select('id, nombre')
         .eq(ORG_KEY, organizationId!);
       if (error) {
-        // Fallback: try cooperativa_id
         const { data: d2, error: e2 } = await supabase
           .from('parcelas')
           .select('id, nombre')
@@ -44,6 +45,8 @@ export default function InsightsTab() {
   });
 
   const { snapshot } = useModuleSnapshot(parcelaId, ciclo);
+  const displaySnapshot = snapshot ?? (parcelaId ? DEMO_SNAPSHOT : null);
+  const isDemo = !snapshot && !!parcelaId;
 
   return (
     <div className="space-y-4">
@@ -70,9 +73,12 @@ export default function InsightsTab() {
         <p className="text-muted-foreground text-sm">Seleccione una parcela para ver los insights.</p>
       ) : (
         <>
-          <ModuleIntegrationCard snapshot={snapshot} />
-          <InsightsPanel snapshot={snapshot} />
-          <ProductivityGapChart parcelaId={parcelaId} />
+          {isDemo && (
+            <Badge variant="outline" className="text-xs">Datos demostrativos — snapshot real no disponible</Badge>
+          )}
+          <ModuleIntegrationCard snapshot={displaySnapshot} />
+          <InsightsPanel snapshot={displaySnapshot} />
+          <ProductivityGapChart parcelaId={parcelaId} useDemo={isDemo} />
 
           <Collapsible open={formsOpen} onOpenChange={setFormsOpen}>
             <CollapsibleTrigger asChild>

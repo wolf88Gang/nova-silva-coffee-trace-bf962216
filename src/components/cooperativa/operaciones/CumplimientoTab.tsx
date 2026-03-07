@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import OrgCertificationsManager from '@/components/cumplimiento/OrgCertificationsManager';
 import OrgExportMarketsManager from '@/components/cumplimiento/OrgExportMarketsManager';
 import BlockedIngredientsPanel from '@/components/cumplimiento/BlockedIngredientsPanel';
@@ -11,6 +12,8 @@ export default function CumplimientoTab() {
           El sistema cruza sus certificaciones y mercados de exportación para determinar automáticamente qué ingredientes activos están prohibidos o en fase de eliminación.
         </p>
       </div>
+
+      <Badge variant="outline" className="text-xs">Datos demostrativos — tablas de cumplimiento pendientes de desplegar en Supabase</Badge>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <OrgCertificationsManager />
