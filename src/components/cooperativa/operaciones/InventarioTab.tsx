@@ -553,7 +553,10 @@ export default function InventarioTab() {
           <DialogHeader><DialogTitle>Ficha de Equipo</DialogTitle></DialogHeader>
           {showDetalleEquipo && (() => {
             const eq = showDetalleEquipo;
+            const dep = getDepreciacion(eq);
+            const hPct = horasUsoPct(eq);
             const movs = movimientos.filter(m => m.itemId === eq.id);
+            const depColor = dep.pctUsado > 80 ? 'bg-destructive' : dep.pctUsado > 50 ? 'bg-amber-500' : 'bg-primary';
             return (
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -565,22 +568,76 @@ export default function InventarioTab() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Tipo</span><span className="font-bold text-foreground flex items-center gap-1.5">{equipoIcon(eq.tipo)} {eq.tipo}</span></div>
-                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor original</span><span className="font-bold text-foreground">{fmtCRC(eq.valor)}</span></div>
                   <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Fecha compra</span><span className="text-foreground">{fmtDate(eq.fechaCompra)}</span></div>
-                  {eq.horasUso && <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Horas uso</span><span className="text-foreground font-medium">{eq.horasUso.toLocaleString()} hrs</span></div>}
+                  <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Vida útil</span><span className="text-foreground">{eq.vidaUtilAnios} años</span></div>
                 </div>
-                {(eq.combustibleMes || eq.parcelaAsignada || eq.proximoMantenimiento) && (
+
+                {/* Depreciación */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Depreciación</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Valor neto</span><span className="font-bold text-foreground">{fmtCRC(Math.round(dep.valorNeto))}</span></div>
+                    <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Depreciado</span><span className="font-bold text-foreground">{dep.pctUsado.toFixed(1)}%</span></div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>0%</span><span>{dep.pctUsado.toFixed(0)}% depreciado</span><span>100%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${depColor} transition-all`} style={{ width: `${dep.pctUsado}%` }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Horas de uso */}
+                {hPct !== null && (
                   <div className="space-y-2 border-t border-border pt-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Operación</p>
-                    <div className="text-sm space-y-1">
-                      {eq.parcelaAsignada && <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.parcelaAsignada}</span></div>}
-                      {eq.combustibleMes && <div className="flex items-center gap-2"><Fuel className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.combustibleMes} litros/mes</span></div>}
-                      {eq.proximoMantenimiento && <div className="flex items-center gap-2"><Wrench className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">Próximo: {fmtDate(eq.proximoMantenimiento)}</span></div>}
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Horas de Uso</p>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Acumuladas</span><span className="font-bold text-foreground">{eq.horasUso?.toLocaleString()} hrs</span></div>
+                      <div className="p-3 rounded-lg bg-muted/50"><span className="text-muted-foreground block text-xs">Vida útil estimada</span><span className="text-foreground">{eq.horasVidaUtil?.toLocaleString()} hrs</span></div>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${hPct > 80 ? 'bg-destructive' : hPct > 50 ? 'bg-amber-500' : 'bg-primary'} transition-all`} style={{ width: `${hPct}%` }} />
                     </div>
                   </div>
                 )}
+
+                {/* Operación y Mantenimiento */}
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Operación y Mantenimiento</p>
+                  <div className="text-sm space-y-2">
+                    {eq.responsable && (
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20">
+                        <Users className="h-4 w-4 text-primary" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block">Responsable (Jornales)</span>
+                          <span className="text-foreground font-medium text-sm">{eq.responsable}</span>
+                        </div>
+                      </div>
+                    )}
+                    {eq.parcelaAsignada && <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.parcelaAsignada}</span></div>}
+                    {eq.combustibleMes && <div className="flex items-center gap-2"><Fuel className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-foreground">{eq.combustibleMes} litros/mes</span></div>}
+                    {eq.proximoMantenimiento && (
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                        <Wrench className="h-4 w-4 text-amber-500" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block">Próximo mantenimiento</span>
+                          <span className="text-foreground font-medium">{fmtDate(eq.proximoMantenimiento)}</span>
+                          {eq.frecuenciaMantenimiento && <span className="text-muted-foreground text-xs ml-2">({eq.frecuenciaMantenimiento})</span>}
+                        </div>
+                      </div>
+                    )}
+                    {eq.notasMantenimiento && (
+                      <div className="p-2.5 rounded-lg bg-muted/50 text-sm">
+                        <span className="text-muted-foreground text-xs block">Notas mantenimiento</span>
+                        <span className="text-foreground">{eq.notasMantenimiento}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {movs.length > 0 && (
                   <div className="space-y-2 border-t border-border pt-3">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Historial</p>
