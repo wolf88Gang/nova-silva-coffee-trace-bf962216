@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { LucideIcon, Users, Package, Shield, Wallet, AlertTriangle, MapPin, Ship, FileText, ShieldCheck, Leaf, Boxes, Calendar } from 'lucide-react';
+import { LucideIcon, Users, Package, Shield, Wallet, AlertTriangle, MapPin, Ship, FileText, ShieldCheck, Leaf, Boxes, Calendar, Sprout, Activity, FlaskConical } from 'lucide-react';
 import { hasModule, type OrgModule } from '@/lib/org-modules';
 import { getActorsLabel } from '@/lib/org-terminology';
 import {
