@@ -224,7 +224,7 @@ export default function InventarioTab() {
   }, [movimientos, filterHistorial]);
 
   // Handlers
-  const resetMovForm = () => { setCantidad(''); setMotivo(''); setDestino(''); setObservaciones(''); };
+  const resetMovForm = () => { setCantidad(''); setMotivo(''); setDestino(''); setObservaciones(''); setProveedor(''); };
   const applySugerencia = (s: SugerenciaSalida) => { setCantidad(String(s.cantidadSugerida)); setMotivo(s.motivo); setDestino(s.destino); setObservaciones(s.fuente); };
 
   const handleMovimiento = () => {
