@@ -4,7 +4,7 @@ import { LucideIcon, Users, Package, Shield, Wallet, AlertTriangle, MapPin, Ship
 import { hasModule, type OrgModule } from '@/lib/org-modules';
 import { getActorsLabel } from '@/lib/org-terminology';
 import {
-  getCooperativaStats, getExportadorStats, getProductorStats, getTecnicoStats,
+  getCooperativaStats, getExportadorStats, getProductorStats, getTecnicoStats, getNutricionStats,
 } from '@/lib/demo-data';
 
 interface KPI {
