@@ -73,7 +73,7 @@ export function getOrgDefaultModules(orgTipo: string | null | undefined): OrgMod
       return [
         'core', 'productores', 'parcelas', 'entregas', 'lotes_acopio',
         'calidad', 'vital', 'finanzas', 'creditos', 'jornales',
-        'inventario', 'mensajes', 'inclusion',
+        'inventario', 'mensajes', 'inclusion', 'nutricion',
       ];
 
     case 'exportador':
