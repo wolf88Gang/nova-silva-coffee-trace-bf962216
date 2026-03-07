@@ -58,6 +58,7 @@ export default function InsightsTab() {
   }) => {
     if (!organizationId || !selectedParcelaId) return;
     try {
+      // disease_pressure_index y disease_factor son GENERATED STORED o calculados por trigger
       await supabase.from('disease_assessments').insert({
         organization_id: organizationId,
         parcela_id: selectedParcelaId,
@@ -67,8 +68,6 @@ export default function InsightsTab() {
         broca_incidence: data.broca,
         defoliation_level: data.defoliation,
         stress_symptoms: data.stress,
-        disease_pressure_index: data.diseasePressureIndex,
-        disease_factor: data.diseaseFactor,
       });
       const yieldEst = (rawSnapshot?.yield_expected as number) ?? 2500;
       const nutrientFactor = (rawSnapshot?.nutrient_factor as number) ?? 1;
@@ -102,6 +101,7 @@ export default function InsightsTab() {
   }) => {
     if (!organizationId || !selectedParcelaId) return;
     try {
+      // resilience_index y resilience_level son GENERATED STORED
       await supabase.from('resilience_assessments').insert({
         organization_id: organizationId,
         parcela_id: selectedParcelaId,
@@ -112,8 +112,6 @@ export default function InsightsTab() {
         biodiversity: data.biodiversity,
         water_management: data.waterManagement,
         erosion_control: data.erosionControl,
-        resilience_index: data.resilienceIndex,
-        resilience_level: data.resilienceLevel,
       });
       const yieldEst = (rawSnapshot?.yield_expected as number) ?? 2500;
       const nutrientFactor = (rawSnapshot?.nutrient_factor as number) ?? 1;
