@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useOrgContext } from '@/hooks/useOrgContext';
 
 export interface BlockedIngredient {
   ingredient_id: string;
@@ -21,16 +20,11 @@ export interface PhaseoutIngredient {
 }
 
 export function useBlockedIngredients() {
-  const { organizationId } = useOrgContext();
-
   return useQuery<BlockedIngredient[]>({
-    queryKey: ['blockedIngredients', organizationId],
-    enabled: !!organizationId,
+    queryKey: ['blockedIngredients'],
     staleTime: 30 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_blocked_ingredients', {
-        _org_id: organizationId!,
-      });
+      const { data, error } = await supabase.rpc('get_my_blocked_ingredients' as any);
       if (error) throw error;
       return (data as BlockedIngredient[]) ?? [];
     },
@@ -38,16 +32,11 @@ export function useBlockedIngredients() {
 }
 
 export function usePhaseoutIngredients() {
-  const { organizationId } = useOrgContext();
-
   return useQuery<PhaseoutIngredient[]>({
-    queryKey: ['phaseoutIngredients', organizationId],
-    enabled: !!organizationId,
+    queryKey: ['phaseoutIngredients'],
     staleTime: 30 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_phaseout_ingredients', {
-        _org_id: organizationId!,
-      });
+      const { data, error } = await supabase.rpc('get_my_phaseout_ingredients' as any);
       if (error) throw error;
       return (data as PhaseoutIngredient[]) ?? [];
     },
