@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -22,17 +22,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Easter egg: Ctrl+Shift+D → /demo
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        e.preventDefault();
-        navigate('/demo');
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +64,12 @@ const Login = () => {
       <div className="w-full max-w-md relative z-10 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <img src={logoNovasilva} alt="Nova Silva" className="h-20 w-20 object-contain mb-4" />
+          <img
+            src={logoNovasilva}
+            alt="Nova Silva"
+            className="h-20 w-20 object-contain mb-4 cursor-pointer"
+            onClick={() => navigate('/demo')}
+          />
           <h1 className="text-2xl font-bold text-white">Nova Silva</h1>
           <p className="text-white/60 text-sm mt-1">Inicia sesión en tu cuenta</p>
         </div>
