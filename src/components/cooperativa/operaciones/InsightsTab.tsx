@@ -17,6 +17,7 @@ import { ProductivityGapChart, type CycleData } from '@/components/insights/Prod
 import { InsightsPanel } from '@/components/insights/InsightsPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/keys';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ const CICLOS = ['2025-2026', '2024-2025', '2023-2024'];
 
 export default function InsightsTab() {
   const { organizationId } = useOrgContext();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: parcelas = [] } = useParcelas();
 
@@ -55,6 +57,7 @@ export default function InsightsTab() {
     stress: number;
     diseasePressureIndex: number;
     diseaseFactor: number;
+    notas?: string;
   }) => {
     if (!organizationId || !selectedParcelaId) return;
     try {
@@ -63,11 +66,13 @@ export default function InsightsTab() {
         organization_id: organizationId,
         parcela_id: selectedParcelaId,
         ciclo,
+        evaluador_id: user?.id ?? null,
         fecha_evaluacion: new Date().toISOString().slice(0, 10),
         roya_incidence: data.roya,
         broca_incidence: data.broca,
         defoliation_level: data.defoliation,
         stress_symptoms: data.stress,
+        notas: data.notas || null,
       });
       const yieldEst = (rawSnapshot?.yield_expected as number) ?? 2500;
       const nutrientFactor = (rawSnapshot?.nutrient_factor as number) ?? 1;
@@ -98,6 +103,8 @@ export default function InsightsTab() {
     erosionControl: number;
     resilienceIndex: number;
     resilienceLevel: string;
+    shadeCoverage?: number;
+    notas?: string;
   }) => {
     if (!organizationId || !selectedParcelaId) return;
     try {
@@ -106,12 +113,15 @@ export default function InsightsTab() {
         organization_id: organizationId,
         parcela_id: selectedParcelaId,
         ciclo,
+        evaluador_id: user?.id ?? null,
         fecha_evaluacion: new Date().toISOString().slice(0, 10),
         soil_health: data.soilHealth,
         organic_matter_score: data.organicMatter,
         biodiversity: data.biodiversity,
         water_management: data.waterManagement,
         erosion_control: data.erosionControl,
+        shade_coverage: data.shadeCoverage ?? null,
+        notas: data.notas || null,
       });
       const yieldEst = (rawSnapshot?.yield_expected as number) ?? 2500;
       const nutrientFactor = (rawSnapshot?.nutrient_factor as number) ?? 1;
@@ -184,6 +194,7 @@ export default function InsightsTab() {
         />
         <InsightsPanel
           parcelaNombre={parcelaNombre}
+          snapshot={snapshot}
           limitingFactor={snapshot?.limitingNutrient ?? undefined}
           riskLevel={snapshot ? (snapshot.diseasePressureIndex > 0.6 ? 'alto' : snapshot.diseasePressureIndex > 0.35 ? 'medio' : 'bajo') : undefined}
         />

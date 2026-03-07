@@ -96,9 +96,9 @@ export function calcResilienceIndex(components: ResilienceComponents): number {
   );
 }
 
-/** Nivel de resiliencia */
-export function getResilienceLevel(index: number): 'fragil' | 'baja' | 'moderada' | 'alta' {
-  if (index < 0.3) return 'fragil';
+/** Nivel de resiliencia (UI: frágil; DB usa fragil) */
+export function getResilienceLevel(index: number): 'frágil' | 'baja' | 'moderada' | 'alta' {
+  if (index < 0.3) return 'frágil';
   if (index < 0.5) return 'baja';
   if (index < 0.7) return 'moderada';
   return 'alta';

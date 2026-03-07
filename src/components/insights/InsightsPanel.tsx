@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Lightbulb, TrendingUp, AlertCircle, Target } from 'lucide-react';
+import { getDiseasePressureLevel, getResilienceLevel, getNutritionStrategyByPressure } from '@/lib/interModuleEngine';
+import type { ModuleSnapshot } from '@/lib/interModuleEngine';
 
 interface Insight {
   id: string;
@@ -11,43 +13,60 @@ interface Insight {
 
 interface InsightsPanelProps {
   parcelaNombre?: string;
-  insights?: Insight[];
+  snapshot?: ModuleSnapshot | null;
   limitingFactor?: string;
   suggestedInvestment?: string;
   riskLevel?: 'bajo' | 'medio' | 'alto';
 }
 
-const DEMO_INSIGHTS: Insight[] = [
-  {
-    id: '1',
-    pregunta: 'Qué limita la productividad de esta parcela',
-    respuesta: 'La presión fitosanitaria moderada y el nutriente limitante (K) sugieren reforzar potasio y calcio.',
-    prioridad: 'alta',
-  },
-  {
-    id: '2',
-    pregunta: 'Qué inversión tiene mayor retorno',
-    respuesta: 'Fertilización con énfasis en K y manejo de sombra para reducir estrés hídrico.',
-    prioridad: 'media',
-  },
-  {
-    id: '3',
-    pregunta: 'Qué lotes tienen mayor riesgo',
-    respuesta: 'Parcelas con resiliencia baja y presión fitosanitaria alta requieren prioridad en monitoreo.',
-    prioridad: 'baja',
-  },
-];
+function buildInsightsFromSnapshot(snapshot: ModuleSnapshot | null | undefined): Insight[] {
+  if (!snapshot) {
+    return [
+      { id: '1', pregunta: '¿Qué limita la productividad?', respuesta: 'Registrá evaluaciones de Nova Guard y VITAL para ver el análisis.', prioridad: 'media' },
+      { id: '2', pregunta: '¿Qué inversión tiene mayor retorno?', respuesta: 'Completá el snapshot integrado para obtener recomendaciones.', prioridad: 'baja' },
+      { id: '3', pregunta: '¿Qué nivel de riesgo tiene esta parcela?', respuesta: 'Se calculará según presión fitosanitaria y resiliencia.', prioridad: 'baja' },
+    ];
+  }
+  const diseaseLevel = getDiseasePressureLevel(snapshot.diseasePressureIndex);
+  const resilienceLevel = getResilienceLevel(snapshot.resilienceIndex);
+  const strategy = getNutritionStrategyByPressure(snapshot.diseasePressureIndex);
+
+  const factors = [
+    { name: 'Nutrición', v: snapshot.nutrientFactor },
+    { name: 'Sanidad', v: snapshot.diseaseFactor },
+    { name: 'Hídrico', v: snapshot.waterFactor },
+  ].sort((a, b) => a.v - b.v);
+  const lowest = factors[0];
+  const limitante = snapshot.limitingNutrient
+    ? `Nutriente limitante (${snapshot.limitingNutrient}) y factor ${lowest.name.toLowerCase()} (${lowest.v.toFixed(2)}).`
+    : `Factor ${lowest.name} más bajo (${lowest.v.toFixed(2)}).`;
+
+  const invResp = strategy !== 'Plan estándar, sin ajustes'
+    ? strategy
+    : `Reforzar ${snapshot.limitingNutrient || 'nutrientes'} según análisis de suelo.`;
+
+  const riskResp = diseaseLevel === 'severa' || diseaseLevel === 'alta' || resilienceLevel === 'frágil' || resilienceLevel === 'baja'
+    ? `Riesgo ${diseaseLevel === 'severa' ? 'alto' : 'moderado'}: presión ${diseaseLevel}, resiliencia ${resilienceLevel}. Priorizar monitoreo.`
+    : `Riesgo bajo: presión ${diseaseLevel}, resiliencia ${resilienceLevel}.`;
+
+  return [
+    { id: '1', pregunta: '¿Qué limita la productividad?', respuesta: limitante, prioridad: 'alta' },
+    { id: '2', pregunta: '¿Qué inversión tiene mayor retorno?', respuesta: invResp, prioridad: 'media' },
+    { id: '3', pregunta: '¿Qué nivel de riesgo tiene esta parcela?', respuesta: riskResp, prioridad: 'baja' },
+  ];
+}
 
 export function InsightsPanel({
   parcelaNombre,
-  insights = DEMO_INSIGHTS,
+  snapshot,
   limitingFactor,
   suggestedInvestment,
   riskLevel,
 }: InsightsPanelProps) {
+  const insights = buildInsightsFromSnapshot(snapshot);
   const priorityIcon = (p: string) => {
     if (p === 'alta') return <AlertCircle className="h-4 w-4 text-destructive" />;
-    if (p === 'media') return <Target className="h-4 w-4 text-amber-500" />;
+    if (p === 'media') return <Target className="h-4 w-4 text-warning" />;
     return <TrendingUp className="h-4 w-4 text-muted-foreground" />;
   };
 

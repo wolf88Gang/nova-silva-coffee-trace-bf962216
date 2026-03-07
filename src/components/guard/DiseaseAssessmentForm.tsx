@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import { Shield, AlertTriangle } from 'lucide-react';
 import {
   calcDiseasePressure,
@@ -22,6 +23,7 @@ interface DiseaseAssessmentFormProps {
     stress: number;
     diseasePressureIndex: number;
     diseaseFactor: number;
+    notas?: string;
   }) => void;
 }
 
@@ -35,11 +37,14 @@ export function DiseaseAssessmentForm({
   const [broca, setBroca] = useState(0);
   const [defoliation, setDefoliation] = useState(0);
   const [stress, setStress] = useState(0);
+  const [notas, setNotas] = useState('');
 
   const pressure = calcDiseasePressure(roya, broca, defoliation, stress);
   const diseaseFactor = calcDiseaseFactor(pressure, 0.6);
   const level = getDiseasePressureLevel(pressure);
   const yieldImpact = calcYieldAdjusted(yieldEstimated, 1, diseaseFactor, 1);
+
+  const reductionPct = ((1 - diseaseFactor) * 100).toFixed(0);
 
   const handleSave = () => {
     onSave?.({
@@ -49,6 +54,7 @@ export function DiseaseAssessmentForm({
       stress,
       diseasePressureIndex: pressure,
       diseaseFactor,
+      notas: notas || undefined,
     });
   };
 
@@ -93,9 +99,22 @@ export function DiseaseAssessmentForm({
             <span className="capitalize font-medium">{level}</span>
             <span className="text-muted-foreground">Factor de ajuste:</span>
             <span>{diseaseFactor.toFixed(2)}</span>
+            <span className="text-muted-foreground">Reducción estimada del rendimiento:</span>
+            <span>{reductionPct}%</span>
             <span className="text-muted-foreground">Rendimiento ajustado:</span>
             <span>{yieldImpact.toFixed(0)} kg/ha</span>
           </div>
+        </div>
+
+        <div>
+          <Label>Notas (opcional)</Label>
+          <Textarea
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            placeholder="Observaciones de la evaluación"
+            className="mt-1"
+            rows={2}
+          />
         </div>
 
         {onSave && (

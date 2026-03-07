@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Leaf } from 'lucide-react';
 import {
@@ -14,7 +15,7 @@ import {
 interface ResilienceAssessmentFormProps {
   parcelaId: string;
   ciclo: string;
-  onSave?: (data: ResilienceComponents & { resilienceIndex: number; resilienceLevel: string }) => void;
+  onSave?: (data: ResilienceComponents & { resilienceIndex: number; resilienceLevel: string; shadeCoverage?: number; notas?: string }) => void;
 }
 
 export function ResilienceAssessmentForm({ parcelaId, ciclo, onSave }: ResilienceAssessmentFormProps) {
@@ -23,6 +24,8 @@ export function ResilienceAssessmentForm({ parcelaId, ciclo, onSave }: Resilienc
   const [biodiversity, setBiodiversity] = useState(0.5);
   const [waterManagement, setWaterManagement] = useState(0.5);
   const [erosionControl, setErosionControl] = useState(0.5);
+  const [shadeCoverage, setShadeCoverage] = useState<number | null>(null);
+  const [notas, setNotas] = useState('');
 
   const components: ResilienceComponents = {
     soilHealth,
@@ -35,7 +38,7 @@ export function ResilienceAssessmentForm({ parcelaId, ciclo, onSave }: Resilienc
   const level = getResilienceLevel(resilienceIndex);
 
   const handleSave = () => {
-    onSave?.({ ...components, resilienceIndex, resilienceLevel: level });
+    onSave?.({ ...components, resilienceIndex, resilienceLevel: level, shadeCoverage: shadeCoverage ?? undefined, notas: notas || undefined });
   };
 
   return (
@@ -71,6 +74,15 @@ export function ResilienceAssessmentForm({ parcelaId, ciclo, onSave }: Resilienc
             <Label>Control de erosión — {(erosionControl * 100).toFixed(0)}%</Label>
             <Slider value={[erosionControl * 100]} onValueChange={([v]) => setErosionControl(v / 100)} max={100} step={1} />
           </div>
+          <div>
+            <Label>Cobertura de sombra (opcional) — {shadeCoverage !== null ? (shadeCoverage * 100).toFixed(0) : '-'}%</Label>
+            <Slider
+              value={[shadeCoverage ?? 0]}
+              onValueChange={([v]) => setShadeCoverage(v)}
+              max={100}
+              step={1}
+            />
+          </div>
         </div>
 
         <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2">
@@ -79,6 +91,17 @@ export function ResilienceAssessmentForm({ parcelaId, ciclo, onSave }: Resilienc
             <span className="capitalize font-medium">{level}</span>
           </div>
           <Progress value={resilienceIndex * 100} className="h-2" />
+        </div>
+
+        <div>
+          <Label>Notas (opcional)</Label>
+          <Textarea
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            placeholder="Observaciones de la evaluación"
+            className="mt-1"
+            rows={2}
+          />
         </div>
 
         {onSave && (

@@ -14,11 +14,10 @@ interface ModuleIntegrationCardProps {
   ciclo?: string;
 }
 
-function factorBadge(value: number): { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string } {
-  if (value >= 0.9) return { variant: 'default', label: 'Óptimo' };
-  if (value >= 0.7) return { variant: 'secondary', label: 'Adecuado' };
-  if (value >= 0.5) return { variant: 'outline', label: 'Limitante' };
-  return { variant: 'destructive', label: 'Crítico' };
+function factorBadge(value: number): { className: string; label: string } {
+  if (value > 0.85) return { className: 'bg-primary/10 text-primary border-primary/20', label: 'Óptimo' };
+  if (value >= 0.7) return { className: 'bg-accent/10 text-accent-foreground border-accent/20', label: 'Adecuado' };
+  return { className: 'bg-destructive/10 text-destructive border-destructive/20', label: 'Limitante' };
 }
 
 export function ModuleIntegrationCard({ snapshot, parcelaNombre, ciclo }: ModuleIntegrationCardProps) {
@@ -68,23 +67,22 @@ export function ModuleIntegrationCard({ snapshot, parcelaNombre, ciclo }: Module
           <span className="text-sm text-muted-foreground">Rendimiento ajustado</span>
           <span className="font-medium">{snapshot.yieldAdjusted?.toFixed(0) ?? '-'} kg/ha</span>
         </div>
-        <div className="h-2 rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full bg-primary transition-all"
-            style={{
-              width: `${Math.min(100, (snapshot.yieldAdjusted ?? 0) / Math.max(1, snapshot.yieldExpected ?? 1) * 100)}%`,
-            }}
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">Rendimiento ajustado / esperado</p>
+          <Progress
+            value={Math.min(100, (snapshot.yieldAdjusted ?? 0) / Math.max(1, snapshot.yieldExpected ?? 1) * 100)}
+            className="h-2"
           />
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2">
-          <Badge variant={nutrientBadge.variant} className="gap-1">
+          <Badge variant="outline" className={`gap-1 border ${nutrientBadge.className}`}>
             <Leaf className="h-3 w-3" /> Nutrición {(snapshot.nutrientFactor ?? 0).toFixed(2)}
           </Badge>
-          <Badge variant={diseaseBadge.variant} className="gap-1">
+          <Badge variant="outline" className={`gap-1 border ${diseaseBadge.className}`}>
             <Shield className="h-3 w-3" /> Sanidad {(snapshot.diseaseFactor ?? 0).toFixed(2)}
           </Badge>
-          <Badge variant={waterBadge.variant} className="gap-1">
+          <Badge variant="outline" className={`gap-1 border ${waterBadge.className}`}>
             <Droplets className="h-3 w-3" /> Hídrico {(snapshot.waterFactor ?? 0).toFixed(2)}
           </Badge>
         </div>
