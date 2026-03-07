@@ -13,7 +13,7 @@ export default function CumplimientoTab() {
         </p>
       </div>
 
-      <Badge variant="outline" className="text-xs">Datos demostrativos — tablas de cumplimiento pendientes de desplegar en Supabase</Badge>
+      
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <OrgCertificationsManager />
