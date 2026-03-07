@@ -164,13 +164,14 @@ export default function AnalisisTab() {
                         {new Date(s.fecha_analisis).toLocaleDateString('es')}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
+                    <div className="grid grid-cols-3 sm:grid-cols-7 gap-2 text-xs">
                       <Metric label="pH" value={s.ph} />
                       <Metric label="MO %" value={s.mo_pct} />
                       <Metric label="P ppm" value={s.p_ppm} />
                       <Metric label="K cmol" value={s.k_cmol} />
                       <Metric label="Ca cmol" value={s.ca_cmol} />
                       <Metric label="Mg cmol" value={s.mg_cmol} />
+                      <Metric label="Al cmol" value={s.al_cmol} highlight={s.al_cmol != null && s.al_cmol > 0.3} />
                     </div>
                     {s.textura && <p className="text-xs text-muted-foreground mt-2">Textura: {s.textura}</p>}
                   </CardContent>
