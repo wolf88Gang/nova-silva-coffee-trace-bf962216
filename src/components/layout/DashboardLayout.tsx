@@ -26,6 +26,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
           muted
           playsInline
           className="w-32 h-32 object-contain"
+          ref={(el) => { if (el) el.playbackRate = 4; }}
         />
         <p className="text-sm text-muted-foreground">Cargando Nova Silva…</p>
       </div>
