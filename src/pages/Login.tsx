@@ -64,7 +64,12 @@ const Login = () => {
       <div className="w-full max-w-md relative z-10 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <img src={logoNovasilva} alt="Nova Silva" className="h-20 w-20 object-contain mb-4" />
+          <img
+            src={logoNovasilva}
+            alt="Nova Silva"
+            className="h-20 w-20 object-contain mb-4 cursor-pointer"
+            onClick={() => navigate('/demo')}
+          />
           <h1 className="text-2xl font-bold text-white">Nova Silva</h1>
           <p className="text-white/60 text-sm mt-1">Inicia sesión en tu cuenta</p>
         </div>
