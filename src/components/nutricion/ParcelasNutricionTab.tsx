@@ -475,6 +475,11 @@ export default function ParcelasNutricionTab() {
                       </div>
                     )}
 
+                    {/* Insights — per-parcela productivity analysis */}
+                    {isExpanded && (
+                      <ParcelaInsightsSection parcelaId={row.parcela_id} />
+                    )}
+
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                       {row.plan_id ? (
