@@ -12,6 +12,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { applyOrgFilter, applyLegacyOrgFilter, orgWriteFields } from '@/lib/orgFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import InsightsPanel from '@/components/insights/InsightsPanel';
+import ProductivityGapChart from '@/components/insights/ProductivityGapChart';
+import { useModuleSnapshot } from '@/hooks/useModuleSnapshot';
+import OrgCertificationsManager from '@/components/cumplimiento/OrgCertificationsManager';
+import OrgExportMarketsManager from '@/components/cumplimiento/OrgExportMarketsManager';
+import BlockedIngredientsPanel from '@/components/cumplimiento/BlockedIngredientsPanel';
+import PhaseoutAlertsCard from '@/components/cumplimiento/PhaseoutAlertsCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,6 +36,7 @@ import SoilIntelligenceCard from './SoilIntelligenceCard';
 import type { SoilAnalysisInput } from '@/lib/soilIntelligenceEngine';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
+import { Lightbulb, ShieldCheck, TrendingUp } from 'lucide-react';
 
 // ── Sufficiency ranges for soil nutrients (coffee) ──
 
@@ -129,6 +137,23 @@ interface SueloRow {
 }
 
 interface Parcela { id: string; nombre: string; }
+
+// ── Per-parcela insights section ──
+
+function ParcelaInsightsSection({ parcelaId }: { parcelaId: string }) {
+  const ciclo = '2024-2025'; // TODO: make dynamic
+  const { snapshot } = useModuleSnapshot(parcelaId, ciclo);
+
+  return (
+    <div className="space-y-3 pt-2">
+      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+        <Lightbulb className="h-4 w-4 text-primary" /> Insights de Productividad
+      </div>
+      <InsightsPanel snapshot={snapshot ?? null} />
+      <ProductivityGapChart parcelaId={parcelaId} useDemo />
+    </div>
+  );
+}
 
 // ── Main component ──
 
@@ -467,6 +492,11 @@ export default function ParcelasNutricionTab() {
                       </div>
                     )}
 
+                    {/* Insights — per-parcela productivity analysis */}
+                    {isExpanded && (
+                      <ParcelaInsightsSection parcelaId={row.parcela_id} />
+                    )}
+
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                       {row.plan_id ? (
@@ -502,6 +532,36 @@ export default function ParcelasNutricionTab() {
           );
         })}
       </div>
+
+      {/* Cumplimiento — org-level compliance section */}
+      <Collapsible>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-base">Cumplimiento y Certificaciones</CardTitle>
+                </div>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Certificaciones, mercados de exportación e ingredientes prohibidos
+              </p>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <OrgCertificationsManager />
+                <OrgExportMarketsManager />
+              </div>
+              <BlockedIngredientsPanel />
+              <PhaseoutAlertsCard />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Soil analysis form dialog */}
       <Dialog open={showSueloForm} onOpenChange={setShowSueloForm}>
