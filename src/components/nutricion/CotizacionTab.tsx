@@ -188,9 +188,11 @@ function NewQuoteForm({ organizationId, onSuccess }: { organizationId: string | 
   const { data: plans } = useQuery({
     queryKey: ['nutricion_planes_for_quote', organizationId],
     queryFn: async () => {
-      let q = supabase.from('nutricion_planes').select('id, parcela_id, ciclo, status');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('nutricion_planes')
+        .select('id, parcela_id, ciclo, status')
+        .eq('organization_id', organizationId!)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []) as Plan[];
     },
