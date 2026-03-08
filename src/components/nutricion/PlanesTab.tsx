@@ -5,14 +5,16 @@ import { useOrgContext } from '@/hooks/useOrgContext';
 import { applyOrgFilter, applyLegacyOrgFilter } from '@/lib/orgFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { FileText, Sprout, Zap, DollarSign, Calendar } from 'lucide-react';
+import { FileText, Sprout, Zap, Calendar, Eye } from 'lucide-react';
 import PlanProgressBar from './PlanProgressBar';
+import PlanStatusBadge from './PlanStatusBadge';
+import PlanDetailView from './PlanDetailView';
+import { useApprovePlan } from '@/hooks/useNutritionPlanDetail';
 import { toast } from 'sonner';
 
 interface NutritionPlan {
@@ -31,13 +33,6 @@ interface Fraccionamiento {
 
 interface Parcela { id: string; nombre: string; }
 
-const STATUS_COLORS: Record<string, string> = {
-  borrador: 'bg-muted text-muted-foreground',
-  activo: 'bg-success/10 text-success border-success/20',
-  completado: 'bg-primary/10 text-primary border-primary/20',
-  cancelado: 'bg-destructive/10 text-destructive border-destructive/20',
-};
-
 const ETAPA_LABELS: Record<string, string> = {
   cabeza_alfiler: 'Cabeza de alfiler',
   expansion_rapida: 'Expansión rápida',
@@ -49,8 +44,8 @@ export default function PlanesTab() {
   const { organizationId } = useOrgContext();
   const queryClient = useQueryClient();
   const [showGenerate, setShowGenerate] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
-  // Fetch plans (real table: nutricion_planes)
   const { data: planes, isLoading } = useQuery({
     queryKey: ['nutricion_planes', organizationId],
     queryFn: async () => {
@@ -63,7 +58,6 @@ export default function PlanesTab() {
     enabled: !!organizationId,
   });
 
-  // Fetch parcelas for name lookup (legacy cooperativa_id)
   const { data: parcelas } = useQuery({
     queryKey: ['parcelas_for_planes', organizationId],
     queryFn: async () => {
@@ -77,6 +71,18 @@ export default function PlanesTab() {
   });
 
   const parcelaName = (id: string) => parcelas?.find(p => p.id === id)?.nombre ?? id.slice(0, 8);
+
+  // Detail view
+  if (selectedPlanId) {
+    const plan = planes?.find(p => p.id === selectedPlanId);
+    return (
+      <PlanDetailView
+        planId={selectedPlanId}
+        parcelaName={plan ? parcelaName(plan.parcela_id) : '—'}
+        onBack={() => setSelectedPlanId(null)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -117,7 +123,12 @@ export default function PlanesTab() {
       ) : (
         <Accordion type="single" collapsible className="space-y-2">
           {planes.map(plan => (
-            <PlanCard key={plan.id} plan={plan} parcelaName={parcelaName(plan.parcela_id)} />
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              parcelaName={parcelaName(plan.parcela_id)}
+              onViewDetail={() => setSelectedPlanId(plan.id)}
+            />
           ))}
         </Accordion>
       )}
@@ -125,7 +136,10 @@ export default function PlanesTab() {
   );
 }
 
-function PlanCard({ plan, parcelaName }: { plan: NutritionPlan; parcelaName: string }) {
+function PlanCard({ plan, parcelaName, onViewDetail }: { plan: NutritionPlan; parcelaName: string; onViewDetail: () => void }) {
+  const approveMutation = useApprovePlan();
+  const canApprove = plan.status === 'generado' || plan.status === 'borrador';
+
   const { data: fraccionamientos, isLoading } = useQuery({
     queryKey: ['nutricion_fraccionamientos', plan.id],
     queryFn: async () => {
@@ -151,10 +165,22 @@ function PlanCard({ plan, parcelaName }: { plan: NutritionPlan; parcelaName: str
           {plan.execution_pct_total != null && (
             <PlanProgressBar pctTotal={plan.execution_pct_total} compact />
           )}
-          <Badge variant="outline" className={STATUS_COLORS[plan.status] ?? ''}>{plan.status}</Badge>
+          <PlanStatusBadge status={plan.status} />
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
+        {/* Action bar */}
+        <div className="flex items-center gap-2 mb-3">
+          <Button variant="outline" size="sm" onClick={onViewDetail}>
+            <Eye className="h-4 w-4 mr-1" /> Ver detalle completo
+          </Button>
+          {canApprove && (
+            <Button size="sm" onClick={() => approveMutation.mutate(plan.id)} disabled={approveMutation.isPending}>
+              {approveMutation.isPending ? 'Aprobando…' : '✓ Aprobar'}
+            </Button>
+          )}
+        </div>
+
         {plan.execution_pct_total != null && (
           <div className="mb-4">
             <PlanProgressBar
