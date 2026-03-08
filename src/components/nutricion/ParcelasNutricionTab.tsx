@@ -138,6 +138,23 @@ interface SueloRow {
 
 interface Parcela { id: string; nombre: string; }
 
+// ── Per-parcela insights section ──
+
+function ParcelaInsightsSection({ parcelaId }: { parcelaId: string }) {
+  const ciclo = '2024-2025'; // TODO: make dynamic
+  const { data: snapshot } = useModuleSnapshot(parcelaId, ciclo);
+
+  return (
+    <div className="space-y-3 pt-2">
+      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+        <Lightbulb className="h-4 w-4 text-primary" /> Insights de Productividad
+      </div>
+      <InsightsPanel snapshot={snapshot ?? null} />
+      <ProductivityGapChart parcelaId={parcelaId} useDemo />
+    </div>
+  );
+}
+
 // ── Main component ──
 
 export default function ParcelasNutricionTab() {
