@@ -56,26 +56,22 @@ export default function CotizacionTab() {
   const queryClient = useQueryClient();
   const [showNewQuote, setShowNewQuote] = useState(false);
 
-  // Fetch existing quotes
+  // Fetch existing quotes via RPC
   const { data: quotes, isLoading } = useQuery({
     queryKey: ['ag_quotes', organizationId],
     queryFn: async () => {
-      let q = supabase.from('ag_quotes' as any).select('*');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_my_quotes' as any);
       if (error) throw error;
       return (data ?? []) as Quote[];
     },
     enabled: !!organizationId,
   });
 
-  // Fetch suppliers for name lookup
+  // Fetch suppliers via RPC
   const { data: suppliers } = useQuery({
     queryKey: ['ag_suppliers', organizationId],
     queryFn: async () => {
-      let q = supabase.from('ag_suppliers' as any).select('id, nombre, pais, provincia, commission_pct_default');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('nombre');
+      const { data, error } = await supabase.rpc('get_my_suppliers' as any);
       if (error) throw error;
       return (data ?? []) as Supplier[];
     },
