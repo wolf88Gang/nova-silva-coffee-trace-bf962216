@@ -516,6 +516,36 @@ export default function ParcelasNutricionTab() {
         })}
       </div>
 
+      {/* Cumplimiento — org-level compliance section */}
+      <Collapsible>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-base">Cumplimiento y Certificaciones</CardTitle>
+                </div>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Certificaciones, mercados de exportación e ingredientes prohibidos
+              </p>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <OrgCertificationsManager />
+                <OrgExportMarketsManager />
+              </div>
+              <BlockedIngredientsPanel />
+              <PhaseoutAlertsCard />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       {/* Soil analysis form dialog */}
       <Dialog open={showSueloForm} onOpenChange={setShowSueloForm}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
