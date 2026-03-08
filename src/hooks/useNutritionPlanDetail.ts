@@ -121,8 +121,8 @@ export function useSupersedePlan() {
   return useMutation({
     mutationFn: async ({ oldPlanId, newPlanId }: { oldPlanId: string; newPlanId: string }) => {
       const { data, error } = await supabase.rpc('supersede_nutrition_plan', {
-        _old_plan_id: oldPlanId,
-        _new_plan_id: newPlanId,
+        old_plan_id: oldPlanId,
+        new_plan_id: newPlanId,
       });
       if (error) throw error;
       return data;
