@@ -98,8 +98,8 @@ export function useApprovePlan() {
       if (!session) throw new Error('No autenticado');
 
       const { data, error } = await supabase.rpc('approve_nutrition_plan', {
-        _plan_id: planId,
-        _user_id: session.user.id,
+        plan_id: planId,
+        actor_id: session.user.id,
       });
       if (error) throw error;
       return data;
