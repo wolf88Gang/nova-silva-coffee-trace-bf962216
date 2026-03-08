@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { applyOrgFilter } from '@/lib/orgFilter';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,26 +56,22 @@ export default function CotizacionTab() {
   const queryClient = useQueryClient();
   const [showNewQuote, setShowNewQuote] = useState(false);
 
-  // Fetch existing quotes
+  // Fetch existing quotes via RPC
   const { data: quotes, isLoading } = useQuery({
     queryKey: ['ag_quotes', organizationId],
     queryFn: async () => {
-      let q = supabase.from('ag_quotes' as any).select('*');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_my_quotes' as any);
       if (error) throw error;
       return (data ?? []) as Quote[];
     },
     enabled: !!organizationId,
   });
 
-  // Fetch suppliers for name lookup
+  // Fetch suppliers via RPC
   const { data: suppliers } = useQuery({
     queryKey: ['ag_suppliers', organizationId],
     queryFn: async () => {
-      let q = supabase.from('ag_suppliers' as any).select('id, nombre, pais, provincia, commission_pct_default');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('nombre');
+      const { data, error } = await supabase.rpc('get_my_suppliers' as any);
       if (error) throw error;
       return (data ?? []) as Supplier[];
     },
@@ -192,9 +188,11 @@ function NewQuoteForm({ organizationId, onSuccess }: { organizationId: string | 
   const { data: plans } = useQuery({
     queryKey: ['nutricion_planes_for_quote', organizationId],
     queryFn: async () => {
-      let q = supabase.from('nutricion_planes').select('id, parcela_id, ciclo, status');
-      q = applyOrgFilter(q, organizationId);
-      const { data, error } = await q.order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('nutricion_planes')
+        .select('id, parcela_id, ciclo, status')
+        .eq('organization_id', organizationId!)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []) as Plan[];
     },
