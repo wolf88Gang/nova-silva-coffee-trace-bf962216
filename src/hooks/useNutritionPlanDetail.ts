@@ -75,7 +75,7 @@ export function useNutritionPlanDetail(planId: string | null) {
     queryKey: ['nutrition_plan_detail', planId],
     queryFn: async (): Promise<PlanDetail> => {
       const { data, error } = await supabase.rpc('get_plan_detail', {
-        _plan_id: planId!,
+        p_plan_id: planId!,
       });
       if (error) throw error;
       // RPC returns jsonb — may be wrapped in an object or be the object itself
