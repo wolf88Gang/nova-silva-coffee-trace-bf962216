@@ -142,7 +142,7 @@ interface Parcela { id: string; nombre: string; }
 
 function ParcelaInsightsSection({ parcelaId }: { parcelaId: string }) {
   const ciclo = '2024-2025'; // TODO: make dynamic
-  const { data: snapshot } = useModuleSnapshot(parcelaId, ciclo);
+  const { snapshot } = useModuleSnapshot(parcelaId, ciclo);
 
   return (
     <div className="space-y-3 pt-2">
