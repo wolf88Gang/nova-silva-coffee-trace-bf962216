@@ -276,7 +276,30 @@ export default function ParcelasNutricionTab() {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as SueloRow | null;
+      if (!data) return null;
+      // Map real DB column names to SueloRow interface
+      const d = data as any;
+      return {
+        id: d.id,
+        parcela_id: d.parcela_id,
+        fecha_analisis: d.fecha_analisis,
+        ph: d.ph_agua ?? d.ph ?? null,
+        mo_pct: d.materia_organica_pct ?? d.mo_pct ?? null,
+        p_ppm: d.p_disponible ?? d.p_ppm ?? null,
+        k_cmol: d.k_intercambiable ?? d.k_cmol ?? null,
+        ca_cmol: d.ca_intercambiable ?? d.ca_cmol ?? null,
+        mg_cmol: d.mg_intercambiable ?? d.mg_cmol ?? null,
+        s_ppm: d.azufre ?? d.s_ppm ?? null,
+        cice: d.cic ?? d.cice ?? null,
+        textura: d.textura ?? d.clasificacion_edafica ?? null,
+        al_cmol: d.aluminio_intercambiable ?? d.al_cmol ?? null,
+        fe_ppm: d.hierro ?? d.fe_ppm ?? null,
+        mn_ppm: d.manganeso ?? d.mn_ppm ?? null,
+        cu_ppm: d.cobre ?? d.cu_ppm ?? null,
+        zn_ppm: d.zinc ?? d.zn_ppm ?? null,
+        b_ppm: d.boro ?? d.b_ppm ?? null,
+        sat_bases: d.saturacion_bases_pct ?? d.sat_bases ?? null,
+      } as SueloRow;
     },
     enabled: !!expandedParcela,
   });
