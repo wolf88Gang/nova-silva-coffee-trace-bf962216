@@ -429,7 +429,12 @@ export default function NovaCupDashboard() {
                         <tr key={m.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                           <td className="px-4 py-3 font-mono font-medium text-foreground">{m.codigo}</td>
                           <td className="px-4 py-3">{sampleBadge(m.tipoMuestra)}</td>
-                          <td className="px-4 py-3 font-medium text-foreground">{m.loteId}</td>
+                          <td className="px-4 py-3">
+                            <button className="font-medium text-foreground hover:text-primary hover:underline transition-colors"
+                              onClick={() => { const l = LOTE_INFO[m.loteId]; if (l) setSelectedLote(l); }}>
+                              {m.loteId}
+                            </button>
+                          </td>
                           <td className="px-4 py-3 text-muted-foreground">{m.fechaToma}</td>
                           <td className="px-4 py-3 text-muted-foreground">{m.tomadaPor}</td>
                           <td className="px-4 py-3 text-muted-foreground">{m.pesoGramos}g</td>
