@@ -167,6 +167,8 @@ export default function ProtocoloMuestreoTab() {
               <TableRow>
                 <TableHead>Parcela</TableHead>
                 <TableHead>Fecha</TableHead>
+                <TableHead>Responsable</TableHead>
+                <TableHead>Técnico</TableHead>
                 <TableHead className="text-center">Submuestras</TableHead>
                 <TableHead className="text-center">Prof. (cm)</TableHead>
                 <TableHead>Método P</TableHead>
@@ -179,6 +181,8 @@ export default function ProtocoloMuestreoTab() {
                 <TableRow key={log.id}>
                   <TableCell className="font-medium">{log.parcela}</TableCell>
                   <TableCell>{log.fecha}</TableCell>
+                  <TableCell className="text-foreground">{log.responsable}</TableCell>
+                  <TableCell className="text-muted-foreground">{log.tecnico}</TableCell>
                   <TableCell className="text-center">{log.submuestras}</TableCell>
                   <TableCell className="text-center">{log.profundidad}</TableCell>
                   <TableCell>{log.metodoP}</TableCell>
