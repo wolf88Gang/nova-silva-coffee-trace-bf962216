@@ -257,8 +257,13 @@ export default function ParcelasNutricionTab() {
     enabled: !!organizationId,
   });
 
-  // Use demo data if RPC returns empty
-  const items = rawItems?.length ? rawItems : DEMO_PARCELAS;
+  // Merge real data with demo parcelas (demo fills gaps for presentation)
+  const items = (() => {
+    const real = rawItems ?? [];
+    const realIds = new Set(real.map(r => r.parcela_id));
+    const extras = DEMO_PARCELAS.filter(d => !realIds.has(d.parcela_id));
+    return [...real, ...extras];
+  })();
 
   // Fetch full soil analysis for expanded parcela
   const { data: sueloDetail } = useQuery({
