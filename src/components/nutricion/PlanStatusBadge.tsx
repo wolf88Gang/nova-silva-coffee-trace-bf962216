@@ -8,6 +8,7 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; icon: ty
   activo: { label: 'Activo', className: 'bg-success/10 text-success border-success/20', icon: Play },
   programado: { label: 'Programado', className: 'bg-primary/10 text-primary border-primary/20', icon: Clock },
   en_ejecucion: { label: 'En ejecución', className: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300', icon: Play },
+  ejecutado: { label: 'Ejecutado', className: 'bg-primary/10 text-primary border-primary/20', icon: CheckCircle },
   completado: { label: 'Completado', className: 'bg-primary/10 text-primary border-primary/20', icon: CheckCircle },
   cancelado: { label: 'Cancelado', className: 'bg-destructive/10 text-destructive border-destructive/20', icon: XCircle },
   superseded: { label: 'Reemplazado', className: 'bg-muted text-muted-foreground', icon: ArrowRightLeft },
