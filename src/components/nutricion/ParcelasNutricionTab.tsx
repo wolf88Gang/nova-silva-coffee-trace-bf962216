@@ -526,7 +526,13 @@ export default function ParcelasNutricionTab() {
                           <div className="space-y-1">
                             <p className="text-[10px] font-semibold text-muted-foreground tracking-wider uppercase mb-2">Micronutrientes & Capacidad</p>
                             <NutrientRow label="Aluminio (Al)" value={sueloDetail.al_cmol} rangeKey="al_cmol" unit="cmol/kg" />
+                            <NutrientRow label="Hierro (Fe)" value={(sueloDetail as any).fe_ppm ?? null} rangeKey="fe_ppm" unit="ppm" />
+                            <NutrientRow label="Manganeso (Mn)" value={(sueloDetail as any).mn_ppm ?? null} rangeKey="mn_ppm" unit="ppm" />
+                            <NutrientRow label="Cobre (Cu)" value={(sueloDetail as any).cu_ppm ?? null} rangeKey="cu_ppm" unit="ppm" />
+                            <NutrientRow label="Zinc (Zn)" value={(sueloDetail as any).zn_ppm ?? null} rangeKey="zn_ppm" unit="ppm" />
+                            <NutrientRow label="Boro (B)" value={(sueloDetail as any).b_ppm ?? null} rangeKey="b_ppm" unit="ppm" />
                             <NutrientRow label="CICE" value={sueloDetail.cice} rangeKey="cice" unit="cmol/kg" />
+                            <NutrientRow label="Sat. Bases" value={(sueloDetail as any).sat_bases ?? null} rangeKey="sat_bases" unit="%" />
                           </div>
                         </div>
 
