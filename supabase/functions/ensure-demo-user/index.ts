@@ -32,7 +32,7 @@ serve(async (req) => {
       )
     }
 
-    const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico']
+    const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico', 'admin']
 
     if (!role) {
       console.error('Role is missing')
@@ -66,6 +66,7 @@ serve(async (req) => {
       certificadora: 'CertifiCafé Internacional',
       productor: 'Finca El Mirador',
       tecnico: 'Cooperativa Café de la Selva',
+      admin: 'Nova Silva Platform',
     }
 
     const names: Record<string, string> = {
@@ -74,6 +75,7 @@ serve(async (req) => {
       certificadora: 'Ana Certificadora',
       productor: 'Juan Pérez',
       tecnico: 'Pedro Técnico',
+      admin: 'Admin Nova Silva',
     }
 
     console.log('Attempting to create/update user:', email)

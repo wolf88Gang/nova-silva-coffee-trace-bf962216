@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck } from 'lucide-react';
+import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
@@ -24,6 +24,7 @@ const DEMO_ROLES: DemoRole[] = [
   { role: 'cooperativa', email: 'demo.cooperativa@novasilva.com', label: 'Cooperativa', description: 'Gestión de organización', icon: Building2 },
   { role: 'exportador', email: 'demo.exportador@novasilva.com', label: 'Exportador', description: 'Exportadora con EUDR', icon: Truck },
   { role: 'certificadora', email: 'demo.certificadora@novasilva.com', label: 'Certificadora', description: 'Auditoría y certificación', icon: ShieldCheck },
+  { role: 'admin', email: 'demo.admin@novasilva.com', label: 'Admin', description: 'Administrador de plataforma', icon: Crown },
 ];
 
 const ROLE_REDIRECTS: Record<string, string> = {
@@ -32,6 +33,7 @@ const ROLE_REDIRECTS: Record<string, string> = {
   certificadora: '/certificadora/dashboard',
   productor: '/productor/dashboard',
   tecnico: '/tecnico/dashboard',
+  admin: '/admin',
 };
 
 const DemoLogin = () => {
@@ -138,7 +140,7 @@ const DemoLogin = () => {
         </p>
 
         {/* Role grid — 5 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full max-w-5xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl">
           {DEMO_ROLES.map((dr) => {
             const Icon = dr.icon;
             const isLoading = loadingRole === dr.role;
