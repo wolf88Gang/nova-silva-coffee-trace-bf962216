@@ -616,9 +616,32 @@ export default function FinanzasHub() {
                 )}
 
                 {(showDetCredito.estado === 'activo' || showDetCredito.estado === 'en_arreglo') && (
-                  <Button className="w-full" onClick={() => handleRegistrarPago(showDetCredito.id)}>
-                    <CheckCircle className="h-4 w-4 mr-1" /> Registrar Pago de Cuota ({fmtCRC(Math.round(showDetCredito.monto / showDetCredito.cuotas))})
-                  </Button>
+                  <div className="space-y-2">
+                    <Button className="w-full" onClick={() => handleRegistrarPago(showDetCredito.id)}>
+                      <CheckCircle className="h-4 w-4 mr-1" /> Pago de Cuota ({fmtCRC(Math.round(showDetCredito.monto / showDetCredito.cuotas))})
+                    </Button>
+                    {!pagoCustom ? (
+                      <Button variant="outline" className="w-full text-xs" onClick={() => { setPagoCustom(true); setPagoMonto(''); }}>
+                        Otro monto
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm text-muted-foreground">₡</span>
+                        <Input
+                          type="number" min={1} max={showDetCredito.saldo}
+                          placeholder="Monto a pagar"
+                          value={pagoMonto}
+                          onChange={e => setPagoMonto(e.target.value)}
+                          className="h-8 text-sm"
+                        />
+                        <Button size="sm" disabled={!pagoMonto || Number(pagoMonto) <= 0}
+                          onClick={() => handleRegistrarPago(showDetCredito.id, Number(pagoMonto))}>
+                          Pagar
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setPagoCustom(false)}>✕</Button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </>

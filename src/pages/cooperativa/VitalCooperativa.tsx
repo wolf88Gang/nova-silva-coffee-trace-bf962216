@@ -418,18 +418,55 @@ export default function VitalCooperativa() {
               <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4 text-primary" /> Acciones Prioritarias</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 {[
-                  { eje: 'Digital', accion: 'Implementar sistema de alertas tempranas para socios', impacto: 'Alto', plazo: '90 días' },
-                  { eje: 'Servicios', accion: 'Ampliar cobertura de asistencia técnica a comunidades lejanas', impacto: 'Alto', plazo: '180 días' },
-                  { eje: 'Finanzas', accion: 'Crear fondo de reserva para emergencias climáticas', impacto: 'Medio', plazo: '120 días' },
-                  { eje: 'Gobernanza', accion: 'Actualizar mapa de riesgos climáticos con datos 2026', impacto: 'Medio', plazo: '60 días' },
+                  { eje: 'Digital', accion: 'Implementar sistema de alertas tempranas para socios', impacto: 'Alto', plazo: '90 días',
+                    detalle: 'Configurar notificaciones automáticas por SMS y app para alertas climáticas, vencimiento de créditos y recordatorios de entregas. Impacta directamente en la reducción de pérdidas por eventos climáticos no anticipados.',
+                    responsable: 'Equipo TI + Gerencia', recursos: 'Plataforma SMS, integración climática', indicador: 'Porcentaje de socios con alertas activas (meta: 80%)' },
+                  { eje: 'Servicios', accion: 'Ampliar cobertura de asistencia técnica a comunidades lejanas', impacto: 'Alto', plazo: '180 días',
+                    detalle: 'Contratar 2 técnicos adicionales para las zonas de San Marcos y Santa María. Actualmente 35% de los socios no reciben visitas técnicas regulares, lo que impacta en productividad y calidad.',
+                    responsable: 'Dirección de Campo', recursos: 'Presupuesto de contratación, motocicletas, equipo de campo', indicador: 'Cobertura técnica: de 65% a 95% de socios visitados/trimestre' },
+                  { eje: 'Finanzas', accion: 'Crear fondo de reserva para emergencias climáticas', impacto: 'Medio', plazo: '120 días',
+                    detalle: 'Destinar el 3% de las ventas anuales a un fondo de emergencia que permita apoyar a socios afectados por sequías, tormentas o heladas sin comprometer la liquidez operativa.',
+                    responsable: 'Consejo de Administración + Finanzas', recursos: 'Aprobación en asamblea, cuenta bancaria dedicada', indicador: 'Fondo acumulado vs meta anual ($50,000)' },
+                  { eje: 'Gobernanza', accion: 'Actualizar mapa de riesgos climáticos con datos 2026', impacto: 'Medio', plazo: '60 días',
+                    detalle: 'Integrar datos de estaciones meteorológicas locales y registros de eventos climáticos del último año para actualizar las zonas de riesgo alto, medio y bajo. Insumo clave para la toma de decisiones en créditos y seguros.',
+                    responsable: 'Técnico SIG + Gerencia', recursos: 'Software GIS, datos meteorológicos', indicador: 'Mapa actualizado y socializado con directivos' },
                 ].map((a, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{a.accion}</p>
-                      <p className="text-xs text-muted-foreground">Eje: {a.eje} · Plazo: {a.plazo}</p>
-                    </div>
-                    <Badge variant={a.impacto === 'Alto' ? 'destructive' : 'secondary'}>{a.impacto}</Badge>
-                  </div>
+                  <Collapsible key={i}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer transition-colors">
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-foreground">{a.accion}</p>
+                          <p className="text-xs text-muted-foreground">Eje: {a.eje} · Plazo: {a.plazo}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={a.impacto === 'Alto' ? 'destructive' : 'secondary'}>{a.impacto}</Badge>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+                        </div>
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="mx-3 mb-3 p-4 rounded-b-lg border border-t-0 border-border bg-muted/30 space-y-3">
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground mb-1">Descripción</p>
+                          <p className="text-sm text-foreground">{a.detalle}</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground mb-0.5">Responsable</p>
+                            <p className="text-sm text-foreground">{a.responsable}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground mb-0.5">Recursos necesarios</p>
+                            <p className="text-sm text-foreground">{a.recursos}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground mb-0.5">Indicador de éxito</p>
+                            <p className="text-sm text-foreground">{a.indicador}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 ))}
               </CardContent>
             </Card>
