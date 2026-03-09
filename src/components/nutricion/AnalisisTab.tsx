@@ -121,6 +121,24 @@ export default function AnalisisTab() {
     enabled: !!organizationId,
   });
 
+  // Merge real + demo data
+  const allSuelo = (() => {
+    const real = sueloList ?? [];
+    const realIds = new Set(real.map(r => r.id));
+    const extras = DEMO_SUELO.filter(d => !realIds.has(d.id));
+    return [...real, ...extras];
+  })();
+
+  const allFoliar = (() => {
+    const real = hojaList ?? [];
+    const realIds = new Set(real.map(r => r.id));
+    const extras = DEMO_FOLIAR.filter(d => !realIds.has(d.id));
+    return [...real, ...extras];
+  })();
+
+  const parcelaNameLookup = (id: string) =>
+    parcelas?.find(p => p.id === id)?.nombre ?? DEMO_PARCELA_NAMES_ANALISIS[id] ?? id.slice(0, 8);
+
   return (
     <div className="space-y-4">
       {/* Filters */}
