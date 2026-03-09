@@ -141,13 +141,13 @@ export default function CreditCommitteeDashboard() {
           <p className="text-sm text-muted-foreground">Análisis integral — Juan Pérez López · Q8,500 · 18 meses</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="text-destructive border-destructive/30" onClick={() => toast.info('Crédito rechazado (demo)')}>
+          <Button variant="outline" className="text-destructive border-destructive/30" onClick={() => { setRejectText(RESPONSE_TEMPLATES.reject); setShowReject(true); }}>
             <XCircle className="h-4 w-4 mr-1" /> Rechazar
           </Button>
-          <Button variant="outline" onClick={() => setShowOverride(true)}>
+          <Button variant="outline" onClick={() => { setOverrideText(RESPONSE_TEMPLATES.conditional); setShowOverride(true); }}>
             <AlertTriangle className="h-4 w-4 mr-1" /> Aprobar con condiciones
           </Button>
-          <Button onClick={() => toast.success('Crédito aprobado (demo)')}>
+          <Button onClick={() => toast.success(RESPONSE_TEMPLATES.approve)}>
             <CheckCircle className="h-4 w-4 mr-1" /> Aprobar
           </Button>
         </div>
