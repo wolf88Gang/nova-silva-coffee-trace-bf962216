@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import { TrendingUp } from 'lucide-react';
 import { usePlotSnapshotsHistory } from '@/hooks/usePlotSnapshotsHistory';
 import { DEMO_SNAPSHOTS_HISTORY } from '@/lib/demoInsightsData';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 
 interface Props {
   parcelaId: string | null;
