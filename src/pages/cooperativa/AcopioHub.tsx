@@ -425,6 +425,7 @@ export default function AcopioHub() {
                       <th className="px-4 py-3 font-medium">Productores</th>
                       <th className="px-4 py-3 font-medium">Tipo</th>
                       <th className="px-4 py-3 font-medium">Estado</th>
+                      <th className="px-4 py-3 font-medium">Acción</th>
                     </tr>
                   </thead>
                   <tbody>
