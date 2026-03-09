@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck } from 'lucide-react';
+import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
