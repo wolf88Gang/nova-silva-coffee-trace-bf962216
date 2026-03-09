@@ -60,9 +60,10 @@ export default function SoilHealthTab() {
   })();
 
   // Fetch latest soil analysis for selected parcela (map real DB columns)
-  const { data: sueloData, isLoading } = useQuery({
+  const isDemo = selectedParcela.startsWith('demo-');
+  const { data: rawSueloData, isLoading } = useQuery({
     queryKey: ['soil-analysis-latest', selectedParcela],
-    enabled: !!selectedParcela,
+    enabled: !!selectedParcela && !isDemo,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('nutricion_analisis_suelo')
@@ -91,6 +92,8 @@ export default function SoilHealthTab() {
       } as SueloRow;
     },
   });
+
+  const sueloData = isDemo ? (DEMO_SOIL_DATA[selectedParcela] ?? null) : rawSueloData;
 
   const parcelaName = parcelas.find(p => p.id === selectedParcela)?.nombre ?? undefined;
 
