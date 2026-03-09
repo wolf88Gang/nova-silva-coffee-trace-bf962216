@@ -1151,13 +1151,23 @@ export default function NovaCupDashboard() {
                 </Card>
 
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="p-2 rounded border border-border">
+                  <div className="p-2 rounded border border-border cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => { const p = PRODUCER_INFO[selectedCata.productor]; if (p) { setSelectedCata(null); setSelectedProducer(p); } }}>
                     <span className="text-muted-foreground">Productor:</span>
-                    <p className="font-medium text-foreground">{selectedCata.productor}</p>
+                    <p className="font-medium text-primary hover:underline">{selectedCata.productor}</p>
                   </div>
                   <div className="p-2 rounded border border-border">
                     <span className="text-muted-foreground">Defectos:</span>
                     <p className="font-medium text-foreground">{selectedCata.defectos ?? '—'}</p>
+                  </div>
+                  <div className="p-2 rounded border border-border">
+                    <span className="text-muted-foreground">Catador:</span>
+                    <p className="font-medium text-foreground text-xs">{CATADORES_INFO[selectedCata.id] ?? 'Sin asignar'}</p>
+                  </div>
+                  <div className="p-2 rounded border border-border cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => { const l = LOTE_INFO[selectedCata.lote]; if (l) { setSelectedCata(null); setSelectedLote(l); } }}>
+                    <span className="text-muted-foreground">Lote:</span>
+                    <p className="font-medium text-primary hover:underline">{selectedCata.lote}</p>
                   </div>
                 </div>
 
@@ -1167,6 +1177,119 @@ export default function NovaCupDashboard() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
+
+      {/* ═══ PRODUCER DETAIL DIALOG ═══ */}
+      <Dialog open={!!selectedProducer} onOpenChange={() => setSelectedProducer(null)}>
+        <DialogContent>
+          {selectedProducer && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedProducer.nombre}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-muted-foreground">Documento:</span> <span className="font-medium text-foreground">{selectedProducer.documento}</span></div>
+                  <div><span className="text-muted-foreground">Comunidad:</span> <span className="font-medium text-foreground">{selectedProducer.comunidad}</span></div>
+                  <div><span className="text-muted-foreground">Parcelas:</span> <span className="font-medium text-foreground">{selectedProducer.parcelas}</span></div>
+                  <div><span className="text-muted-foreground">Hectáreas:</span> <span className="font-medium text-foreground">{selectedProducer.hectareas}</span></div>
+                  <div><span className="text-muted-foreground">Última entrega:</span> <span className="font-medium text-foreground">{selectedProducer.ultimaEntrega}</span></div>
+                  <div><span className="text-muted-foreground">VITAL:</span> <span className={`font-bold ${selectedProducer.vital >= 60 ? 'text-primary' : 'text-destructive'}`}>{selectedProducer.vital}</span></div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 rounded-lg border border-border text-center">
+                    <p className="text-lg font-bold text-foreground">{selectedProducer.parcelas}</p>
+                    <p className="text-[10px] text-muted-foreground">Parcelas</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border text-center">
+                    <p className="text-lg font-bold text-foreground">{selectedProducer.entregas}</p>
+                    <p className="text-[10px] text-muted-foreground">Entregas</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border text-center">
+                    <p className="text-lg font-bold text-foreground">{selectedProducer.creditosActivos}</p>
+                    <p className="text-[10px] text-muted-foreground">Créditos activos</p>
+                  </div>
+                </div>
+                {/* Cataciones de este productor */}
+                {(() => {
+                  const catas = catacionesDemo.filter(c => c.productor === selectedProducer.nombre);
+                  if (!catas.length) return null;
+                  return (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Cataciones recientes</p>
+                      <div className="space-y-1.5">
+                        {catas.map(c => (
+                          <div key={c.id} className="flex items-center justify-between p-2 rounded border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                            onClick={() => { setSelectedProducer(null); setSelectedCata(c); }}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-foreground">{c.lote}</span>
+                              {sampleBadge(c.sampleType)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-foreground">{c.puntaje} pts</span>
+                              {catBadge(c.cat)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+              <DialogFooter><Button variant="outline" onClick={() => setSelectedProducer(null)}>Cerrar</Button></DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ LOTE DETAIL DIALOG ═══ */}
+      <Dialog open={!!selectedLote} onOpenChange={() => setSelectedLote(null)}>
+        <DialogContent>
+          {selectedLote && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2"><Coffee className="h-5 w-5 text-primary" /> {selectedLote.id}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-muted-foreground">Productor:</span>
+                    <button className="font-medium text-primary hover:underline block"
+                      onClick={() => { const p = PRODUCER_INFO[selectedLote.productor]; if (p) { setSelectedLote(null); setSelectedProducer(p); } }}>
+                      {selectedLote.productor}
+                    </button>
+                  </div>
+                  <div><span className="text-muted-foreground">Parcela:</span> <span className="font-medium text-foreground">{selectedLote.parcela}</span></div>
+                  <div><span className="text-muted-foreground">Variedad:</span> <span className="font-medium text-foreground">{selectedLote.variedad}</span></div>
+                  <div><span className="text-muted-foreground">Altitud:</span> <span className="font-medium text-foreground">{selectedLote.altitudMsnm} msnm</span></div>
+                  <div><span className="text-muted-foreground">Proceso:</span> <span className="font-medium text-foreground">{selectedLote.proceso}</span></div>
+                  <div><span className="text-muted-foreground">Peso:</span> <span className="font-medium text-foreground">{selectedLote.pesoKg.toLocaleString()} kg</span></div>
+                  <div><span className="text-muted-foreground">Estado:</span> <Badge variant="outline">{selectedLote.estado}</Badge></div>
+                  <div><span className="text-muted-foreground">Ingreso:</span> <span className="font-medium text-foreground">{selectedLote.fechaIngreso}</span></div>
+                </div>
+                {/* Cataciones de este lote */}
+                {(() => {
+                  const catas = catacionesDemo.filter(c => c.lote === selectedLote.id);
+                  if (!catas.length) return null;
+                  return (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Cataciones del lote</p>
+                      <div className="space-y-1.5">
+                        {catas.map(c => (
+                          <div key={c.id} className="flex items-center justify-between p-2 rounded border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                            onClick={() => { setSelectedLote(null); setSelectedCata(c); }}>
+                            <div className="flex items-center gap-2">
+                              {sampleBadge(c.sampleType)}
+                              <span className="text-sm text-foreground">{c.fecha}</span>
+                            </div>
+                            <span className="text-sm font-bold text-foreground">{c.puntaje} pts</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+              <DialogFooter><Button variant="outline" onClick={() => setSelectedLote(null)}>Cerrar</Button></DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
