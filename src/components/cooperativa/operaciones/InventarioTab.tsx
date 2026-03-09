@@ -518,8 +518,12 @@ export default function InventarioTab() {
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Últimos Movimientos</p>
                     {movs.slice(0, 4).map(m => (
                       <div key={m.id} className="flex items-center gap-2 text-sm">
-                        <span className={`font-bold ${m.tipo === 'entrada' ? 'text-emerald-500' : 'text-destructive'}`}>{m.tipo === 'entrada' ? '+' : '-'}{m.cantidad}</span>
-                        <span className="text-foreground">{m.motivo}</span>
+                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${m.tipo === 'entrada' ? 'bg-success/10 text-success border-success/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
+                          {m.tipo === 'entrada' ? 'Entrada' : 'Salida'}
+                        </Badge>
+                        <span className="font-semibold text-foreground">{m.cantidad} {showDetalle.unidad}</span>
+                        <span className="text-muted-foreground">→ {m.destino}</span>
+                        {m.fuente && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{m.fuente}</Badge>}
                         <span className="ml-auto text-xs text-muted-foreground">{fmtDate(m.fecha)}</span>
                       </div>
                     ))}
