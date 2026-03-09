@@ -164,6 +164,8 @@ export default function FinanzasHub() {
   const [showSCP, setShowSCP] = useState<string | null>(null);
   const [solicitudAction, setSolicitudAction] = useState<'aprobada' | 'rechazada' | 'contraoferta' | null>(null);
   const [mensajeSolicitud, setMensajeSolicitud] = useState('');
+  const [pagoCustom, setPagoCustom] = useState(false);
+  const [pagoMonto, setPagoMonto] = useState('');
 
   // Forms
   const [movForm, setMovForm] = useState({ desc: '', cat: 'Ventas', tipo: 'Ingreso' as 'Ingreso' | 'Egreso', monto: '', ref: '' });
