@@ -224,10 +224,10 @@ export default function FinanzasHub() {
     setMensajeSolicitud(MENSAJES_CREDITO[action](target));
   };
 
-  const handleRegistrarPago = (creditoId: string) => {
+  const handleRegistrarPago = (creditoId: string, montoCustom?: number) => {
     setCreditos(prev => prev.map(c => {
       if (c.id !== creditoId) return c;
-      const cuotaMonto = c.monto / c.cuotas;
+      const cuotaMonto = montoCustom ?? (c.monto / c.cuotas);
       const nuevoSaldo = Math.max(0, c.saldo - cuotaMonto);
       const nuevasCuotas = c.cuotasPagadas + 1;
       return {
@@ -237,6 +237,8 @@ export default function FinanzasHub() {
     }));
     toast.success('Pago registrado');
     setShowDetCredito(null);
+    setPagoCustom(false);
+    setPagoMonto('');
   };
 
   const scpData = showSCP ? calcularSCP(showSCP, creditos) : null;
