@@ -279,9 +279,9 @@ export default function PlanDetailView({ planId, parcelaName, onBack }: Props) {
                 </div>
               )}
               {tecnico.ajustes && (
-                <div className="bg-accent/10 border border-accent/20 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-accent-foreground mb-1">Ajustes aplicados</p>
-                  <p className="text-sm text-foreground">{tecnico.ajustes}</p>
+                <div className="bg-muted border border-border rounded-lg p-3">
+                  <p className="text-xs font-semibold text-foreground mb-1">Ajustes aplicados</p>
+                  <p className="text-sm text-muted-foreground">{tecnico.ajustes}</p>
                 </div>
               )}
             </AccordionContent>
