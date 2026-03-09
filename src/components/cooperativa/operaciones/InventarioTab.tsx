@@ -432,6 +432,11 @@ export default function InventarioTab() {
           </Card>
         </TabsContent>
 
+        {/* ─── COTIZACIONES TAB ─── */}
+        <TabsContent value="cotizaciones" className="mt-4">
+          <CotizacionTab />
+        </TabsContent>
+
         {/* ─── HISTORIAL TAB ─── */}
         <TabsContent value="historial" className="mt-4">
           <Card>

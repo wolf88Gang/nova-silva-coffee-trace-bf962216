@@ -1,6 +1,8 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Shield, Users, Database, Activity, Settings } from 'lucide-react';
+import { Building2, Users, Database, Activity, DollarSign } from 'lucide-react';
+import ComisionesTab from '@/components/nutricion/ComisionesTab';
 
 export default function AdminPanel() {
   const kpis = [
@@ -26,27 +28,40 @@ export default function AdminPanel() {
         ))}
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <h3 className="font-semibold text-foreground mb-3">Organizaciones registradas</h3>
-          <div className="space-y-2">
-            {[
-              { nombre: 'Cooperativa Demo Nova Silva', tipo: 'cooperativa', plan: 'premium', pais: 'Costa Rica', estado: 'active' },
-              { nombre: 'Exportadora Sol de América', tipo: 'exportador', plan: 'premium', pais: 'Guatemala', estado: 'active' },
-              { nombre: 'CertifiCafé Internacional', tipo: 'certificadora', plan: 'enterprise', pais: 'Costa Rica', estado: 'active' },
-            ].map((o, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{o.nombre}</p>
-                  <p className="text-xs text-muted-foreground">{o.pais} — {o.tipo}</p>
-                </div>
-                <Badge variant="outline">{o.plan}</Badge>
-                <Badge variant="default">{o.estado}</Badge>
+      <Tabs defaultValue="organizaciones">
+        <TabsList>
+          <TabsTrigger value="organizaciones"><Building2 className="h-4 w-4 mr-1" /> Organizaciones</TabsTrigger>
+          <TabsTrigger value="comisiones"><DollarSign className="h-4 w-4 mr-1" /> Comisiones</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="organizaciones" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="font-semibold text-foreground mb-3">Organizaciones registradas</h3>
+              <div className="space-y-2">
+                {[
+                  { nombre: 'Cooperativa Demo Nova Silva', tipo: 'cooperativa', plan: 'premium', pais: 'Costa Rica', estado: 'active' },
+                  { nombre: 'Exportadora Sol de América', tipo: 'exportador', plan: 'premium', pais: 'Guatemala', estado: 'active' },
+                  { nombre: 'CertifiCafé Internacional', tipo: 'certificadora', plan: 'enterprise', pais: 'Costa Rica', estado: 'active' },
+                ].map((o, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-foreground">{o.nombre}</p>
+                      <p className="text-xs text-muted-foreground">{o.pais} — {o.tipo}</p>
+                    </div>
+                    <Badge variant="outline">{o.plan}</Badge>
+                    <Badge variant="default">{o.estado}</Badge>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="comisiones" className="mt-4">
+          <ComisionesTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
