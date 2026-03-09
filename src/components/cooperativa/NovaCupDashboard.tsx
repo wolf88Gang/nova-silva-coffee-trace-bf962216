@@ -248,6 +248,8 @@ export default function NovaCupDashboard() {
   const [compareSamples, setCompareSamples] = useState<Catacion[]>([]);
   const [filterProtocolo, setFilterProtocolo] = useState<string>('all');
   const [filterCat, setFilterCat] = useState<string>('all');
+  const [selectedProducer, setSelectedProducer] = useState<ProducerInfo | null>(null);
+  const [selectedLote, setSelectedLote] = useState<LoteInfo | null>(null);
 
   const attrs = protocolo === 'SCA' ? SCA_ATTRIBUTES : CVA_ATTRIBUTES;
   const totalScore = Object.values(scores).reduce((s, v) => s + v, 0);
