@@ -66,6 +66,7 @@ serve(async (req) => {
       certificadora: 'CertifiCafé Internacional',
       productor: 'Finca El Mirador',
       tecnico: 'Cooperativa Café de la Selva',
+      admin: 'Nova Silva Platform',
     }
 
     const names: Record<string, string> = {
