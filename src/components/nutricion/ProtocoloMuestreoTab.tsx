@@ -33,13 +33,15 @@ interface SamplingLog {
   metodoP: string;
   cumplimiento: number;
   validado: boolean;
+  responsable: string;
+  tecnico: string;
 }
 
 const DEMO_LOGS: SamplingLog[] = [
-  { id: '1', parcela: 'Parcela El Roble — 2.5 ha', fecha: '2026-01-15', submuestras: 18, profundidad: 20, metodoP: 'Bray II', cumplimiento: 95, validado: true },
-  { id: '2', parcela: 'Parcela La Ceiba — 1.8 ha', fecha: '2026-01-20', submuestras: 12, profundidad: 20, metodoP: 'Olsen', cumplimiento: 60, validado: false },
-  { id: '3', parcela: 'Parcela Los Pinos — 3.0 ha', fecha: '2026-02-05', submuestras: 20, profundidad: 15, metodoP: 'Bray II', cumplimiento: 85, validado: true },
-  { id: '4', parcela: 'Parcela Río Claro — 1.2 ha', fecha: '2026-02-10', submuestras: 8, profundidad: 10, metodoP: 'Mehlich', cumplimiento: 40, validado: false },
+  { id: '1', parcela: 'Parcela El Roble — 2.5 ha', fecha: '2026-01-15', submuestras: 18, profundidad: 20, metodoP: 'Bray II', cumplimiento: 95, validado: true, responsable: 'Juan Mora V.', tecnico: 'Ing. Carlos Ramírez' },
+  { id: '2', parcela: 'Parcela La Ceiba — 1.8 ha', fecha: '2026-01-20', submuestras: 12, profundidad: 20, metodoP: 'Olsen', cumplimiento: 60, validado: false, responsable: 'María Solano R.', tecnico: 'Ing. Carlos Ramírez' },
+  { id: '3', parcela: 'Parcela Los Pinos — 3.0 ha', fecha: '2026-02-05', submuestras: 20, profundidad: 15, metodoP: 'Bray II', cumplimiento: 85, validado: true, responsable: 'Pedro Arias M.', tecnico: 'Ing. María López' },
+  { id: '4', parcela: 'Parcela Río Claro — 1.2 ha', fecha: '2026-02-10', submuestras: 8, profundidad: 10, metodoP: 'Mehlich', cumplimiento: 40, validado: false, responsable: 'Ana Jiménez B.', tecnico: 'Ing. María López' },
 ];
 
 function CumplimientoBadge({ pct }: { pct: number }) {
