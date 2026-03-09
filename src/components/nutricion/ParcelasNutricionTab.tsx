@@ -134,9 +134,91 @@ interface SueloRow {
   k_cmol: number | null; ca_cmol: number | null; mg_cmol: number | null;
   s_ppm: number | null; cice: number | null; textura: string | null;
   al_cmol: number | null;
+  fe_ppm?: number | null; mn_ppm?: number | null; cu_ppm?: number | null;
+  zn_ppm?: number | null; b_ppm?: number | null; sat_bases?: number | null;
 }
 
 interface Parcela { id: string; nombre: string; }
+
+// ── Demo data for presentation ──
+
+const DEMO_PARCELAS: ResumenRow[] = [
+  {
+    organization_id: '00000000-0000-0000-0000-000000000001',
+    parcela_id: 'demo-p1', parcela_nombre: 'Lote 1 — El Roble',
+    variedades: [{ variedad_codigo: 'Caturra' }, { variedad_codigo: 'Catuaí' }],
+    edad_promedio_anios: 6, altitud_msnm: 1350, densidad_plantas_ha: 5000,
+    sombra_pct: 45, pendiente_pct: 18,
+    suelo_fecha: '2025-09-15', ph_agua: 5.1, materia_organica_pct: 4.2,
+    p_disponible: 12, k_intercambiable: 0.42, ca_intercambiable: 4.8,
+    mg_intercambiable: 1.1, suelo_archivo_url: null,
+    foliar_fecha: '2025-10-02', n_pct: 2.65, f_p_pct: 0.14, k_pct: 1.82, ca_pct: 0.98, mg_pct: 0.31,
+    plan_id: 'demo-plan-1', plan_estado: 'aprobado', nivel_confianza: 'alto',
+  },
+  {
+    organization_id: '00000000-0000-0000-0000-000000000001',
+    parcela_id: 'demo-p2', parcela_nombre: 'Lote 2 — La Cascada',
+    variedades: [{ variedad_codigo: 'Geisha' }],
+    edad_promedio_anios: 3, altitud_msnm: 1580, densidad_plantas_ha: 4200,
+    sombra_pct: 55, pendiente_pct: 25,
+    suelo_fecha: '2025-08-20', ph_agua: 4.7, materia_organica_pct: 3.1,
+    p_disponible: 8, k_intercambiable: 0.28, ca_intercambiable: 2.9,
+    mg_intercambiable: 0.7, suelo_archivo_url: null,
+    foliar_fecha: '2025-09-10', n_pct: 2.30, f_p_pct: 0.11, k_pct: 1.55, ca_pct: 0.72, mg_pct: 0.22,
+    plan_id: 'demo-plan-2', plan_estado: 'generado', nivel_confianza: 'medio',
+  },
+  {
+    organization_id: '00000000-0000-0000-0000-000000000001',
+    parcela_id: 'demo-p3', parcela_nombre: 'Lote 3 — Mirador',
+    variedades: [{ variedad_codigo: 'SL28' }, { variedad_codigo: 'Bourbon' }],
+    edad_promedio_anios: 12, altitud_msnm: 1200, densidad_plantas_ha: 4500,
+    sombra_pct: 35, pendiente_pct: 12,
+    suelo_fecha: '2025-07-05', ph_agua: 5.5, materia_organica_pct: 5.8,
+    p_disponible: 24, k_intercambiable: 0.65, ca_intercambiable: 6.2,
+    mg_intercambiable: 1.8, suelo_archivo_url: null,
+    foliar_fecha: '2025-08-12', n_pct: 2.90, f_p_pct: 0.18, k_pct: 2.10, ca_pct: 1.15, mg_pct: 0.38,
+    plan_id: 'demo-plan-3', plan_estado: 'ejecutado', nivel_confianza: 'alto',
+  },
+  {
+    organization_id: '00000000-0000-0000-0000-000000000001',
+    parcela_id: 'demo-p4', parcela_nombre: 'Lote 4 — Quebrada Honda',
+    variedades: [{ variedad_codigo: 'Castillo' }],
+    edad_promedio_anios: 8, altitud_msnm: 1420, densidad_plantas_ha: 5500,
+    sombra_pct: 40, pendiente_pct: 22,
+    suelo_fecha: '2025-06-18', ph_agua: 4.9, materia_organica_pct: 3.6,
+    p_disponible: 15, k_intercambiable: 0.38, ca_intercambiable: 3.5,
+    mg_intercambiable: 0.9, suelo_archivo_url: null,
+    foliar_fecha: null, n_pct: null, f_p_pct: null, k_pct: null, ca_pct: null, mg_pct: null,
+    plan_id: null, plan_estado: null, nivel_confianza: null,
+  },
+];
+
+const DEMO_SUELO: Record<string, SueloRow> = {
+  'demo-p1': {
+    id: 'ds1', parcela_id: 'demo-p1', fecha_analisis: '2025-09-15',
+    ph: 5.1, mo_pct: 4.2, p_ppm: 12, k_cmol: 0.42, ca_cmol: 4.8, mg_cmol: 1.1,
+    s_ppm: 14, cice: 12.5, textura: 'Franco-arcilloso', al_cmol: 0.35,
+    fe_ppm: 85, mn_ppm: 32, cu_ppm: 3.2, zn_ppm: 4.5, b_ppm: 0.8, sat_bases: 58,
+  },
+  'demo-p2': {
+    id: 'ds2', parcela_id: 'demo-p2', fecha_analisis: '2025-08-20',
+    ph: 4.7, mo_pct: 3.1, p_ppm: 8, k_cmol: 0.28, ca_cmol: 2.9, mg_cmol: 0.7,
+    s_ppm: 9, cice: 8.2, textura: 'Franco', al_cmol: 0.62,
+    fe_ppm: 120, mn_ppm: 55, cu_ppm: 2.1, zn_ppm: 2.8, b_ppm: 0.4, sat_bases: 42,
+  },
+  'demo-p3': {
+    id: 'ds3', parcela_id: 'demo-p3', fecha_analisis: '2025-07-05',
+    ph: 5.5, mo_pct: 5.8, p_ppm: 24, k_cmol: 0.65, ca_cmol: 6.2, mg_cmol: 1.8,
+    s_ppm: 18, cice: 16.8, textura: 'Franco-arenoso', al_cmol: 0.12,
+    fe_ppm: 45, mn_ppm: 22, cu_ppm: 4.1, zn_ppm: 6.2, b_ppm: 1.1, sat_bases: 65,
+  },
+  'demo-p4': {
+    id: 'ds4', parcela_id: 'demo-p4', fecha_analisis: '2025-06-18',
+    ph: 4.9, mo_pct: 3.6, p_ppm: 15, k_cmol: 0.38, ca_cmol: 3.5, mg_cmol: 0.9,
+    s_ppm: 11, cice: 10.1, textura: 'Arcilloso', al_cmol: 0.48,
+    fe_ppm: 95, mn_ppm: 42, cu_ppm: 2.8, zn_ppm: 3.5, b_ppm: 0.6, sat_bases: 50,
+  },
+};
 
 // ── Per-parcela insights section ──
 
