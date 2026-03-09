@@ -194,14 +194,14 @@ export default function AnalisisTab() {
       {/* Sub-tabs: Suelo / Foliar */}
       <Tabs defaultValue="suelo">
         <TabsList>
-          <TabsTrigger value="suelo"><Droplets className="h-4 w-4 mr-1" /> Suelo ({sueloList?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="foliar"><Leaf className="h-4 w-4 mr-1" /> Foliar ({hojaList?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="suelo"><Droplets className="h-4 w-4 mr-1" /> Suelo ({allSuelo.length})</TabsTrigger>
+          <TabsTrigger value="foliar"><Leaf className="h-4 w-4 mr-1" /> Foliar ({allFoliar.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="suelo" className="mt-3">
           {loadingSuelo ? (
             <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
-          ) : !sueloList?.length ? (
+          ) : !allSuelo.length ? (
             <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">No hay análisis de suelo registrados.</CardContent></Card>
           ) : (
             <div className="space-y-3 stagger-children">
