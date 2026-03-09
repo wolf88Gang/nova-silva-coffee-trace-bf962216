@@ -1,9 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sprout, FileText, ShoppingCart, History } from 'lucide-react';
+import { Sprout, FileText, ShoppingCart, History, DollarSign } from 'lucide-react';
 import ParcelasNutricionTab from './ParcelasNutricionTab';
 import PlanesTab from './PlanesTab';
 import CotizacionTab from './CotizacionTab';
 import HistorialTab from './HistorialTab';
+import ComisionesTab from './ComisionesTab';
 
 export default function NutricionDashboard() {
   return (
