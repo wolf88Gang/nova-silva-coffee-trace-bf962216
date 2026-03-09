@@ -253,7 +253,7 @@ export default function PlanDetailView({ planId, parcelaName, onBack }: Props) {
               </div>
             )}
             {planJson?.data_quality?.missing?.length > 0 && (
-              <div className="mt-3 flex items-start gap-2 text-xs text-amber-600 bg-amber-500/10 p-2 rounded border border-amber-500/20">
+              <div className="mt-3 flex items-start gap-2 text-xs text-destructive bg-destructive/10 p-2 rounded border border-destructive/20">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>Datos faltantes: {planJson.data_quality.missing.join(', ')}</span>
               </div>
