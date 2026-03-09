@@ -248,7 +248,10 @@ export function calculateLimingRecommendation(input: SoilAnalysisInput, prnt: nu
     };
   }
 
-  if (alSat <= AL_SAT_MAX_COFFEE) {
+  // Safety: alSat should always be a number at this point
+  const alSatSafe = alSat ?? 0;
+
+  if (alSatSafe <= AL_SAT_MAX_COFFEE) {
     return {
       required: false,
       reason: `Saturación de aluminio (${(alSat * 100).toFixed(1)}%) dentro del rango tolerado (≤ ${AL_SAT_MAX_COFFEE * 100}%). No requiere encalado correctivo.`,
