@@ -12,10 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Boxes, AlertTriangle, Wallet, Plus, Minus, Edit2, PackagePlus, History,
   MapPin, Wrench, ChevronRight, Fuel, Tractor, Truck, Scale, Thermometer,
-  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users, CreditCard, Banknote
+  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users, CreditCard, Banknote,
+  ShoppingCart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ProveedorWizard, { type ProveedorData } from '@/components/proveedores/ProveedorWizard';
+import CotizacionTab from '@/components/nutricion/CotizacionTab';
 
 /* ═══════════════════════════════════════════
    TYPES
@@ -297,9 +299,10 @@ export default function InventarioTab() {
 
       {/* ═══ SUB-TABS ═══ */}
       <Tabs defaultValue="insumos" className="w-full">
-        <TabsList className="w-full sm:w-auto">
+        <TabsList className="w-full sm:w-auto overflow-x-auto">
           <TabsTrigger value="insumos" className="gap-1.5"><Package className="h-4 w-4" /> Insumos</TabsTrigger>
           <TabsTrigger value="equipos" className="gap-1.5"><Cog className="h-4 w-4" /> Equipos</TabsTrigger>
+          <TabsTrigger value="cotizaciones" className="gap-1.5"><ShoppingCart className="h-4 w-4" /> Cotizaciones</TabsTrigger>
           <TabsTrigger value="historial" className="gap-1.5"><History className="h-4 w-4" /> Historial</TabsTrigger>
         </TabsList>
 
@@ -427,6 +430,11 @@ export default function InventarioTab() {
               {filteredEquipos.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">No se encontraron equipos</p>}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ─── COTIZACIONES TAB ─── */}
+        <TabsContent value="cotizaciones" className="mt-4">
+          <CotizacionTab />
         </TabsContent>
 
         {/* ─── HISTORIAL TAB ─── */}
