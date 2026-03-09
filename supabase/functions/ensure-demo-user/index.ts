@@ -32,7 +32,7 @@ serve(async (req) => {
       )
     }
 
-    const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico']
+    const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico', 'admin']
 
     if (!role) {
       console.error('Role is missing')
