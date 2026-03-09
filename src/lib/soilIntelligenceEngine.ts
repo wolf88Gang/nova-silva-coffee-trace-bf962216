@@ -149,7 +149,7 @@ export function checkToxicity(input: SoilAnalysisInput): ToxicityCheck {
 
   // Saturación de Al
   const alSat = calculateAlSaturation(input);
-  if (alSat !== null && alSat > AL_SAT_MAX_COFFEE) {
+  if (alSat != null && !isNaN(alSat) && alSat > AL_SAT_MAX_COFFEE) {
     alerts.push({
       type: 'al_sat_alta',
       severity: 'critico',
