@@ -23,7 +23,7 @@ const ALL_STATUSES: ModuleStatus[] = [
   { module: 'jornales', label: 'Jornales', icon: UsersIcon, value: 'Campaña activa', path: '/cooperativa/operaciones' },
   { module: 'inventario', label: 'Inventario', icon: Boxes, value: '4 lotes disponibles', path: '/cooperativa/operaciones' },
   { module: 'lotes_comerciales', label: 'Lotes Comerciales', icon: Package, value: '3 en formación', path: '/cooperativa/calidad' },
-  { module: 'comunicacion', label: 'Comunicación', icon: MessageSquare, value: '5 avisos activos', path: '/cooperativa/comunicacion' },
+  { module: 'mensajes', label: 'Comunicación', icon: MessageSquare, value: '5 avisos activos', path: '/cooperativa/comunicacion' },
 ];
 
 interface ModuleStatusSectionProps {
