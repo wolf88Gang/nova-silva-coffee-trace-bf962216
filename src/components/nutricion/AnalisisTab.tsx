@@ -26,6 +26,27 @@ interface SueloAnalisis {
   al_cmol: number | null;
 }
 
+/* ── Demo data ── */
+const DEMO_SUELO: SueloAnalisis[] = [
+  { id: 'ds-1', parcela_id: 'demo-parcela-roble', fecha_analisis: '2026-01-15', ph: 5.1, mo_pct: 5.2, p_ppm: 12, k_cmol: 0.35, ca_cmol: 4.2, mg_cmol: 0.8, s_ppm: 8, cice: 6.5, textura: 'Franco arcilloso', al_cmol: 0.15 },
+  { id: 'ds-2', parcela_id: 'demo-parcela-ceiba', fecha_analisis: '2026-01-20', ph: 4.6, mo_pct: 3.8, p_ppm: 6, k_cmol: 0.22, ca_cmol: 2.1, mg_cmol: 0.4, s_ppm: 5, cice: 4.2, textura: 'Franco arenoso', al_cmol: 0.8 },
+  { id: 'ds-3', parcela_id: 'demo-parcela-pinos', fecha_analisis: '2026-02-05', ph: 5.8, mo_pct: 6.1, p_ppm: 18, k_cmol: 0.52, ca_cmol: 6.5, mg_cmol: 1.2, s_ppm: 12, cice: 9.0, textura: 'Franco', al_cmol: 0.05 },
+  { id: 'ds-4', parcela_id: 'demo-parcela-rio', fecha_analisis: '2026-02-10', ph: 5.4, mo_pct: 4.5, p_ppm: 10, k_cmol: 0.40, ca_cmol: 3.8, mg_cmol: 0.7, s_ppm: 7, cice: 5.8, textura: 'Arcilloso', al_cmol: 0.25 },
+];
+
+const DEMO_FOLIAR: HojaAnalisis[] = [
+  { id: 'df-1', parcela_id: 'demo-parcela-roble', fecha_muestreo: '2026-01-18', n_pct: 2.8, p_pct: 0.15, k_pct: 2.1, ca_pct: 1.2, mg_pct: 0.35, s_pct: 0.22, fe_ppm: 85, mn_ppm: 120, zn_ppm: 12, b_ppm: 35, cu_ppm: 8, laboratorio: 'Lab CATIE', notas: 'Hoja madura, tercio medio. N y K dentro de rango.' },
+  { id: 'df-2', parcela_id: 'demo-parcela-ceiba', fecha_muestreo: '2026-01-22', n_pct: 2.2, p_pct: 0.10, k_pct: 1.6, ca_pct: 0.8, mg_pct: 0.20, s_pct: 0.12, fe_ppm: 60, mn_ppm: 90, zn_ppm: 8, b_ppm: 22, cu_ppm: 5, laboratorio: 'Lab ICAFE', notas: 'Deficiencia generalizada — correlaciona con pH ácido.' },
+  { id: 'df-3', parcela_id: 'demo-parcela-pinos', fecha_muestreo: '2026-02-08', n_pct: 3.1, p_pct: 0.18, k_pct: 2.4, ca_pct: 1.5, mg_pct: 0.42, s_pct: 0.28, fe_ppm: 95, mn_ppm: 110, zn_ppm: 15, b_ppm: 40, cu_ppm: 10, laboratorio: 'Lab CATIE', notas: 'Cafetal joven — nutrición adecuada post-fertilización.' },
+];
+
+const DEMO_PARCELA_NAMES_ANALISIS: Record<string, string> = {
+  'demo-parcela-roble': 'Parcela El Roble',
+  'demo-parcela-ceiba': 'Parcela La Ceiba',
+  'demo-parcela-pinos': 'Parcela Los Pinos',
+  'demo-parcela-rio': 'Parcela Río Claro',
+};
+
 interface HojaAnalisis {
   id: string; parcela_id: string; fecha_muestreo: string;
   n_pct: number | null; p_pct: number | null; k_pct: number | null;
@@ -100,6 +121,24 @@ export default function AnalisisTab() {
     enabled: !!organizationId,
   });
 
+  // Merge real + demo data
+  const allSuelo = (() => {
+    const real = sueloList ?? [];
+    const realIds = new Set(real.map(r => r.id));
+    const extras = DEMO_SUELO.filter(d => !realIds.has(d.id));
+    return [...real, ...extras];
+  })();
+
+  const allFoliar = (() => {
+    const real = hojaList ?? [];
+    const realIds = new Set(real.map(r => r.id));
+    const extras = DEMO_FOLIAR.filter(d => !realIds.has(d.id));
+    return [...real, ...extras];
+  })();
+
+  const parcelaNameLookup = (id: string) =>
+    parcelas?.find(p => p.id === id)?.nombre ?? DEMO_PARCELA_NAMES_ANALISIS[id] ?? id.slice(0, 8);
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -155,24 +194,24 @@ export default function AnalisisTab() {
       {/* Sub-tabs: Suelo / Foliar */}
       <Tabs defaultValue="suelo">
         <TabsList>
-          <TabsTrigger value="suelo"><Droplets className="h-4 w-4 mr-1" /> Suelo ({sueloList?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="foliar"><Leaf className="h-4 w-4 mr-1" /> Foliar ({hojaList?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="suelo"><Droplets className="h-4 w-4 mr-1" /> Suelo ({allSuelo.length})</TabsTrigger>
+          <TabsTrigger value="foliar"><Leaf className="h-4 w-4 mr-1" /> Foliar ({allFoliar.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="suelo" className="mt-3">
           {loadingSuelo ? (
             <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
-          ) : !sueloList?.length ? (
+          ) : !allSuelo.length ? (
             <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">No hay análisis de suelo registrados.</CardContent></Card>
           ) : (
             <div className="space-y-3 stagger-children">
-              {sueloList.map(s => (
+              {allSuelo.map(s => (
                 <Card key={s.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Droplets className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">{parcelas?.find(p => p.id === s.parcela_id)?.nombre ?? s.parcela_id.slice(0, 8)}</span>
+                        <span className="text-sm font-medium text-foreground">{parcelaNameLookup(s.parcela_id)}</span>
                       </div>
                       <Badge variant="outline" className="text-xs">
                         <Calendar className="h-3 w-3 mr-1" />
@@ -199,30 +238,47 @@ export default function AnalisisTab() {
         <TabsContent value="foliar" className="mt-3">
           {loadingHoja ? (
             <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
-          ) : !hojaList?.length ? (
+          ) : !allFoliar.length ? (
             <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">No hay análisis foliares registrados.</CardContent></Card>
           ) : (
             <div className="space-y-3 stagger-children">
-              {hojaList.map(h => (
+              {allFoliar.map(h => (
                 <Card key={h.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Leaf className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">{parcelas?.find(p => p.id === h.parcela_id)?.nombre ?? h.parcela_id.slice(0, 8)}</span>
+                        <span className="text-sm font-medium text-foreground">{parcelaNameLookup(h.parcela_id)}</span>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(h.fecha_muestreo).toLocaleDateString('es')}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {h.laboratorio && <Badge variant="secondary" className="text-[10px]">{h.laboratorio}</Badge>}
+                        <Badge variant="outline" className="text-xs">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(h.fecha_muestreo).toLocaleDateString('es')}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
+                    <p className="text-[10px] text-muted-foreground mb-1.5">Macronutrientes</p>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
                       <Metric label="N %" value={h.n_pct} />
                       <Metric label="P %" value={h.p_pct} />
                       <Metric label="K %" value={h.k_pct} />
                       <Metric label="Ca %" value={h.ca_pct} />
                       <Metric label="Mg %" value={h.mg_pct} />
+                      <Metric label="S %" value={h.s_pct} />
                     </div>
+                    {(h.fe_ppm != null || h.mn_ppm != null || h.zn_ppm != null) && (
+                      <>
+                        <p className="text-[10px] text-muted-foreground mt-2 mb-1.5">Micronutrientes</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
+                          <Metric label="Fe ppm" value={h.fe_ppm ?? null} />
+                          <Metric label="Mn ppm" value={h.mn_ppm ?? null} />
+                          <Metric label="Zn ppm" value={h.zn_ppm ?? null} />
+                          <Metric label="B ppm" value={h.b_ppm ?? null} />
+                          <Metric label="Cu ppm" value={h.cu_ppm ?? null} />
+                        </div>
+                      </>
+                    )}
                     {h.notas && <p className="text-xs text-muted-foreground mt-2">{h.notas}</p>}
                   </CardContent>
                 </Card>

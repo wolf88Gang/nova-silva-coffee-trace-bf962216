@@ -22,12 +22,24 @@ interface SueloRow {
   al_cmol?: number | null;
 }
 
+const DEMO_PARCELAS_SOIL: Parcela[] = [
+  { id: 'demo-parcela-roble', nombre: 'Parcela El Roble' },
+  { id: 'demo-parcela-ceiba', nombre: 'Parcela La Ceiba' },
+  { id: 'demo-parcela-pinos', nombre: 'Parcela Los Pinos' },
+];
+
+const DEMO_SOIL_DATA: Record<string, SueloRow> = {
+  'demo-parcela-roble': { id: 'ds-1', parcela_id: 'demo-parcela-roble', fecha_analisis: '2026-01-15', ph: 5.1, mo_pct: 5.2, p_ppm: 12, k_cmol: 0.35, ca_cmol: 4.2, mg_cmol: 0.8, s_ppm: 8, cice: 6.5, textura: 'Franco arcilloso', al_cmol: 0.15 },
+  'demo-parcela-ceiba': { id: 'ds-2', parcela_id: 'demo-parcela-ceiba', fecha_analisis: '2026-01-20', ph: 4.6, mo_pct: 3.8, p_ppm: 6, k_cmol: 0.22, ca_cmol: 2.1, mg_cmol: 0.4, s_ppm: 5, cice: 4.2, textura: 'Franco arenoso', al_cmol: 0.8 },
+  'demo-parcela-pinos': { id: 'ds-3', parcela_id: 'demo-parcela-pinos', fecha_analisis: '2026-02-05', ph: 5.8, mo_pct: 6.1, p_ppm: 18, k_cmol: 0.52, ca_cmol: 6.5, mg_cmol: 1.2, s_ppm: 12, cice: 9.0, textura: 'Franco', al_cmol: 0.05 },
+};
+
 export default function SoilHealthTab() {
   const { organizationId } = useOrgContext();
   const [selectedParcela, setSelectedParcela] = useState<string>('');
 
   // Fetch parcelas
-  const { data: parcelas = [] } = useQuery({
+  const { data: rawParcelas = [] } = useQuery({
     queryKey: ['parcelas-soil-health', organizationId],
     enabled: !!organizationId,
     queryFn: async () => {
@@ -40,10 +52,18 @@ export default function SoilHealthTab() {
     },
   });
 
+  // Merge real + demo parcelas
+  const parcelas = (() => {
+    const realIds = new Set(rawParcelas.map(p => p.id));
+    const extras = DEMO_PARCELAS_SOIL.filter(d => !realIds.has(d.id));
+    return [...rawParcelas, ...extras];
+  })();
+
   // Fetch latest soil analysis for selected parcela (map real DB columns)
-  const { data: sueloData, isLoading } = useQuery({
+  const isDemo = selectedParcela.startsWith('demo-');
+  const { data: rawSueloData, isLoading } = useQuery({
     queryKey: ['soil-analysis-latest', selectedParcela],
-    enabled: !!selectedParcela,
+    enabled: !!selectedParcela && !isDemo,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('nutricion_analisis_suelo')
@@ -72,6 +92,8 @@ export default function SoilHealthTab() {
       } as SueloRow;
     },
   });
+
+  const sueloData = isDemo ? (DEMO_SOIL_DATA[selectedParcela] ?? null) : rawSueloData;
 
   const parcelaName = parcelas.find(p => p.id === selectedParcela)?.nombre ?? undefined;
 

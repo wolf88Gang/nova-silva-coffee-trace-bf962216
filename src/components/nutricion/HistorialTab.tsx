@@ -25,10 +25,20 @@ interface Aplicacion {
   created_at: string;
 }
 
+
+const DEMO_APLICACIONES: Aplicacion[] = [
+  { id: 'da-1', plan_id: 'demo-plan-001', fecha_aplicacion: '2026-03-05', tipo_aplicacion: 'edafica', producto_aplicado: 'Urea (46-0-0)', cantidad_aplicada_kg: 120, costo_real: 45, dosis_aplicada_json: { nutrientes: { N_kg_ha: 55 } }, evidencias: null, notas: 'Primera aplicación — cabeza de alfiler', created_at: '2026-03-05T10:00:00Z' },
+  { id: 'da-2', plan_id: 'demo-plan-001', fecha_aplicacion: '2026-02-20', tipo_aplicacion: 'edafica', producto_aplicado: 'DAP (18-46-0)', cantidad_aplicada_kg: 85, costo_real: 65, dosis_aplicada_json: { nutrientes: { N_kg_ha: 15, P2O5_kg_ha: 30 } }, evidencias: null, notas: 'Fósforo pre-floración', created_at: '2026-02-20T09:00:00Z' },
+  { id: 'da-3', plan_id: 'demo-plan-002', fecha_aplicacion: '2026-03-12', tipo_aplicacion: 'enmienda', producto_aplicado: 'Cal dolomítica', cantidad_aplicada_kg: 1200, costo_real: 30, dosis_aplicada_json: { nutrientes: { CaCO3_kg_ha: 1200 } }, evidencias: null, notas: 'Encalado correctivo — La Ceiba', created_at: '2026-03-12T08:00:00Z' },
+  { id: 'da-4', plan_id: 'demo-plan-003', fecha_aplicacion: '2025-10-05', tipo_aplicacion: 'edafica', producto_aplicado: 'Fórmula 18-5-15-6-2', cantidad_aplicada_kg: 350, costo_real: 140, dosis_aplicada_json: { nutrientes: { N_kg_ha: 63, P2O5_kg_ha: 17.5, K2O_kg_ha: 52.5 } }, evidencias: null, notas: 'Aplicación 1 — cafetal joven', created_at: '2025-10-05T10:00:00Z' },
+  { id: 'da-5', plan_id: 'demo-plan-001', fecha_aplicacion: '2026-01-10', tipo_aplicacion: 'foliar', producto_aplicado: 'Zinc + Boro foliar', cantidad_aplicada_kg: 5, costo_real: 18, dosis_aplicada_json: { nutrientes: { Zn_kg_ha: 2, B_kg_ha: 1.5 } }, evidencias: null, notas: 'Micronutrientes foliares — El Roble', created_at: '2026-01-10T14:00:00Z' },
+];
+
 const TIPO_COLORS: Record<string, string> = {
   edafica: 'bg-success/10 text-success border-success/20',
   foliar: 'bg-primary/10 text-primary border-primary/20',
   fertirriego: 'bg-accent/20 text-accent-foreground border-accent/30',
+  enmienda: 'bg-muted text-foreground border-border',
   otro: 'bg-muted text-muted-foreground',
 };
 
@@ -36,7 +46,7 @@ export default function HistorialTab() {
   const { organizationId } = useOrgContext();
   const [filterPlanId, setFilterPlanId] = useState('');
 
-  const { data: aplicaciones, isLoading } = useQuery({
+  const { data: rawAplicaciones, isLoading } = useQuery({
     queryKey: ['nutricion_aplicaciones_historial', organizationId, filterPlanId],
     queryFn: async () => {
       let q = supabase
@@ -44,17 +54,21 @@ export default function HistorialTab() {
         .select('id, plan_id, fecha_aplicacion, tipo_aplicacion, producto_aplicado, cantidad_aplicada_kg, costo_real, dosis_aplicada_json, evidencias, notas, created_at')
         .order('fecha_aplicacion', { ascending: false })
         .limit(50);
-
-      if (filterPlanId.trim()) {
-        q = q.eq('plan_id', filterPlanId.trim());
-      }
-
+      if (filterPlanId.trim()) q = q.eq('plan_id', filterPlanId.trim());
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as Aplicacion[];
     },
     enabled: !!organizationId,
   });
+
+  const aplicaciones = (() => {
+    const real = rawAplicaciones ?? [];
+    const realIds = new Set(real.map(r => r.id));
+    let extras = DEMO_APLICACIONES.filter(d => !realIds.has(d.id));
+    if (filterPlanId.trim()) extras = extras.filter(d => d.plan_id === filterPlanId.trim());
+    return [...real, ...extras];
+  })();
 
   return (
     <div className="space-y-4">
