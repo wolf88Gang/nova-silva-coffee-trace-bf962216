@@ -82,10 +82,16 @@ export default function OfertasRecibidas() {
                     <td className="px-4 py-3 text-muted-foreground">{o.fecha_oferta}</td>
                     <td className="px-4 py-3">{riesgoBadge(o.riesgo)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        <Button variant="outline" size="sm" onClick={() => setAnalisis(o)}><Eye className="h-4 w-4 mr-1" /> Analizar</Button>
-                        <Button size="sm" onClick={() => handleResponder(o.id, 'aceptada')}><CheckCircle className="h-4 w-4" /></Button>
-                        <Button variant="destructive" size="sm" onClick={() => handleResponder(o.id, 'rechazada')}><XCircle className="h-4 w-4" /></Button>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setAnalisis(o)}>
+                          <Eye className="h-4 w-4 mr-1.5" /> Analizar
+                        </Button>
+                        <Button size="icon" variant="outline" className="h-8 w-8 border-primary/30 hover:bg-primary/10" onClick={() => handleResponder(o.id, 'aceptada')}>
+                          <CheckCircle className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button size="icon" variant="outline" className="h-8 w-8 border-destructive/30 hover:bg-destructive/10" onClick={() => handleResponder(o.id, 'rechazada')}>
+                          <XCircle className="h-4 w-4 text-destructive" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
