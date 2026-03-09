@@ -140,7 +140,7 @@ function KPIDetailDialog({ open, onClose, type }: { open: boolean; onClose: () =
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="text-xs">Ver trazabilidad</Button>
-                    <Button size="sm" className="text-xs">Publicar en subasta</Button>
+                    <Button size="sm" className="text-xs" onClick={() => toast.success(`Lote ${l.codigo} publicado para exportadores asociados`)}>Ofrecer a exportadores</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -425,6 +425,7 @@ export default function AcopioHub() {
                       <th className="px-4 py-3 font-medium">Productores</th>
                       <th className="px-4 py-3 font-medium">Tipo</th>
                       <th className="px-4 py-3 font-medium">Estado</th>
+                      <th className="px-4 py-3 font-medium">Acción</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -437,6 +438,13 @@ export default function AcopioHub() {
                         <td className="px-4 py-3">{l.productores}</td>
                         <td className="px-4 py-3">{l.tipoCafe}</td>
                         <td className="px-4 py-3">{estadoLoteBadge(l.estado)}</td>
+                        <td className="px-4 py-3">
+                          {l.estado === 'disponible' && (
+                            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => toast.success(`Lote ${l.codigo} publicado para exportadores`)}>
+                              <Send className="h-3 w-3 mr-1" /> Ofrecer
+                            </Button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

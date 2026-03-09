@@ -113,7 +113,7 @@ export default function SoilIntelligenceCard({ soilData, parcelaName }: SoilInte
               {liming.required ? (
                 <Badge className="bg-destructive text-destructive-foreground">Encalado requerido</Badge>
               ) : (
-                <Badge className="bg-emerald-600 text-white">Sin encalado necesario</Badge>
+                <Badge className="bg-primary text-primary-foreground">Sin encalado necesario</Badge>
               )}
               <span className="text-xs text-muted-foreground">
                 Sat. Al: {liming.alSatPct}% (máx: {liming.alSatMaxTolerated}%)
@@ -155,7 +155,7 @@ export default function SoilIntelligenceCard({ soilData, parcelaName }: SoilInte
               <Badge className={IFBS_NIVEL_CONFIG[ifbs.nivel]?.color ?? ''}>
                 {IFBS_NIVEL_CONFIG[ifbs.nivel]?.label}
               </Badge>
-              <span className={`text-4xl font-bold ${ifbs.scorePct >= 60 ? 'text-emerald-600' : ifbs.scorePct >= 40 ? 'text-amber-500' : 'text-destructive'}`}>
+              <span className={`text-4xl font-bold ${ifbs.scorePct >= 60 ? 'text-primary' : ifbs.scorePct >= 40 ? 'text-accent-foregroundound' : 'text-destructive'}`}>
                 {ifbs.scorePct}
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function SoilIntelligenceCard({ soilData, parcelaName }: SoilInte
             <p className="text-xs font-semibold text-primary mb-0.5">
               Interpretación Nova Silva {parcelaName ? `— ${parcelaName}` : ''}
             </p>
-            <p className="text-sm text-muted-foreground">{result.summary}</p>
+            <p className="text-sm text-muted-foregr whitespace-pre-lineound">{result.summary}</p>
           </div>
         </div>
       </div>
