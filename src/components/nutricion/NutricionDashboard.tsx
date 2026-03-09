@@ -22,12 +22,14 @@ export default function NutricionDashboard() {
           <TabsTrigger value="planes" data-value="planes"><FileText className="h-4 w-4 mr-1" /> Planes</TabsTrigger>
           <TabsTrigger value="cotizacion"><ShoppingCart className="h-4 w-4 mr-1" /> Cotización</TabsTrigger>
           <TabsTrigger value="historial"><History className="h-4 w-4 mr-1" /> Historial</TabsTrigger>
+          <TabsTrigger value="comisiones"><DollarSign className="h-4 w-4 mr-1" /> Comisiones</TabsTrigger>
         </TabsList>
 
         <TabsContent value="parcelas" className="mt-4"><ParcelasNutricionTab /></TabsContent>
         <TabsContent value="planes" className="mt-4"><PlanesTab /></TabsContent>
         <TabsContent value="cotizacion" className="mt-4"><CotizacionTab /></TabsContent>
         <TabsContent value="historial" className="mt-4"><HistorialTab /></TabsContent>
+        <TabsContent value="comisiones" className="mt-4"><ComisionesTab /></TabsContent>
       </Tabs>
     </div>
   );
