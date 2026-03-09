@@ -254,34 +254,32 @@ export function calculateLimingRecommendation(input: SoilAnalysisInput, prnt: nu
   if (alSatSafe <= AL_SAT_MAX_COFFEE) {
     return {
       required: false,
-      reason: `Saturación de aluminio (${(alSat * 100).toFixed(1)}%) dentro del rango tolerado (≤ ${AL_SAT_MAX_COFFEE * 100}%). No requiere encalado correctivo.`,
+      reason: `Saturación de aluminio (${(alSatSafe * 100).toFixed(1)}%) dentro del rango tolerado (≤ ${AL_SAT_MAX_COFFEE * 100}%). No requiere encalado correctivo.`,
       doseKgHa: 0,
       doseSacosHa: 0,
       prnt,
-      alSatPct: Math.round(alSat * 1000) / 10,
+      alSatPct: Math.round(alSatSafe * 1000) / 10,
       alSatMaxTolerated: AL_SAT_MAX_COFFEE * 100,
       formula,
     };
   }
 
   // Kamprath: dose = (Al_sat_observed - Al_sat_max) × CICE × factor_equivalente / (PRNT/100)
-  // Factor: 1 cmol Al neutralizado requiere ~1120 kg CaCO₃/ha (para 0-20cm, 2M kg suelo)
-  // Simplified: dose(t/ha) = (Al_sat - 0.25) × CICE × 1.5 / (PRNT/100)
-  const alExcess = alSat - AL_SAT_MAX_COFFEE;
-  const doseRaw = alExcess * cice * 1.5; // t/ha without PRNT
+  const alExcess = alSatSafe - AL_SAT_MAX_COFFEE;
+  const doseRaw = alExcess * cice * 1.5;
   const doseCorrected = doseRaw / (prnt / 100);
   const doseKgHa = Math.round(doseCorrected * 1000);
   const doseSacosHa = Math.ceil(doseKgHa / 50);
 
-  formula += ` → Dosis = (${(alSat * 100).toFixed(1)}% - ${AL_SAT_MAX_COFFEE * 100}%) × ${cice.toFixed(1)} × 1.5 / (${prnt}% PRNT) = ${doseCorrected.toFixed(2)} t/ha`;
+  formula += ` → Dosis = (${(alSatSafe * 100).toFixed(1)}% - ${AL_SAT_MAX_COFFEE * 100}%) × ${cice.toFixed(1)} × 1.5 / (${prnt}% PRNT) = ${doseCorrected.toFixed(2)} t/ha`;
 
   return {
     required: true,
-    reason: `Saturación de aluminio ${(alSat * 100).toFixed(1)}% excede el máximo tolerado (${AL_SAT_MAX_COFFEE * 100}%). Se requiere encalado correctivo antes de fertilizar.`,
+    reason: `Saturación de aluminio ${(alSatSafe * 100).toFixed(1)}% excede el máximo tolerado (${AL_SAT_MAX_COFFEE * 100}%). Se requiere encalado correctivo antes de fertilizar.`,
     doseKgHa,
     doseSacosHa,
     prnt,
-    alSatPct: Math.round(alSat * 1000) / 10,
+    alSatPct: Math.round(alSatSafe * 1000) / 10,
     alSatMaxTolerated: AL_SAT_MAX_COFFEE * 100,
     formula,
   };
