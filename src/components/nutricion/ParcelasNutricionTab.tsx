@@ -312,7 +312,9 @@ export default function ParcelasNutricionTab() {
                           <CardTitle className="text-base">{row.parcela_nombre}</CardTitle>
                           {row.variedades && (
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {row.variedades}
+                              {Array.isArray(row.variedades)
+                                ? row.variedades.map((v: any) => typeof v === 'object' ? v.variedad_codigo : v).join(', ')
+                                : typeof row.variedades === 'string' ? row.variedades : JSON.stringify(row.variedades)}
                               {row.altitud_msnm ? ` · ${row.altitud_msnm} msnm` : ''}
                               {row.edad_promedio_anios ? ` · ${row.edad_promedio_anios} años` : ''}
                             </p>
