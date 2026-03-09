@@ -443,12 +443,27 @@ export function calculateIFBS(input: SoilAnalysisInput): IFBSResult {
   const scorePct = Math.round(score * 100);
   const nivel = scorePct >= 80 ? 'muy_alto' : scorePct >= 60 ? 'alto' : scorePct >= 40 ? 'medio' : scorePct >= 20 ? 'bajo' : 'muy_bajo';
 
+  // Build rich IFBS interpretation
+  const moComment = moValue < 2 ? 'La materia orgánica es muy baja — esto reduce la capacidad del suelo de retener agua y nutrientes, lo que afecta directamente la producción.' :
+    moValue < 4 ? 'La materia orgánica está por debajo del ideal. Incorporar pulpa de café, compostas o rastrojos de cosecha ayudará a mejorar la fertilidad natural del suelo en 1-2 ciclos.' :
+    moValue <= 8 ? 'La materia orgánica está en un rango adecuado. Esto indica buena actividad biológica y capacidad de retención de nutrientes.' :
+    'La materia orgánica es alta — excelente reserva de carbono. El suelo tiene alta capacidad de amortiguamiento y resiliencia.';
+
+  const phComment = phValue < 5.0 ? 'El pH es ácido y limita severamente la disponibilidad de fósforo, calcio y magnesio. Las raíces no pueden absorber nutrientes eficientemente.' :
+    phValue < 5.5 ? 'El pH está ligeramente ácido. Una corrección moderada con cal mejorará la absorción de nutrientes y puede incrementar el rendimiento entre 10-15%.' :
+    phValue <= 6.5 ? 'El pH está en el rango óptimo para café. Los nutrientes están disponibles y las raíces funcionan correctamente.' :
+    'El pH es alto para café. Puede haber deficiencia de hierro, manganeso y zinc. Considere enmiendas acidificantes como azufre elemental.';
+
+  const nutricionComment = nutricionScore >= 0.7 ? 'El balance de cationes (Ca, Mg, K) es favorable. Los nutrientes están disponibles en proporciones adecuadas para la producción de café de calidad.' :
+    nutricionScore >= 0.4 ? 'El balance nutricional es intermedio. Algunos nutrientes necesitan corrección para optimizar el rendimiento y la calidad del grano.' :
+    'El balance nutricional es deficiente. Se requiere un plan de fertilización integral para restablecer los niveles mínimos de producción.';
+
   const interpretations: Record<typeof nivel, string> = {
-    muy_alto: 'Suelo biológicamente activo con excelente capacidad de amortiguamiento. Alta eficiencia en uso de fertilizantes.',
-    alto: 'Buen vigor biológico. El suelo responde favorablemente a la fertilización y tolera estrés moderado.',
-    medio: 'Capacidad biológica intermedia. Considerar enmiendas orgánicas y correctivos de acidez.',
-    bajo: 'Suelo comprometido. Se requiere intervención prioritaria: encalado, materia orgánica, cobertura.',
-    muy_bajo: 'Suelo biológicamente inerte. Bloquear fertilización convencional hasta corregir acidez y restablecer materia orgánica.',
+    muy_alto: `Suelo biológicamente activo con excelente capacidad de amortiguamiento. ${moComment} ${phComment} ${nutricionComment} Alta eficiencia en uso de fertilizantes — cada colón invertido en nutrición rinde más en este suelo.`,
+    alto: `Buen vigor biológico. ${moComment} ${phComment} ${nutricionComment} El suelo responde favorablemente a la fertilización y tolera estrés hídrico moderado.`,
+    medio: `Capacidad biológica intermedia — el suelo necesita atención para alcanzar su potencial productivo. ${moComment} ${phComment} ${nutricionComment} Recomendamos priorizar enmiendas orgánicas y revisar el manejo de sombra.`,
+    bajo: `Suelo comprometido que requiere intervención urgente. ${moComment} ${phComment} ${nutricionComment} Sin corrección, el cafetal continuará perdiendo productividad cada ciclo. Priorice: 1) Encalado, 2) Materia orgánica, 3) Cobertura vegetal.`,
+    muy_bajo: `Suelo biológicamente inerte — la producción está severamente limitada. ${moComment} ${phComment} ${nutricionComment} Se recomienda bloquear fertilización convencional hasta corregir acidez y restablecer un mínimo de materia orgánica (>2%). Sin este paso, los fertilizantes se perderán por lixiviación o fijación.`,
   };
 
   return {
