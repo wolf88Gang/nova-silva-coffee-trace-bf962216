@@ -47,7 +47,7 @@ function IFBSBar({ label, score, weight }: { label: string; score: number; weigh
       </div>
       <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${pct >= 60 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-destructive'}`}
+          className={`h-full rounded-full transition-all ${pct >= 60 ? 'bg-primary' : pct >= 40 ? 'bg-accent' : 'bg-destructive'}`}
           style={{ width: `${pct}%` }}
         />
       </div>
