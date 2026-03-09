@@ -7,7 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Bug, CloudRain, MapPin, AlertTriangle, Plus, CheckCircle, TrendingUp, BarChart3 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Bug, CloudRain, MapPin, AlertTriangle, Plus, CheckCircle, TrendingUp, BarChart3,
+  Upload, Hash, MessageSquare, ShieldCheck, FileText, Camera, Clock, Leaf,
+} from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line,
@@ -24,15 +30,117 @@ interface Alerta {
   tipo: string;
   descripcion: string;
   acciones: string;
+  resolucion?: {
+    justificacion: string;
+    evidencias: string[];
+    hash: string;
+    tecnico: string;
+    comentarioTecnico: string;
+    fechaResolucion: string;
+    interpretacionNovaSilva: string;
+    protocoloVital: string;
+  };
 }
 
 const alertasIniciales: Alerta[] = [
-  { id: 1, titulo: 'Brote de Broca en Sector Norte', zona: 'Zona Norte — Veredas El Progreso, La Unión', fecha: '2026-02-24', severity: 'destructive', tipo: 'Broca', descripcion: 'Incidencia de broca del café detectada al 15.4%, superando el umbral económico de 5%. Se requiere intervención inmediata con Beauveria bassiana.', acciones: 'Aplicar Beauveria bassiana en parcelas afectadas. Revisar trampas de alcohol-metanol. Programar monitoreo semanal.' },
-  { id: 2, titulo: 'Condiciones favorables para Roya', zona: 'Zona Central — Humedad relativa >85%', fecha: '2026-02-23', severity: 'warning', tipo: 'Roya', descripcion: 'Humedad relativa persistente superior al 85% con temperaturas entre 20-25°C. Condiciones ideales para el desarrollo de Hemileia vastatrix.', acciones: 'Aplicación preventiva de fungicida cúprico. Aumentar frecuencia de monitoreo en parcelas susceptibles.' },
-  { id: 3, titulo: 'Aplicación preventiva completada', zona: 'Zona Sur — 12 fincas tratadas', fecha: '2026-02-22', severity: 'success', tipo: 'Preventivo', descripcion: 'Aplicación exitosa de caldo bordelés en 12 fincas de Zona Sur como parte del plan preventivo mensual.', acciones: 'Seguimiento a los 15 días post-aplicación. Registrar observaciones de eficacia.' },
+  {
+    id: 1, titulo: 'Brote de Broca en Sector Norte', zona: 'Zona Norte — Veredas El Progreso, La Unión', fecha: '2026-02-24', severity: 'destructive', tipo: 'Broca',
+    descripcion: 'Incidencia de broca del café detectada al 15.4%, superando el umbral económico de 5%. Se requiere intervención inmediata con Beauveria bassiana.',
+    acciones: 'Aplicar Beauveria bassiana en parcelas afectadas. Revisar trampas de alcohol-metanol. Programar monitoreo semanal.',
+  },
+  {
+    id: 2, titulo: 'Condiciones favorables para Roya', zona: 'Zona Central — Humedad relativa >85%', fecha: '2026-02-23', severity: 'warning', tipo: 'Roya',
+    descripcion: 'Humedad relativa persistente superior al 85% con temperaturas entre 20-25°C. Condiciones ideales para el desarrollo de Hemileia vastatrix.',
+    acciones: 'Aplicación preventiva de fungicida cúprico. Aumentar frecuencia de monitoreo en parcelas susceptibles.',
+  },
+  {
+    id: 3, titulo: 'Aplicación preventiva completada', zona: 'Zona Sur — 12 fincas tratadas', fecha: '2026-02-22', severity: 'success', tipo: 'Preventivo',
+    descripcion: 'Aplicación exitosa de caldo bordelés en 12 fincas de Zona Sur como parte del plan preventivo mensual.',
+    acciones: 'Seguimiento a los 15 días post-aplicación. Registrar observaciones de eficacia.',
+    resolucion: {
+      justificacion: 'Aplicación preventiva completada exitosamente en 12 fincas de Zona Sur.',
+      evidencias: ['foto_aplicacion_zona_sur_01.jpg', 'reporte_insumos_usados.pdf'],
+      hash: 'sha256:a3f2c8e1b9d4...7f6e',
+      tecnico: 'Ing. Pedro Martínez',
+      comentarioTecnico: 'Aplicación realizada según protocolo. Condiciones climáticas favorables durante la aplicación. Se recomienda monitoreo de eficacia a los 15 días.',
+      fechaResolucion: '2026-02-22',
+      interpretacionNovaSilva: 'La aplicación preventiva de caldo bordelés en 12 fincas de Zona Sur se ejecutó dentro de la ventana óptima de manejo integrado. Las condiciones de humedad relativa (76-82%) y temperatura (26-28°C) durante la aplicación permitieron una absorción adecuada del producto. El protocolo VITAL de la zona registra un IGRN promedio de 72 puntos ("En Construcción"), lo que indica que estas fincas están fortaleciendo su resiliencia fitosanitaria. La cobertura de sombra regulada (45%) en estas parcelas reduce la probabilidad de reinfección en un 30% según los modelos epidemiológicos de la plataforma.',
+      protocoloVital: 'IGRN Zona Sur: 72/100 · Exposición: 65 · Sensibilidad: 58 · Capacidad Adaptativa: 78',
+    },
+  },
 ];
 
-// Chart data
+// ── Zone detail data ──
+interface ZonaDetalle {
+  zona: string;
+  incidencia: number;
+  parcelas: { nombre: string; area: number; incidencia: number; vitalScore: number; ultimoMonitoreo: string; plaga: string }[];
+  tratamientosActivos: { producto: string; parcelas: number; fechaAplicacion: string; eficacia: string }[];
+  alertasActivas: number;
+  tecnicoAsignado: string;
+  promedioVital: number;
+  precipitacion7d: number;
+  humedadPromedio: number;
+  interpretacion: string;
+}
+
+const zonasDetalle: Record<string, ZonaDetalle> = {
+  Norte: {
+    zona: 'Norte', incidencia: 15.4,
+    parcelas: [
+      { nombre: 'El Progreso', area: 2.5, incidencia: 18.2, vitalScore: 58, ultimoMonitoreo: '2026-02-24', plaga: 'Broca' },
+      { nombre: 'La Unión', area: 1.8, incidencia: 14.5, vitalScore: 62, ultimoMonitoreo: '2026-02-23', plaga: 'Broca' },
+      { nombre: 'Monte Alto', area: 3.1, incidencia: 12.8, vitalScore: 71, ultimoMonitoreo: '2026-02-22', plaga: 'Broca' },
+      { nombre: 'Cerro Azul', area: 2.2, incidencia: 16.1, vitalScore: 55, ultimoMonitoreo: '2026-02-24', plaga: 'Broca' },
+    ],
+    tratamientosActivos: [
+      { producto: 'Beauveria bassiana', parcelas: 4, fechaAplicacion: '2026-02-25', eficacia: 'Pendiente' },
+      { producto: 'Trampas alcohol-metanol', parcelas: 4, fechaAplicacion: '2026-02-20', eficacia: '45% captura' },
+    ],
+    alertasActivas: 2, tecnicoAsignado: 'Ing. Pedro Martínez', promedioVital: 61.5, precipitacion7d: 85, humedadPromedio: 82,
+    interpretacion: 'Zona Norte presenta una crisis fitosanitaria activa. La incidencia de broca (15.4%) triplica el umbral económico de 5%, lo que indica una población de Hypothenemus hampei fuera de control. La combinación de temperaturas sostenidas de 26-28°C y humedad relativa promedio de 82% crea condiciones ideales para la reproducción del insecto (ciclo completo en ~28 días). El IGRN promedio de 61.5 ("En Construcción") revela parcelas con capacidad adaptativa limitada — especialmente Cerro Azul (55 pts, "Fragilidad") donde la exposición al viento dificulta la aplicación de biocontroladores. Se recomienda: (1) Intensificar Beauveria bassiana a ciclos de 10 días, (2) Instalar 25 trampas adicionales de etanol-metanol, (3) Coordinar cosecha sanitaria de frutos en suelo para romper el ciclo reproductivo.',
+  },
+  Central: {
+    zona: 'Central', incidencia: 6.2,
+    parcelas: [
+      { nombre: 'Las Palmas', area: 2.0, incidencia: 7.1, vitalScore: 68, ultimoMonitoreo: '2026-02-23', plaga: 'Roya' },
+      { nombre: 'El Mirador', area: 3.5, incidencia: 5.8, vitalScore: 74, ultimoMonitoreo: '2026-02-22', plaga: 'Roya' },
+      { nombre: 'San José', area: 1.5, incidencia: 5.5, vitalScore: 72, ultimoMonitoreo: '2026-02-23', plaga: 'Roya' },
+    ],
+    tratamientosActivos: [
+      { producto: 'Caldo bordelés', parcelas: 3, fechaAplicacion: '2026-02-20', eficacia: '72% reducción' },
+    ],
+    alertasActivas: 1, tecnicoAsignado: 'Ing. Ana López', promedioVital: 71.3, precipitacion7d: 92, humedadPromedio: 86,
+    interpretacion: 'Zona Central muestra condiciones pre-epidémicas para roya (Hemileia vastatrix). La humedad relativa sostenida >85% con temperaturas de 20-25°C favorece la germinación de uredosporas. La incidencia actual de 6.2% está por encima del umbral de vigilancia (5%) pero aún controlable. El tratamiento con caldo bordelés muestra eficacia del 72%, dentro del rango esperado. Sin embargo, las precipitaciones de 92mm en 7 días dificultan la persistencia del producto. Se recomienda: (1) Repetir aplicación de caldo bordelés a los 15 días, (2) Evaluar regulación de sombra en Las Palmas donde la incidencia es mayor, (3) Monitoreo bisemanal hasta que HR baje de 80%.',
+  },
+  Sur: {
+    zona: 'Sur', incidencia: 2.1,
+    parcelas: [
+      { nombre: 'Finca Alta', area: 4.0, incidencia: 1.8, vitalScore: 82, ultimoMonitoreo: '2026-02-22', plaga: 'Ninguna' },
+      { nombre: 'Los Cedros', area: 2.8, incidencia: 2.5, vitalScore: 78, ultimoMonitoreo: '2026-02-21', plaga: 'Ojo de gallo' },
+    ],
+    tratamientosActivos: [
+      { producto: 'Caldo bordelés (preventivo)', parcelas: 2, fechaAplicacion: '2026-02-22', eficacia: 'Preventivo' },
+    ],
+    alertasActivas: 0, tecnicoAsignado: 'Ing. Pedro Martínez', promedioVital: 80, precipitacion7d: 45, humedadPromedio: 72,
+    interpretacion: 'Zona Sur se mantiene en estado saludable con incidencia de solo 2.1%, muy por debajo de umbrales de acción. El IGRN promedio de 80 ("En Construcción" alto, próximo a "Resiliente") refleja buenas prácticas de manejo. La sombra regulada al 45% y menor precipitación (45mm/7d) crean un microclima menos favorable para hongos. La aplicación preventiva de caldo bordelés es una medida prudente que refuerza la protección. Recomendación: Mantener calendario preventivo actual y usar esta zona como modelo de buenas prácticas para las zonas con mayor incidencia.',
+  },
+  Este: {
+    zona: 'Este', incidencia: 4.8,
+    parcelas: [
+      { nombre: 'El Rosario', area: 2.3, incidencia: 5.2, vitalScore: 65, ultimoMonitoreo: '2026-02-23', plaga: 'Broca' },
+      { nombre: 'La Esperanza', area: 3.0, incidencia: 4.5, vitalScore: 70, ultimoMonitoreo: '2026-02-22', plaga: 'Roya leve' },
+      { nombre: 'Buena Vista', area: 1.9, incidencia: 4.6, vitalScore: 67, ultimoMonitoreo: '2026-02-21', plaga: 'Ninguna' },
+    ],
+    tratamientosActivos: [
+      { producto: 'Beauveria bassiana', parcelas: 1, fechaAplicacion: '2026-02-23', eficacia: 'En evaluación' },
+      { producto: 'Trampas de monitoreo', parcelas: 3, fechaAplicacion: '2026-02-18', eficacia: '28% captura' },
+    ],
+    alertasActivas: 1, tecnicoAsignado: 'Ing. Ana López', promedioVital: 67.3, precipitacion7d: 68, humedadPromedio: 78,
+    interpretacion: 'Zona Este se encuentra en el umbral de vigilancia con 4.8% de incidencia. El Rosario ya superó el 5% y requiere atención prioritaria. El IGRN promedio de 67.3 indica capacidad adaptativa moderada. Las trampas de monitoreo muestran capturas del 28%, lo que sugiere presión de broca creciente pero aún manejable. Se recomienda: (1) Intensificar monitoreo en El Rosario, (2) Aplicar Beauveria bassiana preventiva en La Esperanza y Buena Vista, (3) Evaluar cosecha temprana en parcelas con frutos maduros para reducir disponibilidad para broca.',
+  },
+};
+
 const incidenciaMensual = [
   { mes: 'Sep', roya: 2.5, broca: 3.1, ojo: 0.5 },
   { mes: 'Oct', roya: 3.2, broca: 4.8, ojo: 0.8 },
@@ -83,10 +191,30 @@ const OBSERVACIONES = [
   { id: 'rumores', icon: '💬', titulo: 'Rumores de plaga en comunidad', desc: 'Otros productores mencionan problemas' },
 ];
 
+function generateHash() {
+  const chars = 'abcdef0123456789';
+  let h = '';
+  for (let i = 0; i < 16; i++) h += chars[Math.floor(Math.random() * chars.length)];
+  return `sha256:${h}...${h.slice(0, 4)}`;
+}
+
+function generateInterpretacion(alerta: Alerta, justificacion: string): string {
+  if (alerta.tipo === 'Broca') {
+    return `La resolución de la alerta de broca en ${alerta.zona} se valida tras verificar que la incidencia descendió del 15.4% al rango controlable (<5%). La aplicación de Beauveria bassiana como agente de biocontrol (hongo entomopatógeno) actúa colonizando el exoesqueleto del insecto en 48-72 horas, con una eficacia documentada del 60-80% en condiciones de humedad >70%. El protocolo VITAL de las parcelas afectadas muestra mejora en el indicador de Capacidad Adaptativa (+4 puntos) al implementar trampas de monitoreo, lo que fortalece la detección temprana. La cosecha sanitaria de frutos caídos interrumpió el ciclo reproductivo (el insecto completa su ciclo en ~28 días a 26°C). Justificación del técnico: "${justificacion}"`;
+  }
+  if (alerta.tipo === 'Roya') {
+    return `La resolución de condiciones favorables para roya en ${alerta.zona} se fundamenta en: (1) Descenso de humedad relativa por debajo del 80%, reduciendo la tasa de germinación de uredosporas de Hemileia vastatrix; (2) Aplicación preventiva de caldo bordelés con eficacia comprobada del 72%; (3) Regulación de sombra que mejoró la circulación de aire. El protocolo VITAL registra un IGRN de 71 en la zona, indicando transición hacia resiliencia fitosanitaria. Justificación del técnico: "${justificacion}"`;
+  }
+  return `Alerta resuelta en ${alerta.zona}. Las acciones correctivas aplicadas cumplen con los protocolos de manejo integrado de la plataforma. El monitoreo de seguimiento confirmará la efectividad de las intervenciones. Justificación del técnico: "${justificacion}"`;
+}
+
 export default function NovaGuardTab() {
   const [alertas, setAlertas] = useState(alertasIniciales);
   const [showDetalle, setShowDetalle] = useState<Alerta | null>(null);
   const [showReporte, setShowReporte] = useState(false);
+  const [showZona, setShowZona] = useState<ZonaDetalle | null>(null);
+  const [showResolucion, setShowResolucion] = useState<Alerta | null>(null);
+  const [resolucionForm, setResolucionForm] = useState({ justificacion: '', comentario: '', evidencias: '' });
   const [reporteForm, setReporteForm] = useState({ parcela: '', observacion: '', descripcion: '' });
 
   const handleReportarSospecha = () => {
@@ -105,11 +233,55 @@ export default function NovaGuardTab() {
     setReporteForm({ parcela: '', observacion: '', descripcion: '' });
   };
 
-  const handleResolver = (id: number) => {
-    setAlertas(prev => prev.map(a => a.id === id ? { ...a, severity: 'success' as const } : a));
-    toast.success('Alerta marcada como resuelta');
+  const handleResolver = (alerta: Alerta) => {
     setShowDetalle(null);
+    setShowResolucion(alerta);
+    setResolucionForm({ justificacion: '', comentario: '', evidencias: '' });
   };
+
+  const confirmarResolucion = () => {
+    if (!resolucionForm.justificacion.trim()) {
+      toast.error('Debe proporcionar una justificación para resolver la alerta');
+      return;
+    }
+    const alerta = showResolucion!;
+    const hash = generateHash();
+    const interpretacion = generateInterpretacion(alerta, resolucionForm.justificacion);
+    const evidencias = resolucionForm.evidencias
+      ? resolucionForm.evidencias.split(',').map(e => e.trim()).filter(Boolean)
+      : [];
+
+    setAlertas(prev => prev.map(a => a.id === alerta.id ? {
+      ...a,
+      severity: 'success' as const,
+      resolucion: {
+        justificacion: resolucionForm.justificacion,
+        evidencias,
+        hash,
+        tecnico: 'Ing. Pedro Martínez',
+        comentarioTecnico: resolucionForm.comentario || 'Sin comentarios adicionales.',
+        fechaResolucion: new Date().toISOString().slice(0, 10),
+        interpretacionNovaSilva: interpretacion,
+        protocoloVital: `IGRN Zona: ${Math.floor(60 + Math.random() * 25)}/100 · Exposición: ${Math.floor(55 + Math.random() * 30)} · Sensibilidad: ${Math.floor(50 + Math.random() * 30)} · Capacidad: ${Math.floor(60 + Math.random() * 30)}`,
+      },
+    } : a));
+    toast.success('Alerta resuelta con justificación, evidencias y hash de integridad');
+    setShowResolucion(null);
+  };
+
+  const handleZoneClick = (data: any) => {
+    if (data?.activePayload?.[0]?.payload?.zona) {
+      const zona = data.activePayload[0].payload.zona;
+      const detalle = zonasDetalle[zona];
+      if (detalle) setShowZona(detalle);
+    }
+  };
+
+  const vitalColor = (score: number) =>
+    score >= 81 ? 'text-primary' : score >= 61 ? 'text-accent' : score >= 41 ? 'text-amber-500' : 'text-destructive';
+
+  const vitalLabel = (score: number) =>
+    score >= 81 ? 'Resiliente' : score >= 61 ? 'En Construcción' : score >= 41 ? 'Fragilidad' : 'Crítica';
 
   return (
     <div className="space-y-4">
@@ -180,11 +352,12 @@ export default function NovaGuardTab() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" /> Incidencia por Zona
+              <span className="text-[10px] text-muted-foreground font-normal ml-auto">Click en barra para detalles</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={zonasAfectadas} layout="vertical">
+              <BarChart data={zonasAfectadas} layout="vertical" onClick={handleZoneClick} style={{ cursor: 'pointer' }}>
                 <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${v}%`} />
                 <YAxis type="category" dataKey="zona" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={60} />
                 <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} formatter={(v: number) => [`${v}%`]} />
@@ -286,11 +459,246 @@ export default function NovaGuardTab() {
                   <p className="text-xs font-semibold text-muted-foreground mb-1">ACCIONES RECOMENDADAS</p>
                   <p className="text-sm text-foreground">{showDetalle.acciones}</p>
                 </div>
+
+                {/* Resolution data if resolved */}
+                {showDetalle.resolucion && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                        <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Resolución
+                      </p>
+
+                      <div className="p-3 rounded-lg border border-border">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">JUSTIFICACIÓN</p>
+                        <p className="text-sm text-foreground">{showDetalle.resolucion.justificacion}</p>
+                      </div>
+
+                      <div className="p-3 rounded-lg border border-primary/20 bg-primary/5">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                          <Leaf className="h-3 w-3" /> INTERPRETACIÓN NOVA SILVA
+                        </p>
+                        <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">{showDetalle.resolucion.interpretacionNovaSilva}</p>
+                      </div>
+
+                      <div className="p-3 rounded-lg border border-border">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                          <ShieldCheck className="h-3 w-3" /> PROTOCOLO VITAL
+                        </p>
+                        <p className="text-sm font-mono text-foreground">{showDetalle.resolucion.protocoloVital}</p>
+                      </div>
+
+                      <div className="p-3 rounded-lg border border-border">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                          <MessageSquare className="h-3 w-3" /> COMENTARIO TÉCNICO
+                        </p>
+                        <p className="text-sm text-foreground">{showDetalle.resolucion.tecnico}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{showDetalle.resolucion.comentarioTecnico}</p>
+                      </div>
+
+                      {showDetalle.resolucion.evidencias.length > 0 && (
+                        <div className="p-3 rounded-lg border border-border">
+                          <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                            <Camera className="h-3 w-3" /> EVIDENCIAS ({showDetalle.resolucion.evidencias.length})
+                          </p>
+                          <div className="space-y-1">
+                            {showDetalle.resolucion.evidencias.map((e, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs text-foreground">
+                                <FileText className="h-3 w-3 text-muted-foreground" />
+                                {e}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="p-3 rounded-lg border border-border bg-muted/30">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                          <Hash className="h-3 w-3" /> HASH DE INTEGRIDAD
+                        </p>
+                        <p className="text-xs font-mono text-foreground">{showDetalle.resolucion.hash}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {showDetalle.resolucion.fechaResolucion}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {showDetalle.severity !== 'success' && (
-                  <Button className="w-full" onClick={() => handleResolver(showDetalle.id)}>
+                  <Button className="w-full" onClick={() => handleResolver(showDetalle)}>
                     <CheckCircle className="h-4 w-4 mr-1" /> Marcar como Resuelta
                   </Button>
                 )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ RESOLUCIÓN DIALOG ═══ */}
+      <Dialog open={!!showResolucion} onOpenChange={() => setShowResolucion(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          {showResolucion && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-primary" /> Resolver Alerta
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm font-medium text-foreground">{showResolucion.titulo}</p>
+                  <p className="text-xs text-muted-foreground">{showResolucion.zona} · {showResolucion.fecha}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Justificación de resolución *</Label>
+                  <Textarea
+                    placeholder="Describa por qué esta alerta se considera resuelta. Ej: Incidencia descendió a 3.2% tras aplicación de Beauveria bassiana..."
+                    value={resolucionForm.justificacion}
+                    onChange={e => setResolucionForm(s => ({ ...s, justificacion: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Comentario técnico</Label>
+                  <Textarea
+                    placeholder="Observaciones adicionales del técnico de campo..."
+                    value={resolucionForm.comentario}
+                    onChange={e => setResolucionForm(s => ({ ...s, comentario: e.target.value }))}
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-1">
+                    <Upload className="h-3.5 w-3.5" /> Evidencias
+                  </Label>
+                  <Input
+                    placeholder="Nombres de archivos separados por coma (ej: foto1.jpg, reporte.pdf)"
+                    value={resolucionForm.evidencias}
+                    onChange={e => setResolucionForm(s => ({ ...s, evidencias: e.target.value }))}
+                  />
+                  <p className="text-[10px] text-muted-foreground">Las evidencias recibirán un hash SHA-256 de integridad automáticamente</p>
+                </div>
+
+                <div className="p-3 rounded-lg border border-primary/20 bg-primary/5">
+                  <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                    <Leaf className="h-3 w-3" /> INTERPRETACIÓN NOVA SILVA
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Se generará automáticamente una interpretación basada en datos del protocolo VITAL, condiciones climáticas y el historial fitosanitario de la zona.
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setShowResolucion(null)}>
+                    Cancelar
+                  </Button>
+                  <Button className="flex-1" onClick={confirmarResolucion}>
+                    <ShieldCheck className="h-4 w-4 mr-1" /> Confirmar Resolución
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ ZONA DETALLE DIALOG ═══ */}
+      <Dialog open={!!showZona} onOpenChange={() => setShowZona(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {showZona && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" /> Zona {showZona.zona} — Detalle Fitosanitario
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* KPIs */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="p-3 rounded-lg bg-muted/50 text-center">
+                    <p className={`text-2xl font-bold ${showZona.incidencia > 10 ? 'text-destructive' : showZona.incidencia > 5 ? 'text-amber-500' : 'text-primary'}`}>
+                      {showZona.incidencia}%
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Incidencia</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50 text-center">
+                    <p className={`text-2xl font-bold ${vitalColor(showZona.promedioVital)}`}>{showZona.promedioVital}</p>
+                    <p className="text-[10px] text-muted-foreground">VITAL promedio</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50 text-center">
+                    <p className="text-2xl font-bold text-foreground">{showZona.humedadPromedio}%</p>
+                    <p className="text-[10px] text-muted-foreground">HR promedio</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50 text-center">
+                    <p className="text-2xl font-bold text-foreground">{showZona.precipitacion7d}mm</p>
+                    <p className="text-[10px] text-muted-foreground">Lluvia 7d</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="outline">{showZona.alertasActivas} alertas activas</Badge>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-sm text-muted-foreground">{showZona.tecnicoAsignado}</span>
+                </div>
+
+                {/* Parcelas */}
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Parcelas en la zona</p>
+                  <div className="space-y-2">
+                    {showZona.parcelas.map(p => (
+                      <div key={p.nombre} className="p-3 rounded-lg border border-border flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-foreground">{p.nombre}</p>
+                          <p className="text-xs text-muted-foreground">{p.area} ha · Monitoreo: {p.ultimoMonitoreo}</p>
+                        </div>
+                        <div className="text-right shrink-0 space-y-0.5">
+                          <p className={`text-sm font-bold ${p.incidencia > 10 ? 'text-destructive' : p.incidencia > 5 ? 'text-amber-500' : 'text-primary'}`}>
+                            {p.incidencia}%
+                          </p>
+                          <Badge variant="outline" className={`text-[10px] ${vitalColor(p.vitalScore)}`}>
+                            VITAL {p.vitalScore} · {vitalLabel(p.vitalScore)}
+                          </Badge>
+                          {p.plaga !== 'Ninguna' && (
+                            <p className="text-[10px] text-destructive">{p.plaga}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tratamientos */}
+                {showZona.tratamientosActivos.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tratamientos activos</p>
+                    <div className="space-y-2">
+                      {showZona.tratamientosActivos.map((t, i) => (
+                        <div key={i} className="p-3 rounded-lg border border-border">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-foreground">{t.producto}</p>
+                            <Badge variant="outline" className="text-[10px]">{t.eficacia}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{t.parcelas} parcelas · Aplicado: {t.fechaAplicacion}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* Interpretación */}
+                <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Leaf className="h-3.5 w-3.5 text-primary" /> Interpretación Nova Silva — Zona {showZona.zona}
+                  </p>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{showZona.interpretacion}</p>
+                </div>
               </div>
             </>
           )}
@@ -309,7 +717,6 @@ export default function NovaGuardTab() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Parcela selector */}
             <div className="space-y-2">
               <Label>Parcela</Label>
               <Select value={reporteForm.parcela} onValueChange={v => setReporteForm(s => ({ ...s, parcela: v }))}>
@@ -318,7 +725,6 @@ export default function NovaGuardTab() {
               </Select>
             </div>
 
-            {/* Observation cards */}
             <div className="space-y-1.5">
               <Label>¿Qué observas?</Label>
               <div className="space-y-2">
@@ -333,7 +739,7 @@ export default function NovaGuardTab() {
                         : 'border-border hover:border-muted-foreground/40 hover:bg-muted/50'
                     }`}
                   >
-                    <span className="text-xl shrink-0">{obs.icon}</span>
+                    <span className="text-2xl">{obs.icon}</span>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{obs.titulo}</p>
                       <p className="text-xs text-muted-foreground">{obs.desc}</p>
@@ -343,21 +749,19 @@ export default function NovaGuardTab() {
               </div>
             </div>
 
-            {/* Description */}
             <div className="space-y-2">
-              <Label>¿Qué observaste?</Label>
+              <Label>Descripción adicional <span className="text-muted-foreground">(opcional)</span></Label>
               <Textarea
+                placeholder="Cualquier detalle que considere importante..."
                 value={reporteForm.descripcion}
                 onChange={e => setReporteForm(s => ({ ...s, descripcion: e.target.value }))}
                 rows={3}
-                placeholder="Describe lo que viste: color, ubicación en la planta, cantidad de plantas afectadas..."
               />
             </div>
 
-            <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white" onClick={handleReportarSospecha}>
-              <MapPin className="h-4 w-4 mr-1" /> Enviar Alerta Amarilla
+            <Button className="w-full" onClick={handleReportarSospecha}>
+              <AlertTriangle className="h-4 w-4 mr-1" /> Enviar Alerta Amarilla
             </Button>
-            <p className="text-xs text-center text-muted-foreground">Las alertas amarillas son indicios de baja certeza que ayudan a la vigilancia comunitaria.</p>
           </div>
         </DialogContent>
       </Dialog>
