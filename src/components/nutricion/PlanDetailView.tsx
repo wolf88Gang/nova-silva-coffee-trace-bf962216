@@ -298,7 +298,7 @@ export default function PlanDetailView({ planId, parcelaName, onBack }: Props) {
               <ul className="space-y-1">
                 {(planJson.restricciones_aplicadas as string[]).map((r, i) => (
                   <li key={i} className="flex items-center gap-2">
-                    <Shield className="h-3 w-3 text-amber-500" />
+                    <Shield className="h-3 w-3 text-accent-foreground" />
                     <span className="text-muted-foreground">{r}</span>
                   </li>
                 ))}
