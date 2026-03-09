@@ -437,6 +437,13 @@ export default function AcopioHub() {
                         <td className="px-4 py-3">{l.productores}</td>
                         <td className="px-4 py-3">{l.tipoCafe}</td>
                         <td className="px-4 py-3">{estadoLoteBadge(l.estado)}</td>
+                        <td className="px-4 py-3">
+                          {l.estado === 'disponible' && (
+                            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => toast.success(`Lote ${l.codigo} publicado para exportadores`)}>
+                              <Send className="h-3 w-3 mr-1" /> Ofrecer
+                            </Button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
