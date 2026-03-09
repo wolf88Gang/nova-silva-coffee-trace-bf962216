@@ -23,17 +23,17 @@ interface SoilIntelligenceCardProps {
 
 const STATUS_CONFIG: Record<NutrientStatus, { label: string; color: string }> = {
   critico: { label: 'Crítico', color: 'bg-destructive text-destructive-foreground' },
-  bajo: { label: 'Bajo', color: 'bg-orange-500 text-white' },
-  optimo: { label: 'Óptimo', color: 'bg-emerald-600 text-white' },
-  alto: { label: 'Alto', color: 'bg-blue-500 text-white' },
-  exceso: { label: 'Exceso', color: 'bg-amber-500 text-white' },
+  bajo: { label: 'Bajo', color: 'bg-accent text-accent-foreground' },
+  optimo: { label: 'Óptimo', color: 'bg-primary text-primary-foreground' },
+  alto: { label: 'Alto', color: 'bg-primary/80 text-primary-foreground' },
+  exceso: { label: 'Exceso', color: 'bg-destructive/80 text-destructive-foreground' },
 };
 
 const IFBS_NIVEL_CONFIG: Record<string, { label: string; color: string }> = {
-  muy_alto: { label: 'Muy Alto', color: 'bg-emerald-600 text-white' },
-  alto: { label: 'Alto', color: 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/30' },
-  medio: { label: 'Medio', color: 'bg-amber-500/15 text-amber-700 border border-amber-500/30' },
-  bajo: { label: 'Bajo', color: 'bg-orange-500/15 text-orange-700 border border-orange-500/30' },
+  muy_alto: { label: 'Muy Alto', color: 'bg-primary text-primary-foreground' },
+  alto: { label: 'Alto', color: 'bg-primary/15 text-primary border border-primary/30' },
+  medio: { label: 'Medio', color: 'bg-accent/15 text-accent-foreground border border-accent/30' },
+  bajo: { label: 'Bajo', color: 'bg-destructive/15 text-destructive border border-destructive/30' },
   muy_bajo: { label: 'Muy Bajo', color: 'bg-destructive/15 text-destructive border border-destructive/30' },
 };
 
