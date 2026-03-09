@@ -113,7 +113,7 @@ export default function SoilIntelligenceCard({ soilData, parcelaName }: SoilInte
               {liming.required ? (
                 <Badge className="bg-destructive text-destructive-foreground">Encalado requerido</Badge>
               ) : (
-                <Badge className="bg-emerald-600 text-white">Sin encalado necesario</Badge>
+                <Badge className="bg-primary text-primary-foreground">Sin encalado necesario</Badge>
               )}
               <span className="text-xs text-muted-foreground">
                 Sat. Al: {liming.alSatPct}% (máx: {liming.alSatMaxTolerated}%)
