@@ -478,12 +478,25 @@ export function analyzeSoil(input: SoilAnalysisInput): SoilIntelligenceResult {
   const canRecommendNPK = !toxicity.blocked;
 
   let summary: string;
+  const criticosCount = sufficiency.filter(s => s.status === 'critico').length;
+  const bajosCount = sufficiency.filter(s => s.status === 'bajo').length;
+  const bajosNames = sufficiency.filter(s => s.status === 'bajo').map(s => s.nutrient).join(', ');
+  const criticosNames = sufficiency.filter(s => s.status === 'critico').map(s => s.nutrient).join(', ');
+
   if (toxicity.blocked) {
-    summary = `⛔ Suelo bloqueado para fertilización NPK. ${liming.required ? `Aplicar ${liming.doseKgHa} kg/ha de cal (${liming.doseSacosHa} sacos/ha) antes de fertilizar.` : ''} IFBS: ${ifbs.scorePct}/100 (${ifbs.nivel}).`;
+    summary = `⛔ Atención: El suelo tiene niveles de acidez que pueden dañar las raíces de sus plantas. ${liming.required ? `Es necesario aplicar ${liming.doseSacosHa} sacos de cal por hectárea (${liming.doseKgHa} kg/ha) y esperar al menos 2 semanas antes de aplicar cualquier fertilizante. Sin este paso, los nutrientes que aplique no serán aprovechados por el cafetal.` : ''} Salud biológica del suelo: ${ifbs.scorePct}/100 (${ifbs.nivel}).`;
   } else if (liming.required) {
-    summary = `⚠️ Se recomienda encalado correctivo (${liming.doseKgHa} kg/ha) para optimizar la respuesta a fertilización. IFBS: ${ifbs.scorePct}/100 (${ifbs.nivel}).`;
+    summary = `⚠️ El suelo necesita una corrección de acidez para que los fertilizantes sean más efectivos. Le recomendamos aplicar ${liming.doseSacosHa} sacos de cal por hectárea (${liming.doseKgHa} kg/ha). Esto mejorará la absorción de nutrientes y puede aumentar su rendimiento entre un 10-15%. Salud biológica: ${ifbs.scorePct}/100 (${ifbs.nivel}).`;
   } else {
-    summary = `✅ Suelo apto para fertilización. IFBS: ${ifbs.scorePct}/100 (${ifbs.nivel}). ${sufficiency.filter(s => s.status === 'critico').length > 0 ? 'Atención: nutrientes en nivel crítico detectados.' : 'Balance nutricional aceptable.'}`;
+    let detalleNutrientes = '';
+    if (criticosCount > 0) {
+      detalleNutrientes = `Necesita atención urgente en: ${criticosNames}. Estos nutrientes están muy por debajo de lo que el cafetal necesita para producir bien.`;
+    } else if (bajosCount > 0) {
+      detalleNutrientes = `Los niveles de ${bajosNames} están algo bajos. Corregirlos con el plan de fertilización ayudará a mejorar la producción y la calidad del grano.`;
+    } else {
+      detalleNutrientes = `Todos los nutrientes están en niveles adecuados para una buena producción. Mantenga las prácticas actuales y monitoree cada 12 meses.`;
+    }
+    summary = `✅ El suelo está listo para recibir fertilización. Salud biológica: ${ifbs.scorePct}/100 (${ifbs.nivel}). ${detalleNutrientes}`;
   }
 
   return { toxicity, liming, ifbs, sufficiency, canRecommendNPK, summary };

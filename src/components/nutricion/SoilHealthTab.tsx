@@ -52,12 +52,11 @@ export default function SoilHealthTab() {
     },
   });
 
-  // Merge real + demo parcelas
-  const parcelas = (() => {
-    const realIds = new Set(rawParcelas.map(p => p.id));
-    const extras = DEMO_PARCELAS_SOIL.filter(d => !realIds.has(d.id));
-    return [...rawParcelas, ...extras];
-  })();
+  // Auto-select first parcela
+  const effectiveParcela = selectedParcela || (parcelas.length > 0 ? parcelas[0].id : '');
+  if (!selectedParcela && parcelas.length > 0) {
+    setSelectedParcela(parcelas[0].id);
+  }
 
   // Fetch latest soil analysis for selected parcela (map real DB columns)
   const isDemo = selectedParcela.startsWith('demo-');
