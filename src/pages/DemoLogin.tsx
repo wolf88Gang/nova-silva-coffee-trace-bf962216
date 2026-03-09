@@ -33,6 +33,7 @@ const ROLE_REDIRECTS: Record<string, string> = {
   certificadora: '/certificadora/dashboard',
   productor: '/productor/dashboard',
   tecnico: '/tecnico/dashboard',
+  admin: '/admin',
 };
 
 const DemoLogin = () => {

@@ -75,6 +75,7 @@ serve(async (req) => {
       certificadora: 'Ana Certificadora',
       productor: 'Juan Pérez',
       tecnico: 'Pedro Técnico',
+      admin: 'Admin Nova Silva',
     }
 
     console.log('Attempting to create/update user:', email)
