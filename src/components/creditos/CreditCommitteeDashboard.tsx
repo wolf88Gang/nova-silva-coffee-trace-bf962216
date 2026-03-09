@@ -91,10 +91,13 @@ const CLIMA_CONTEXT: { pct: number; label: string }[] = [
   { pct: 30, label: 'Catástrofe — pérdida masiva de cosecha' },
 ];
 
+const DEFAULT_INTRO = 'Estimado(a) productor(a),\n\nEsperamos que se encuentre bien. Le escribimos en relación a su solicitud de crédito con Nova Silva.\n\n';
+const DEFAULT_OUTRO = '\n\nQuedamos a su disposición para cualquier consulta. Puede acercarse a nuestras oficinas o comunicarse con su técnico asignado.\n\nAtentamente,\nComité de Crédito\nNova Silva';
+
 const RESPONSE_TEMPLATES = {
-  approve: 'El análisis integral confirma capacidad de pago (DSCR ≥ 1.2), historial de entregas consistente y colateral verificado. Se recomienda aprobación sin condiciones adicionales.',
-  conditional: 'Se aprueba con las siguientes condiciones:\n1. Garantía adicional de cosecha comprometida para el ciclo vigente.\n2. Verificación de la parcela geolocalizada antes del desembolso.\n3. Seguimiento trimestral del plan de nutrición.',
-  reject: 'El análisis indica riesgo elevado: DSCR < 1.0, PRN por encima del umbral aceptable y factores de riesgo identificados. Se recomienda no aprobar hasta cumplir requisitos mínimos de solvencia.',
+  approve: `${DEFAULT_INTRO}Nos complace informarle que su solicitud ha sido aprobada. Su historial de entregas, su compromiso con la cooperativa y la salud de su finca respaldan esta decisión.\n\nProcederemos con el desembolso en los próximos días hábiles.${DEFAULT_OUTRO}`,
+  conditional: `${DEFAULT_INTRO}Su solicitud ha sido revisada y aprobada con algunas condiciones que le pedimos cumplir para proceder:\n\n1. Presentar garantía adicional de cosecha comprometida para este ciclo.\n2. Permitir la verificación de parcela antes del desembolso.\n3. Mantener el seguimiento trimestral con su técnico.\n\nEstas condiciones buscan proteger tanto a usted como a la cooperativa. Una vez cumplidas, procederemos con el desembolso.${DEFAULT_OUTRO}`,
+  reject: `${DEFAULT_INTRO}Después de revisar su solicitud con cuidado, en este momento no podemos aprobarla. Los principales aspectos que necesitan fortalecerse son:\n\n- El balance entre sus ingresos y la cuota mensual es ajustado.\n- Es necesario mejorar la consistencia en las entregas de café.\n\nQueremos ayudarle a cumplir estos requisitos. Le invitamos a trabajar con su técnico en un plan de mejora para que pueda aplicar nuevamente en el próximo ciclo. Estamos con usted en este proceso.${DEFAULT_OUTRO}`,
 };
 
 export default function CreditCommitteeDashboard() {

@@ -164,6 +164,8 @@ export default function FinanzasHub() {
   const [showSCP, setShowSCP] = useState<string | null>(null);
   const [solicitudAction, setSolicitudAction] = useState<'aprobada' | 'rechazada' | 'contraoferta' | null>(null);
   const [mensajeSolicitud, setMensajeSolicitud] = useState('');
+  const [pagoCustom, setPagoCustom] = useState(false);
+  const [pagoMonto, setPagoMonto] = useState('');
 
   // Forms
   const [movForm, setMovForm] = useState({ desc: '', cat: 'Ventas', tipo: 'Ingreso' as 'Ingreso' | 'Egreso', monto: '', ref: '' });
@@ -222,10 +224,10 @@ export default function FinanzasHub() {
     setMensajeSolicitud(MENSAJES_CREDITO[action](target));
   };
 
-  const handleRegistrarPago = (creditoId: string) => {
+  const handleRegistrarPago = (creditoId: string, montoCustom?: number) => {
     setCreditos(prev => prev.map(c => {
       if (c.id !== creditoId) return c;
-      const cuotaMonto = c.monto / c.cuotas;
+      const cuotaMonto = montoCustom ?? (c.monto / c.cuotas);
       const nuevoSaldo = Math.max(0, c.saldo - cuotaMonto);
       const nuevasCuotas = c.cuotasPagadas + 1;
       return {
@@ -235,6 +237,8 @@ export default function FinanzasHub() {
     }));
     toast.success('Pago registrado');
     setShowDetCredito(null);
+    setPagoCustom(false);
+    setPagoMonto('');
   };
 
   const scpData = showSCP ? calcularSCP(showSCP, creditos) : null;
@@ -612,9 +616,32 @@ export default function FinanzasHub() {
                 )}
 
                 {(showDetCredito.estado === 'activo' || showDetCredito.estado === 'en_arreglo') && (
-                  <Button className="w-full" onClick={() => handleRegistrarPago(showDetCredito.id)}>
-                    <CheckCircle className="h-4 w-4 mr-1" /> Registrar Pago de Cuota ({fmtCRC(Math.round(showDetCredito.monto / showDetCredito.cuotas))})
-                  </Button>
+                  <div className="space-y-2">
+                    <Button className="w-full" onClick={() => handleRegistrarPago(showDetCredito.id)}>
+                      <CheckCircle className="h-4 w-4 mr-1" /> Pago de Cuota ({fmtCRC(Math.round(showDetCredito.monto / showDetCredito.cuotas))})
+                    </Button>
+                    {!pagoCustom ? (
+                      <Button variant="outline" className="w-full text-xs" onClick={() => { setPagoCustom(true); setPagoMonto(''); }}>
+                        Otro monto
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm text-muted-foreground">₡</span>
+                        <Input
+                          type="number" min={1} max={showDetCredito.saldo}
+                          placeholder="Monto a pagar"
+                          value={pagoMonto}
+                          onChange={e => setPagoMonto(e.target.value)}
+                          className="h-8 text-sm"
+                        />
+                        <Button size="sm" disabled={!pagoMonto || Number(pagoMonto) <= 0}
+                          onClick={() => handleRegistrarPago(showDetCredito.id, Number(pagoMonto))}>
+                          Pagar
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setPagoCustom(false)}>✕</Button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </>
