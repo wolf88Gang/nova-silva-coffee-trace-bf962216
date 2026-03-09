@@ -230,11 +230,11 @@ export function calculateLimingRecommendation(input: SoilAnalysisInput, prnt: nu
   let alSat = calculateAlSaturation(input);
   let formula = '';
 
-  if (alSat !== null) {
+  if (alSat != null && !isNaN(alSat)) {
     formula = `Kamprath directo: Al_sat = Al/${cice.toFixed(1)} = ${(alSat * 100).toFixed(1)}%`;
-  } else if (input.ph !== null) {
+  } else if (input.ph != null && !isNaN(input.ph)) {
     alSat = estimateAlSatFromPH(input.ph);
-    formula = `Estimación heurística desde pH ${input.ph.toFixed(1)} → Al_sat ≈ ${(alSat * 100).toFixed(1)}%`;
+    formula = `Estimación heurística desde pH ${input.ph.toFixed(1)} → Al_sat ≈ ${((alSat ?? 0) * 100).toFixed(1)}%`;
   } else {
     return {
       required: false,
