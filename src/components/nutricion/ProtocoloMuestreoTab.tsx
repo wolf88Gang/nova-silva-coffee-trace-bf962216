@@ -33,13 +33,15 @@ interface SamplingLog {
   metodoP: string;
   cumplimiento: number;
   validado: boolean;
+  responsable: string;
+  tecnico: string;
 }
 
 const DEMO_LOGS: SamplingLog[] = [
-  { id: '1', parcela: 'Parcela El Roble — 2.5 ha', fecha: '2026-01-15', submuestras: 18, profundidad: 20, metodoP: 'Bray II', cumplimiento: 95, validado: true },
-  { id: '2', parcela: 'Parcela La Ceiba — 1.8 ha', fecha: '2026-01-20', submuestras: 12, profundidad: 20, metodoP: 'Olsen', cumplimiento: 60, validado: false },
-  { id: '3', parcela: 'Parcela Los Pinos — 3.0 ha', fecha: '2026-02-05', submuestras: 20, profundidad: 15, metodoP: 'Bray II', cumplimiento: 85, validado: true },
-  { id: '4', parcela: 'Parcela Río Claro — 1.2 ha', fecha: '2026-02-10', submuestras: 8, profundidad: 10, metodoP: 'Mehlich', cumplimiento: 40, validado: false },
+  { id: '1', parcela: 'Parcela El Roble — 2.5 ha', fecha: '2026-01-15', submuestras: 18, profundidad: 20, metodoP: 'Bray II', cumplimiento: 95, validado: true, responsable: 'Juan Mora V.', tecnico: 'Ing. Carlos Ramírez' },
+  { id: '2', parcela: 'Parcela La Ceiba — 1.8 ha', fecha: '2026-01-20', submuestras: 12, profundidad: 20, metodoP: 'Olsen', cumplimiento: 60, validado: false, responsable: 'María Solano R.', tecnico: 'Ing. Carlos Ramírez' },
+  { id: '3', parcela: 'Parcela Los Pinos — 3.0 ha', fecha: '2026-02-05', submuestras: 20, profundidad: 15, metodoP: 'Bray II', cumplimiento: 85, validado: true, responsable: 'Pedro Arias M.', tecnico: 'Ing. María López' },
+  { id: '4', parcela: 'Parcela Río Claro — 1.2 ha', fecha: '2026-02-10', submuestras: 8, profundidad: 10, metodoP: 'Mehlich', cumplimiento: 40, validado: false, responsable: 'Ana Jiménez B.', tecnico: 'Ing. María López' },
 ];
 
 function CumplimientoBadge({ pct }: { pct: number }) {
@@ -88,9 +90,9 @@ export default function ProtocoloMuestreoTab() {
             </div>
 
             {/* Parcelas sin variedad */}
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
+            <div className="rounded-lg border border-accent/30 bg-accent/5 p-4 space-y-2">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Grape className="h-4 w-4 text-amber-600" />
+                <Grape className="h-4 w-4 text-accent-foreground" />
                 Sin variedad definida
               </div>
               <p className="text-2xl font-bold text-foreground">{stats.parcelasSinVariedad}</p>
@@ -165,6 +167,8 @@ export default function ProtocoloMuestreoTab() {
               <TableRow>
                 <TableHead>Parcela</TableHead>
                 <TableHead>Fecha</TableHead>
+                <TableHead>Responsable</TableHead>
+                <TableHead>Técnico</TableHead>
                 <TableHead className="text-center">Submuestras</TableHead>
                 <TableHead className="text-center">Prof. (cm)</TableHead>
                 <TableHead>Método P</TableHead>
@@ -177,6 +181,8 @@ export default function ProtocoloMuestreoTab() {
                 <TableRow key={log.id}>
                   <TableCell className="font-medium">{log.parcela}</TableCell>
                   <TableCell>{log.fecha}</TableCell>
+                  <TableCell className="text-foreground">{log.responsable}</TableCell>
+                  <TableCell className="text-muted-foreground">{log.tecnico}</TableCell>
                   <TableCell className="text-center">{log.submuestras}</TableCell>
                   <TableCell className="text-center">{log.profundidad}</TableCell>
                   <TableCell>{log.metodoP}</TableCell>
