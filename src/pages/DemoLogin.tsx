@@ -140,7 +140,7 @@ const DemoLogin = () => {
         </p>
 
         {/* Role grid — 5 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full max-w-5xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl">
           {DEMO_ROLES.map((dr) => {
             const Icon = dr.icon;
             const isLoading = loadingRole === dr.role;
