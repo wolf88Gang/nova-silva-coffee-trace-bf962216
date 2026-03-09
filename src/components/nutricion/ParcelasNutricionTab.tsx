@@ -247,7 +247,7 @@ export default function ParcelasNutricionTab() {
   const [showHojaForm, setShowHojaForm] = useState(false);
   const [formParcelaId, setFormParcelaId] = useState('');
 
-  const { data: items, isLoading, error } = useQuery({
+  const { data: rawItems, isLoading, error } = useQuery({
     queryKey: ['nutricion_resumen', organizationId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_nutricion_parcela_resumen');
@@ -257,10 +257,17 @@ export default function ParcelasNutricionTab() {
     enabled: !!organizationId,
   });
 
+  // Use demo data if RPC returns empty
+  const items = rawItems?.length ? rawItems : DEMO_PARCELAS;
+
   // Fetch full soil analysis for expanded parcela
   const { data: sueloDetail } = useQuery({
     queryKey: ['suelo_detail', expandedParcela],
     queryFn: async () => {
+      // If demo parcela, return demo soil data
+      if (expandedParcela?.startsWith('demo-')) {
+        return DEMO_SUELO[expandedParcela] ?? null;
+      }
       const { data, error } = await supabase
         .from('nutricion_analisis_suelo')
         .select('*')
