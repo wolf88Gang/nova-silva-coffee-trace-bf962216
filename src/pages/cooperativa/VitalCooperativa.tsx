@@ -7,10 +7,11 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ShieldCheck, Users, TrendingUp, Play, CheckCircle, AlertTriangle,
   ArrowRight, ArrowLeft, BarChart3, Building2, Eye, UserCheck, Calendar, MapPin,
-  MessageSquare, ClipboardCheck, Phone, Mail,
+  MessageSquare, ClipboardCheck, Phone, Mail, ChevronDown,
 } from 'lucide-react';
 import { TecnicoContactBanner } from '@/components/common/TecnicoContactCard';
 import {
