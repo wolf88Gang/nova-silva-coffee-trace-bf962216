@@ -499,19 +499,26 @@ export function analyzeSoil(input: SoilAnalysisInput): SoilIntelligenceResult {
   const criticosNames = sufficiency.filter(s => s.status === 'critico').map(s => s.nutrient).join(', ');
 
   if (toxicity.blocked) {
-    summary = `⛔ Atención: El suelo tiene niveles de acidez que pueden dañar las raíces de sus plantas. ${liming.required ? `Es necesario aplicar ${liming.doseSacosHa} sacos de cal por hectárea (${liming.doseKgHa} kg/ha) y esperar al menos 2 semanas antes de aplicar cualquier fertilizante. Sin este paso, los nutrientes que aplique no serán aprovechados por el cafetal.` : ''} Salud biológica del suelo: ${ifbs.scorePct}/100 (${ifbs.nivel}).`;
+    const alertDetails = toxicity.alerts.filter(a => a.severity === 'critico').map(a => {
+      if (a.type === 'ph_critico') return `El pH de ${a.value?.toFixed(1)} es demasiado ácido — a este nivel, más de la mitad de los nutrientes que aplique se pierden porque se fijan en el suelo y las raíces no los absorben.`;
+      if (a.type === 'al_toxico') return `El aluminio tóxico (${a.value?.toFixed(2)} cmol) está quemando las puntas de las raíces. Las plantas no pueden crecer ni alimentarse correctamente.`;
+      if (a.type === 'al_sat_alta') return `La saturación de aluminio (${((a.value ?? 0) * 100).toFixed(1)}%) está asfixiando la vida del suelo. Las bacterias benéficas y los hongos micorrízicos no sobreviven en estas condiciones.`;
+      return a.message;
+    }).join(' ');
+
+    summary = `⛔ Su suelo necesita corrección urgente antes de fertilizar. ${alertDetails} ${liming.required ? `\n\n📋 Paso a seguir: Aplicar ${liming.doseSacosHa} sacos de cal por hectárea (${liming.doseKgHa} kg/ha). Espere mínimo 2 semanas para que la cal reaccione con el suelo. Sin este paso, cualquier fertilizante que compre será dinero perdido.` : ''}\n\n🏥 Salud biológica del suelo: ${ifbs.scorePct}/100 (${ifbs.nivel}). ${ifbs.interpretation}`;
   } else if (liming.required) {
-    summary = `⚠️ El suelo necesita una corrección de acidez para que los fertilizantes sean más efectivos. Le recomendamos aplicar ${liming.doseSacosHa} sacos de cal por hectárea (${liming.doseKgHa} kg/ha). Esto mejorará la absorción de nutrientes y puede aumentar su rendimiento entre un 10-15%. Salud biológica: ${ifbs.scorePct}/100 (${ifbs.nivel}).`;
+    summary = `⚠️ El suelo necesita una corrección de acidez para que los fertilizantes trabajen mejor. La saturación de aluminio está en ${liming.alSatPct}% cuando lo máximo aceptable es ${liming.alSatMaxTolerated}%.\n\n📋 Recomendación: Aplicar ${liming.doseSacosHa} sacos de cal dolomita por hectárea (${liming.doseKgHa} kg/ha). Esto liberará nutrientes que están atrapados en el suelo y puede mejorar su cosecha entre un 10-15% el próximo ciclo.\n\n🏥 Salud biológica: ${ifbs.scorePct}/100 (${ifbs.nivel}). ${ifbs.interpretation}`;
   } else {
     let detalleNutrientes = '';
     if (criticosCount > 0) {
-      detalleNutrientes = `Necesita atención urgente en: ${criticosNames}. Estos nutrientes están muy por debajo de lo que el cafetal necesita para producir bien.`;
+      detalleNutrientes = `⚠️ Necesita atención urgente en: ${criticosNames}. Estos nutrientes están muy por debajo de lo que el cafetal necesita. Sin corregirlos, verá hojas amarillas, frutos pequeños y menor producción. El plan de fertilización debe priorizar estos elementos.`;
     } else if (bajosCount > 0) {
-      detalleNutrientes = `Los niveles de ${bajosNames} están algo bajos. Corregirlos con el plan de fertilización ayudará a mejorar la producción y la calidad del grano.`;
+      detalleNutrientes = `Los niveles de ${bajosNames} están algo bajos pero se pueden corregir con el plan de fertilización. Atenderlos a tiempo evitará pérdidas de rendimiento y mejorará el llenado del grano y la calidad de taza.`;
     } else {
-      detalleNutrientes = `Todos los nutrientes están en niveles adecuados para una buena producción. Mantenga las prácticas actuales y monitoree cada 12 meses.`;
+      detalleNutrientes = `Todos los nutrientes están en niveles adecuados. Su suelo tiene lo necesario para una buena producción. Mantenga las prácticas actuales y repita el análisis de suelo cada 12 meses para detectar cambios a tiempo.`;
     }
-    summary = `✅ El suelo está listo para recibir fertilización. Salud biológica: ${ifbs.scorePct}/100 (${ifbs.nivel}). ${detalleNutrientes}`;
+    summary = `✅ El suelo está listo para recibir fertilización.\n\n🏥 Salud biológica: ${ifbs.scorePct}/100 (${ifbs.nivel}). ${ifbs.interpretation}\n\n🌱 Estado nutricional: ${detalleNutrientes}`;
   }
 
   return { toxicity, liming, ifbs, sufficiency, canRecommendNPK, summary };
