@@ -12,10 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Boxes, AlertTriangle, Wallet, Plus, Minus, Edit2, PackagePlus, History,
   MapPin, Wrench, ChevronRight, Fuel, Tractor, Truck, Scale, Thermometer,
-  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users, CreditCard, Banknote
+  Sprout, Shield, Clock, Search, Filter, Package, Cog, Users, CreditCard, Banknote,
+  ShoppingCart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ProveedorWizard, { type ProveedorData } from '@/components/proveedores/ProveedorWizard';
+import CotizacionTab from '@/components/nutricion/CotizacionTab';
 
 /* ═══════════════════════════════════════════
    TYPES
