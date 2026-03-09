@@ -8,7 +8,7 @@ export interface ExecutionInput {
   plan_id: string;
   fecha_aplicacion: string; // YYYY-MM-DD
   idempotency_key: string;
-  tipo_aplicacion?: 'edafica' | 'foliar' | 'fertirriego' | 'otro';
+  tipo_aplicacion?: 'edafica' | 'foliar' | 'fertirriego' | 'enmienda' | 'otro';
   dosis_aplicada_json?: { nutrientes: Record<string, number> };
   evidencias?: Record<string, JSONValue>;
   costo_real?: number;
