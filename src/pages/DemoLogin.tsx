@@ -24,6 +24,7 @@ const DEMO_ROLES: DemoRole[] = [
   { role: 'cooperativa', email: 'demo.cooperativa@novasilva.com', label: 'Cooperativa', description: 'Gestión de organización', icon: Building2 },
   { role: 'exportador', email: 'demo.exportador@novasilva.com', label: 'Exportador', description: 'Exportadora con EUDR', icon: Truck },
   { role: 'certificadora', email: 'demo.certificadora@novasilva.com', label: 'Certificadora', description: 'Auditoría y certificación', icon: ShieldCheck },
+  { role: 'admin', email: 'demo.admin@novasilva.com', label: 'Admin', description: 'Administrador de plataforma', icon: Crown },
 ];
 
 const ROLE_REDIRECTS: Record<string, string> = {
