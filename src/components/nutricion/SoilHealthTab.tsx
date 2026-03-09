@@ -7,9 +7,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Layers } from 'lucide-react';
+import { Layers, MapPin } from 'lucide-react';
 import SoilIntelligenceCard from './SoilIntelligenceCard';
 import type { SoilAnalysisInput } from '@/lib/soilIntelligenceEngine';
 
