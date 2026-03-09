@@ -697,9 +697,15 @@ export default function NovaCupDashboard() {
                               <div className="space-y-1">
                                 {d.producers.map((p, i) => (
                                   <div key={i} className="flex items-center justify-between text-xs">
-                                    <span className="text-foreground">{p.nombre}</span>
+                                    <button className="text-foreground hover:text-primary hover:underline transition-colors text-left"
+                                      onClick={(e) => { e.stopPropagation(); const pi = PRODUCER_INFO[p.nombre]; if (pi) setSelectedProducer(pi); }}>
+                                      {p.nombre}
+                                    </button>
                                     <div className="flex items-center gap-2">
-                                      <span className="text-muted-foreground">{p.lote}</span>
+                                      <button className="text-muted-foreground hover:text-primary hover:underline transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); const l = LOTE_INFO[p.lote]; if (l) setSelectedLote(l); }}>
+                                        {p.lote}
+                                      </button>
                                       <Badge variant="outline" className="text-[10px]">{p.puntaje} pts</Badge>
                                     </div>
                                   </div>
