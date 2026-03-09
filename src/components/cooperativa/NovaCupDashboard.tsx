@@ -44,6 +44,59 @@ const SAMPLE_COLORS: Record<SampleType, string> = { offer: 'hsl(var(--primary))'
 
 type MuestraEstado = 'sin_evaluar' | 'en_proceso' | 'evaluada';
 
+interface ProducerInfo {
+  nombre: string;
+  documento: string;
+  comunidad: string;
+  parcelas: number;
+  hectareas: number;
+  ultimaEntrega: string;
+  vital: number;
+  entregas: number;
+  creditosActivos: number;
+}
+
+const PRODUCER_INFO: Record<string, ProducerInfo> = {
+  'Carlos A. Muñoz': { nombre: 'Carlos A. Muñoz', documento: '1234-56789-0101', comunidad: 'San Marcos', parcelas: 3, hectareas: 4.2, ultimaEntrega: '2026-02-20', vital: 72, entregas: 8, creditosActivos: 1 },
+  'María del C. Ortiz': { nombre: 'María del C. Ortiz', documento: '1234-56789-0202', comunidad: 'El Progreso', parcelas: 2, hectareas: 2.8, ultimaEntrega: '2026-02-18', vital: 65, entregas: 5, creditosActivos: 0 },
+  'Ana L. Betancourt': { nombre: 'Ana L. Betancourt', documento: '1234-56789-0303', comunidad: 'Santa Rosa', parcelas: 1, hectareas: 1.5, ultimaEntrega: '2026-02-10', vital: 58, entregas: 3, creditosActivos: 0 },
+  'José Hernández': { nombre: 'José Hernández', documento: '1234-56789-0404', comunidad: 'La Esperanza', parcelas: 2, hectareas: 3.0, ultimaEntrega: '2026-01-28', vital: 45, entregas: 6, creditosActivos: 1 },
+  'Rosa E. Castillo': { nombre: 'Rosa E. Castillo', documento: '1234-56789-0505', comunidad: 'San Pedro', parcelas: 1, hectareas: 1.2, ultimaEntrega: '2026-02-05', vital: 52, entregas: 4, creditosActivos: 0 },
+  'Fernando Ruiz': { nombre: 'Fernando Ruiz', documento: '1234-56789-0606', comunidad: 'El Rosario', parcelas: 2, hectareas: 2.0, ultimaEntrega: '2026-01-15', vital: 38, entregas: 2, creditosActivos: 0 },
+};
+
+interface LoteInfo {
+  id: string;
+  productor: string;
+  variedad: string;
+  altitudMsnm: number;
+  proceso: string;
+  pesoKg: number;
+  estado: string;
+  fechaIngreso: string;
+  parcela: string;
+}
+
+const LOTE_INFO: Record<string, LoteInfo> = {
+  'LOT-2026-023': { id: 'LOT-2026-023', productor: 'Carlos A. Muñoz', variedad: 'Caturra', altitudMsnm: 1450, proceso: 'Lavado', pesoKg: 2300, estado: 'En bodega', fechaIngreso: '2026-02-15', parcela: 'Parcela El Roble' },
+  'LOT-2026-045': { id: 'LOT-2026-045', productor: 'María del C. Ortiz', variedad: 'Obatá', altitudMsnm: 1320, proceso: 'Honey', pesoKg: 1800, estado: 'En bodega', fechaIngreso: '2026-02-12', parcela: 'Parcela La Ceiba' },
+  'LOT-2026-018': { id: 'LOT-2026-018', productor: 'Ana L. Betancourt', variedad: 'Geisha', altitudMsnm: 1600, proceso: 'Natural', pesoKg: 900, estado: 'Comprometido', fechaIngreso: '2026-02-08', parcela: 'Parcela Alta' },
+  'LOT-2026-032': { id: 'LOT-2026-032', productor: 'José Hernández', variedad: 'Catuaí', altitudMsnm: 1280, proceso: 'Lavado', pesoKg: 1500, estado: 'En bodega', fechaIngreso: '2026-02-01', parcela: 'Parcela Los Pinos' },
+  'LOT-2026-011': { id: 'LOT-2026-011', productor: 'Rosa E. Castillo', variedad: 'Bourbon', altitudMsnm: 1380, proceso: 'Lavado', pesoKg: 1100, estado: 'Embarcado', fechaIngreso: '2026-01-20', parcela: 'Parcela Sur' },
+  'LOT-2026-007': { id: 'LOT-2026-007', productor: 'Fernando Ruiz', variedad: 'Caturra', altitudMsnm: 1200, proceso: 'Lavado', pesoKg: 2000, estado: 'En bodega', fechaIngreso: '2026-01-10', parcela: 'Parcela Norte' },
+  'LOT-2026-055': { id: 'LOT-2026-055', productor: 'Carlos A. Muñoz', variedad: 'Caturra', altitudMsnm: 1450, proceso: 'Lavado', pesoKg: 1200, estado: 'Recibido', fechaIngreso: '2026-02-28', parcela: 'Parcela El Roble' },
+};
+
+const CATADORES_INFO: Record<string, string> = {
+  '1': 'Q-Grader María García (Lic. #MG-2024)',
+  '1b': 'Q-Grader María García (Lic. #MG-2024)',
+  '2': 'Q-Grader Carlos Pérez (Lic. #CP-2023)',
+  '3': 'Evaluador CVA Ana Solano',
+  '4': 'Q-Grader Carlos Pérez (Lic. #CP-2023)',
+  '5': 'Q-Grader María García (Lic. #MG-2024)',
+  '6': 'Q-Grader María García (Lic. #MG-2024)',
+};
+
 interface Muestra {
   id: string;
   codigo: string;
@@ -195,6 +248,8 @@ export default function NovaCupDashboard() {
   const [compareSamples, setCompareSamples] = useState<Catacion[]>([]);
   const [filterProtocolo, setFilterProtocolo] = useState<string>('all');
   const [filterCat, setFilterCat] = useState<string>('all');
+  const [selectedProducer, setSelectedProducer] = useState<ProducerInfo | null>(null);
+  const [selectedLote, setSelectedLote] = useState<LoteInfo | null>(null);
 
   const attrs = protocolo === 'SCA' ? SCA_ATTRIBUTES : CVA_ATTRIBUTES;
   const totalScore = Object.values(scores).reduce((s, v) => s + v, 0);
@@ -374,7 +429,12 @@ export default function NovaCupDashboard() {
                         <tr key={m.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                           <td className="px-4 py-3 font-mono font-medium text-foreground">{m.codigo}</td>
                           <td className="px-4 py-3">{sampleBadge(m.tipoMuestra)}</td>
-                          <td className="px-4 py-3 font-medium text-foreground">{m.loteId}</td>
+                          <td className="px-4 py-3">
+                            <button className="font-medium text-foreground hover:text-primary hover:underline transition-colors"
+                              onClick={() => { const l = LOTE_INFO[m.loteId]; if (l) setSelectedLote(l); }}>
+                              {m.loteId}
+                            </button>
+                          </td>
                           <td className="px-4 py-3 text-muted-foreground">{m.fechaToma}</td>
                           <td className="px-4 py-3 text-muted-foreground">{m.tomadaPor}</td>
                           <td className="px-4 py-3 text-muted-foreground">{m.pesoGramos}g</td>
@@ -479,11 +539,21 @@ export default function NovaCupDashboard() {
                           </td>
                         )}
                         <td className="px-4 py-3 text-muted-foreground">{c.fecha}</td>
-                        <td className="px-4 py-3 font-medium text-foreground">{c.lote}</td>
-                        <td className="px-4 py-3">{c.productor}</td>
+                        <td className="px-4 py-3">
+                          <button className="font-medium text-foreground hover:text-primary hover:underline transition-colors text-left"
+                            onClick={(e) => { e.stopPropagation(); const l = LOTE_INFO[c.lote]; if (l) setSelectedLote(l); }}>
+                            {c.lote}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button className="text-foreground hover:text-primary hover:underline transition-colors text-left"
+                            onClick={(e) => { e.stopPropagation(); const p = PRODUCER_INFO[c.productor]; if (p) setSelectedProducer(p); }}>
+                            {c.productor}
+                          </button>
+                        </td>
                         <td className="px-4 py-3">{sampleBadge(c.sampleType)}</td>
                         <td className="px-4 py-3"><Badge variant="outline">{c.protocolo}</Badge></td>
-                        <td className="px-4 py-3 font-bold">{c.puntaje}</td>
+                        <td className="px-4 py-3 font-bold text-foreground">{c.puntaje}</td>
                         <td className="px-4 py-3">{catBadge(c.cat)}</td>
                         <td className="px-4 py-3 text-center">{c.defectos ?? '—'}</td>
                         <td className="px-4 py-3">{c.humedad ? `${c.humedad}%` : '—'}</td>
@@ -516,7 +586,10 @@ export default function NovaCupDashboard() {
                   return (
                     <div key={lote} className="p-3 rounded-lg border border-border hover:border-primary/30 transition-colors">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-foreground">{lote}</span>
+                        <button className="font-medium text-foreground hover:text-primary hover:underline transition-colors"
+                          onClick={() => { const l = LOTE_INFO[lote]; if (l) setSelectedLote(l); }}>
+                          {lote}
+                        </button>
                         <Badge variant={delta >= 0 ? 'default' : 'destructive'} className="text-xs">
                           {delta >= 0 ? '+' : ''}{delta.toFixed(1)} pts
                         </Badge>
@@ -632,9 +705,15 @@ export default function NovaCupDashboard() {
                               <div className="space-y-1">
                                 {d.producers.map((p, i) => (
                                   <div key={i} className="flex items-center justify-between text-xs">
-                                    <span className="text-foreground">{p.nombre}</span>
+                                    <button className="text-foreground hover:text-primary hover:underline transition-colors text-left"
+                                      onClick={(e) => { e.stopPropagation(); const pi = PRODUCER_INFO[p.nombre]; if (pi) setSelectedProducer(pi); }}>
+                                      {p.nombre}
+                                    </button>
                                     <div className="flex items-center gap-2">
-                                      <span className="text-muted-foreground">{p.lote}</span>
+                                      <button className="text-muted-foreground hover:text-primary hover:underline transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); const l = LOTE_INFO[p.lote]; if (l) setSelectedLote(l); }}>
+                                        {p.lote}
+                                      </button>
                                       <Badge variant="outline" className="text-[10px]">{p.puntaje} pts</Badge>
                                     </div>
                                   </div>
@@ -1080,18 +1159,144 @@ export default function NovaCupDashboard() {
                 </Card>
 
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="p-2 rounded border border-border">
+                  <div className="p-2 rounded border border-border cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => { const p = PRODUCER_INFO[selectedCata.productor]; if (p) { setSelectedCata(null); setSelectedProducer(p); } }}>
                     <span className="text-muted-foreground">Productor:</span>
-                    <p className="font-medium text-foreground">{selectedCata.productor}</p>
+                    <p className="font-medium text-primary hover:underline">{selectedCata.productor}</p>
                   </div>
                   <div className="p-2 rounded border border-border">
                     <span className="text-muted-foreground">Defectos:</span>
                     <p className="font-medium text-foreground">{selectedCata.defectos ?? '—'}</p>
                   </div>
+                  <div className="p-2 rounded border border-border">
+                    <span className="text-muted-foreground">Catador:</span>
+                    <p className="font-medium text-foreground text-xs">{CATADORES_INFO[selectedCata.id] ?? 'Sin asignar'}</p>
+                  </div>
+                  <div className="p-2 rounded border border-border cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => { const l = LOTE_INFO[selectedCata.lote]; if (l) { setSelectedCata(null); setSelectedLote(l); } }}>
+                    <span className="text-muted-foreground">Lote:</span>
+                    <p className="font-medium text-primary hover:underline">{selectedCata.lote}</p>
+                  </div>
                 </div>
 
                 {/* Siblings moved to top of dialog */}
               </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ PRODUCER DETAIL DIALOG ═══ */}
+      <Dialog open={!!selectedProducer} onOpenChange={() => setSelectedProducer(null)}>
+        <DialogContent>
+          {selectedProducer && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedProducer.nombre}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-muted-foreground">Documento:</span> <span className="font-medium text-foreground">{selectedProducer.documento}</span></div>
+                  <div><span className="text-muted-foreground">Comunidad:</span> <span className="font-medium text-foreground">{selectedProducer.comunidad}</span></div>
+                  <div><span className="text-muted-foreground">Parcelas:</span> <span className="font-medium text-foreground">{selectedProducer.parcelas}</span></div>
+                  <div><span className="text-muted-foreground">Hectáreas:</span> <span className="font-medium text-foreground">{selectedProducer.hectareas}</span></div>
+                  <div><span className="text-muted-foreground">Última entrega:</span> <span className="font-medium text-foreground">{selectedProducer.ultimaEntrega}</span></div>
+                  <div><span className="text-muted-foreground">VITAL:</span> <span className={`font-bold ${selectedProducer.vital >= 60 ? 'text-primary' : 'text-destructive'}`}>{selectedProducer.vital}</span></div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 rounded-lg border border-border text-center">
+                    <p className="text-lg font-bold text-foreground">{selectedProducer.parcelas}</p>
+                    <p className="text-[10px] text-muted-foreground">Parcelas</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border text-center">
+                    <p className="text-lg font-bold text-foreground">{selectedProducer.entregas}</p>
+                    <p className="text-[10px] text-muted-foreground">Entregas</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border text-center">
+                    <p className="text-lg font-bold text-foreground">{selectedProducer.creditosActivos}</p>
+                    <p className="text-[10px] text-muted-foreground">Créditos activos</p>
+                  </div>
+                </div>
+                {/* Cataciones de este productor */}
+                {(() => {
+                  const catas = catacionesDemo.filter(c => c.productor === selectedProducer.nombre);
+                  if (!catas.length) return null;
+                  return (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Cataciones recientes</p>
+                      <div className="space-y-1.5">
+                        {catas.map(c => (
+                          <div key={c.id} className="flex items-center justify-between p-2 rounded border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                            onClick={() => { setSelectedProducer(null); setSelectedCata(c); }}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-foreground">{c.lote}</span>
+                              {sampleBadge(c.sampleType)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-foreground">{c.puntaje} pts</span>
+                              {catBadge(c.cat)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+              <DialogFooter><Button variant="outline" onClick={() => setSelectedProducer(null)}>Cerrar</Button></DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ LOTE DETAIL DIALOG ═══ */}
+      <Dialog open={!!selectedLote} onOpenChange={() => setSelectedLote(null)}>
+        <DialogContent>
+          {selectedLote && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2"><Coffee className="h-5 w-5 text-primary" /> {selectedLote.id}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-muted-foreground">Productor:</span>
+                    <button className="font-medium text-primary hover:underline block"
+                      onClick={() => { const p = PRODUCER_INFO[selectedLote.productor]; if (p) { setSelectedLote(null); setSelectedProducer(p); } }}>
+                      {selectedLote.productor}
+                    </button>
+                  </div>
+                  <div><span className="text-muted-foreground">Parcela:</span> <span className="font-medium text-foreground">{selectedLote.parcela}</span></div>
+                  <div><span className="text-muted-foreground">Variedad:</span> <span className="font-medium text-foreground">{selectedLote.variedad}</span></div>
+                  <div><span className="text-muted-foreground">Altitud:</span> <span className="font-medium text-foreground">{selectedLote.altitudMsnm} msnm</span></div>
+                  <div><span className="text-muted-foreground">Proceso:</span> <span className="font-medium text-foreground">{selectedLote.proceso}</span></div>
+                  <div><span className="text-muted-foreground">Peso:</span> <span className="font-medium text-foreground">{selectedLote.pesoKg.toLocaleString()} kg</span></div>
+                  <div><span className="text-muted-foreground">Estado:</span> <Badge variant="outline">{selectedLote.estado}</Badge></div>
+                  <div><span className="text-muted-foreground">Ingreso:</span> <span className="font-medium text-foreground">{selectedLote.fechaIngreso}</span></div>
+                </div>
+                {/* Cataciones de este lote */}
+                {(() => {
+                  const catas = catacionesDemo.filter(c => c.lote === selectedLote.id);
+                  if (!catas.length) return null;
+                  return (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Cataciones del lote</p>
+                      <div className="space-y-1.5">
+                        {catas.map(c => (
+                          <div key={c.id} className="flex items-center justify-between p-2 rounded border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                            onClick={() => { setSelectedLote(null); setSelectedCata(c); }}>
+                            <div className="flex items-center gap-2">
+                              {sampleBadge(c.sampleType)}
+                              <span className="text-sm text-foreground">{c.fecha}</span>
+                            </div>
+                            <span className="text-sm font-bold text-foreground">{c.puntaje} pts</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+              <DialogFooter><Button variant="outline" onClick={() => setSelectedLote(null)}>Cerrar</Button></DialogFooter>
             </>
           )}
         </DialogContent>
