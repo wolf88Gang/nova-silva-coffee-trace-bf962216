@@ -23,6 +23,9 @@ function getActions(role: string | null, orgTipo: string | null): QuickAction[] 
         { label: 'Nueva Entrega', icon: Package, route: '/cooperativa/acopio', module: 'entregas' },
         { label: 'Ejecutar VITAL', icon: Shield, route: '/cooperativa/vital', module: 'vital' },
         { label: 'Aprobar Crédito', icon: Wallet, route: '/cooperativa/finanzas-hub', module: 'creditos' },
+        { label: 'Plan Nutrición', icon: Sprout, route: '/cooperativa/nutricion', module: 'nutricion' },
+        { label: 'Nueva Catación', icon: Coffee, route: '/cooperativa/calidad', module: 'calidad' },
+        { label: 'Comité Crédito', icon: BarChart3, route: '/cooperativa/finanzas-hub', module: 'creditos' },
       ];
     case 'exportador':
       return [
