@@ -534,11 +534,21 @@ export default function NovaCupDashboard() {
                           </td>
                         )}
                         <td className="px-4 py-3 text-muted-foreground">{c.fecha}</td>
-                        <td className="px-4 py-3 font-medium text-foreground">{c.lote}</td>
-                        <td className="px-4 py-3">{c.productor}</td>
+                        <td className="px-4 py-3">
+                          <button className="font-medium text-foreground hover:text-primary hover:underline transition-colors text-left"
+                            onClick={(e) => { e.stopPropagation(); const l = LOTE_INFO[c.lote]; if (l) setSelectedLote(l); }}>
+                            {c.lote}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button className="text-foreground hover:text-primary hover:underline transition-colors text-left"
+                            onClick={(e) => { e.stopPropagation(); const p = PRODUCER_INFO[c.productor]; if (p) setSelectedProducer(p); }}>
+                            {c.productor}
+                          </button>
+                        </td>
                         <td className="px-4 py-3">{sampleBadge(c.sampleType)}</td>
                         <td className="px-4 py-3"><Badge variant="outline">{c.protocolo}</Badge></td>
-                        <td className="px-4 py-3 font-bold">{c.puntaje}</td>
+                        <td className="px-4 py-3 font-bold text-foreground">{c.puntaje}</td>
                         <td className="px-4 py-3">{catBadge(c.cat)}</td>
                         <td className="px-4 py-3 text-center">{c.defectos ?? '—'}</td>
                         <td className="px-4 py-3">{c.humedad ? `${c.humedad}%` : '—'}</td>
