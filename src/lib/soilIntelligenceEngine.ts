@@ -149,7 +149,7 @@ export function checkToxicity(input: SoilAnalysisInput): ToxicityCheck {
 
   // Saturación de Al
   const alSat = calculateAlSaturation(input);
-  if (alSat !== null && alSat > AL_SAT_MAX_COFFEE) {
+  if (alSat != null && !isNaN(alSat) && alSat > AL_SAT_MAX_COFFEE) {
     alerts.push({
       type: 'al_sat_alta',
       severity: 'critico',
@@ -230,11 +230,11 @@ export function calculateLimingRecommendation(input: SoilAnalysisInput, prnt: nu
   let alSat = calculateAlSaturation(input);
   let formula = '';
 
-  if (alSat !== null) {
+  if (alSat != null && !isNaN(alSat)) {
     formula = `Kamprath directo: Al_sat = Al/${cice.toFixed(1)} = ${(alSat * 100).toFixed(1)}%`;
-  } else if (input.ph !== null) {
+  } else if (input.ph != null && !isNaN(input.ph)) {
     alSat = estimateAlSatFromPH(input.ph);
-    formula = `Estimación heurística desde pH ${input.ph.toFixed(1)} → Al_sat ≈ ${(alSat * 100).toFixed(1)}%`;
+    formula = `Estimación heurística desde pH ${input.ph.toFixed(1)} → Al_sat ≈ ${((alSat ?? 0) * 100).toFixed(1)}%`;
   } else {
     return {
       required: false,
@@ -248,37 +248,38 @@ export function calculateLimingRecommendation(input: SoilAnalysisInput, prnt: nu
     };
   }
 
-  if (alSat <= AL_SAT_MAX_COFFEE) {
+  // Safety: alSat should always be a number at this point
+  const alSatSafe = alSat ?? 0;
+
+  if (alSatSafe <= AL_SAT_MAX_COFFEE) {
     return {
       required: false,
-      reason: `Saturación de aluminio (${(alSat * 100).toFixed(1)}%) dentro del rango tolerado (≤ ${AL_SAT_MAX_COFFEE * 100}%). No requiere encalado correctivo.`,
+      reason: `Saturación de aluminio (${(alSatSafe * 100).toFixed(1)}%) dentro del rango tolerado (≤ ${AL_SAT_MAX_COFFEE * 100}%). No requiere encalado correctivo.`,
       doseKgHa: 0,
       doseSacosHa: 0,
       prnt,
-      alSatPct: Math.round(alSat * 1000) / 10,
+      alSatPct: Math.round(alSatSafe * 1000) / 10,
       alSatMaxTolerated: AL_SAT_MAX_COFFEE * 100,
       formula,
     };
   }
 
   // Kamprath: dose = (Al_sat_observed - Al_sat_max) × CICE × factor_equivalente / (PRNT/100)
-  // Factor: 1 cmol Al neutralizado requiere ~1120 kg CaCO₃/ha (para 0-20cm, 2M kg suelo)
-  // Simplified: dose(t/ha) = (Al_sat - 0.25) × CICE × 1.5 / (PRNT/100)
-  const alExcess = alSat - AL_SAT_MAX_COFFEE;
-  const doseRaw = alExcess * cice * 1.5; // t/ha without PRNT
+  const alExcess = alSatSafe - AL_SAT_MAX_COFFEE;
+  const doseRaw = alExcess * cice * 1.5;
   const doseCorrected = doseRaw / (prnt / 100);
   const doseKgHa = Math.round(doseCorrected * 1000);
   const doseSacosHa = Math.ceil(doseKgHa / 50);
 
-  formula += ` → Dosis = (${(alSat * 100).toFixed(1)}% - ${AL_SAT_MAX_COFFEE * 100}%) × ${cice.toFixed(1)} × 1.5 / (${prnt}% PRNT) = ${doseCorrected.toFixed(2)} t/ha`;
+  formula += ` → Dosis = (${(alSatSafe * 100).toFixed(1)}% - ${AL_SAT_MAX_COFFEE * 100}%) × ${cice.toFixed(1)} × 1.5 / (${prnt}% PRNT) = ${doseCorrected.toFixed(2)} t/ha`;
 
   return {
     required: true,
-    reason: `Saturación de aluminio ${(alSat * 100).toFixed(1)}% excede el máximo tolerado (${AL_SAT_MAX_COFFEE * 100}%). Se requiere encalado correctivo antes de fertilizar.`,
+    reason: `Saturación de aluminio ${(alSatSafe * 100).toFixed(1)}% excede el máximo tolerado (${AL_SAT_MAX_COFFEE * 100}%). Se requiere encalado correctivo antes de fertilizar.`,
     doseKgHa,
     doseSacosHa,
     prnt,
-    alSatPct: Math.round(alSat * 1000) / 10,
+    alSatPct: Math.round(alSatSafe * 1000) / 10,
     alSatMaxTolerated: AL_SAT_MAX_COFFEE * 100,
     formula,
   };
