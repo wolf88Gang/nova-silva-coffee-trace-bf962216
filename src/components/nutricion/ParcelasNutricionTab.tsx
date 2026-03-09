@@ -302,15 +302,10 @@ export default function ParcelasNutricionTab() {
     );
   }
 
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Error al cargar estado nutricional.</p>
-        </CardContent>
-      </Card>
-    );
+  // On error, still show demo data instead of blank screen
+  if (error && !items?.length) {
+    // items already has demo fallback, just log
+    console.warn('Nutrición resumen RPC error, using demo data:', error);
   }
 
   if (!items?.length) {
