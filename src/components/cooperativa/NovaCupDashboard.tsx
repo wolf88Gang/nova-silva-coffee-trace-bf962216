@@ -1293,3 +1293,6 @@ export default function NovaCupDashboard() {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
