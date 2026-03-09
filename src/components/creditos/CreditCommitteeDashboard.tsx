@@ -79,11 +79,30 @@ function PillarCard({ title, icon: Icon, score, weight, details }: {
 }
 
 // ── Main Component ──
+// Climate loss context labels
+const CLIMA_CONTEXT: { pct: number; label: string }[] = [
+  { pct: 0, label: 'Sin impacto' },
+  { pct: 5, label: 'Sequía leve — estrés hídrico temporal' },
+  { pct: 10, label: 'Sequía moderada — caída de frutos inmaduros' },
+  { pct: 15, label: 'Tormenta tropical / exceso lluvias' },
+  { pct: 20, label: 'Sequía severa — pérdida significativa' },
+  { pct: 25, label: 'Evento extremo (helada / huracán parcial)' },
+  { pct: 30, label: 'Catástrofe — pérdida masiva de cosecha' },
+];
+
+const RESPONSE_TEMPLATES = {
+  approve: 'El análisis integral confirma capacidad de pago (DSCR ≥ 1.2), historial de entregas consistente y colateral verificado. Se recomienda aprobación sin condiciones adicionales.',
+  conditional: 'Se aprueba con las siguientes condiciones:\n1. Garantía adicional de cosecha comprometida para el ciclo vigente.\n2. Verificación de la parcela geolocalizada antes del desembolso.\n3. Seguimiento trimestral del plan de nutrición.',
+  reject: 'El análisis indica riesgo elevado: DSCR < 1.0, PRN por encima del umbral aceptable y factores de riesgo identificados. Se recomienda no aprobar hasta cumplir requisitos mínimos de solvencia.',
+};
+
 export default function CreditCommitteeDashboard() {
   const [showOverride, setShowOverride] = useState(false);
+  const [showReject, setShowReject] = useState(false);
   const [overrideText, setOverrideText] = useState('');
-  const [stressPrecio, setStressPrecio] = useState([210]);
-  const [stressClima, setStressClima] = useState([0]);
+  const [rejectText, setRejectText] = useState('');
+  const [stressPrecio, setStressPrecio] = useState(210);
+  const [stressClima, setStressClima] = useState(0);
 
   // Calculate scores
   const scoreResult = useMemo(() => calculateNovaScore(MOCK_SCORE_INPUT), []);
@@ -95,15 +114,19 @@ export default function CreditCommitteeDashboard() {
 
   // Stress test
   const stressTest = useMemo(() => {
-    const climaLoss = stressClima[0] / 100;
+    const climaLoss = stressClima / 100;
     const adjustedYield = 30 * (1 - climaLoss);
-    const ingreso = adjustedYield * stressPrecio[0];
+    const ingreso = adjustedYield * stressPrecio;
     const costo = adjustedYield * 150;
     const neto = ingreso - costo;
     const cuotaAnual = 8500 * 0.12 + 8500 / 1.5;
     const dscr = cuotaAnual > 0 ? neto / cuotaAnual : 0;
     return { adjustedYield, ingreso, neto, dscr, solvente: dscr >= 1.0 };
   }, [stressPrecio, stressClima]);
+
+  const climaLabel = CLIMA_CONTEXT.reduce((prev, curr) =>
+    Math.abs(curr.pct - stressClima) <= Math.abs(prev.pct - stressClima) ? curr : prev
+  ).label;
 
   const { breakdown } = scoreResult;
 
