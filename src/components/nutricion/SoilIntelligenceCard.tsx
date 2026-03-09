@@ -155,7 +155,7 @@ export default function SoilIntelligenceCard({ soilData, parcelaName }: SoilInte
               <Badge className={IFBS_NIVEL_CONFIG[ifbs.nivel]?.color ?? ''}>
                 {IFBS_NIVEL_CONFIG[ifbs.nivel]?.label}
               </Badge>
-              <span className={`text-4xl font-bold ${ifbs.scorePct >= 60 ? 'text-emerald-600' : ifbs.scorePct >= 40 ? 'text-amber-500' : 'text-destructive'}`}>
+              <span className={`text-4xl font-bold ${ifbs.scorePct >= 60 ? 'text-primary' : ifbs.scorePct >= 40 ? 'text-accent-foreground' : 'text-destructive'}`}>
                 {ifbs.scorePct}
               </span>
             </div>
