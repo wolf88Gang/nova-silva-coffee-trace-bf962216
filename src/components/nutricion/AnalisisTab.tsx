@@ -64,7 +64,22 @@ export default function AnalisisTab() {
       if (selectedParcela && selectedParcela !== 'all') q = q.eq('parcela_id', selectedParcela);
       const { data, error } = await q.order('fecha_analisis', { ascending: false }).limit(20);
       if (error) throw error;
-      return (data ?? []) as SueloAnalisis[];
+      // Map real DB column names to interface
+      return (data ?? []).map((r: any) => ({
+        id: r.id,
+        parcela_id: r.parcela_id,
+        fecha_analisis: r.fecha_analisis,
+        ph: r.ph_agua ?? r.ph ?? null,
+        mo_pct: r.materia_organica_pct ?? r.mo_pct ?? null,
+        p_ppm: r.p_disponible ?? r.p_ppm ?? null,
+        k_cmol: r.k_intercambiable ?? r.k_cmol ?? null,
+        ca_cmol: r.ca_intercambiable ?? r.ca_cmol ?? null,
+        mg_cmol: r.mg_intercambiable ?? r.mg_cmol ?? null,
+        s_ppm: r.s_ppm ?? null,
+        cice: r.cice ?? null,
+        textura: r.textura ?? null,
+        al_cmol: r.aluminio_intercambiable ?? r.al_cmol ?? null,
+      })) as SueloAnalisis[];
     },
     enabled: !!organizationId,
   });
