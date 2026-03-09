@@ -29,6 +29,36 @@ interface SueloAnalisis {
 interface HojaAnalisis {
   id: string; parcela_id: string; fecha_muestreo: string;
   n_pct: number | null; p_pct: number | null; k_pct: number | null;
+  ca_pct: number | null; mg_pct: number | null;
+  fe_ppm?: number | null; mn_ppm?: number | null; zn_ppm?: number | null;
+  b_ppm?: number | null; cu_ppm?: number | null;
+  notas: string | null;
+}
+
+/* ── Demo data ── */
+const DEMO_SUELO: SueloAnalisis[] = [
+  { id: 'ds-1', parcela_id: 'demo-parcela-roble', fecha_analisis: '2026-01-15', ph: 5.1, mo_pct: 5.2, p_ppm: 12, k_cmol: 0.35, ca_cmol: 4.2, mg_cmol: 0.8, s_ppm: 8, cice: 6.5, textura: 'Franco arcilloso', al_cmol: 0.15 },
+  { id: 'ds-2', parcela_id: 'demo-parcela-ceiba', fecha_analisis: '2026-01-20', ph: 4.6, mo_pct: 3.8, p_ppm: 6, k_cmol: 0.22, ca_cmol: 2.1, mg_cmol: 0.4, s_ppm: 5, cice: 4.2, textura: 'Franco arenoso', al_cmol: 0.8 },
+  { id: 'ds-3', parcela_id: 'demo-parcela-pinos', fecha_analisis: '2026-02-05', ph: 5.8, mo_pct: 6.1, p_ppm: 18, k_cmol: 0.52, ca_cmol: 6.5, mg_cmol: 1.2, s_ppm: 12, cice: 9.0, textura: 'Franco', al_cmol: 0.05 },
+  { id: 'ds-4', parcela_id: 'demo-parcela-rio', fecha_analisis: '2026-02-10', ph: 5.4, mo_pct: 4.5, p_ppm: 10, k_cmol: 0.40, ca_cmol: 3.8, mg_cmol: 0.7, s_ppm: 7, cice: 5.8, textura: 'Arcilloso', al_cmol: 0.25 },
+];
+
+const DEMO_FOLIAR: HojaAnalisis[] = [
+  { id: 'df-1', parcela_id: 'demo-parcela-roble', fecha_muestreo: '2026-01-18', n_pct: 2.8, p_pct: 0.15, k_pct: 2.1, ca_pct: 1.2, mg_pct: 0.35, fe_ppm: 85, mn_ppm: 120, zn_ppm: 12, b_ppm: 35, cu_ppm: 8, notas: 'Hoja madura, tercio medio. N y K dentro de rango.' },
+  { id: 'df-2', parcela_id: 'demo-parcela-ceiba', fecha_muestreo: '2026-01-22', n_pct: 2.2, p_pct: 0.10, k_pct: 1.6, ca_pct: 0.8, mg_pct: 0.20, fe_ppm: 60, mn_ppm: 90, zn_ppm: 8, b_ppm: 22, cu_ppm: 5, notas: 'Deficiencia generalizada — correlaciona con pH ácido.' },
+  { id: 'df-3', parcela_id: 'demo-parcela-pinos', fecha_muestreo: '2026-02-08', n_pct: 3.1, p_pct: 0.18, k_pct: 2.4, ca_pct: 1.5, mg_pct: 0.42, fe_ppm: 95, mn_ppm: 110, zn_ppm: 15, b_ppm: 40, cu_ppm: 10, notas: 'Cafetal joven — nutrición adecuada post-fertilización.' },
+];
+
+const DEMO_PARCELA_NAMES_ANALISIS: Record<string, string> = {
+  'demo-parcela-roble': 'Parcela El Roble',
+  'demo-parcela-ceiba': 'Parcela La Ceiba',
+  'demo-parcela-pinos': 'Parcela Los Pinos',
+  'demo-parcela-rio': 'Parcela Río Claro',
+};
+
+interface HojaAnalisis {
+  id: string; parcela_id: string; fecha_muestreo: string;
+  n_pct: number | null; p_pct: number | null; k_pct: number | null;
   ca_pct: number | null; mg_pct: number | null; s_pct: number | null;
   fe_ppm: number | null; mn_ppm: number | null; zn_ppm: number | null;
   b_ppm: number | null; cu_ppm: number | null;
