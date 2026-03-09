@@ -1,9 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sprout, FileText, ShoppingCart, History } from 'lucide-react';
+import { Sprout, FileText, ShoppingCart, History, DollarSign } from 'lucide-react';
 import ParcelasNutricionTab from './ParcelasNutricionTab';
 import PlanesTab from './PlanesTab';
 import CotizacionTab from './CotizacionTab';
 import HistorialTab from './HistorialTab';
+import ComisionesTab from './ComisionesTab';
 
 export default function NutricionDashboard() {
   return (
@@ -21,12 +22,14 @@ export default function NutricionDashboard() {
           <TabsTrigger value="planes" data-value="planes"><FileText className="h-4 w-4 mr-1" /> Planes</TabsTrigger>
           <TabsTrigger value="cotizacion"><ShoppingCart className="h-4 w-4 mr-1" /> Cotización</TabsTrigger>
           <TabsTrigger value="historial"><History className="h-4 w-4 mr-1" /> Historial</TabsTrigger>
+          <TabsTrigger value="comisiones"><DollarSign className="h-4 w-4 mr-1" /> Comisiones</TabsTrigger>
         </TabsList>
 
         <TabsContent value="parcelas" className="mt-4"><ParcelasNutricionTab /></TabsContent>
         <TabsContent value="planes" className="mt-4"><PlanesTab /></TabsContent>
         <TabsContent value="cotizacion" className="mt-4"><CotizacionTab /></TabsContent>
         <TabsContent value="historial" className="mt-4"><HistorialTab /></TabsContent>
+        <TabsContent value="comisiones" className="mt-4"><ComisionesTab /></TabsContent>
       </Tabs>
     </div>
   );
