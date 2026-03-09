@@ -140,7 +140,7 @@ function KPIDetailDialog({ open, onClose, type }: { open: boolean; onClose: () =
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="text-xs">Ver trazabilidad</Button>
-                    <Button size="sm" className="text-xs">Publicar en subasta</Button>
+                    <Button size="sm" className="text-xs" onClick={() => toast.success(`Lote ${l.codigo} publicado para exportadores asociados`)}>Ofrecer a exportadores</Button>
                   </div>
                 </CardContent>
               </Card>
