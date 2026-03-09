@@ -197,15 +197,27 @@ export default function PlanDetailView({ planId, parcelaName, onBack }: Props) {
   const { data: rpcPlan, isLoading, error } = useNutritionPlanDetail(isDemo ? null : planId);
   const approveMutation = useApprovePlan();
 
-  const plan = isDemo ? DEMO_PLAN_DETAILS[planId] : rpcPlan;
+  const plan = isDemo ? (DEMO_PLAN_DETAILS[planId] ?? null) : rpcPlan;
 
   if (!isDemo && isLoading) return <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>;
-  if (!plan) return (
-    <Card><CardContent className="p-6 text-center">
-      <p className="text-destructive">Error al cargar detalle del plan</p>
-      <Button variant="outline" size="sm" onClick={onBack} className="mt-2"><ArrowLeft className="h-4 w-4 mr-1" /> Volver</Button>
-    </CardContent></Card>
-  );
+  if (!plan) {
+    // For demo plans that don't match, show a friendly fallback
+    if (isDemo) {
+      return (
+        <Card><CardContent className="p-6 text-center">
+          <p className="text-muted-foreground">Plan demo no encontrado (ID: {planId})</p>
+          <Button variant="outline" size="sm" onClick={onBack} className="mt-2"><ArrowLeft className="h-4 w-4 mr-1" /> Volver</Button>
+        </CardContent></Card>
+      );
+    }
+    return (
+      <Card><CardContent className="p-6 text-center">
+        <p className="text-destructive">{error ? `Error: ${error.message}` : 'No se encontró el plan'}</p>
+        <p className="text-xs text-muted-foreground mt-1">El plan puede no existir en la base de datos o no tener permisos de acceso.</p>
+        <Button variant="outline" size="sm" onClick={onBack} className="mt-2"><ArrowLeft className="h-4 w-4 mr-1" /> Volver</Button>
+      </CardContent></Card>
+    );
+  }
 
   const planJson = plan.plan_json as Record<string, any> | null;
   const canApprove = (plan.status === 'generado' || plan.status === 'borrador') && !isDemo;
