@@ -238,30 +238,47 @@ export default function AnalisisTab() {
         <TabsContent value="foliar" className="mt-3">
           {loadingHoja ? (
             <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
-          ) : !hojaList?.length ? (
+          ) : !allFoliar.length ? (
             <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">No hay análisis foliares registrados.</CardContent></Card>
           ) : (
             <div className="space-y-3 stagger-children">
-              {hojaList.map(h => (
+              {allFoliar.map(h => (
                 <Card key={h.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Leaf className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">{parcelas?.find(p => p.id === h.parcela_id)?.nombre ?? h.parcela_id.slice(0, 8)}</span>
+                        <span className="text-sm font-medium text-foreground">{parcelaNameLookup(h.parcela_id)}</span>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(h.fecha_muestreo).toLocaleDateString('es')}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {h.laboratorio && <Badge variant="secondary" className="text-[10px]">{h.laboratorio}</Badge>}
+                        <Badge variant="outline" className="text-xs">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(h.fecha_muestreo).toLocaleDateString('es')}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
+                    <p className="text-[10px] text-muted-foreground mb-1.5">Macronutrientes</p>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
                       <Metric label="N %" value={h.n_pct} />
                       <Metric label="P %" value={h.p_pct} />
                       <Metric label="K %" value={h.k_pct} />
                       <Metric label="Ca %" value={h.ca_pct} />
                       <Metric label="Mg %" value={h.mg_pct} />
+                      <Metric label="S %" value={h.s_pct} />
                     </div>
+                    {(h.fe_ppm != null || h.mn_ppm != null || h.zn_ppm != null) && (
+                      <>
+                        <p className="text-[10px] text-muted-foreground mt-2 mb-1.5">Micronutrientes</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
+                          <Metric label="Fe ppm" value={h.fe_ppm ?? null} />
+                          <Metric label="Mn ppm" value={h.mn_ppm ?? null} />
+                          <Metric label="Zn ppm" value={h.zn_ppm ?? null} />
+                          <Metric label="B ppm" value={h.b_ppm ?? null} />
+                          <Metric label="Cu ppm" value={h.cu_ppm ?? null} />
+                        </div>
+                      </>
+                    )}
                     {h.notas && <p className="text-xs text-muted-foreground mt-2">{h.notas}</p>}
                   </CardContent>
                 </Card>
