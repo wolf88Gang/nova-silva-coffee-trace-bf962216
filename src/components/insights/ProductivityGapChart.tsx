@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import { TrendingUp } from 'lucide-react';
 import { usePlotSnapshotsHistory } from '@/hooks/usePlotSnapshotsHistory';
 import { DEMO_SNAPSHOTS_HISTORY } from '@/lib/demoInsightsData';
+import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
 
 interface Props {
   parcelaId: string | null;
@@ -41,9 +42,9 @@ export default function ProductivityGapChart({ parcelaId, useDemo }: Props) {
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
-              <XAxis dataKey="ciclo" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
+              <XAxis dataKey="ciclo" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+              <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={chartCursorStyle} />
               <Legend />
               <Bar dataKey="expected" name="Esperado" fill="hsl(var(--primary))" />
               <Bar dataKey="adjusted" name="Ajustado" fill="hsl(var(--chart-2))" />

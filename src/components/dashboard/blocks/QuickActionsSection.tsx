@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { hasModule, type OrgModule } from '@/lib/org-modules';
 import { getNewActorLabel } from '@/lib/org-terminology';
-import { UserPlus, Package, Shield, Wallet, FileText, Map, Leaf, ShieldCheck, Building2, Boxes } from 'lucide-react';
+import { UserPlus, Package, Shield, Wallet, FileText, Map, Leaf, ShieldCheck, Building2, Boxes, Coffee, Sprout, BarChart3 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 interface QuickAction {
@@ -23,6 +23,9 @@ function getActions(role: string | null, orgTipo: string | null): QuickAction[] 
         { label: 'Nueva Entrega', icon: Package, route: '/cooperativa/acopio', module: 'entregas' },
         { label: 'Ejecutar VITAL', icon: Shield, route: '/cooperativa/vital', module: 'vital' },
         { label: 'Aprobar Crédito', icon: Wallet, route: '/cooperativa/finanzas-hub', module: 'creditos' },
+        { label: 'Plan Nutrición', icon: Sprout, route: '/cooperativa/nutricion', module: 'nutricion' },
+        { label: 'Nueva Catación', icon: Coffee, route: '/cooperativa/calidad', module: 'calidad' },
+        { label: 'Comité Crédito', icon: BarChart3, route: '/cooperativa/finanzas-hub', module: 'creditos' },
       ];
     case 'exportador':
       return [

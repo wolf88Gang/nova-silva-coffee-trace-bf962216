@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { hasModule, type OrgModule } from '@/lib/org-modules';
-import { Shield, ShieldCheck, Wallet, Boxes, Users as UsersIcon, Package } from 'lucide-react';
+import { Shield, ShieldCheck, Wallet, Boxes, Users as UsersIcon, Package, Sprout, Coffee, BarChart3, MessageSquare } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,10 +17,13 @@ interface ModuleStatus {
 const ALL_STATUSES: ModuleStatus[] = [
   { module: 'vital', label: 'Protocolo VITAL', icon: Shield, value: '65% cobertura', progress: 65, path: '/cooperativa/vital' },
   { module: 'eudr', label: 'EUDR', icon: ShieldCheck, value: '3 contenedores pendientes', path: '/cooperativa/acopio' },
-  { module: 'creditos', label: 'Creditos', icon: Wallet, value: '2 aprobaciones pendientes', path: '/cooperativa/finanzas-hub' },
+  { module: 'nutricion', label: 'Nutrición', icon: Sprout, value: '3 planes activos, 45% ejecución promedio', progress: 45, path: '/cooperativa/nutricion' },
+  { module: 'creditos', label: 'Créditos', icon: Wallet, value: '2 solicitudes pendientes en comité', path: '/cooperativa/finanzas-hub' },
+  { module: 'calidad', label: 'NovaCup (Cataciones)', icon: Coffee, value: '12 muestras evaluadas, promedio 84.5', progress: 84, path: '/cooperativa/calidad' },
   { module: 'jornales', label: 'Jornales', icon: UsersIcon, value: 'Campaña activa', path: '/cooperativa/operaciones' },
   { module: 'inventario', label: 'Inventario', icon: Boxes, value: '4 lotes disponibles', path: '/cooperativa/operaciones' },
-  { module: 'lotes_comerciales', label: 'Lotes Comerciales', icon: Package, value: '3 en formacion', path: '/cooperativa/calidad' },
+  { module: 'lotes_comerciales', label: 'Lotes Comerciales', icon: Package, value: '3 en formación', path: '/cooperativa/calidad' },
+  { module: 'mensajes', label: 'Comunicación', icon: MessageSquare, value: '5 avisos activos', path: '/cooperativa/comunicacion' },
 ];
 
 interface ModuleStatusSectionProps {
