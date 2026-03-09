@@ -586,7 +586,10 @@ export default function NovaCupDashboard() {
                   return (
                     <div key={lote} className="p-3 rounded-lg border border-border hover:border-primary/30 transition-colors">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-foreground">{lote}</span>
+                        <button className="font-medium text-foreground hover:text-primary hover:underline transition-colors"
+                          onClick={() => { const l = LOTE_INFO[lote]; if (l) setSelectedLote(l); }}>
+                          {lote}
+                        </button>
                         <Badge variant={delta >= 0 ? 'default' : 'destructive'} className="text-xs">
                           {delta >= 0 ? '+' : ''}{delta.toFixed(1)} pts
                         </Badge>
