@@ -103,7 +103,7 @@ interface ResumenRow {
   organization_id: string;
   parcela_id: string;
   parcela_nombre: string;
-  variedades: string | null;
+  variedades: any;
   edad_promedio_anios: number | null;
   altitud_msnm: number | null;
   densidad_plantas_ha: number | null;
