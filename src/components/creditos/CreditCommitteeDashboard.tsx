@@ -279,21 +279,40 @@ export default function CreditCommitteeDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-xs">Precio Café: ${stressPrecio[0]}/qq</Label>
-                <Slider value={stressPrecio} onValueChange={setStressPrecio} min={180} max={240} step={5} />
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Precio Café ($/qq)</Label>
+                  <Input type="number" min={100} max={400} step={5} value={stressPrecio}
+                    onChange={e => setStressPrecio(Math.max(100, Math.min(400, Number(e.target.value))))}
+                    className="w-24 h-7 text-xs text-center font-bold" />
+                </div>
+                <Slider value={[stressPrecio]} onValueChange={v => setStressPrecio(v[0])} min={100} max={400} step={5} />
+                <p className="text-[10px] text-muted-foreground">Rango: $100 — $400/qq · NYC actual ≈ $210/qq</p>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">Pérdida Climática: {stressClima[0]}%</Label>
-                <Slider value={stressClima} onValueChange={setStressClima} min={0} max={30} step={5} />
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Pérdida Climática (%)</Label>
+                  <Input type="number" min={0} max={50} step={1} value={stressClima}
+                    onChange={e => setStressClima(Math.max(0, Math.min(50, Number(e.target.value))))}
+                    className="w-24 h-7 text-xs text-center font-bold" />
+                </div>
+                <Slider value={[stressClima]} onValueChange={v => setStressClima(v[0])} min={0} max={50} step={1} />
+                <p className="text-[10px] text-accent-foreground font-medium">{climaLabel}</p>
+                <div className="text-[9px] text-muted-foreground space-y-0.5">
+                  {CLIMA_CONTEXT.map(c => (
+                    <div key={c.pct} className={stressClima === c.pct ? 'text-foreground font-medium' : ''}>
+                      {c.pct}% — {c.label}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center p-3 rounded-lg bg-muted/50">
-                <p className="text-lg font-bold">{stressTest.adjustedYield.toFixed(1)} QQ</p>
+                <p className="text-lg font-bold text-foreground">{stressTest.adjustedYield.toFixed(1)} QQ</p>
                 <p className="text-[10px] text-muted-foreground">Rendimiento ajustado</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/50">
-                <p className="text-lg font-bold">${stressTest.ingreso.toFixed(0)}</p>
+                <p className="text-lg font-bold text-foreground">${stressTest.ingreso.toFixed(0)}</p>
                 <p className="text-[10px] text-muted-foreground">Ingreso estimado</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/50">
