@@ -205,13 +205,13 @@ export default function AnalisisTab() {
             <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">No hay análisis de suelo registrados.</CardContent></Card>
           ) : (
             <div className="space-y-3 stagger-children">
-              {sueloList.map(s => (
+              {allSuelo.map(s => (
                 <Card key={s.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Droplets className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">{parcelas?.find(p => p.id === s.parcela_id)?.nombre ?? s.parcela_id.slice(0, 8)}</span>
+                        <span className="text-sm font-medium text-foreground">{parcelaNameLookup(s.parcela_id)}</span>
                       </div>
                       <Badge variant="outline" className="text-xs">
                         <Calendar className="h-3 w-3 mr-1" />
