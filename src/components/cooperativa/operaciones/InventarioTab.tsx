@@ -299,9 +299,10 @@ export default function InventarioTab() {
 
       {/* ═══ SUB-TABS ═══ */}
       <Tabs defaultValue="insumos" className="w-full">
-        <TabsList className="w-full sm:w-auto">
+        <TabsList className="w-full sm:w-auto overflow-x-auto">
           <TabsTrigger value="insumos" className="gap-1.5"><Package className="h-4 w-4" /> Insumos</TabsTrigger>
           <TabsTrigger value="equipos" className="gap-1.5"><Cog className="h-4 w-4" /> Equipos</TabsTrigger>
+          <TabsTrigger value="cotizaciones" className="gap-1.5"><ShoppingCart className="h-4 w-4" /> Cotizaciones</TabsTrigger>
           <TabsTrigger value="historial" className="gap-1.5"><History className="h-4 w-4" /> Historial</TabsTrigger>
         </TabsList>
 
