@@ -347,12 +347,37 @@ export default function CreditCommitteeDashboard() {
           <DialogHeader><DialogTitle>Aprobación con Condiciones</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">Justifique las condiciones para aprobar este crédito fuera de los parámetros automáticos.</p>
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs font-semibold text-primary mb-1">Respuesta sugerida por Nova Silva</p>
+              <p className="text-xs text-muted-foreground">Esta plantilla se generó basándose en el análisis integral. Puede editarla antes de confirmar.</p>
+            </div>
             <Label>Justificación (obligatorio)</Label>
-            <Textarea value={overrideText} onChange={e => setOverrideText(e.target.value)} placeholder="Ej: Se aprueba con garantía adicional de cosecha comprometida..." rows={4} />
+            <Textarea value={overrideText} onChange={e => setOverrideText(e.target.value)} rows={6} />
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setShowOverride(false)}>Cancelar</Button>
               <Button onClick={() => { if (!overrideText.trim()) { toast.error('Justificación requerida'); return; } toast.success('Aprobado con condiciones (demo)'); setShowOverride(false); }}>
                 Confirmar Aprobación
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <Dialog open={showReject} onOpenChange={setShowReject}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Rechazar Crédito</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+              <p className="text-xs font-semibold text-destructive mb-1">Dictamen de rechazo sugerido</p>
+              <p className="text-xs text-muted-foreground">Edite la justificación antes de confirmar el rechazo.</p>
+            </div>
+            <Label>Justificación de rechazo (obligatorio)</Label>
+            <Textarea value={rejectText} onChange={e => setRejectText(e.target.value)} rows={5} />
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setShowReject(false)}>Cancelar</Button>
+              <Button variant="destructive" onClick={() => { if (!rejectText.trim()) { toast.error('Justificación requerida'); return; } toast.info('Crédito rechazado (demo)'); setShowReject(false); }}>
+                Confirmar Rechazo
               </Button>
             </div>
           </div>
