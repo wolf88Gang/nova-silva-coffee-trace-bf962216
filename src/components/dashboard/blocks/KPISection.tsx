@@ -113,13 +113,15 @@ export function KPISection({ role, orgTipo, activeModules }: KPISectionProps) {
           className={kpi.route ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
           onClick={() => kpi.route && navigate(kpi.route)}
         >
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 mb-2">
-              <kpi.icon className="h-4 w-4 text-primary" />
+          <CardContent className="pt-5 pb-4 px-5">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="p-1.5 rounded-md bg-primary/10">
+                <kpi.icon className="h-4 w-4 text-primary" />
+              </div>
               <span className="text-xs text-muted-foreground">{kpi.label}</span>
             </div>
             <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
-            {kpi.sub && <p className="text-xs text-muted-foreground mt-0.5">{kpi.sub}</p>}
+            {kpi.sub && <p className="text-xs text-muted-foreground mt-1">{kpi.sub}</p>}
           </CardContent>
         </Card>
       ))}

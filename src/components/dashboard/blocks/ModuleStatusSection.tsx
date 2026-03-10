@@ -37,16 +37,18 @@ export function ModuleStatusSection({ activeModules }: ModuleStatusSectionProps)
   if (visible.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {visible.map((s) => (
         <Card
           key={s.module}
           className="border-l-4 border-l-primary/30 cursor-pointer hover:border-l-primary hover:shadow-md transition-all"
           onClick={() => navigate(s.path)}
         >
-          <CardContent className="py-3 px-4">
-            <div className="flex items-center gap-2 mb-1">
-              <s.icon className="h-4 w-4 text-primary" />
+          <CardContent className="py-4 px-5">
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="p-1.5 rounded-md bg-primary/10">
+                <s.icon className="h-4 w-4 text-primary" />
+              </div>
               <span className="text-sm font-medium text-foreground">{s.label}</span>
             </div>
             <p className="text-xs text-muted-foreground">{s.value}</p>
