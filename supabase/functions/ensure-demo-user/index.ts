@@ -57,7 +57,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const email = `demo.${role}@novasilva.com`
+    const email = role === 'admin' ? 'info@novasilva.co' : `demo.${role}@novasilva.com`
     const password = 'demo123456'
 
     const orgNames: Record<string, string> = {
