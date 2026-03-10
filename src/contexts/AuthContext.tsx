@@ -42,7 +42,7 @@ const DEMO_USERS: Partial<Record<UserRole, { email: string; name: string; organi
   certificadora: { email: 'demo.certificadora@novasilva.com', name: 'Ana Certificadora', organizationName: 'CertifiCafé Internacional', orgTipo: 'certificadora' },
   productor: { email: 'demo.productor@novasilva.com', name: 'Juan Pérez', organizationName: 'Finca El Mirador', orgTipo: 'productor' },
   tecnico: { email: 'demo.tecnico@novasilva.com', name: 'Pedro Técnico', organizationName: 'Cooperativa Café de la Selva', orgTipo: 'cooperativa' },
-  admin: { email: 'demo.admin@novasilva.com', name: 'Admin Nova Silva', organizationName: 'Nova Silva Platform', orgTipo: 'admin' },
+  admin: { email: 'info@novasilva.co', name: 'Admin Nova Silva', organizationName: 'Nova Silva Platform', orgTipo: 'admin' },
 };
 
 export { DEMO_USERS };
