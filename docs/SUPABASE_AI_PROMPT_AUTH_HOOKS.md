@@ -1,27 +1,59 @@
-# Prompt para Supabase AI — Auth Hooks y Emails Personalizados
+# Prompt para Supabase AI — Auth Hooks (Emails de Autenticación)
 
-> **Copia y pega este texto completo en el Supabase AI Assistant** para configurar Auth Hooks que envíen emails de autenticación personalizados mediante la Edge Function `send-client-email`.
+> **Copia y pega este texto completo en el Supabase AI Assistant** para configurar los Auth Hooks de Supabase que envían emails personalizados de autenticación.
 > Última actualización: 2026-03-10
 
 ---
 
-Eres un asistente SQL/configuración para los **Auth Hooks** de Nova Silva. Los Auth Hooks interceptan eventos de autenticación de Supabase Auth y los redirigen a una Edge Function que envía emails personalizados via Resend en lugar de los emails genéricos de Supabase.
+## ⚠️ IMPORTANTE: Esto NO son los 11 templates transaccionales
 
-## Contexto del Sistema
+Este documento trata **exclusivamente** de los **Auth Hooks de Supabase** — el mecanismo que intercepta eventos de autenticación (registro, reset de contraseña, magic link, etc.) para enviar emails personalizados en lugar de los genéricos de Supabase.
 
-- **Edge Function existente:** `send-client-email` — envía emails via Resend API.
-- **URL:** `https://qbwmsarqewxjuwgkdfmg.supabase.co/functions/v1/send-client-email`
+### Dos sistemas de email separados:
+
+| Sistema | Qué hace | Cuándo se dispara | Edge Function | Documento |
+|---------|----------|-------------------|---------------|-----------|
+| **Auth Hooks** (este doc) | Emails de autenticación: verificación, reset, invitación, magic link, cambio de email | Automático por Supabase Auth cuando un usuario se registra, pide reset, etc. | `send-auth-email` | Este archivo |
+| **Plantillas transaccionales** (otro doc) | 11 emails de negocio: bienvenida, pago, entrega, crédito, VITAL, recordatorio, oferta, EUDR | Manualmente desde la app cuando ocurre un evento de negocio | `send-client-email` | `SUPABASE_AI_PROMPT_COMUNICACIONES.md` |
+
+**Los 11 templates transaccionales** (bienvenida_productor, confirmacion_pago, resultado_vital, etc.) son para **todos los usuarios** y se envían cuando la cooperativa/exportador ejecuta una acción en la plataforma. No tienen nada que ver con Auth Hooks. Están documentados en `SUPABASE_AI_PROMPT_COMUNICACIONES.md`.
+
+---
+
+## Contexto del Sistema Auth Hooks
+
+- **Edge Function a crear:** `send-auth-email` — intercepta eventos de Supabase Auth
+- **URL:** `https://qbwmsarqewxjuwgkdfmg.supabase.co/functions/v1/send-auth-email`
 - **Secret requerido:** `RESEND_API_KEY`
-- **Tabla de templates:** `email_templates` (ver `SUPABASE_AI_PROMPT_COMUNICACIONES.md`)
-- **Tabla de logs:** `email_send_logs` (inmutable, registra cada envío)
+- **Dependencia:** tablas `email_templates` y `email_send_logs` (creadas en `SUPABASE_AI_PROMPT_COMUNICACIONES.md`)
 
-## Auth Hook: Custom Email Sender
+## ¿Qué son los Auth Hooks?
 
-Supabase Auth permite configurar un Hook `send_email` que intercepta TODOS los emails de autenticación. En lugar de que Supabase envíe su email genérico, invoca nuestra Edge Function con el HTML personalizado de Nova Silva.
+Supabase Auth permite configurar un Hook `send_email` que intercepta **todos** los emails de autenticación. En lugar de que Supabase envíe su email genérico en inglés, invoca nuestra Edge Function que:
 
-### Edge Function: send-auth-email
+1. Identifica el tipo de evento (signup, recovery, invite, etc.)
+2. Busca un template personalizado en `email_templates` (si existe para la org del usuario)
+3. Si no existe, usa un fallback HTML con la marca Nova Silva
+4. Envía el email via Resend API
+5. Registra el envío en `email_send_logs`
 
-Esta función debe crearse para manejar el hook de Auth:
+## Los 5 eventos de Auth que se interceptan
+
+Estos son los **únicos** eventos que manejan los Auth Hooks. Son disparados **automáticamente por Supabase Auth**, no por la app:
+
+| # | Evento Auth | Cuándo ocurre | Template que usa (si existe en BD) |
+|---|-------------|---------------|-------------------------------------|
+| 1 | `signup` | Usuario se registra y necesita verificar email | `verificacion_email` |
+| 2 | `recovery` | Usuario pide restablecer contraseña | `reset_password` |
+| 3 | `invite` | Admin invita a un usuario nuevo | `verificacion_email` (o `bienvenida_*` si aplica) |
+| 4 | `magiclink` | Usuario solicita un magic link para login | `verificacion_email` |
+| 5 | `email_change` | Usuario cambia su dirección de email | `verificacion_email` |
+
+> **Nota:** Los templates `verificacion_email` y `reset_password` son parte de los 11 templates transaccionales, pero aquí se reutilizan para los eventos de Auth. Los otros 9 templates (pago, entrega, crédito, VITAL, etc.) **NO** se usan en Auth Hooks — se envían desde la app via `send-client-email`.
+
+---
+
+## Edge Function: send-auth-email
 
 ```typescript
 // supabase/functions/send-auth-email/index.ts
@@ -32,7 +64,7 @@ serve(async (req: Request) => {
   try {
     const payload = await req.json()
 
-    // Supabase Auth Hook payload:
+    // Payload que envía Supabase Auth al hook:
     // {
     //   user: { id, email, user_metadata, ... },
     //   email_data: {
@@ -48,11 +80,11 @@ serve(async (req: Request) => {
     const userEmail = user.email
     const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario'
 
-    // Mapeo de action_type a template_codigo
+    // Mapeo: evento de Auth → código de template en email_templates
     const TEMPLATE_MAP: Record<string, string> = {
       signup:       'verificacion_email',
       recovery:     'reset_password',
-      invite:       'bienvenida_nuevo_usuario',
+      invite:       'verificacion_email',
       magiclink:    'verificacion_email',
       email_change: 'verificacion_email',
     }
@@ -67,7 +99,7 @@ serve(async (req: Request) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://novasilva.lovable.app'
     const confirmationLink = `${siteUrl}/auth/confirm?token_hash=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || siteUrl)}`
 
-    // Obtener template de BD
+    // Cliente admin para leer templates de BD
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -82,13 +114,11 @@ serve(async (req: Request) => {
     let text: string | undefined
 
     if (orgId) {
-      // Buscar template personalizado de la org
       const { data: template } = await supabaseAdmin
         .rpc('get_email_template', { _org_id: orgId, _codigo: templateCode })
 
       if (template && template.length > 0) {
         const t = template[0]
-        // Sustituir variables
         const vars: Record<string, string> = {
           nombre_completo: userName,
           nombre_organizacion: user.user_metadata?.organization_name || 'Nova Silva',
@@ -96,24 +126,17 @@ serve(async (req: Request) => {
           link_verificacion: confirmationLink,
           link_accion: confirmationLink,
           minutos_expiracion: '60',
-          expiracion: '60 minutos',
         }
         subject = replaceVars(t.asunto_template, vars)
         html = replaceVars(t.cuerpo_html, vars)
         text = t.cuerpo_texto ? replaceVars(t.cuerpo_texto, vars) : undefined
       } else {
-        // Fallback: usar template hardcodeado
         const fallback = getFallbackTemplate(email_action_type, userName, confirmationLink)
-        subject = fallback.subject
-        html = fallback.html
-        text = fallback.text
+        subject = fallback.subject; html = fallback.html; text = fallback.text
       }
     } else {
-      // Sin org: usar fallback
       const fallback = getFallbackTemplate(email_action_type, userName, confirmationLink)
-      subject = fallback.subject
-      html = fallback.html
-      text = fallback.text
+      subject = fallback.subject; html = fallback.html; text = fallback.text
     }
 
     // Enviar via Resend
@@ -139,7 +162,7 @@ serve(async (req: Request) => {
 
     const resData = await res.json()
 
-    // Log del envío
+    // Registrar en email_send_logs
     if (orgId) {
       await supabaseAdmin.rpc('log_email_send', {
         _org_id: orgId,
@@ -150,7 +173,7 @@ serve(async (req: Request) => {
         _estado: res.ok ? 'enviado' : 'fallido',
         _proveedor: 'resend',
         _proveedor_id: resData.id || null,
-        _variables: { email_action_type, user_id: user.id },
+        _variables: { email_action_type, user_id: user.id, source: 'auth_hook' },
         _enviado_por: null,
       })
     }
@@ -175,12 +198,12 @@ function getFallbackTemplate(actionType: string, name: string, link: string) {
   const templates: Record<string, { subject: string; html: string; text: string }> = {
     signup: {
       subject: 'Verifica tu correo — Nova Silva',
-      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Verifica tu Correo</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>${name}</strong>,</p><p style="color:#555;font-size:15px;">Haz clic en el botón para verificar tu correo electrónico:</p><div style="text-align:center;margin:28px 0;"><a href="${link}" style="background:hsl(120,55%,23%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Verificar Correo</a></div></div></div>`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Verifica tu Correo</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>${name}</strong>,</p><p style="color:#555;font-size:15px;">Haz clic para verificar tu correo electrónico:</p><div style="text-align:center;margin:28px 0;"><a href="${link}" style="background:hsl(120,55%,23%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Verificar Correo</a></div></div></div>`,
       text: `Hola ${name}, verifica tu correo: ${link}`,
     },
     recovery: {
       subject: 'Restablecer contraseña — Nova Silva',
-      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Restablecer Contraseña</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>${name}</strong>,</p><p style="color:#555;font-size:15px;">Haz clic para restablecer tu contraseña:</p><div style="text-align:center;margin:28px 0;"><a href="${link}" style="background:hsl(25,75%,55%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Restablecer</a></div><p style="color:#999;font-size:13px;">Este enlace expira en 60 minutos.</p></div></div>`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Restablecer Contraseña</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>${name}</strong>,</p><p style="color:#555;font-size:15px;">Haz clic para restablecer tu contraseña:</p><div style="text-align:center;margin:28px 0;"><a href="${link}" style="background:hsl(25,75%,55%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Restablecer</a></div><p style="color:#999;font-size:13px;">Expira en 60 minutos.</p></div></div>`,
       text: `Hola ${name}, restablece tu contraseña: ${link}`,
     },
     invite: {
@@ -190,7 +213,7 @@ function getFallbackTemplate(actionType: string, name: string, link: string) {
     },
     magiclink: {
       subject: 'Tu enlace de acceso — Nova Silva',
-      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Enlace de Acceso</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>${name}</strong>,</p><p style="color:#555;font-size:15px;">Haz clic para acceder a tu cuenta:</p><div style="text-align:center;margin:28px 0;"><a href="${link}" style="background:hsl(120,55%,23%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Acceder</a></div><p style="color:#999;font-size:13px;">Este enlace es de un solo uso.</p></div></div>`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Enlace de Acceso</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>${name}</strong>,</p><p style="color:#555;font-size:15px;">Haz clic para acceder a tu cuenta:</p><div style="text-align:center;margin:28px 0;"><a href="${link}" style="background:hsl(120,55%,23%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Acceder</a></div><p style="color:#999;font-size:13px;">Enlace de un solo uso.</p></div></div>`,
       text: `Hola ${name}, accede aquí: ${link}`,
     },
     email_change: {
@@ -203,7 +226,7 @@ function getFallbackTemplate(actionType: string, name: string, link: string) {
 }
 ```
 
-### Configuración del Hook en Supabase Dashboard
+## Configuración del Hook en Supabase Dashboard
 
 **Ruta:** Supabase Dashboard → Authentication → Hooks → Send Email
 
@@ -221,29 +244,11 @@ function getFallbackTemplate(actionType: string, name: string, link: string) {
 
 > **IMPORTANTE:** Al habilitar este hook, Supabase deja de enviar sus emails genéricos y delega 100% al hook. Asegúrate de que la Edge Function y `RESEND_API_KEY` estén operativas antes de activarlo.
 
-### Secrets Requeridos en Edge Functions
+## Hook Alternativo: Custom Access Token (para roles en JWT)
 
-| Secret | Descripción |
-|--------|-------------|
-| `RESEND_API_KEY` | API key de Resend para enviar emails |
-| `SUPABASE_URL` | URL del proyecto Supabase (auto-provisionado) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (auto-provisionado) |
-| `SITE_URL` | URL del sitio: `https://novasilva.lovable.app` |
-
-### Deshabilitar Emails Nativos de Supabase
-
-Una vez activado el hook, es recomendable deshabilitar los emails nativos para evitar duplicados:
-
-**Dashboard → Authentication → Email Templates:**
-- Los templates nativos de Supabase se ignoran automáticamente cuando el hook está activo
-- No es necesario borrarlos, pero tampoco se enviarán
-
-### Configuración Alternativa: Hook via Postgres Function
-
-Si se prefiere un hook basado en SQL en lugar de HTTP (menos latencia, sin cold starts):
+Este es un hook **diferente** al de email. Agrega el `app_role` del usuario al JWT para que las RLS policies puedan leerlo:
 
 ```sql
--- Hook function que llama a la Edge Function internamente
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -257,7 +262,6 @@ DECLARE
 BEGIN
   _user_id := (event ->> 'user_id')::uuid;
 
-  -- Agregar role al JWT claims
   SELECT role INTO _role
   FROM public.user_roles
   WHERE user_id = _user_id
@@ -275,187 +279,101 @@ BEGIN
 END;
 $$;
 
--- Permisos para supabase_auth_admin
 GRANT EXECUTE ON FUNCTION public.custom_access_token_hook TO supabase_auth_admin;
 GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
 REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook FROM authenticated, anon, public;
 ```
 
-## Catálogo de los 11 Templates del Sistema
+**Configuración:** Dashboard → Authentication → Hooks → Customize Access Token → Postgres Function → `public.custom_access_token_hook`
 
-Estos son los 11 templates definidos en `communicationTemplates.ts` que deben sembrarse en `email_templates`:
+## RPC Helper: Obtener org_id de un usuario
 
-| # | Código | Categoría | Auth Hook | Variables Clave |
-|---|--------|-----------|-----------|-----------------|
-| 1 | `bienvenida_productor` | bienvenida | invite | nombre_completo, organizacion_nombre, link_plataforma |
-| 2 | `bienvenida_exportador` | bienvenida | invite | organizacion_nombre, link_plataforma |
-| 3 | `confirmacion_pago` | transaccional | — | nombre_completo, monto, fecha_entrega, referencia |
-| 4 | `confirmacion_entrega` | transaccional | — | nombre_completo, cantidad_kg, fecha, codigo_lote |
-| 5 | `credito_aprobado_email` | transaccional | — | nombre_completo, monto, plazo, tasa |
-| 6 | `reset_password` | seguridad | recovery | nombre_completo, link_reset, minutos_expiracion |
-| 7 | `verificacion_email` | seguridad | signup, magiclink, email_change | nombre_completo, link_verificacion |
-| 8 | `resultado_vital` | operativo | — | nombre_completo, puntaje, nivel |
-| 9 | `recordatorio_entrega` | operativo | — | nombre_completo, fecha, punto_acopio |
-| 10 | `oferta_comercial` | comercial | — | organizacion_destino, exportador_nombre, codigo_lote, precio |
-| 11 | `alerta_eudr` | comercial | — | codigo_lote, lista_parcelas, fecha_limite |
-
-### Seed SQL Completo para los 11 Templates
+La Edge Function `send-auth-email` necesita saber a qué organización pertenece el usuario para buscar el template correcto:
 
 ```sql
-CREATE OR REPLACE FUNCTION public.seed_all_email_templates(_org_id uuid)
-RETURNS void
-LANGUAGE plpgsql
+CREATE OR REPLACE FUNCTION public.get_user_organization_id(_user_id uuid)
+RETURNS uuid
+LANGUAGE sql
+STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-BEGIN
-  INSERT INTO public.email_templates (organization_id, categoria, codigo, nombre, asunto_template, cuerpo_html, cuerpo_texto, variables_requeridas, es_default)
-  VALUES
-    -- 1. Bienvenida Productor
-    (_org_id, 'bienvenida', 'bienvenida_productor',
-     'Bienvenida - Productor',
-     'Bienvenido a {organizacion_nombre}',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Bienvenido a {organizacion_nombre}</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimado/a <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Le damos la bienvenida a <strong>{organizacion_nombre}</strong>. Su perfil ha sido creado exitosamente en nuestra plataforma Nova Silva.</p><div style="text-align:center;margin:28px 0;"><a href="{link_plataforma}" style="background:hsl(120,55%,23%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Ingresar a Nova Silva</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">{organizacion_nombre} · Nova Silva</p></div></div>',
-     'Estimado/a {nombre_completo}, le damos la bienvenida a {organizacion_nombre}. Su perfil ha sido creado exitosamente.',
-     ARRAY['nombre_completo', 'organizacion_nombre', 'link_plataforma'],
-     true),
-
-    -- 2. Bienvenida Exportador
-    (_org_id, 'bienvenida', 'bienvenida_exportador',
-     'Bienvenida - Exportador',
-     'Bienvenido a Nova Silva',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Bienvenido a Nova Silva</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimados <strong>{organizacion_nombre}</strong>,</p><p style="color:#555;font-size:15px;">Su cuenta de exportador ha sido creada. Ya puede explorar lotes disponibles y gestionar contratos.</p><div style="text-align:center;margin:28px 0;"><a href="{link_plataforma}" style="background:hsl(25,75%,55%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Explorar Lotes</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">Nova Silva · Trazabilidad cafetera</p></div></div>',
-     'Estimados {organizacion_nombre}, su cuenta de exportador ha sido creada en Nova Silva.',
-     ARRAY['organizacion_nombre', 'link_plataforma'],
-     true),
-
-    -- 3. Confirmación de Pago
-    (_org_id, 'transaccional', 'confirmacion_pago',
-     'Confirmación de Pago',
-     'Pago registrado por {monto}',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Pago Registrado</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimado/a <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Se ha registrado exitosamente su pago:</p><div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid hsl(145,55%,45%);"><table style="width:100%;border-collapse:collapse;"><tr><td style="color:#888;font-size:13px;padding:4px 0;">Monto</td><td style="color:#333;font-weight:600;text-align:right;">{monto}</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Fecha</td><td style="color:#333;text-align:right;">{fecha_entrega}</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Referencia</td><td style="color:#333;text-align:right;">{referencia}</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Cantidad</td><td style="color:#333;text-align:right;">{cantidad_kg} kg</td></tr></table></div><div style="text-align:center;margin:28px 0;"><a href="{link_finanzas}" style="background:hsl(120,55%,23%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Ver Mis Finanzas</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">{organizacion_nombre} · Nova Silva</p></div></div>',
-     'Pago registrado: {monto}. Fecha: {fecha_entrega}. Referencia: {referencia}.',
-     ARRAY['nombre_completo', 'monto', 'fecha_entrega', 'referencia', 'cantidad_kg', 'organizacion_nombre', 'link_finanzas'],
-     true),
-
-    -- 4. Confirmación de Entrega
-    (_org_id, 'transaccional', 'confirmacion_entrega',
-     'Confirmación de Entrega',
-     'Entrega registrada: {cantidad_kg} kg',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Entrega Registrada</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimado/a <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Su entrega ha sido registrada:</p><div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid hsl(120,55%,23%);"><table style="width:100%;border-collapse:collapse;"><tr><td style="color:#888;font-size:13px;padding:4px 0;">Cantidad</td><td style="color:#333;font-weight:600;text-align:right;">{cantidad_kg} kg</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Fecha</td><td style="color:#333;text-align:right;">{fecha}</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Lote</td><td style="color:#333;text-align:right;">{codigo_lote}</td></tr></table></div><div style="text-align:center;margin:28px 0;"><a href="{link_entregas}" style="background:hsl(120,55%,23%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Ver Mis Entregas</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">{organizacion_nombre} · Nova Silva</p></div></div>',
-     'Entrega registrada: {cantidad_kg} kg. Lote: {codigo_lote}.',
-     ARRAY['nombre_completo', 'cantidad_kg', 'fecha', 'codigo_lote', 'organizacion_nombre', 'link_entregas'],
-     true),
-
-    -- 5. Crédito Aprobado
-    (_org_id, 'transaccional', 'credito_aprobado_email',
-     'Crédito Aprobado',
-     'Crédito aprobado por {monto}',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(145,55%,45%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Crédito Aprobado</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimado/a <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Su solicitud de crédito ha sido <strong style="color:hsl(145,55%,35%);">aprobada</strong>.</p><div style="background:#f0fdf4;border-radius:8px;padding:20px;margin:20px 0;border:1px solid hsl(145,55%,80%);"><table style="width:100%;border-collapse:collapse;"><tr><td style="color:#888;font-size:13px;padding:4px 0;">Monto</td><td style="color:#333;font-weight:600;text-align:right;">{monto}</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Plazo</td><td style="color:#333;text-align:right;">{plazo} meses</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Tasa</td><td style="color:#333;text-align:right;">{tasa}%</td></tr></table></div><div style="text-align:center;margin:28px 0;"><a href="{link_finanzas}" style="background:hsl(120,55%,23%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Ver Detalle</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">{organizacion_nombre} · Nova Silva</p></div></div>',
-     'Crédito aprobado: {monto}. Plazo: {plazo} meses. Tasa: {tasa}%.',
-     ARRAY['nombre_completo', 'monto', 'plazo', 'tasa', 'organizacion_nombre', 'link_finanzas'],
-     true),
-
-    -- 6. Reset Password
-    (_org_id, 'seguridad', 'reset_password',
-     'Restablecimiento de Contraseña',
-     'Restablecer tu contraseña',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Restablecer Contraseña</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Recibimos una solicitud para restablecer tu contraseña.</p><div style="text-align:center;margin:28px 0;"><a href="{link_reset}" style="background:hsl(25,75%,55%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Restablecer Contraseña</a></div><p style="color:#999;font-size:13px;">Este enlace expira en {minutos_expiracion} minutos. Si no solicitaste este cambio, ignora este mensaje.</p></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">Nova Silva · Seguridad</p></div></div>',
-     'Hola {nombre_completo}. Restablece tu contraseña: {link_reset}. Expira en {minutos_expiracion} minutos.',
-     ARRAY['nombre_completo', 'link_reset', 'minutos_expiracion'],
-     true),
-
-    -- 7. Verificación de Email
-    (_org_id, 'seguridad', 'verificacion_email',
-     'Verificación de Correo',
-     'Verifica tu correo electrónico',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Verifica tu Correo</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Hola <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Para completar tu registro, verifica tu correo electrónico:</p><div style="text-align:center;margin:28px 0;"><a href="{link_verificacion}" style="background:hsl(120,55%,23%);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;">Verificar Correo</a></div><p style="color:#999;font-size:13px;">Si no creaste una cuenta, ignora este mensaje.</p></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">Nova Silva</p></div></div>',
-     'Hola {nombre_completo}. Verifica tu correo: {link_verificacion}.',
-     ARRAY['nombre_completo', 'link_verificacion'],
-     true),
-
-    -- 8. Resultado VITAL
-    (_org_id, 'operativo', 'resultado_vital',
-     'Resultado Evaluación VITAL',
-     'Resultado de evaluación VITAL',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Resultado VITAL</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimado/a <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Su evaluación VITAL ha sido completada:</p><div style="background:#f8f9fa;border-radius:12px;padding:24px;margin:20px 0;text-align:center;"><p style="color:#888;font-size:13px;margin:0 0 8px 0;">Puntaje Global</p><p style="color:hsl(120,55%,23%);font-size:42px;font-weight:700;margin:0;">{puntaje}<span style="font-size:18px;color:#888;">/100</span></p><p style="color:#555;font-size:15px;margin:12px 0 0 0;">Nivel: <strong>{nivel}</strong></p></div><div style="text-align:center;margin:28px 0;"><a href="{link_vital}" style="background:hsl(120,55%,23%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Ver Detalle</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">{organizacion_nombre} · Protocolo VITAL</p></div></div>',
-     'Resultado VITAL: {puntaje}/100. Nivel: {nivel}.',
-     ARRAY['nombre_completo', 'puntaje', 'nivel', 'organizacion_nombre', 'link_vital'],
-     true),
-
-    -- 9. Recordatorio de Entrega
-    (_org_id, 'operativo', 'recordatorio_entrega',
-     'Recordatorio de Entrega',
-     'Recordatorio: Entrega programada para {fecha}',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(25,75%,55%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Recordatorio de Entrega</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimado/a <strong>{nombre_completo}</strong>,</p><p style="color:#555;font-size:15px;">Le recordamos que su próxima entrega está programada:</p><div style="background:#fff7ed;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid hsl(25,75%,55%);"><p style="color:#333;font-size:15px;margin:0;"><strong>Fecha:</strong> {fecha}</p><p style="color:#333;font-size:15px;margin:8px 0 0 0;"><strong>Punto de acopio:</strong> {punto_acopio}</p></div><p style="color:#555;font-size:15px;">Favor confirmar disponibilidad con su técnico asignado.</p></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">{organizacion_nombre} · Nova Silva</p></div></div>',
-     'Recordatorio: Entrega programada para {fecha} en {punto_acopio}.',
-     ARRAY['nombre_completo', 'fecha', 'punto_acopio', 'organizacion_nombre'],
-     true),
-
-    -- 10. Oferta Comercial
-    (_org_id, 'comercial', 'oferta_comercial',
-     'Oferta Comercial',
-     'Oferta por lote {codigo_lote}',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(120,55%,23%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Oferta Comercial</h1></div><div style="padding:32px 24px;"><p style="color:#333;font-size:15px;">Estimados <strong>{organizacion_destino}</strong>,</p><p style="color:#555;font-size:15px;">Se ha recibido una oferta comercial:</p><div style="background:#f8f9fa;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid hsl(25,75%,55%);"><table style="width:100%;border-collapse:collapse;"><tr><td style="color:#888;font-size:13px;padding:4px 0;">Exportador</td><td style="color:#333;font-weight:600;text-align:right;">{exportador_nombre}</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Lote</td><td style="color:#333;text-align:right;">{codigo_lote}</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Precio</td><td style="color:#333;font-weight:600;text-align:right;">{precio}/lb</td></tr><tr><td style="color:#888;font-size:13px;padding:4px 0;">Condiciones</td><td style="color:#333;text-align:right;">{incoterm}</td></tr></table></div><div style="text-align:center;margin:28px 0;"><a href="{link_ofertas}" style="background:hsl(25,75%,55%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Revisar Oferta</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">Nova Silva · Comercialización</p></div></div>',
-     'Oferta comercial por lote {codigo_lote}. Exportador: {exportador_nombre}. Precio: {precio}/lb.',
-     ARRAY['organizacion_destino', 'exportador_nombre', 'codigo_lote', 'precio', 'incoterm', 'link_ofertas'],
-     true),
-
-    -- 11. Alerta EUDR
-    (_org_id, 'comercial', 'alerta_eudr',
-     'Alerta EUDR',
-     '[Urgente] Alerta EUDR: Lote {codigo_lote}',
-     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;"><div style="background:hsl(0,72%,52%);padding:32px 24px;text-align:center;"><h1 style="color:#fff;margin:0;font-size:22px;">Alerta EUDR</h1></div><div style="padding:32px 24px;"><div style="background:#fef2f2;border:1px solid hsl(0,72%,85%);border-radius:8px;padding:16px;margin-bottom:20px;"><p style="color:hsl(0,72%,42%);font-size:14px;font-weight:600;margin:0;">Acción requerida antes del {fecha_limite}</p></div><p style="color:#555;font-size:15px;">Se han detectado inconsistencias en la trazabilidad del lote <strong>{codigo_lote}</strong>.</p><p style="color:#555;font-size:15px;">Parcelas sin georreferenciación:</p><p style="color:#333;font-size:14px;background:#f8f9fa;padding:12px;border-radius:6px;">{lista_parcelas}</p><div style="text-align:center;margin:28px 0;"><a href="{link_eudr}" style="background:hsl(0,72%,52%);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Resolver Ahora</a></div></div><div style="background:#f5f5f5;padding:16px 24px;text-align:center;"><p style="color:#999;font-size:12px;margin:0;">Nova Silva · Cumplimiento EUDR</p></div></div>',
-     'Alerta EUDR: Lote {codigo_lote}. Parcelas sin geo: {lista_parcelas}. Acción antes de {fecha_limite}.',
-     ARRAY['codigo_lote', 'lista_parcelas', 'fecha_limite', 'link_eudr'],
-     true)
-
-  ON CONFLICT (organization_id, codigo) DO NOTHING;
-END;
+  SELECT organizacion_id
+  FROM public.organizacion_usuarios
+  WHERE user_id = _user_id
+    AND activo = true
+  LIMIT 1;
 $$;
-
--- Ejecutar para todas las orgs existentes:
--- SELECT public.seed_all_email_templates(id) FROM platform_organizations;
 ```
+
+## Secrets Requeridos en Edge Functions
+
+| Secret | Descripción |
+|--------|-------------|
+| `RESEND_API_KEY` | API key de Resend para enviar emails |
+| `SUPABASE_URL` | URL del proyecto (auto-provisionado) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (auto-provisionado) |
+| `SITE_URL` | `https://novasilva.lovable.app` |
 
 ## Smoke Tests
 
 ```sql
--- Verificar que se crearon los 11 templates por org
-SELECT organization_id, COUNT(*) AS total_templates
-FROM email_templates
-WHERE es_default = true
-GROUP BY organization_id;
--- Esperado: 11 por cada org
+-- Verificar que get_user_organization_id funciona
+SELECT public.get_user_organization_id('<USER_ID>');
 
--- Verificar los códigos
-SELECT codigo, categoria, nombre
-FROM email_templates
-WHERE organization_id = '<ORG_ID>'
-ORDER BY categoria, codigo;
+-- Verificar que custom_access_token_hook existe
+SELECT proname FROM pg_proc WHERE proname = 'custom_access_token_hook';
 
--- Verificar que la Edge Function send-auth-email responde
--- (test manual via Dashboard → Edge Functions → send-auth-email → Test)
+-- Verificar que el template de verificación existe para la org
+SELECT codigo, nombre FROM email_templates
+WHERE organization_id = '<ORG_ID>' AND codigo IN ('verificacion_email', 'reset_password');
 ```
 
-## Flujo Completo de Auth Hook
+## Flujo Completo del Auth Hook
 
 ```
-Usuario se registra / pide reset
+Usuario se registra / pide reset / pide magic link
        ↓
-Supabase Auth genera evento
+Supabase Auth genera evento de autenticación
        ↓
-Hook send_email intercepta
+Hook send_email intercepta (configurado en Dashboard)
        ↓
 Invoca Edge Function send-auth-email
        ↓
-Busca template de la org en email_templates
-       ↓ (si no existe → usa fallback HTML)
-Sustituye variables ({nombre}, {link})
+Mapea evento → template (signup → verificacion_email, recovery → reset_password)
+       ↓
+Busca template personalizado en email_templates (por org del usuario)
+       ↓ (si no existe → usa fallback HTML hardcodeado)
+Sustituye variables ({nombre_completo}, {link_verificacion}, etc.)
        ↓
 Envía via Resend API
        ↓
-Registra en email_send_logs
+Registra en email_send_logs (con source: 'auth_hook')
        ↓
-Retorna success a Supabase Auth
+Retorna success → Supabase Auth completa el flujo
 ```
+
+## Relación con los 11 Templates Transaccionales
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    email_templates (BD)                       │
+│                                                              │
+│  Usados por Auth Hooks (send-auth-email):                   │
+│  ├── verificacion_email  ← signup, magiclink, email_change  │
+│  └── reset_password      ← recovery                         │
+│                                                              │
+│  Usados por la App (send-client-email):                     │
+│  ├── bienvenida_productor    (la app decide cuándo enviar)  │
+│  ├── bienvenida_exportador                                   │
+│  ├── confirmacion_pago                                       │
+│  ├── confirmacion_entrega                                    │
+│  ├── credito_aprobado_email                                  │
+│  ├── resultado_vital                                         │
+│  ├── recordatorio_entrega                                    │
+│  ├── oferta_comercial                                        │
+│  └── alerta_eudr                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+> Los 11 templates viven en la misma tabla `email_templates` pero se consumen por **dos sistemas independientes**. El seed de los 11 templates está en `SUPABASE_AI_PROMPT_COMUNICACIONES.md`.
