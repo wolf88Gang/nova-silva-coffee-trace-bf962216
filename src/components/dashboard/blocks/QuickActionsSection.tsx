@@ -69,14 +69,14 @@ export function QuickActionsSection({ role, orgTipo, activeModules }: QuickActio
 
   return (
     <Card>
-      <CardContent className="pt-4 pb-4">
-        <h3 className="font-semibold text-foreground mb-3 text-sm">Acciones Rápidas</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <CardContent className="pt-5 pb-5 px-5">
+        <h3 className="font-semibold text-foreground mb-4 text-sm">Acciones Rápidas</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {actions.map(a => (
             <Button
               key={a.label}
               variant="outline"
-              className="h-auto py-3 flex flex-col gap-1"
+              className="h-auto py-4 px-3 flex flex-col gap-2"
               onClick={() => navigate(a.route)}
             >
               <a.icon className="h-5 w-5 text-primary" />
