@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.log-nutrition-execution-v1]
 verify_jwt = false
+
+[functions.send-client-email]
+verify_jwt = false
