@@ -59,21 +59,24 @@ const DemoLogin = () => {
       console.log('Calling ensure-demo-user with role:', demoRole.role);
       const SUPABASE_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
-      try {
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/ensure-demo-user`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ role: demoRole.role }),
-        });
-        const data = await res.json();
-        console.log('ensure-demo-user response:', data);
-        if (!res.ok) console.warn('ensure-demo-user warning (will try login anyway):', data);
-      } catch (fnErr) {
-        console.warn('ensure-demo-user fetch error (will try login anyway):', fnErr);
+      // Skip ensure-demo-user for admin — user already exists, and deployed function may not support it yet
+      if (demoRole.role !== 'admin') {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/ensure-demo-user`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ role: demoRole.role }),
+          });
+          const data = await res.json();
+          console.log('ensure-demo-user response:', data);
+          if (!res.ok) console.warn('ensure-demo-user warning (will try login anyway):', data);
+        } catch (fnErr) {
+          console.warn('ensure-demo-user fetch error (will try login anyway):', fnErr);
+        }
       }
 
       // Set pending redirect BEFORE signing in so useEffect catches the auth change
