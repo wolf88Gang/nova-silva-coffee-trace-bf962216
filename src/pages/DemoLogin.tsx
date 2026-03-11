@@ -3,14 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { setDemoConfig } from '@/hooks/useDemoConfig';
-import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldCheck, Crown, Users, Map, Shield, Leaf, Package, DollarSign, Bug, Award, AlertTriangle, Briefcase, TrendingUp } from 'lucide-react';
+import { useDemoOrganizations, useDemoProfiles, type DemoOrgRow, type DemoProfileRow } from '@/hooks/useViewData';
+import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldCheck, Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgForest from '@/assets/bg-forest-network.png';
 import { cn } from '@/lib/utils';
 
-// ── DATA MODEL ──
+// ── FALLBACK DATA (used when views don't exist) ──
 
 interface DemoProfile {
   id: string;
@@ -36,165 +37,124 @@ interface DemoOrganization {
   redirectPath: string;
 }
 
-// ── ARCHETYPE DATA ──
-
-const DEMO_ORGS: DemoOrganization[] = [
+const FALLBACK_ORGS: DemoOrganization[] = [
   {
-    id: 'coop_demo',
-    name: 'Cooperativa Regional',
-    orgType: 'cooperativa',
-    operatingModel: 'agregacion_cooperativa',
-    typeLabel: 'Cooperativa',
-    country: 'Costa Rica',
+    id: 'coop_demo', name: 'Cooperativa Regional', orgType: 'cooperativa',
+    operatingModel: 'agregacion_cooperativa', typeLabel: 'Cooperativa', country: 'Costa Rica',
     description: 'Agrupa productores socios, coordina trazabilidad, soporte técnico, cumplimiento EUDR y resiliencia climática.',
     stats: ['420 socios', '860 parcelas', '12 técnicos'],
     modules: ['Producción', 'Agronomía', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'],
-    icon: Building2,
-    redirectPath: '/produccion',
+    icon: Building2, redirectPath: '/produccion',
     profiles: [
-      {
-        id: 'coop-gerencia',
-        label: 'Gerencia cooperativa',
-        description: 'Vista estratégica de producción, cumplimiento, finanzas y calidad.',
-        email: 'demo.cooperativa@novasilva.com',
-        role: 'cooperativa',
-        accessAreas: ['Producción', 'Agronomía', 'Resiliencia', 'Cumplimiento', 'Calidad', 'Finanzas'],
-      },
-      {
-        id: 'coop-tecnico',
-        label: 'Técnico de campo',
-        description: 'Registra visitas, diagnósticos, nutrición y captura evidencia en parcelas.',
-        email: 'demo.tecnico@novasilva.com',
-        role: 'tecnico',
-        accessAreas: ['Producción', 'Agronomía', 'Resiliencia'],
-      },
-      {
-        id: 'coop-cumplimiento',
-        label: 'Oficial de cumplimiento',
-        description: 'Gestión de parcelas, evidencia documental y dossiers EUDR.',
-        email: 'demo.cooperativa@novasilva.com',
-        role: 'cooperativa',
-        accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'],
-      },
+      { id: 'coop-gerencia', label: 'Gerencia cooperativa', description: 'Vista estratégica de producción, cumplimiento, finanzas y calidad.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Producción', 'Agronomía', 'Resiliencia', 'Cumplimiento', 'Calidad', 'Finanzas'] },
+      { id: 'coop-tecnico', label: 'Técnico de campo', description: 'Registra visitas, diagnósticos, nutrición y captura evidencia en parcelas.', email: 'demo.tecnico@novasilva.com', role: 'tecnico', accessAreas: ['Producción', 'Agronomía', 'Resiliencia'] },
+      { id: 'coop-cumplimiento', label: 'Oficial de cumplimiento', description: 'Gestión de parcelas, evidencia documental y dossiers EUDR.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'] },
     ],
   },
   {
-    id: 'estate_demo',
-    name: 'Finca Empresarial',
-    orgType: 'finca_empresarial',
-    operatingModel: 'produccion_propia_y_compra_terceros',
-    typeLabel: 'Finca empresarial',
-    country: 'Costa Rica',
+    id: 'estate_demo', name: 'Finca Empresarial', orgType: 'finca_empresarial',
+    operatingModel: 'produccion_propia_y_compra_terceros', typeLabel: 'Finca empresarial', country: 'Costa Rica',
     description: 'Opera parcelas propias con manejo agronómico intensivo y también compra café a productores externos.',
     stats: ['74 ha propias', '82 proveedores', '6 cuadrillas'],
     modules: ['Producción', 'Abastecimiento', 'Jornales', 'Agronomía', 'VITAL', 'EUDR', 'Nova Cup', 'Finanzas'],
-    icon: Sprout,
-    redirectPath: '/produccion',
+    icon: Sprout, redirectPath: '/produccion',
     profiles: [
-      {
-        id: 'estate-gerente',
-        label: 'Gerente de operaciones',
-        description: 'Vista integral: producción propia, abastecimiento externo, agronomía y finanzas.',
-        email: 'demo.cooperativa@novasilva.com',
-        role: 'cooperativa',
-        accessAreas: ['Producción', 'Abastecimiento', 'Agronomía', 'Jornales', 'Finanzas'],
-      },
-      {
-        id: 'estate-abastecimiento',
-        label: 'Jefe de abastecimiento',
-        description: 'Gestión de proveedores externos, recepción de café y riesgo de origen.',
-        email: 'demo.cooperativa@novasilva.com',
-        role: 'cooperativa',
-        accessAreas: ['Abastecimiento', 'Calidad', 'Cumplimiento'],
-      },
-      {
-        id: 'estate-agronomo',
-        label: 'Agrónomo',
-        description: 'Nutrición, Guard, Yield y diagnóstico en parcelas propias.',
-        email: 'demo.tecnico@novasilva.com',
-        role: 'tecnico',
-        accessAreas: ['Producción', 'Agronomía', 'Resiliencia'],
-      },
+      { id: 'estate-gerente', label: 'Gerente de operaciones', description: 'Vista integral: producción propia, abastecimiento externo, agronomía y finanzas.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Producción', 'Abastecimiento', 'Agronomía', 'Jornales', 'Finanzas'] },
+      { id: 'estate-abastecimiento', label: 'Jefe de abastecimiento', description: 'Gestión de proveedores externos, recepción de café y riesgo de origen.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Abastecimiento', 'Calidad', 'Cumplimiento'] },
+      { id: 'estate-agronomo', label: 'Agrónomo', description: 'Nutrición, Guard, Yield y diagnóstico en parcelas propias.', email: 'demo.tecnico@novasilva.com', role: 'tecnico', accessAreas: ['Producción', 'Agronomía', 'Resiliencia'] },
     ],
   },
   {
-    id: 'exporter_demo',
-    name: 'Exportador de Origen',
-    orgType: 'exportador',
-    operatingModel: 'originacion_masiva',
-    typeLabel: 'Exportador',
-    country: 'Centroamérica',
+    id: 'exporter_demo', name: 'Exportador de Origen', orgType: 'exportador',
+    operatingModel: 'originacion_masiva', typeLabel: 'Exportador', country: 'Centroamérica',
     description: 'Gestiona miles de proveedores con foco en cumplimiento EUDR, lotes, calidad y analítica de origen.',
     stats: ['4,200 proveedores', '12 regiones', '38 contratos'],
     modules: ['Orígenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analítica', 'Nova Cup', 'Finanzas'],
-    icon: Truck,
-    redirectPath: '/origenes',
+    icon: Truck, redirectPath: '/origenes',
     profiles: [
-      {
-        id: 'exp-gerente',
-        label: 'Gerente de origen',
-        description: 'Gestión de proveedores, compras, cumplimiento y oferta de café.',
-        email: 'demo.exportador@novasilva.com',
-        role: 'exportador',
-        accessAreas: ['Orígenes', 'Cumplimiento', 'Calidad', 'Comercial', 'Finanzas'],
-      },
-      {
-        id: 'exp-eudr',
-        label: 'Analista EUDR',
-        description: 'Revisión de polígonos, riesgos de deforestación y dossiers por proveedor.',
-        email: 'demo.exportador@novasilva.com',
-        role: 'exportador',
-        accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'],
-      },
+      { id: 'exp-gerente', label: 'Gerente de origen', description: 'Gestión de proveedores, compras, cumplimiento y oferta de café.', email: 'demo.exportador@novasilva.com', role: 'exportador', accessAreas: ['Orígenes', 'Cumplimiento', 'Calidad', 'Comercial', 'Finanzas'] },
+      { id: 'exp-eudr', label: 'Analista EUDR', description: 'Revisión de polígonos, riesgos de deforestación y dossiers por proveedor.', email: 'demo.exportador@novasilva.com', role: 'exportador', accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'] },
     ],
   },
   {
-    id: 'farm_demo',
-    name: 'Finca Privada',
-    orgType: 'productor_privado',
-    operatingModel: 'solo_produccion_propia',
-    typeLabel: 'Productor privado',
-    country: 'Costa Rica',
+    id: 'farm_demo', name: 'Finca Privada', orgType: 'productor_privado',
+    operatingModel: 'solo_produccion_propia', typeLabel: 'Productor privado', country: 'Costa Rica',
     description: 'Finca tecnificada con foco agronómico intensivo: nutrición, guard, yield y jornales.',
     stats: ['48 ha', '14 parcelas', '3 variedades'],
     modules: ['Producción', 'Jornales', 'Agronomía', 'VITAL', 'Finanzas', 'Nova Cup'],
-    icon: Leaf,
-    redirectPath: '/produccion',
+    icon: Leaf, redirectPath: '/produccion',
     profiles: [
-      {
-        id: 'farm-propietario',
-        label: 'Propietario',
-        description: 'Gestión integral de la finca: agronomía, jornales, calidad y resultados.',
-        email: 'demo.productor@novasilva.com',
-        role: 'productor',
-        accessAreas: ['Producción', 'Agronomía', 'Jornales', 'Resiliencia', 'Calidad', 'Finanzas'],
-      },
+      { id: 'farm-propietario', label: 'Propietario', description: 'Gestión integral de la finca: agronomía, jornales, calidad y resultados.', email: 'demo.productor@novasilva.com', role: 'productor', accessAreas: ['Producción', 'Agronomía', 'Jornales', 'Resiliencia', 'Calidad', 'Finanzas'] },
     ],
   },
   {
-    id: 'cert_demo',
-    name: 'Certificadora',
-    orgType: 'certificadora',
-    operatingModel: 'auditoria',
-    typeLabel: 'Certificadora',
-    country: 'Regional',
+    id: 'cert_demo', name: 'Certificadora', orgType: 'certificadora',
+    operatingModel: 'auditoria', typeLabel: 'Certificadora', country: 'Regional',
     description: 'Entidad de auditoría y verificación. Acceso read-only a evidencia, dossiers y sesiones.',
     stats: ['24 organizaciones auditadas'],
     modules: ['Auditorías', 'Data Room', 'Dossiers'],
-    icon: ShieldCheck,
-    redirectPath: '/cumplimiento',
+    icon: ShieldCheck, redirectPath: '/cumplimiento',
     profiles: [
-      {
-        id: 'cert-auditor',
-        label: 'Auditor líder',
-        description: 'Revisa evidencia, verifica cumplimiento y genera reportes de auditoría.',
-        email: 'demo.certificadora@novasilva.com',
-        role: 'certificadora',
-        accessAreas: ['Auditorías', 'Data Room', 'Dossiers'],
-      },
+      { id: 'cert-auditor', label: 'Auditor líder', description: 'Revisa evidencia, verifica cumplimiento y genera reportes de auditoría.', email: 'demo.certificadora@novasilva.com', role: 'certificadora', accessAreas: ['Auditorías', 'Data Room', 'Dossiers'] },
     ],
   },
 ];
+
+const ORG_TYPE_ICONS: Record<string, React.ElementType> = {
+  cooperativa: Building2,
+  finca_empresarial: Sprout,
+  exportador: Truck,
+  productor_privado: Leaf,
+  certificadora: ShieldCheck,
+};
+
+const ORG_TYPE_LABELS: Record<string, string> = {
+  cooperativa: 'Cooperativa',
+  finca_empresarial: 'Finca empresarial',
+  exportador: 'Exportador',
+  productor_privado: 'Productor privado',
+  certificadora: 'Certificadora',
+};
+
+// ── Convert Supabase rows to DemoOrganization ──
+
+function rowToOrg(row: DemoOrgRow): DemoOrganization {
+  const orgType = row.org_type || 'cooperativa';
+  return {
+    id: row.id,
+    name: row.display_name,
+    orgType,
+    operatingModel: row.operating_model || '',
+    typeLabel: ORG_TYPE_LABELS[orgType] || orgType,
+    country: row.country || '',
+    description: row.description || '',
+    stats: row.stats ? Object.values(row.stats).map(String) : [],
+    modules: Array.isArray(row.modules) ? row.modules : [],
+    profiles: [], // will be populated from v_demo_profiles_ui
+    icon: ORG_TYPE_ICONS[orgType] || Building2,
+    redirectPath: orgType === 'exportador' ? '/origenes' : orgType === 'certificadora' ? '/cumplimiento' : '/produccion',
+  };
+}
+
+function rowToProfile(row: DemoProfileRow): DemoProfile {
+  // Map role to demo email
+  const roleEmailMap: Record<string, string> = {
+    cooperativa: 'demo.cooperativa@novasilva.com',
+    tecnico: 'demo.tecnico@novasilva.com',
+    exportador: 'demo.exportador@novasilva.com',
+    productor: 'demo.productor@novasilva.com',
+    certificadora: 'demo.certificadora@novasilva.com',
+    admin: 'info@novasilva.co',
+  };
+  return {
+    id: row.id,
+    label: row.profile_label,
+    description: row.description || '',
+    email: roleEmailMap[row.role] || 'demo.cooperativa@novasilva.com',
+    role: row.role as UserRole,
+    accessAreas: Array.isArray(row.access_areas) ? row.access_areas : [],
+  };
+}
 
 // ── SUB-COMPONENTS ──
 
@@ -223,20 +183,15 @@ function OrganizationCard({ org, isSelected, onClick }: { org: DemoOrganization;
         </div>
         <ChevronRight className={cn('h-4 w-4 shrink-0 transition-colors', isSelected ? 'text-[hsl(var(--accent-orange))]' : 'text-white/15')} />
       </div>
-      {/* Operating model tag */}
       <p className="text-white/25 text-[10px] mt-2 pl-11">{org.description.slice(0, 70)}…</p>
     </button>
   );
 }
 
 function OrganizationDetailPanel({
-  org,
-  selectedProfile,
-  onSelectProfile,
+  org, selectedProfile, onSelectProfile,
 }: {
-  org: DemoOrganization;
-  selectedProfile: DemoProfile | null;
-  onSelectProfile: (p: DemoProfile) => void;
+  org: DemoOrganization; selectedProfile: DemoProfile | null; onSelectProfile: (p: DemoProfile) => void;
 }) {
   const OrgIcon = org.icon;
   return (
@@ -254,11 +209,13 @@ function OrganizationDetailPanel({
         <p className="text-white/50 text-sm leading-relaxed">{org.description}</p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {org.stats.map(stat => (
-          <span key={stat} className="text-xs px-3 py-1 rounded-full bg-white/8 text-white/60 border border-white/10">{stat}</span>
-        ))}
-      </div>
+      {org.stats.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {org.stats.map(stat => (
+            <span key={stat} className="text-xs px-3 py-1 rounded-full bg-white/8 text-white/60 border border-white/10">{stat}</span>
+          ))}
+        </div>
+      )}
 
       <div>
         <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Módulos activos</p>
@@ -361,6 +318,31 @@ const DemoLogin = () => {
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
 
+  // Try Supabase views first
+  const { data: dbOrgs } = useDemoOrganizations();
+  const { data: dbProfiles } = useDemoProfiles(selectedOrg?.id || null);
+
+  // Merge Supabase data with fallbacks
+  const organizations: DemoOrganization[] = (() => {
+    if (dbOrgs && dbOrgs.length > 0) {
+      return dbOrgs.map(rowToOrg);
+    }
+    return FALLBACK_ORGS;
+  })();
+
+  // Populate profiles from Supabase or fallback
+  const currentOrg: DemoOrganization | null = selectedOrg ? (() => {
+    const org = { ...selectedOrg };
+    if (dbProfiles && dbProfiles.length > 0) {
+      org.profiles = dbProfiles.map(rowToProfile);
+    } else {
+      // Use fallback profiles from FALLBACK_ORGS
+      const fallback = FALLBACK_ORGS.find(f => f.id === org.id || f.orgType === org.orgType);
+      if (fallback) org.profiles = fallback.profiles;
+    }
+    return org;
+  })() : null;
+
   useEffect(() => {
     if (isAuthenticated && user && pendingRedirect.current) {
       const dest = pendingRedirect.current;
@@ -387,7 +369,6 @@ const DemoLogin = () => {
     if (!selectedProfile || !selectedOrg) return;
     setLoadingRole(selectedProfile.role);
 
-    // Store archetype config for sidebar
     setDemoConfig({
       orgId: selectedOrg.id,
       orgName: selectedOrg.name,
@@ -434,93 +415,91 @@ const DemoLogin = () => {
   };
 
   // Confirmation screen
-  if (showConfirm && selectedOrg && selectedProfile) {
+  if (showConfirm && currentOrg && selectedProfile) {
     return (
       <div className="min-h-screen relative flex flex-col">
         <div className="absolute inset-0 z-0">
           <img src={bgForest} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/70 to-black/80" />
         </div>
-        <header className="relative z-10 flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <img src={logoNovasilva} alt="Nova Silva" className="h-10 w-10 object-contain" />
-            <span className="text-white font-bold text-lg">Nova Silva</span>
-          </div>
-          <Link to="/login" className="text-white/60 hover:text-white text-sm transition-colors">Ir al login →</Link>
-        </header>
-        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-12">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-6">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[hsl(var(--accent-orange))]" />
-            </span>
-            <span className="text-white/80 text-xs font-medium">Entorno de Demostración</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white text-center mb-2">Acceso seleccionado</h1>
-          <p className="text-white/50 text-center mb-8 text-sm">Revise su selección antes de ingresar</p>
-          <AccessSummary org={selectedOrg} profile={selectedProfile} onEnter={handleEnter} onBack={handleBack} isLoading={loadingRole !== null} />
-        </main>
+        <div className="relative z-10 flex-1 flex items-center justify-center p-6">
+          <AccessSummary org={currentOrg} profile={selectedProfile} onEnter={handleEnter} onBack={handleBack} isLoading={!!loadingRole} />
+        </div>
       </div>
     );
   }
 
-  // Main split-panel layout
+  // Main selector screen
   return (
     <div className="min-h-screen relative flex flex-col">
       <div className="absolute inset-0 z-0">
         <img src={bgForest} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90" />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/70 to-black/80" />
       </div>
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-3">
-          <img src={logoNovasilva} alt="Nova Silva" className="h-10 w-10 object-contain" />
-          <span className="text-white font-bold text-lg">Nova Silva</span>
-        </div>
-        <Link to="/login" className="text-white/60 hover:text-white text-sm transition-colors">Ir al login →</Link>
-      </header>
-
-      <main className="relative z-10 flex-1 flex flex-col px-4 sm:px-6 pb-8">
-        <div className="text-center mb-6 pt-2">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-4">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[hsl(var(--accent-orange))]" />
-            </span>
-            <span className="text-white/80 text-xs font-medium">Entorno de Demostración</span>
+      <div className="relative z-10 flex-1 flex flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <img src={logoNovasilva} alt="Nova Silva" className="h-9 w-9 object-contain" />
+            <div>
+              <h1 className="text-white font-bold text-lg tracking-tight">Nova Silva</h1>
+              <p className="text-white/30 text-xs">Entorno de demostración</p>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Nova Silva Demo</h1>
-          <p className="text-white/40 text-sm max-w-lg mx-auto">
-            Seleccione un arquetipo operativo para explorar la plataforma desde la perspectiva de una organización real del sector café.
-          </p>
-        </div>
+          <Link to="/login" className="text-white/40 hover:text-white text-xs transition-colors">
+            Acceso real →
+          </Link>
+        </header>
 
-        <div className="flex-1 w-full max-w-5xl mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-0">
-          {/* Left: Organization list */}
-          <div className="w-full lg:w-[360px] lg:shrink-0 space-y-2 overflow-y-auto lg:max-h-[calc(100vh-220px)] pr-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/25 px-1 mb-2">Arquetipos operativos</p>
-            {DEMO_ORGS.map(org => (
-              <OrganizationCard key={org.id} org={org} isSelected={selectedOrg?.id === org.id} onClick={() => handleSelectOrg(org)} />
-            ))}
+        {/* Content */}
+        <div className="flex-1 flex">
+          {/* LEFT: org list */}
+          <div className="w-full lg:w-[380px] border-r border-white/8 flex flex-col">
+            <div className="px-5 py-3 border-b border-white/8">
+              <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold">Seleccionar organización</p>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+              {organizations.map(org => (
+                <OrganizationCard
+                  key={org.id}
+                  org={org}
+                  isSelected={selectedOrg?.id === org.id}
+                  onClick={() => handleSelectOrg(org)}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* Right: Organization detail + profiles */}
-          <div className="flex-1 min-w-0">
-            {selectedOrg ? (
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 overflow-y-auto lg:max-h-[calc(100vh-220px)]">
-                <OrganizationDetailPanel org={selectedOrg} selectedProfile={selectedProfile} onSelectProfile={handleSelectProfile} />
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center">
-                  <Building2 className="h-10 w-10 text-white/10 mx-auto mb-3" />
-                  <p className="text-white/25 text-sm">Seleccione un arquetipo para ver sus detalles y perfiles de acceso</p>
+          {/* RIGHT: detail + profiles */}
+          <div className="hidden lg:flex flex-1 items-start justify-center overflow-y-auto">
+            <div className="w-full max-w-lg px-8 py-6">
+              {currentOrg ? (
+                <OrganizationDetailPanel
+                  org={currentOrg}
+                  selectedProfile={selectedProfile}
+                  onSelectProfile={handleSelectProfile}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-64">
+                  <p className="text-white/20 text-sm">← Selecciona una organización para ver detalles</p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </main>
+
+        {/* Mobile: detail panel */}
+        {currentOrg && (
+          <div className="lg:hidden px-4 pb-6">
+            <OrganizationDetailPanel
+              org={currentOrg}
+              selectedProfile={selectedProfile}
+              onSelectProfile={handleSelectProfile}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
