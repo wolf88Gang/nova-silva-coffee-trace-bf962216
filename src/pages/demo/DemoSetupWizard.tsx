@@ -558,50 +558,144 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   const orgLabel = ORG_TYPES.find(o => o.value === state.orgType)?.label || state.orgType;
   const uniqueModules = [...new Set(archetype.modules)];
 
+  // Pricing recommendation
+  const setupConfig: DemoSetupConfig = {
+    orgType: state.orgType || 'cooperativa',
+    operatingModel: model,
+    interests: state.interests,
+    scalePlots: state.scalePlots,
+    scaleProducers: state.scaleProducers,
+    scaleUsers: state.scaleUsers,
+    hasLabor: state.hasLabor,
+    hasInventory: state.hasInventory,
+    hasExports: state.hasExports,
+  };
+  const plan = recommendPlan(setupConfig);
+  const packs = recommendPacks(setupConfig);
+  const pricing = estimatePrice(plan, packs);
+
+  const PACK_ICONS_MAP: Record<string, typeof Bug> = {
+    agronomia: Bug, cumplimiento: Shield, calidad: Award,
+    operacion: Briefcase, abastecimiento: Truck, catalogo: ShoppingCart,
+  };
+
   return (
-    <WizardCard>
-      <StepTitle title="Tu demo personalizado está listo" />
+    <WizardCard className="max-w-3xl">
+      <StepTitle title="Tu demo personalizado está listo" subtitle="Resumen de tu configuración y plan recomendado." />
 
-      <div className="space-y-5">
-        {/* Org + Model */}
-        <div className="flex flex-wrap gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
-            <Building2 className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
-            <span className="text-xs text-white font-medium">{orgLabel}</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
-            <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
-            <span className="text-xs text-white font-medium capitalize">{model.replace('_', ' ')}</span>
-          </div>
-        </div>
-
-        {/* Modules */}
-        <div>
-          <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Módulos activados</p>
-          <div className="flex flex-wrap gap-1.5">
-            {uniqueModules.map(mod => (
-              <span key={mod} className="text-[10px] px-2.5 py-1 rounded-full bg-[hsl(var(--accent-orange))]/10 text-[hsl(var(--accent-orange))]/90 border border-[hsl(var(--accent-orange))]/15">
-                {mod}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Scale badges */}
-        {(state.scalePlots || state.scaleProducers || state.scaleUsers) && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Left: Configuration */}
+        <div className="space-y-5">
+          {/* Org + Model */}
           <div className="flex flex-wrap gap-2">
-            {state.scalePlots && <Badge variant="outline" className="border-white/15 text-white/50 text-[10px]">📍 {state.scalePlots} parcelas</Badge>}
-            {state.scaleProducers && <Badge variant="outline" className="border-white/15 text-white/50 text-[10px]">👥 {state.scaleProducers} productores</Badge>}
-            {state.scaleUsers && <Badge variant="outline" className="border-white/15 text-white/50 text-[10px]">🧑‍💻 {state.scaleUsers} usuarios</Badge>}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
+              <Building2 className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
+              <span className="text-xs text-white font-medium">{orgLabel}</span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
+              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
+              <span className="text-xs text-white font-medium">{getModelLabel(model)}</span>
+            </div>
           </div>
-        )}
 
-        {/* Narrative */}
-        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-sm text-white/60 leading-relaxed">{narrative}</p>
+          {/* Modules */}
+          <div>
+            <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Módulos activados</p>
+            <div className="flex flex-wrap gap-1.5">
+              {uniqueModules.map(mod => (
+                <span key={mod} className="text-[10px] px-2.5 py-1 rounded-full bg-[hsl(var(--accent-orange))]/10 text-[hsl(var(--accent-orange))]/90 border border-[hsl(var(--accent-orange))]/15">
+                  {mod}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Scale badges */}
+          {(state.scalePlots || state.scaleProducers || state.scaleUsers) && (
+            <div className="flex flex-wrap gap-2">
+              {state.scalePlots && <Badge variant="outline" className="border-white/15 text-white/50 text-[10px]">📍 {state.scalePlots} parcelas</Badge>}
+              {state.scaleProducers && <Badge variant="outline" className="border-white/15 text-white/50 text-[10px]">👥 {state.scaleProducers} productores</Badge>}
+              {state.scaleUsers && <Badge variant="outline" className="border-white/15 text-white/50 text-[10px]">🧑‍💻 {state.scaleUsers} usuarios</Badge>}
+            </div>
+          )}
+
+          {/* Narrative */}
+          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+            <p className="text-xs text-white/50 leading-relaxed">{narrative}</p>
+          </div>
         </div>
 
-        {/* CTA */}
+        {/* Right: Plan recommendation */}
+        <div className="space-y-4">
+          <div>
+            <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Plan recomendado</p>
+            <div className="space-y-2">
+              {PLANS.map(p => (
+                <div key={p.tier} className={cn(
+                  'flex items-center justify-between p-3 rounded-xl border transition-all',
+                  p.tier === plan
+                    ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
+                    : 'border-white/8 bg-white/3'
+                )}>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-white">{p.label}</span>
+                      {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))] font-bold">{p.badge}</span>}
+                      {p.tier === plan && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))] text-white font-bold">RECOMENDADO</span>}
+                    </div>
+                    <p className="text-[10px] text-white/30 mt-0.5">{p.limit}</p>
+                  </div>
+                  <span className="text-base font-bold text-white">${p.base}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Packs */}
+          {packs.length > 0 && (
+            <div>
+              <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Packs incluidos</p>
+              <div className="space-y-1.5">
+                {packs.map(pk => {
+                  const pack = PACKS.find(p => p.key === pk);
+                  const Icon = PACK_ICONS_MAP[pk] || Package;
+                  return pack ? (
+                    <div key={pk} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 border border-white/8">
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
+                        <span className="text-xs text-white">{pack.label}</span>
+                      </div>
+                      <span className="text-[10px] text-white/40">${pack.price}/mes</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Total */}
+          <div className="border-t border-white/10 pt-3 space-y-1.5">
+            <div className="flex justify-between text-xs">
+              <span className="text-white/40">Plan {plan}</span>
+              <span className="text-white font-mono">${pricing.base}</span>
+            </div>
+            {pricing.addons > 0 && (
+              <div className="flex justify-between text-xs">
+                <span className="text-white/40">Packs ({packs.length})</span>
+                <span className="text-white font-mono">${pricing.addons}</span>
+              </div>
+            )}
+            <div className="border-t border-white/10 pt-2 flex justify-between items-end">
+              <span className="text-white text-xs font-semibold">Estimado mensual</span>
+              <span className="text-xl font-bold text-[hsl(var(--accent-orange))]">${pricing.total}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+            </div>
+            <p className="text-[9px] text-white/15">Precio estimado en USD. El monto final depende del uso real. 14 días de prueba gratuita.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="mt-6">
         <button
           onClick={onEnter}
           disabled={entering}
