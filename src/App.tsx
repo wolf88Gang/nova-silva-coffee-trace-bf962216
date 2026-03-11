@@ -159,7 +159,7 @@ const App = () => (
               {/* CUMPLIMIENTO */}
               <Route path="/cumplimiento" element={<DL><CumplimientoIndex /></DL>} />
               <Route path="/cumplimiento/trazabilidad" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/cumplimiento/lotes" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/cumplimiento/lotes" element={<DL><CumplimientoLotesPage /></DL>} />
               <Route path="/cumplimiento/eudr" element={<DL><ExportadorEUDR /></DL>} />
               <Route path="/cumplimiento/data-room" element={<DL><PlaceholderPage /></DL>} />
               <Route path="/cumplimiento/auditorias" element={<DL><CertificadoraAuditorias /></DL>} />
