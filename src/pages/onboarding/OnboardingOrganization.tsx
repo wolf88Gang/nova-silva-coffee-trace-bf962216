@@ -44,15 +44,15 @@ const INITIAL: WizardState = {
 
 // ── Constants ──
 const ORG_TYPES: { value: OrgType; label: string; icon: typeof Users; desc: string }[] = [
-  { value: 'cooperativa', label: 'Cooperativa', icon: Users, desc: 'Gestiona socios productores y procesa cafe colectivamente' },
+  { value: 'cooperativa', label: 'Producción Cooperativa', icon: Users, desc: 'Gestiona socios productores y procesa cafe colectivamente' },
   { value: 'exportador', label: 'Exportador / Trader', icon: Ship, desc: 'Compra, consolida y exporta cafe a mercados internacionales' },
   { value: 'beneficio_privado', label: 'Beneficio Privado', icon: Factory, desc: 'Empresa privada que compra y procesa cafe de proveedores' },
-  { value: 'productor_grande', label: 'Productor Empresarial', icon: Sprout, desc: 'Finca o empresa que gestiona sus propias operaciones de origen y comercializacion' },
+  { value: 'productor_grande', label: 'Producción Empresarial', icon: Sprout, desc: 'Finca o empresa que gestiona sus propias operaciones de origen y comercializacion' },
 ];
 
 const ACTIVITIES = [
   { value: 'produce', label: 'Produce', desc: 'Cultiva y cosecha en fincas propias o asociadas' },
-  { value: 'compra', label: 'Compra a terceros', desc: 'Adquiere cafe de productores, cooperativas u otros proveedores' },
+  { value: 'compra', label: 'Compra a terceros', desc: 'Adquiere cafe de productores, organizaciones u otros proveedores' },
   { value: 'procesa', label: 'Procesa', desc: 'Beneficio humedo/seco, despulpado, lavado, secado' },
   { value: 'exporta', label: 'Exporta', desc: 'Vende a compradores internacionales directamente' },
 ];
