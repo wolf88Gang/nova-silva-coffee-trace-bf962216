@@ -225,8 +225,8 @@ export default function ParcelDetailPage() {
                   { label: 'N', value: demo.nutricion.analisis.n },
                   { label: 'P (ppm)', value: demo.nutricion.analisis.p, alert: demo.nutricion.analisis.p < 8 },
                   { label: 'K (cmol/L)', value: demo.nutricion.analisis.k, alert: demo.nutricion.analisis.k < 0.3 },
-                  { label: 'Ca', value: demo.nutricion.analisis.ca ?? '—' },
-                  { label: 'Mg', value: demo.nutricion.analisis.mg ?? '—' },
+                  { label: 'Ca', value: (demo.nutricion.analisis as any).ca ?? '—' },
+                  { label: 'Mg', value: (demo.nutricion.analisis as any).mg ?? '—' },
                 ].map(v => (
                   <div key={v.label} className={`p-2 rounded text-center ${v.alert ? 'bg-destructive/10 border border-destructive/20' : 'bg-muted/50'}`}>
                     <p className="text-xs text-muted-foreground">{v.label}</p>
