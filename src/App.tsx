@@ -116,27 +116,27 @@ const App = () => (
               <Route path="/produccion/productores" element={<DL><ProductoresHub /></DL>} />
               <Route path="/produccion/parcelas" element={<DL><TecnicoParcelas /></DL>} />
               <Route path="/produccion/parcelas/:id" element={<DL><ParcelDetailPage /></DL>} />
-              <Route path="/produccion/cultivos" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/produccion/cultivos" element={<DL><CultivosIndex /></DL>} />
               <Route path="/produccion/entregas" element={<DL><AcopioHub /></DL>} />
-              <Route path="/produccion/documentos" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/produccion/documentos" element={<DL><DocumentosIndex /></DL>} />
 
               {/* ABASTECIMIENTO */}
               <Route path="/abastecimiento" element={<DL><AbastecimientoIndex /></DL>} />
-              <Route path="/abastecimiento/proveedores" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/recepcion" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/compras" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/evidencias" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/riesgo" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/eudr" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/abastecimiento/proveedores" element={<DL><AbastecimientoIndex /></DL>} />
+              <Route path="/abastecimiento/recepcion" element={<DL><RecepcionIndex /></DL>} />
+              <Route path="/abastecimiento/compras" element={<DL><ComprasLotesIndex /></DL>} />
+              <Route path="/abastecimiento/evidencias" element={<DL><EvidenciasIndex /></DL>} />
+              <Route path="/abastecimiento/riesgo" element={<DL><RiesgoOrigenIndex /></DL>} />
+              <Route path="/abastecimiento/eudr" element={<DL><RiesgoOrigenIndex /></DL>} />
 
               {/* ORÍGENES (exportador) */}
               <Route path="/origenes" element={<DL><OrigenesIndex /></DL>} />
-              <Route path="/origenes/proveedores" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/regiones" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/riesgo" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/eudr" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/calidad" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/potencial" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/origenes/proveedores" element={<DL><OrigenesIndex /></DL>} />
+              <Route path="/origenes/regiones" element={<DL><OrigenesIndex /></DL>} />
+              <Route path="/origenes/riesgo" element={<DL><RiesgoOrigenIndex /></DL>} />
+              <Route path="/origenes/eudr" element={<Navigate to="/cumplimiento/eudr" replace />} />
+              <Route path="/origenes/calidad" element={<Navigate to="/calidad" replace />} />
+              <Route path="/origenes/potencial" element={<DL><OrigenesIndex /></DL>} />
 
               {/* AGRONOMÍA */}
               <Route path="/agronomia" element={<DL><AgronomiaIndex /></DL>} />
