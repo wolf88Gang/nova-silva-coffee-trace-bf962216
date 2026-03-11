@@ -45,6 +45,8 @@ import AnaliticaIndex from "./pages/analitica/AnaliticaIndex";
 import ComercialIndex from "./pages/comercial/ComercialIndex";
 import ComercialLotesPage from "./pages/comercial/ComercialLotesPage";
 import InventarioIndex from "./pages/operaciones/InventarioIndex";
+import ProveedoresInsumosIndex from "./pages/insumos/ProveedoresInsumosIndex";
+import CatalogoInsumosIndex from "./pages/insumos/CatalogoInsumosIndex";
 
 // Existing pages (reused)
 import ProductoresHub from "./pages/cooperativa/ProductoresHub";
