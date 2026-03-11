@@ -40,7 +40,7 @@ interface DemoOrganization {
 const FALLBACK_ORGS: DemoOrganization[] = [
   {
     id: 'coop_demo', name: 'Cooperativa Regional', orgType: 'cooperativa',
-    operatingModel: 'agregacion_cooperativa', typeLabel: 'Cooperativa', country: 'Costa Rica',
+    operatingModel: 'aggregator', typeLabel: 'Cooperativa', country: 'Costa Rica',
     description: 'Agrupa productores socios, coordina trazabilidad, soporte técnico, cumplimiento EUDR y resiliencia climática.',
     stats: ['420 socios', '860 parcelas', '12 técnicos'],
     modules: ['Producción', 'Agronomía', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'],
