@@ -2,6 +2,7 @@ import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
+import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { getOrgTypeLabel } from '@/lib/org-terminology';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -10,10 +11,9 @@ import {
   ShieldCheck, Shield, FileText, Sprout, Settings, Map,
   DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp,
   Wallet, Eye, FolderOpen, CreditCard, HelpCircle, BookOpen,
-  Headphones,
+  Headphones, Award, Briefcase, Coffee, BarChart3, Truck,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
-import { UserRole } from '@/types';
 import { useState } from 'react';
 
 // ── TYPES ──
@@ -30,54 +30,104 @@ interface NavGroupDef {
   items: NavItemDef[];
   standalone?: boolean;
   url?: string;
+  /** Module keys that activate this group */
+  moduleKeys?: string[];
 }
 
-// ── FULL DOMAIN SIDEBAR (canonical) ──
+// ── ALL DOMAIN GROUPS (module-driven) ──
 
-const FULL_SIDEBAR: NavGroupDef[] = [
+const ALL_GROUPS: NavGroupDef[] = [
   {
     label: 'Inicio',
     icon: LayoutDashboard,
     standalone: true,
-    url: '/dashboard',
+    url: '/produccion',
     items: [],
+    // Always visible
   },
   {
     label: 'Producción',
     icon: Sprout,
+    moduleKeys: ['Producción', 'produccion'],
     items: [
       { title: 'Resumen de producción', url: '/produccion', icon: Sprout },
       { title: 'Productores', url: '/produccion/productores', icon: Users },
       { title: 'Parcelas', url: '/produccion/parcelas', icon: Map },
       { title: 'Cultivos', url: '/produccion/cultivos', icon: Leaf },
       { title: 'Entregas', url: '/produccion/entregas', icon: Package },
-      { title: 'Documentos y evidencias', url: '/produccion/documentos', icon: FolderOpen },
+      { title: 'Documentos', url: '/produccion/documentos', icon: FolderOpen },
+    ],
+  },
+  {
+    label: 'Abastecimiento',
+    icon: Truck,
+    moduleKeys: ['Abastecimiento', 'abastecimiento'],
+    items: [
+      { title: 'Proveedores', url: '/abastecimiento/proveedores', icon: Users },
+      { title: 'Recepción de café', url: '/abastecimiento/recepcion', icon: Package },
+      { title: 'Compras y lotes', url: '/abastecimiento/compras', icon: FileText },
+      { title: 'Evidencias proveedor', url: '/abastecimiento/evidencias', icon: FolderOpen },
+      { title: 'Riesgo de origen', url: '/abastecimiento/riesgo', icon: AlertTriangle },
+    ],
+  },
+  {
+    label: 'Orígenes',
+    icon: Map,
+    moduleKeys: ['Orígenes', 'origenes'],
+    items: [
+      { title: 'Proveedores', url: '/origenes/proveedores', icon: Users },
+      { title: 'Regiones', url: '/origenes/regiones', icon: Map },
+      { title: 'Riesgo de origen', url: '/origenes/riesgo', icon: AlertTriangle },
+      { title: 'EUDR por proveedor', url: '/origenes/eudr', icon: ShieldCheck },
     ],
   },
   {
     label: 'Agronomía',
     icon: Leaf,
+    moduleKeys: ['Agronomía', 'agronomia'],
     items: [
       { title: 'Centro agronómico', url: '/agronomia', icon: Leaf },
       { title: 'Nutrición', url: '/agronomia/nutricion', icon: Sprout },
       { title: 'Nova Guard', url: '/agronomia/guard', icon: Bug },
       { title: 'Nova Yield', url: '/agronomia/yield', icon: TrendingUp },
-      { title: 'Recomendaciones y alertas', url: '/agronomia/alertas', icon: AlertTriangle },
+      { title: 'Alertas', url: '/agronomia/alertas', icon: AlertTriangle },
+    ],
+  },
+  {
+    label: 'Analítica Agronómica',
+    icon: BarChart3,
+    moduleKeys: ['Analítica', 'analitica'],
+    items: [
+      { title: 'Señales de riesgo', url: '/analitica/riesgo', icon: AlertTriangle },
+      { title: 'Recomendaciones', url: '/analitica/recomendaciones', icon: TrendingUp },
+      { title: 'Riesgo fitosanitario', url: '/analitica/fitosanitario', icon: Map },
+      { title: 'Potencial productivo', url: '/analitica/productivo', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Jornales',
+    icon: Briefcase,
+    moduleKeys: ['Jornales', 'jornales'],
+    items: [
+      { title: 'Registro de jornales', url: '/jornales', icon: Briefcase },
+      { title: 'Cuadrillas', url: '/jornales', icon: Users },
+      { title: 'Costos laborales', url: '/jornales', icon: DollarSign },
     ],
   },
   {
     label: 'Resiliencia',
     icon: Shield,
+    moduleKeys: ['VITAL', 'vital'],
     items: [
       { title: 'Protocolo VITAL', url: '/resiliencia/vital', icon: Shield },
       { title: 'Resultados por finca', url: '/resiliencia/vital', icon: Map },
-      { title: 'Resultados organizacionales', url: '/resiliencia/vital', icon: Building2 },
       { title: 'Brechas y acciones', url: '/resiliencia/vital', icon: AlertTriangle },
     ],
   },
   {
     label: 'Cumplimiento',
     icon: ShieldCheck,
+    moduleKeys: ['Cumplimiento', 'cumplimiento', 'EUDR', 'eudr', 'Auditorías', 'auditorias', 'Data Room', 'data_room', 'Dossiers', 'dossiers'],
     items: [
       { title: 'Trazabilidad', url: '/cumplimiento/trazabilidad', icon: Eye },
       { title: 'Lotes', url: '/cumplimiento/lotes', icon: Package },
@@ -87,8 +137,29 @@ const FULL_SIDEBAR: NavGroupDef[] = [
     ],
   },
   {
+    label: 'Calidad',
+    icon: Award,
+    moduleKeys: ['Nova Cup', 'nova_cup', 'calidad'],
+    items: [
+      { title: 'Nova Cup', url: '/calidad', icon: Award },
+      { title: 'Resultados por lote', url: '/calidad', icon: Coffee },
+      { title: 'Tendencias', url: '/calidad', icon: TrendingUp },
+    ],
+  },
+  {
+    label: 'Comercial',
+    icon: Coffee,
+    moduleKeys: ['Lotes', 'lotes', 'comercial'],
+    items: [
+      { title: 'Lotes comerciales', url: '/comercial/lotes', icon: Package },
+      { title: 'Contratos', url: '/comercial/contratos', icon: FileText },
+      { title: 'Trazabilidad', url: '/comercial/trazabilidad', icon: Eye },
+    ],
+  },
+  {
     label: 'Finanzas',
     icon: Wallet,
+    moduleKeys: ['Finanzas', 'finanzas'],
     items: [
       { title: 'Panel financiero', url: '/finanzas/panel', icon: DollarSign },
       { title: 'Créditos', url: '/finanzas/creditos', icon: CreditCard },
@@ -100,12 +171,12 @@ const FULL_SIDEBAR: NavGroupDef[] = [
   {
     label: 'Administración',
     icon: Settings,
+    moduleKeys: [], // visible to admin or org-admin
     items: [
       { title: 'Usuarios y roles', url: '/admin/usuarios', icon: Users },
       { title: 'Organización', url: '/admin/organizacion', icon: Building2 },
       { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
       { title: 'Billing', url: '/admin/billing', icon: Wallet },
-      { title: 'Logs e integridad', url: '/admin/logs', icon: FileText },
     ],
   },
   {
@@ -114,90 +185,39 @@ const FULL_SIDEBAR: NavGroupDef[] = [
     items: [
       { title: 'Centro de ayuda', url: '/ayuda', icon: HelpCircle },
       { title: 'Glosario', url: '/ayuda/glosario', icon: BookOpen },
-      { title: 'Soporte demo', url: '/ayuda/soporte', icon: Headphones },
+      { title: 'Soporte', url: '/ayuda/soporte', icon: Headphones },
     ],
   },
 ];
 
-// ── ROLE VISIBILITY RULES ──
+// ── MODULE-DRIVEN FILTERING ──
 
-type VisibilityRule = {
-  visibleGroups: string[];
-  hiddenItems?: string[];
-  renamedItems?: Record<string, string>;
-  replacedItems?: Record<string, { title: string; url: string; icon: LucideIcon }[]>;
-};
+function getSidebarGroups(role: string, modules: string[]): NavGroupDef[] {
+  const modulesLower = modules.map(m => m.toLowerCase());
 
-const ROLE_VISIBILITY: Record<string, VisibilityRule> = {
-  cooperativa: {
-    visibleGroups: ['Inicio', 'Producción', 'Agronomía', 'Resiliencia', 'Cumplimiento', 'Finanzas', 'Administración', 'Ayuda'],
-  },
-  productor: {
-    visibleGroups: ['Inicio', 'Producción', 'Agronomía', 'Resiliencia', 'Finanzas', 'Ayuda'],
-    hiddenItems: ['Productores'],
-    renamedItems: { 'Resumen de producción': 'Mi producción' },
-  },
-  tecnico: {
-    visibleGroups: ['Inicio', 'Producción', 'Agronomía', 'Resiliencia', 'Ayuda'],
-    hiddenItems: ['Facturación', 'Billing', 'Logs e integridad'],
-  },
-  exportador: {
-    visibleGroups: ['Inicio', 'Producción', 'Cumplimiento', 'Finanzas', 'Administración', 'Ayuda'],
-    hiddenItems: ['Productores', 'Cultivos'],
-    replacedItems: {
-      'Producción': [
-        { title: 'Orígenes', url: '/produccion', icon: Sprout },
-        { title: 'Proveedores', url: '/produccion/productores', icon: Users },
-        { title: 'Lotes comerciales', url: '/produccion/entregas', icon: Package },
-        { title: 'Evidencias de origen', url: '/produccion/documentos', icon: FolderOpen },
-      ],
-    },
-  },
-  certificadora: {
-    visibleGroups: ['Inicio', 'Cumplimiento', 'Ayuda'],
-    hiddenItems: [],
-  },
-  admin: {
-    visibleGroups: ['Inicio', 'Administración', 'Ayuda'],
-    replacedItems: {
-      'Administración': [
-        { title: 'Organizaciones', url: '/admin/organizacion', icon: Building2 },
-        { title: 'Usuarios', url: '/admin/usuarios', icon: Users },
-        { title: 'Billing', url: '/admin/billing', icon: Wallet },
-        { title: 'Logs e integridad', url: '/admin/logs', icon: FileText },
-        { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
-      ],
-    },
-  },
-};
+  return ALL_GROUPS.filter(group => {
+    // Always show Inicio and Ayuda
+    if (group.label === 'Inicio' || group.label === 'Ayuda') return true;
 
-function getSidebarForRole(role: UserRole): NavGroupDef[] {
-  const rules = ROLE_VISIBILITY[role] || ROLE_VISIBILITY.cooperativa;
+    // Admin always sees Administración
+    if (group.label === 'Administración') {
+      return ['cooperativa', 'admin', 'exportador'].includes(role);
+    }
 
-  return FULL_SIDEBAR
-    .filter(g => rules.visibleGroups.includes(g.label))
-    .map(g => {
-      // Replace items if needed
-      if (rules.replacedItems?.[g.label]) {
-        return { ...g, items: rules.replacedItems[g.label] };
-      }
+    // Certificadora: only Cumplimiento
+    if (role === 'certificadora') {
+      return ['Cumplimiento'].includes(group.label);
+    }
 
-      let items = g.items.filter(item => {
-        if (rules.hiddenItems?.includes(item.title)) return false;
-        return true;
-      });
+    // Module-driven: check if any moduleKey matches
+    if (group.moduleKeys && group.moduleKeys.length > 0) {
+      return group.moduleKeys.some(key =>
+        modules.includes(key) || modulesLower.includes(key.toLowerCase())
+      );
+    }
 
-      // Rename items
-      if (rules.renamedItems) {
-        items = items.map(item => {
-          const newName = rules.renamedItems![item.title];
-          return newName ? { ...item, title: newName } : item;
-        });
-      }
-
-      return { ...g, items };
-    })
-    .filter(g => g.standalone || g.items.length > 0);
+    return false;
+  });
 }
 
 // ── COMPONENTS ──
@@ -255,7 +275,7 @@ function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick
       </button>
       {isOpen && (
         <div className="space-y-0.5 pl-1">
-          {group.items.map((item) => (
+          {group.items.map(item => (
             <NavItemLink key={item.url + item.title} item={item} onClick={onClick} />
           ))}
         </div>
@@ -264,7 +284,6 @@ function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick
   );
 }
 
-// ── Check if a group contains the active route ──
 function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
   if (group.standalone && group.url) return pathname === group.url;
   return group.items.some(item => pathname.startsWith(item.url));
@@ -281,12 +300,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   if (!user) return null;
 
-  const navGroups = getSidebarForRole(user.role);
-  const orgTypeDisplay = getOrgTypeLabel(orgTipo);
+  // Get modules from demo config or fall back to role-based defaults
+  const demoConfig = getDemoConfig();
+  const modules = demoConfig?.modules || getDefaultModulesForRole(user.role);
+  const navGroups = getSidebarGroups(user.role, modules);
+  const orgTypeDisplay = demoConfig?.orgType
+    ? formatOrgType(demoConfig.orgType)
+    : getOrgTypeLabel(orgTipo);
+  const orgDisplayName = demoConfig?.orgName || user.organizationName;
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <img src={logoNovasilva} alt="Nova Silva" className="h-8 w-8 object-contain" />
@@ -300,16 +324,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
       </div>
 
-      {/* User info */}
       <div className="px-4 py-3 border-b border-sidebar-border">
-        <p className="text-xs text-sidebar-foreground/70 truncate">{user.organizationName}</p>
-        <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+        <p className="text-xs text-sidebar-foreground/70 truncate">{orgDisplayName}</p>
+        <p className="text-sm font-medium text-sidebar-foreground truncate">{demoConfig?.profileLabel || user.name}</p>
         <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-sidebar-accent text-sidebar-accent-foreground capitalize">
           {orgTypeDisplay}
         </span>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
         {navGroups.map((group, i) => (
           <NavGroup
@@ -338,6 +360,32 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       </aside>
     </>
   );
+}
+
+// ── HELPERS ──
+
+function getDefaultModulesForRole(role: string): string[] {
+  switch (role) {
+    case 'cooperativa': return ['Producción', 'Agronomía', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'];
+    case 'productor': return ['Producción', 'Agronomía', 'VITAL', 'Finanzas', 'Nova Cup'];
+    case 'tecnico': return ['Producción', 'Agronomía', 'VITAL'];
+    case 'exportador': return ['Orígenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analítica', 'Nova Cup', 'Finanzas'];
+    case 'certificadora': return ['Auditorías', 'Data Room', 'Dossiers'];
+    case 'admin': return ['Producción', 'Agronomía', 'VITAL', 'Cumplimiento', 'Finanzas'];
+    default: return ['Producción'];
+  }
+}
+
+function formatOrgType(orgType: string): string {
+  const map: Record<string, string> = {
+    cooperativa: 'Cooperativa',
+    finca_empresarial: 'Finca empresarial',
+    exportador: 'Exportador',
+    productor_privado: 'Productor privado',
+    certificadora: 'Certificadora',
+    admin: 'Plataforma',
+  };
+  return map[orgType] || orgType;
 }
 
 export default Sidebar;
