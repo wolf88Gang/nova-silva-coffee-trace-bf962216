@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { useDemoOrganizations, useDemoProfiles, type DemoOrgRow, type DemoProfileRow } from '@/hooks/useViewData';
-import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldCheck, Leaf, Sparkles } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldCheck, Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
@@ -473,7 +473,6 @@ const DemoLogin = () => {
                 to="/demo/setup"
                 className="inline-flex items-center gap-2.5 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-8 rounded-xl transition-colors text-sm shadow-lg shadow-[hsl(var(--accent-orange))]/20"
               >
-                <Sparkles className="h-4 w-4" />
                 Iniciar demo personalizado
               </Link>
               <p className="text-white/15 text-[10px]">

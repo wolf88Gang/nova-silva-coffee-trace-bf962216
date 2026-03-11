@@ -19,7 +19,7 @@ import {
   type PlanTier, type DemoSetupConfig,
 } from '@/lib/pricingEngine';
 import {
-  Leaf, ArrowRight, ArrowLeft, Loader2, Sparkles,
+  Leaf, ArrowRight, ArrowLeft, Loader2,
   Building2, Sprout, Truck, ShieldCheck, Factory, Ship, Coffee,
   MapPin, Bug, TrendingUp, Heart, Shield, Award, Briefcase,
   Boxes, ShoppingCart, Package, ChevronRight, Play,
@@ -322,9 +322,6 @@ function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; 
 function StepWelcome({ onStart }: { onStart: () => void }) {
   return (
     <WizardCard className="text-center max-w-lg mx-auto">
-      <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-[hsl(var(--accent-orange))]/15 mx-auto mb-5">
-        <Sparkles className="h-8 w-8 text-[hsl(var(--accent-orange))]" />
-      </div>
       <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">
         Configura un demo adaptado a tu operación
       </h1>
@@ -593,7 +590,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
               <span className="text-xs text-white font-medium">{orgLabel}</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
-              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
               <span className="text-xs text-white font-medium">{getModelLabel(model)}</span>
             </div>
           </div>
