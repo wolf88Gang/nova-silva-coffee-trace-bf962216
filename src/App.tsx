@@ -21,6 +21,8 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 // Domain index pages
 import ProduccionIndex from "./pages/produccion/ProduccionIndex";
 import ParcelDetailPage from "./pages/produccion/ParcelDetailPage";
+import CultivosIndex from "./pages/produccion/CultivosIndex";
+import DocumentosIndex from "./pages/produccion/DocumentosIndex";
 import AgronomiaIndex from "./pages/agronomia/AgronomiaIndex";
 import NutricionIndex from "./pages/agronomia/NutricionIndex";
 import GuardIndex from "./pages/agronomia/GuardIndex";
@@ -28,15 +30,20 @@ import YieldIndex from "./pages/agronomia/YieldIndex";
 import AlertasAgronomia from "./pages/agronomia/AlertasAgronomia";
 import VitalIndex from "./pages/resiliencia/VitalIndex";
 import CumplimientoIndex from "./pages/cumplimiento/CumplimientoIndex";
+import CumplimientoLotesPage from "./pages/cumplimiento/CumplimientoLotesPage";
+import TrazabilidadIndex from "./pages/cumplimiento/TrazabilidadIndex";
 import FinanzasIndex from "./pages/finanzas/FinanzasIndex";
 import AbastecimientoIndex from "./pages/abastecimiento/AbastecimientoIndex";
+import RecepcionIndex from "./pages/abastecimiento/RecepcionIndex";
+import ComprasLotesIndex from "./pages/abastecimiento/ComprasLotesIndex";
+import EvidenciasIndex from "./pages/abastecimiento/EvidenciasIndex";
+import RiesgoOrigenIndex from "./pages/abastecimiento/RiesgoOrigenIndex";
 import CalidadIndex from "./pages/calidad/CalidadIndex";
 import JornalesIndex from "./pages/jornales/JornalesIndex";
 import OrigenesIndex from "./pages/origenes/OrigenesIndex";
 import AnaliticaIndex from "./pages/analitica/AnaliticaIndex";
 import ComercialIndex from "./pages/comercial/ComercialIndex";
 import ComercialLotesPage from "./pages/comercial/ComercialLotesPage";
-import CumplimientoLotesPage from "./pages/cumplimiento/CumplimientoLotesPage";
 import InventarioIndex from "./pages/operaciones/InventarioIndex";
 
 // Existing pages (reused)
