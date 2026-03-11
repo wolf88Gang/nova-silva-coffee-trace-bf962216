@@ -12,7 +12,7 @@ import {
   ShieldCheck, Shield, FileText, Sprout, Settings, Map,
   DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp,
   Wallet, Eye, FolderOpen, CreditCard, HelpCircle,
-  Award, Briefcase, Coffee, BarChart3, Truck,
+  Award, Briefcase, Coffee, BarChart3, Truck, Cloud,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -20,49 +20,49 @@ import { useState } from 'react';
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 interface NavGroupDef { label: string; icon: LucideIcon; items: NavItemDef[]; standalone?: boolean; url?: string; }
 
+/**
+ * Build sidebar navigation groups from the visibility policy.
+ * This is the ONLY place that decides what goes in the sidebar.
+ */
 function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   const model = getOperatingModel(orgType);
   const v = getVisibilityPolicy(model);
   const groups: NavGroupDef[] = [];
 
-  // Inicio
-  const homeUrl = v.canSeeOrigins ? '/origenes' : model === 'auditor' ? '/cumplimiento' : '/produccion';
+  // ── Inicio ──
+  const homeUrl = v.canSeeOrigins ? '/origenes'
+    : model === 'auditor' ? '/cumplimiento'
+    : '/produccion';
   groups.push({ label: 'Inicio', icon: LayoutDashboard, standalone: true, url: homeUrl, items: [] });
 
-  // Producción (when org has own plots or manages third-party plots via agronomy)
-  if (v.canSeeOwnedPlots || v.canSeeThirdPartyPlots || v.canSeeAgronomy) {
-    // But NOT for trader/auditor — they don't have a "Producción" domain
-    if (model !== 'trader' && model !== 'auditor') {
-      const prodItems: NavItemDef[] = [
-        { title: 'Resumen', url: '/produccion', icon: Sprout },
-      ];
-      if (v.canSeeProducers) prodItems.push({ title: 'Productores', url: '/produccion/productores', icon: Users });
-      prodItems.push({ title: 'Parcelas', url: '/produccion/parcelas', icon: Map });
-      prodItems.push({ title: 'Cultivos', url: '/produccion/cultivos', icon: Leaf });
-      if (v.canSeeReception || v.canSeeProducers) prodItems.push({ title: 'Entregas', url: '/produccion/entregas', icon: Package });
-      prodItems.push({ title: 'Documentos', url: '/produccion/documentos', icon: FolderOpen });
-      groups.push({ label: 'Producción', icon: Sprout, items: prodItems });
-    }
+  // ── Producción ──
+  if (v.canSeeProductionSummary || v.canSeePlots || v.canSeeCrops) {
+    const items: NavItemDef[] = [];
+    if (v.canSeeProductionSummary) items.push({ title: 'Resumen', url: '/produccion', icon: Sprout });
+    if (v.canSeeProducers) items.push({ title: 'Productores', url: '/produccion/productores', icon: Users });
+    if (v.canSeePlots) items.push({ title: 'Parcelas', url: '/produccion/parcelas', icon: Map });
+    if (v.canSeeCrops) items.push({ title: 'Cultivos', url: '/produccion/cultivos', icon: Leaf });
+    if (v.canSeeDeliveries) items.push({ title: 'Entregas', url: '/produccion/entregas', icon: Package });
+    if (v.canSeeDocuments) items.push({ title: 'Documentos', url: '/produccion/documentos', icon: FolderOpen });
+    groups.push({ label: 'Producción', icon: Sprout, items });
   }
 
-  // Abastecimiento (supply chain)
-  if (v.canSeePurchases || v.canSeeReception) {
-    const abasItems: NavItemDef[] = [];
-    if (v.canSeeReception) abasItems.push({ title: 'Recepción de café', url: '/abastecimiento/recepcion', icon: Package });
-    if (v.canSeePurchases) abasItems.push({ title: 'Compras y lotes', url: '/abastecimiento/compras', icon: FileText });
-    if (v.canSeeSuppliers) {
-      abasItems.push({ title: 'Evidencias proveedor', url: '/abastecimiento/evidencias', icon: FolderOpen });
-      abasItems.push({ title: 'Riesgo de origen', url: '/abastecimiento/riesgo', icon: AlertTriangle });
-    }
-    if (abasItems.length > 0) groups.push({ label: 'Abastecimiento', icon: Truck, items: abasItems });
+  // ── Abastecimiento ──
+  if (v.canSeeSuppliers || v.canSeeReception || v.canSeePurchases) {
+    const items: NavItemDef[] = [];
+    if (v.canSeeReception) items.push({ title: 'Recepción de café', url: '/abastecimiento/recepcion', icon: Package });
+    if (v.canSeePurchases) items.push({ title: 'Compras y lotes', url: '/abastecimiento/compras', icon: FileText });
+    if (v.canSeeSupplierEvidence) items.push({ title: 'Evidencias proveedor', url: '/abastecimiento/evidencias', icon: FolderOpen });
+    if (v.canSeeOriginRisk) items.push({ title: 'Riesgo de origen', url: '/abastecimiento/riesgo', icon: AlertTriangle });
+    if (items.length > 0) groups.push({ label: 'Abastecimiento', icon: Truck, items });
   }
 
-  // Orígenes (trader only)
+  // ── Orígenes (trader) ──
   if (v.canSeeOrigins) {
     groups.push({ label: 'Orígenes', icon: Map, standalone: true, url: '/origenes', items: [] });
   }
 
-  // Agronomía
+  // ── Agronomía ──
   if (v.canSeeAgronomy) {
     groups.push({ label: 'Agronomía', icon: Leaf, items: [
       { title: 'Centro agronómico', url: '/agronomia', icon: Leaf },
@@ -73,46 +73,46 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
     ]});
   }
 
-  // Analítica
+  // ── Analítica (trader) ──
   if (v.canSeeAnalytics) {
     groups.push({ label: 'Analítica', icon: BarChart3, standalone: true, url: '/analitica', items: [] });
   }
 
-  // Jornales
+  // ── Jornales ──
   if (v.canSeeLabor) {
     groups.push({ label: 'Jornales', icon: Briefcase, standalone: true, url: '/jornales', items: [] });
   }
 
-  // Inventario
+  // ── Inventario ──
   if (v.canSeeInventory) {
     groups.push({ label: 'Inventario', icon: Package, standalone: true, url: '/operaciones/inventario', items: [] });
   }
 
-  // Resiliencia
-  if (v.canSeeResilience) {
-    groups.push({ label: 'Resiliencia', icon: Shield, standalone: true, url: '/resiliencia/vital', items: [] });
+  // ── Resiliencia ──
+  if (v.canSeeVital || v.canSeeClimate) {
+    const items: NavItemDef[] = [];
+    if (v.canSeeVital) items.push({ title: 'Protocolo VITAL', url: '/resiliencia/vital', icon: Shield });
+    if (v.canSeeClimate) items.push({ title: 'Clima', url: '/resiliencia/clima', icon: Cloud });
+    groups.push({ label: 'Resiliencia', icon: Shield, items });
   }
 
-  // Cumplimiento
-  if (v.canSeeCompliance) {
-    const cumpItems: NavItemDef[] = [
-      { title: 'Trazabilidad', url: '/cumplimiento/trazabilidad', icon: Eye },
-      { title: 'Lotes', url: '/cumplimiento/lotes', icon: Package },
-      { title: 'Dossiers EUDR', url: '/cumplimiento/eudr', icon: ShieldCheck },
-    ];
-    if (model === 'trader' || model === 'auditor') {
-      cumpItems.push({ title: 'Data Room', url: '/cumplimiento/data-room', icon: FolderOpen });
-    }
-    cumpItems.push({ title: 'Auditorías', url: '/cumplimiento/auditorias', icon: FileText });
-    groups.push({ label: 'Cumplimiento', icon: ShieldCheck, items: cumpItems });
+  // ── Cumplimiento ──
+  if (v.canSeeTraceability || v.canSeeEudr || v.canSeeAudits) {
+    const items: NavItemDef[] = [];
+    if (v.canSeeTraceability) items.push({ title: 'Trazabilidad', url: '/cumplimiento/trazabilidad', icon: Eye });
+    if (v.canSeeLots) items.push({ title: 'Lotes', url: '/cumplimiento/lotes', icon: Package });
+    if (v.canSeeEudr) items.push({ title: 'Dossiers EUDR', url: '/cumplimiento/eudr', icon: ShieldCheck });
+    if (v.canSeeDataRoom) items.push({ title: 'Data Room', url: '/cumplimiento/data-room', icon: FolderOpen });
+    if (v.canSeeAudits) items.push({ title: 'Auditorías', url: '/cumplimiento/auditorias', icon: FileText });
+    groups.push({ label: 'Cumplimiento', icon: ShieldCheck, items });
   }
 
-  // Calidad
+  // ── Calidad ──
   if (v.canSeeNovaCup) {
     groups.push({ label: 'Calidad', icon: Award, standalone: true, url: '/calidad', items: [] });
   }
 
-  // Comercial
+  // ── Comercial ──
   if (v.canSeeCommercial) {
     groups.push({ label: 'Comercial', icon: Coffee, items: [
       { title: 'Lotes comerciales', url: '/comercial/lotes', icon: Package },
@@ -120,24 +120,22 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
     ]});
   }
 
-  // Finanzas (not auditor)
-  if (model !== 'auditor') {
-    groups.push({ label: 'Finanzas', icon: Wallet, items: [
-      { title: 'Panel financiero', url: '/finanzas/panel', icon: DollarSign },
-      { title: 'Créditos', url: '/finanzas/creditos', icon: CreditCard },
-    ]});
+  // ── Finanzas ──
+  if (v.canSeeFarmCosts || v.canSeeCoffeePurchases || v.canSeeIncome) {
+    const items: NavItemDef[] = [];
+    if (v.canSeeFarmCosts) items.push({ title: 'Costos finca', url: '/finanzas/panel', icon: DollarSign });
+    if (v.canSeeCoffeePurchases) items.push({ title: 'Compras café', url: '/finanzas/creditos', icon: CreditCard });
+    if (v.canSeeIncome) items.push({ title: 'Ingresos', url: '/finanzas/ingresos', icon: Wallet });
+    groups.push({ label: 'Finanzas', icon: Wallet, items });
   }
 
-  // Administración
+  // ── Administración ──
   if (['cooperativa', 'admin', 'exportador'].includes(role) || model === 'estate' || model === 'estate_hybrid' || model === 'aggregator') {
     groups.push({ label: 'Administración', icon: Settings, items: [
       { title: 'Usuarios y roles', url: '/admin/usuarios', icon: Users },
       { title: 'Organización', url: '/admin/organizacion', icon: Building2 },
     ]});
   }
-
-  // Ayuda
-  groups.push({ label: 'Ayuda', icon: HelpCircle, standalone: true, url: '/ayuda', items: [] });
 
   return groups;
 }
