@@ -63,15 +63,15 @@ export default function ProduccionIndex() {
           <div className="grid gap-2 sm:grid-cols-3">
             <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
               <span className="h-2 w-2 rounded-full bg-warning" />
-              <span className="text-sm">{overview?.parcelas_sin_analisis ?? '—'} parcelas sin análisis reciente</span>
+              <span className="text-sm">{String(overview?.parcelas_sin_analisis ?? '—')} parcelas sin análisis reciente</span>
             </div>
             <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <span className="h-2 w-2 rounded-full bg-destructive" />
-              <span className="text-sm">{overview?.alertas_guard ?? '—'} alertas fitosanitarias activas</span>
+              <span className="text-sm">{String(overview?.alertas_guard ?? '—')} alertas fitosanitarias activas</span>
             </div>
             <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20">
               <span className="h-2 w-2 rounded-full bg-accent" />
-              <span className="text-sm">{overview?.estimaciones_pendientes ?? '—'} estimaciones Yield pendientes</span>
+              <span className="text-sm">{String(overview?.estimaciones_pendientes ?? '—')} estimaciones Yield pendientes</span>
             </div>
           </div>
         </CardContent>
