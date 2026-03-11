@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
-import { ModuleGuard } from "@/components/auth/ModuleGuard";
 import { assertSupabaseHost } from "@/lib/assertSupabaseHost";
 
 assertSupabaseHost();
@@ -17,8 +16,9 @@ import Register from "./pages/Register";
 import DemoLogin from "./pages/DemoLogin";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import NotFound from "./pages/NotFound";
+import PlaceholderPage from "./pages/PlaceholderPage";
 
-// ── Domain index pages ──
+// Domain index pages
 import ProduccionIndex from "./pages/produccion/ProduccionIndex";
 import ParcelDetailPage from "./pages/produccion/ParcelDetailPage";
 import AgronomiaIndex from "./pages/agronomia/AgronomiaIndex";
@@ -29,43 +29,31 @@ import AlertasAgronomia from "./pages/agronomia/AlertasAgronomia";
 import VitalIndex from "./pages/resiliencia/VitalIndex";
 import CumplimientoIndex from "./pages/cumplimiento/CumplimientoIndex";
 import FinanzasIndex from "./pages/finanzas/FinanzasIndex";
+import AbastecimientoIndex from "./pages/abastecimiento/AbastecimientoIndex";
+import CalidadIndex from "./pages/calidad/CalidadIndex";
+import JornalesIndex from "./pages/jornales/JornalesIndex";
+import OrigenesIndex from "./pages/origenes/OrigenesIndex";
+import AnaliticaIndex from "./pages/analitica/AnaliticaIndex";
+import ComercialIndex from "./pages/comercial/ComercialIndex";
 
-// ── Existing pages (reused in new routes) ──
-import DashboardCooperativa from "./pages/cooperativa/DashboardCooperativa";
+// Existing pages (reused)
 import ProductoresHub from "./pages/cooperativa/ProductoresHub";
 import AcopioHub from "./pages/cooperativa/AcopioHub";
-import OperacionesHub from "./pages/cooperativa/OperacionesHub";
 import FinanzasHub from "./pages/cooperativa/FinanzasHub";
 import ComunicacionHub from "./pages/cooperativa/ComunicacionHub";
-import VitalCooperativa from "./pages/cooperativa/VitalCooperativa";
-import UsuariosOrg from "./pages/cooperativa/UsuariosOrg";
 import CalidadHub from "./pages/cooperativa/CalidadHub";
 import InclusionEquidad from "./pages/cooperativa/InclusionEquidad";
-import DashboardProductor from "./pages/productor/DashboardProductor";
-import ProduccionHub from "./pages/productor/ProduccionHub";
-import SanidadHub from "./pages/productor/SanidadHub";
-import SostenibilidadHub from "./pages/productor/SostenibilidadHub";
-import FinanzasProductor from "./pages/productor/FinanzasProductor";
-import VitalProductor from "./pages/productor/VitalProductor";
-import Avisos from "./pages/productor/Avisos";
-import DashboardTecnico from "./pages/tecnico/DashboardTecnico";
-import TecnicoProductores from "./pages/tecnico/TecnicoProductores";
-import TecnicoVital from "./pages/tecnico/TecnicoVital";
+import UsuariosOrg from "./pages/cooperativa/UsuariosOrg";
 import TecnicoParcelas from "./pages/tecnico/TecnicoParcelas";
 import TecnicoAgenda from "./pages/tecnico/TecnicoAgenda";
-import DashboardExportador from "./pages/exportador/DashboardExportador";
-import CarteraProveedores from "./pages/exportador/CarteraProveedores";
-import CafeHub from "./pages/exportador/CafeHub";
 import ExportadorContratos from "./pages/exportador/ExportadorContratos";
 import ExportadorEUDR from "./pages/exportador/ExportadorEUDR";
 import ExportadorEmbarques from "./pages/exportador/ExportadorEmbarques";
 import ExportadorClientes from "./pages/exportador/ExportadorClientes";
 import ExportadorCalidad from "./pages/exportador/ExportadorCalidad";
-import ExportadorConfiguracion from "./pages/exportador/ExportadorConfiguracion";
 import ExportadorMensajes from "./pages/exportador/ExportadorMensajes";
 import ExportadoresAsociados from "./pages/cooperativa/ExportadoresAsociados";
 import OfertasRecibidas from "./pages/cooperativa/OfertasRecibidas";
-import DashboardCertificadora from "./pages/certificadora/DashboardCertificadora";
 import CertificadoraAuditorias from "./pages/certificadora/CertificadoraAuditorias";
 import CertificadoraOrgs from "./pages/certificadora/CertificadoraOrgs";
 import CertificadoraVerificar from "./pages/certificadora/CertificadoraVerificar";
@@ -79,7 +67,6 @@ import BillingReadOnly from "./pages/billing/BillingReadOnly";
 import AlertasPage from "./pages/alertas/AlertasPage";
 import ReportesHub from "./pages/reportes/ReportesHub";
 import CreditCommitteeDashboard from "./components/creditos/CreditCommitteeDashboard";
-import PlaceholderPage from "./pages/PlaceholderPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
@@ -87,12 +74,7 @@ const queryClient = new QueryClient({
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
-    <video
-      src="/animacion_nova_silva.mp4"
-      autoPlay loop muted playsInline preload="auto"
-      className="w-32 h-32 object-contain"
-      ref={(el) => { if (el) el.playbackRate = 8; }}
-    />
+    <video src="/animacion_nova_silva.mp4" autoPlay loop muted playsInline preload="auto" className="w-32 h-32 object-contain" ref={(el) => { if (el) el.playbackRate = 8; }} />
   </div>
 );
 
@@ -107,23 +89,16 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              {/* Root → Login */}
               <Route path="/" element={<Navigate to="/login" replace />} />
-
-              {/* Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/demo" element={<DemoLogin />} />
               <Route path="/registro" element={<Register />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
-
-              {/* Onboarding */}
               <Route path="/onboarding/organization" element={<OnboardingOrganization />} />
 
-              {/* ══════════════════════════════════════════
-                  UNIFIED DOMAIN ROUTES
-                  ══════════════════════════════════════════ */}
+              {/* ══ UNIFIED DOMAIN ROUTES ══ */}
 
-              {/* INICIO */}
+              {/* DASHBOARD */}
               <Route path="/dashboard" element={<DL><RoleBasedRedirect /></DL>} />
 
               {/* PRODUCCIÓN */}
@@ -135,6 +110,24 @@ const App = () => (
               <Route path="/produccion/entregas" element={<DL><AcopioHub /></DL>} />
               <Route path="/produccion/documentos" element={<DL><PlaceholderPage /></DL>} />
 
+              {/* ABASTECIMIENTO */}
+              <Route path="/abastecimiento" element={<DL><AbastecimientoIndex /></DL>} />
+              <Route path="/abastecimiento/proveedores" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/abastecimiento/recepcion" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/abastecimiento/compras" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/abastecimiento/evidencias" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/abastecimiento/riesgo" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/abastecimiento/eudr" element={<DL><PlaceholderPage /></DL>} />
+
+              {/* ORÍGENES (exportador) */}
+              <Route path="/origenes" element={<DL><OrigenesIndex /></DL>} />
+              <Route path="/origenes/proveedores" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/origenes/regiones" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/origenes/riesgo" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/origenes/eudr" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/origenes/calidad" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/origenes/potencial" element={<DL><PlaceholderPage /></DL>} />
+
               {/* AGRONOMÍA */}
               <Route path="/agronomia" element={<DL><AgronomiaIndex /></DL>} />
               <Route path="/agronomia/nutricion" element={<DL><NutricionIndex /></DL>} />
@@ -142,6 +135,16 @@ const App = () => (
               <Route path="/agronomia/yield" element={<DL><YieldIndex /></DL>} />
               <Route path="/agronomia/yield/nueva" element={<DL><PlaceholderPage /></DL>} />
               <Route path="/agronomia/alertas" element={<DL><AlertasAgronomia /></DL>} />
+
+              {/* ANALÍTICA AGRONÓMICA (exportador) */}
+              <Route path="/analitica" element={<DL><AnaliticaIndex /></DL>} />
+              <Route path="/analitica/riesgo" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/analitica/recomendaciones" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/analitica/fitosanitario" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/analitica/productivo" element={<DL><PlaceholderPage /></DL>} />
+
+              {/* JORNALES */}
+              <Route path="/jornales" element={<DL><JornalesIndex /></DL>} />
 
               {/* RESILIENCIA */}
               <Route path="/resiliencia/vital" element={<DL><VitalIndex /></DL>} />
@@ -153,6 +156,16 @@ const App = () => (
               <Route path="/cumplimiento/eudr" element={<DL><ExportadorEUDR /></DL>} />
               <Route path="/cumplimiento/data-room" element={<DL><PlaceholderPage /></DL>} />
               <Route path="/cumplimiento/auditorias" element={<DL><CertificadoraAuditorias /></DL>} />
+
+              {/* CALIDAD / NOVA CUP */}
+              <Route path="/calidad" element={<DL><CalidadIndex /></DL>} />
+
+              {/* COMERCIAL */}
+              <Route path="/comercial" element={<DL><ComercialIndex /></DL>} />
+              <Route path="/comercial/lotes" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/comercial/contratos" element={<DL><ExportadorContratos /></DL>} />
+              <Route path="/comercial/mezclas" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/comercial/trazabilidad" element={<DL><PlaceholderPage /></DL>} />
 
               {/* FINANZAS */}
               <Route path="/finanzas" element={<DL><FinanzasIndex /></DL>} />
@@ -183,13 +196,9 @@ const App = () => (
               <Route path="/parcelas" element={<Navigate to="/produccion/parcelas" replace />} />
               <Route path="/entregas" element={<Navigate to="/produccion/entregas" replace />} />
 
-              {/* ══════════════════════════════════════════
-                  LEGACY REDIRECTS (old role-based routes)
-                  ══════════════════════════════════════════ */}
-
-              {/* Cooperativa legacy */}
-              <Route path="/cooperativa" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/cooperativa/dashboard" element={<Navigate to="/dashboard" replace />} />
+              {/* ══ LEGACY REDIRECTS ══ */}
+              <Route path="/cooperativa" element={<Navigate to="/produccion" replace />} />
+              <Route path="/cooperativa/dashboard" element={<Navigate to="/produccion" replace />} />
               <Route path="/cooperativa/productores-hub" element={<Navigate to="/produccion/productores" replace />} />
               <Route path="/cooperativa/productores" element={<Navigate to="/produccion/productores" replace />} />
               <Route path="/cooperativa/acopio" element={<Navigate to="/produccion/entregas" replace />} />
@@ -197,64 +206,59 @@ const App = () => (
               <Route path="/cooperativa/nutricion" element={<Navigate to="/agronomia/nutricion" replace />} />
               <Route path="/cooperativa/finanzas-hub" element={<Navigate to="/finanzas/panel" replace />} />
               <Route path="/cooperativa/comunicacion" element={<DL><ComunicacionHub /></DL>} />
-              <Route path="/cooperativa/calidad" element={<DL><CalidadHub /></DL>} />
+              <Route path="/cooperativa/calidad" element={<Navigate to="/calidad" replace />} />
               <Route path="/cooperativa/vital" element={<Navigate to="/resiliencia/vital" replace />} />
               <Route path="/cooperativa/inclusion" element={<DL><InclusionEquidad /></DL>} />
               <Route path="/cooperativa/usuarios" element={<Navigate to="/admin/usuarios" replace />} />
               <Route path="/cooperativa/comite-credito" element={<Navigate to="/finanzas/creditos" replace />} />
+              <Route path="/cooperativa/exportadores" element={<DL><ExportadoresAsociados /></DL>} />
+              <Route path="/cooperativa/ofertas-recibidas" element={<DL><OfertasRecibidas /></DL>} />
+              <Route path="/cooperativa/avisos" element={<Navigate to="/produccion" replace />} />
               <Route path="/cooperativa/lotes-acopio" element={<Navigate to="/produccion/entregas" replace />} />
               <Route path="/cooperativa/creditos" element={<Navigate to="/finanzas/creditos" replace />} />
               <Route path="/cooperativa/configuracion" element={<Navigate to="/admin/usuarios" replace />} />
-              <Route path="/cooperativa/exportadores" element={<DL><ExportadoresAsociados /></DL>} />
-              <Route path="/cooperativa/ofertas-recibidas" element={<DL><OfertasRecibidas /></DL>} />
-              <Route path="/cooperativa/avisos" element={<Navigate to="/dashboard" replace />} />
 
-              {/* Productor legacy */}
-              <Route path="/productor" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/productor/dashboard" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/productor" element={<Navigate to="/produccion" replace />} />
+              <Route path="/productor/dashboard" element={<Navigate to="/produccion" replace />} />
               <Route path="/productor/produccion" element={<Navigate to="/produccion" replace />} />
               <Route path="/productor/sanidad" element={<Navigate to="/agronomia/guard" replace />} />
               <Route path="/productor/finanzas" element={<Navigate to="/finanzas" replace />} />
               <Route path="/productor/sostenibilidad" element={<Navigate to="/resiliencia/vital" replace />} />
               <Route path="/productor/vital" element={<Navigate to="/resiliencia/vital" replace />} />
-              <Route path="/productor/avisos" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/productor/avisos" element={<Navigate to="/produccion" replace />} />
               <Route path="/productor/finca" element={<Navigate to="/produccion" replace />} />
               <Route path="/productor/entregas" element={<Navigate to="/produccion/entregas" replace />} />
               <Route path="/productor/creditos" element={<Navigate to="/finanzas/creditos" replace />} />
               <Route path="/productor/clima" element={<Navigate to="/agronomia" replace />} />
 
-              {/* Técnico legacy */}
-              <Route path="/tecnico" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/tecnico/dashboard" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/tecnico" element={<Navigate to="/produccion" replace />} />
+              <Route path="/tecnico/dashboard" element={<Navigate to="/produccion" replace />} />
               <Route path="/tecnico/agenda" element={<DL><TecnicoAgenda /></DL>} />
               <Route path="/tecnico/productores" element={<Navigate to="/produccion/productores" replace />} />
               <Route path="/tecnico/parcelas" element={<Navigate to="/produccion/parcelas" replace />} />
               <Route path="/tecnico/vital" element={<Navigate to="/resiliencia/vital" replace />} />
               <Route path="/tecnico/diagnosticos" element={<Navigate to="/resiliencia/vital" replace />} />
 
-              {/* Exportador legacy */}
-              <Route path="/exportador" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/exportador/dashboard" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/exportador/cafe" element={<Navigate to="/produccion" replace />} />
+              <Route path="/exportador" element={<Navigate to="/origenes" replace />} />
+              <Route path="/exportador/dashboard" element={<Navigate to="/origenes" replace />} />
+              <Route path="/exportador/cafe" element={<Navigate to="/comercial" replace />} />
               <Route path="/exportador/lotes" element={<Navigate to="/cumplimiento/lotes" replace />} />
-              <Route path="/exportador/proveedores" element={<Navigate to="/produccion/productores" replace />} />
-              <Route path="/exportador/contratos" element={<DL><ExportadorContratos /></DL>} />
+              <Route path="/exportador/proveedores" element={<Navigate to="/origenes/proveedores" replace />} />
+              <Route path="/exportador/contratos" element={<Navigate to="/comercial/contratos" replace />} />
               <Route path="/exportador/eudr" element={<Navigate to="/cumplimiento/eudr" replace />} />
               <Route path="/exportador/embarques" element={<DL><ExportadorEmbarques /></DL>} />
               <Route path="/exportador/clientes" element={<DL><ExportadorClientes /></DL>} />
-              <Route path="/exportador/calidad" element={<DL><ExportadorCalidad /></DL>} />
+              <Route path="/exportador/calidad" element={<Navigate to="/calidad" replace />} />
               <Route path="/exportador/configuracion" element={<Navigate to="/admin/configuracion" replace />} />
               <Route path="/exportador/mensajes" element={<DL><ExportadorMensajes /></DL>} />
 
-              {/* Certificadora legacy */}
-              <Route path="/certificadora" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/certificadora/dashboard" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/certificadora" element={<Navigate to="/cumplimiento" replace />} />
+              <Route path="/certificadora/dashboard" element={<Navigate to="/cumplimiento" replace />} />
               <Route path="/certificadora/auditorias" element={<Navigate to="/cumplimiento/auditorias" replace />} />
               <Route path="/certificadora/orgs" element={<DL><CertificadoraOrgs /></DL>} />
               <Route path="/certificadora/verificar" element={<DL><CertificadoraVerificar /></DL>} />
               <Route path="/certificadora/reportes" element={<DL><CertificadoraReportes /></DL>} />
 
-              {/* Admin legacy */}
               <Route path="/admin" element={<RequireAdmin><DL><AdminPanel /></DL></RequireAdmin>} />
               <Route path="/admin/directorio" element={<Navigate to="/admin/organizacion" replace />} />
               <Route path="/admin/catalogos" element={<DL><AdminCatalogos /></DL>} />
