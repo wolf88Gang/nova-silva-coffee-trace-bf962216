@@ -4,12 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSetupState } from "@/hooks/useOnboardingPersistence";
 import { UserRole } from "@/types";
 
-const ROLE_REDIRECTS: Record<UserRole, string> = {
-  cooperativa: "/cooperativa/dashboard",
-  exportador: "/exportador/dashboard",
-  productor: "/productor/dashboard",
-  tecnico: "/tecnico/dashboard",
-  certificadora: "/certificadora/dashboard",
+/**
+ * Unified redirect: all roles go to /dashboard (contextual).
+ * Legacy role-specific dashboards are handled via the unified layout.
+ */
+const ROLE_DASHBOARDS: Record<UserRole, string> = {
+  cooperativa: "/produccion",
+  exportador: "/produccion",
+  productor: "/produccion",
+  tecnico: "/produccion",
+  certificadora: "/cumplimiento",
   admin: "/admin",
 };
 
@@ -28,13 +32,11 @@ const RoleBasedRedirect: React.FC = () => {
 
     const isDemo = user.id.startsWith('demo-');
 
-    // No org and not demo -> onboarding
     if (!user.organizationId && !isDemo) {
       navigate("/onboarding/organization");
       return;
     }
 
-    // Org exists but setup not completed -> force wizard (non-demo only)
     if (user.organizationId && !isDemo) {
       if (setupState === null || setupState?.is_completed === false) {
         navigate("/onboarding/organization");
@@ -42,7 +44,7 @@ const RoleBasedRedirect: React.FC = () => {
       }
     }
 
-    navigate(ROLE_REDIRECTS[user.role] ?? "/login");
+    navigate(ROLE_DASHBOARDS[user.role] ?? "/produccion");
   }, [isLoading, setupLoading, isAuthenticated, user, setupState, navigate]);
 
   return (

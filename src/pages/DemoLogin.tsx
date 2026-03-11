@@ -171,11 +171,11 @@ function groupOrgsByCategory(orgs: DemoOrganization[]): OrgCategory[] {
 }
 
 const ROLE_REDIRECTS: Record<string, string> = {
-  cooperativa: '/cooperativa/dashboard',
-  exportador: '/exportador/dashboard',
-  certificadora: '/certificadora/dashboard',
-  productor: '/productor/dashboard',
-  tecnico: '/tecnico/dashboard',
+  cooperativa: '/produccion',
+  exportador: '/produccion',
+  certificadora: '/cumplimiento',
+  productor: '/produccion',
+  tecnico: '/produccion',
   admin: '/admin',
 };
 

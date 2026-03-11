@@ -2,29 +2,26 @@ import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { getActorsNavLabel, getOrgTypeLabel } from '@/lib/org-terminology';
-import { hasAnyModule, type OrgModule } from '@/lib/org-modules';
+import { getOrgTypeLabel } from '@/lib/org-terminology';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { cn } from '@/lib/utils';
 import {
-  Leaf, X,
-  LayoutDashboard, Users, Package,
-  MessageSquare, Building2,
-  Calendar, ShieldCheck, Shield, FileText,
-  Sprout, Settings, Map, Award, DollarSign,
-  Bug, Coffee, AlertTriangle, ChevronDown,
-  BarChart3, Boxes, Wallet, TrendingUp,
-  Eye, FolderOpen, Briefcase, UserCheck,
+  Leaf, X, LayoutDashboard, Users, Package, Building2,
+  ShieldCheck, Shield, FileText, Sprout, Settings, Map,
+  DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp,
+  Wallet, Eye, FolderOpen, CreditCard, HelpCircle, BookOpen,
+  Headphones,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { UserRole } from '@/types';
 import { useState } from 'react';
 
+// ── TYPES ──
+
 interface NavItemDef {
   title: string;
   url: string;
   icon: LucideIcon;
-  requiredModule?: OrgModule | OrgModule[];
 }
 
 interface NavGroupDef {
@@ -33,317 +30,174 @@ interface NavGroupDef {
   items: NavItemDef[];
   standalone?: boolean;
   url?: string;
-  requiredModule?: OrgModule | OrgModule[];
 }
 
-// ── NAV DEFINITIONS (by domain, not by actor type) ──
+// ── FULL DOMAIN SIDEBAR (canonical) ──
 
-function getCooperativaNav(actorsLabel: string): NavGroupDef[] {
-  return [
-    {
-      label: 'Panel Principal',
-      icon: LayoutDashboard,
-      standalone: true,
-      url: '/cooperativa/dashboard',
-      items: [],
-    },
-    {
-      label: 'Producción',
-      icon: Sprout,
-      items: [
-        { title: actorsLabel, url: '/cooperativa/productores-hub', icon: Users, requiredModule: 'productores' },
-        { title: 'Parcelas', url: '/parcelas', icon: Map, requiredModule: 'parcelas' },
-        { title: 'Entregas', url: '/entregas', icon: Package, requiredModule: 'entregas' },
-        { title: 'Acopio', url: '/cooperativa/acopio', icon: Boxes, requiredModule: 'lotes_acopio' },
-        { title: 'Jornales', url: '/cooperativa/operaciones', icon: Briefcase, requiredModule: 'jornales' },
-      ],
-    },
-    {
-      label: 'Agronomía',
-      icon: Leaf,
-      items: [
-        { title: 'Nutrición', url: '/cooperativa/nutricion', icon: Sprout, requiredModule: 'nutricion' },
-        { title: 'Nova Guard', url: '/alertas', icon: AlertTriangle },
-        { title: 'Nova Cup', url: '/cooperativa/calidad', icon: Award, requiredModule: 'calidad' },
-      ],
-    },
-    {
-      label: 'Resiliencia',
-      icon: Shield,
-      items: [
-        { title: 'Protocolo VITAL', url: '/cooperativa/vital', icon: Shield, requiredModule: 'vital' },
-        { title: 'Inclusión y Equidad', url: '/cooperativa/inclusion', icon: UserCheck, requiredModule: 'inclusion' },
-      ],
-    },
-    {
-      label: 'Cumplimiento',
-      icon: ShieldCheck,
-      items: [
-        { title: 'Trazabilidad', url: '/cooperativa/operaciones', icon: Eye },
-        { title: 'EUDR', url: '/exportador/eudr', icon: ShieldCheck, requiredModule: 'eudr' },
-      ],
-    },
-    {
-      label: 'Comercial',
-      icon: DollarSign,
-      items: [
-        { title: 'Exportadores Asociados', url: '/cooperativa/exportadores', icon: Building2 },
-        { title: 'Ofertas Recibidas', url: '/cooperativa/ofertas-recibidas', icon: DollarSign },
-      ],
-    },
-    {
-      label: 'Finanzas',
-      icon: Wallet,
-      requiredModule: ['finanzas', 'creditos'],
-      items: [
-        { title: 'Panel Financiero', url: '/cooperativa/finanzas-hub', icon: DollarSign, requiredModule: 'finanzas' },
-      ],
-    },
-    {
-      label: 'Comunicación',
-      icon: MessageSquare,
-      standalone: true,
-      url: '/cooperativa/comunicacion',
-      requiredModule: 'mensajes',
-      items: [],
-    },
-    {
-      label: 'Reportes',
-      icon: FileText,
-      standalone: true,
-      url: '/reportes',
-      items: [],
-    },
-    {
-      label: 'Administración',
-      icon: Settings,
-      items: [
-        { title: 'Usuarios y Permisos', url: '/cooperativa/usuarios', icon: Users },
-        { title: 'Diagnóstico Org', url: '/cooperativa/diagnostico', icon: BarChart3 },
-      ],
-    },
-  ];
-}
+const FULL_SIDEBAR: NavGroupDef[] = [
+  {
+    label: 'Inicio',
+    icon: LayoutDashboard,
+    standalone: true,
+    url: '/dashboard',
+    items: [],
+  },
+  {
+    label: 'Producción',
+    icon: Sprout,
+    items: [
+      { title: 'Resumen de producción', url: '/produccion', icon: Sprout },
+      { title: 'Productores', url: '/produccion/productores', icon: Users },
+      { title: 'Parcelas', url: '/produccion/parcelas', icon: Map },
+      { title: 'Cultivos', url: '/produccion/cultivos', icon: Leaf },
+      { title: 'Entregas', url: '/produccion/entregas', icon: Package },
+      { title: 'Documentos y evidencias', url: '/produccion/documentos', icon: FolderOpen },
+    ],
+  },
+  {
+    label: 'Agronomía',
+    icon: Leaf,
+    items: [
+      { title: 'Centro agronómico', url: '/agronomia', icon: Leaf },
+      { title: 'Nutrición', url: '/agronomia/nutricion', icon: Sprout },
+      { title: 'Nova Guard', url: '/agronomia/guard', icon: Bug },
+      { title: 'Nova Yield', url: '/agronomia/yield', icon: TrendingUp },
+      { title: 'Recomendaciones y alertas', url: '/agronomia/alertas', icon: AlertTriangle },
+    ],
+  },
+  {
+    label: 'Resiliencia',
+    icon: Shield,
+    items: [
+      { title: 'Protocolo VITAL', url: '/resiliencia/vital', icon: Shield },
+      { title: 'Resultados por finca', url: '/resiliencia/vital', icon: Map },
+      { title: 'Resultados organizacionales', url: '/resiliencia/vital', icon: Building2 },
+      { title: 'Brechas y acciones', url: '/resiliencia/vital', icon: AlertTriangle },
+    ],
+  },
+  {
+    label: 'Cumplimiento',
+    icon: ShieldCheck,
+    items: [
+      { title: 'Trazabilidad', url: '/cumplimiento/trazabilidad', icon: Eye },
+      { title: 'Lotes', url: '/cumplimiento/lotes', icon: Package },
+      { title: 'Dossiers EUDR', url: '/cumplimiento/eudr', icon: ShieldCheck },
+      { title: 'Data Room', url: '/cumplimiento/data-room', icon: FolderOpen },
+      { title: 'Auditorías', url: '/cumplimiento/auditorias', icon: FileText },
+    ],
+  },
+  {
+    label: 'Finanzas',
+    icon: Wallet,
+    items: [
+      { title: 'Panel financiero', url: '/finanzas/panel', icon: DollarSign },
+      { title: 'Créditos', url: '/finanzas/creditos', icon: CreditCard },
+      { title: 'Score Nova', url: '/finanzas/score-nova', icon: TrendingUp },
+      { title: 'Carbono', url: '/finanzas/carbono', icon: Leaf },
+      { title: 'Facturación', url: '/finanzas/facturacion', icon: FileText },
+    ],
+  },
+  {
+    label: 'Administración',
+    icon: Settings,
+    items: [
+      { title: 'Usuarios y roles', url: '/admin/usuarios', icon: Users },
+      { title: 'Organización', url: '/admin/organizacion', icon: Building2 },
+      { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
+      { title: 'Billing', url: '/admin/billing', icon: Wallet },
+      { title: 'Logs e integridad', url: '/admin/logs', icon: FileText },
+    ],
+  },
+  {
+    label: 'Ayuda',
+    icon: HelpCircle,
+    items: [
+      { title: 'Centro de ayuda', url: '/ayuda', icon: HelpCircle },
+      { title: 'Glosario', url: '/ayuda/glosario', icon: BookOpen },
+      { title: 'Soporte demo', url: '/ayuda/soporte', icon: Headphones },
+    ],
+  },
+];
 
-function getProductorNav(): NavGroupDef[] {
-  return [
-    {
-      label: 'Inicio',
-      icon: LayoutDashboard,
-      standalone: true,
-      url: '/productor/dashboard',
-      items: [],
-    },
-    {
-      label: 'Mi Finca',
-      icon: Sprout,
-      items: [
-        { title: 'Parcelas', url: '/productor/produccion', icon: Map, requiredModule: 'parcelas' },
-        { title: 'Entregas', url: '/productor/entregas', icon: Package },
-        { title: 'Documentos', url: '/productor/produccion', icon: FolderOpen },
-      ],
-    },
-    {
-      label: 'Agronomía',
-      icon: Leaf,
-      items: [
-        { title: 'Nutrición', url: '/productor/produccion', icon: Sprout, requiredModule: 'nutricion' },
-        { title: 'Sanidad Vegetal', url: '/productor/sanidad', icon: Bug },
-      ],
-    },
-    {
-      label: 'Resiliencia',
-      icon: Shield,
-      items: [
-        { title: 'Protocolo VITAL', url: '/productor/sostenibilidad', icon: Shield, requiredModule: 'vital' },
-      ],
-    },
-    {
-      label: 'Finanzas',
-      icon: DollarSign,
-      standalone: true,
-      url: '/productor/finanzas',
-      requiredModule: 'finanzas',
-      items: [],
-    },
-    {
-      label: 'Comunidad',
-      icon: MessageSquare,
-      standalone: true,
-      url: '/productor/avisos',
-      requiredModule: 'mensajes',
-      items: [],
-    },
-  ];
-}
+// ── ROLE VISIBILITY RULES ──
 
-function getTecnicoNav(): NavGroupDef[] {
-  return [
-    { label: 'Panel Principal', icon: LayoutDashboard, standalone: true, url: '/tecnico/dashboard', items: [] },
-    {
-      label: 'Producción',
-      icon: Sprout,
-      items: [
-        { title: 'Productoras y productores', url: '/tecnico/productores', icon: Users, requiredModule: 'productores' },
-        { title: 'Parcelas y Mapas', url: '/tecnico/parcelas', icon: Map, requiredModule: 'parcelas' },
-      ],
-    },
-    {
-      label: 'Agronomía',
-      icon: Leaf,
-      items: [
-        { title: 'Nutrición', url: '/cooperativa/nutricion', icon: Sprout, requiredModule: 'nutricion' },
-        { title: 'Nova Guard', url: '/alertas', icon: AlertTriangle },
-      ],
-    },
-    {
-      label: 'Resiliencia',
-      icon: Shield,
-      items: [
-        { title: 'Protocolo VITAL', url: '/tecnico/vital', icon: Shield, requiredModule: 'vital' },
-      ],
-    },
-    { label: 'Agenda', icon: Calendar, standalone: true, url: '/tecnico/agenda', items: [] },
-  ];
-}
+type VisibilityRule = {
+  visibleGroups: string[];
+  hiddenItems?: string[];
+  renamedItems?: Record<string, string>;
+  replacedItems?: Record<string, { title: string; url: string; icon: LucideIcon }[]>;
+};
 
-function getExportadorNav(actorsLabel: string): NavGroupDef[] {
-  return [
-    { label: 'Panel Principal', icon: LayoutDashboard, standalone: true, url: '/exportador/dashboard', items: [] },
-    {
-      label: 'Orígenes',
-      icon: Sprout,
-      items: [
-        { title: actorsLabel, url: '/exportador/proveedores', icon: Users, requiredModule: 'productores' },
-        { title: 'Entregas y Acopio', url: '/cooperativa/acopio', icon: Package, requiredModule: ['entregas', 'lotes_acopio'] },
-        { title: 'Nova Cup', url: '/exportador/calidad', icon: Award, requiredModule: 'calidad' },
+const ROLE_VISIBILITY: Record<string, VisibilityRule> = {
+  cooperativa: {
+    visibleGroups: ['Inicio', 'Producción', 'Agronomía', 'Resiliencia', 'Cumplimiento', 'Finanzas', 'Administración', 'Ayuda'],
+  },
+  productor: {
+    visibleGroups: ['Inicio', 'Producción', 'Agronomía', 'Resiliencia', 'Finanzas', 'Ayuda'],
+    hiddenItems: ['Productores'],
+    renamedItems: { 'Resumen de producción': 'Mi producción' },
+  },
+  tecnico: {
+    visibleGroups: ['Inicio', 'Producción', 'Agronomía', 'Resiliencia', 'Ayuda'],
+    hiddenItems: ['Facturación', 'Billing', 'Logs e integridad'],
+  },
+  exportador: {
+    visibleGroups: ['Inicio', 'Producción', 'Cumplimiento', 'Finanzas', 'Administración', 'Ayuda'],
+    hiddenItems: ['Productores', 'Cultivos'],
+    replacedItems: {
+      'Producción': [
+        { title: 'Orígenes', url: '/produccion', icon: Sprout },
+        { title: 'Proveedores', url: '/produccion/productores', icon: Users },
+        { title: 'Lotes comerciales', url: '/produccion/entregas', icon: Package },
+        { title: 'Evidencias de origen', url: '/produccion/documentos', icon: FolderOpen },
       ],
     },
-    {
-      label: 'Comercial',
-      icon: Coffee,
-      items: [
-        { title: 'Gestión de Café', url: '/exportador/cafe', icon: Coffee, requiredModule: ['lotes_acopio', 'lotes_comerciales'] },
-        { title: 'Lotes Comerciales', url: '/exportador/lotes', icon: Package, requiredModule: 'lotes_comerciales' },
-        { title: 'Contratos', url: '/exportador/contratos', icon: FileText, requiredModule: 'contratos' },
-        { title: 'Embarques', url: '/exportador/embarques', icon: Package, requiredModule: 'contratos' },
-        { title: 'Clientes', url: '/exportador/clientes', icon: Building2, requiredModule: 'contratos' },
+  },
+  certificadora: {
+    visibleGroups: ['Inicio', 'Cumplimiento', 'Ayuda'],
+    hiddenItems: [],
+  },
+  admin: {
+    visibleGroups: ['Inicio', 'Administración', 'Ayuda'],
+    replacedItems: {
+      'Administración': [
+        { title: 'Organizaciones', url: '/admin/organizacion', icon: Building2 },
+        { title: 'Usuarios', url: '/admin/usuarios', icon: Users },
+        { title: 'Billing', url: '/admin/billing', icon: Wallet },
+        { title: 'Logs e integridad', url: '/admin/logs', icon: FileText },
+        { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
       ],
     },
-    {
-      label: 'Cumplimiento',
-      icon: ShieldCheck,
-      items: [
-        { title: 'EUDR', url: '/exportador/eudr', icon: ShieldCheck, requiredModule: 'eudr' },
-        { title: 'Trazabilidad', url: '/exportador/eudr', icon: Eye, requiredModule: 'eudr' },
-      ],
-    },
-    {
-      label: 'Analítica',
-      icon: BarChart3,
-      standalone: true,
-      url: '/reportes',
-      items: [],
-    },
-    {
-      label: 'Finanzas',
-      icon: Wallet,
-      standalone: true,
-      url: '/cooperativa/finanzas-hub',
-      requiredModule: 'finanzas',
-      items: [],
-    },
-    {
-      label: 'Administración',
-      icon: Settings,
-      items: [
-        { title: 'Configuración', url: '/exportador/configuracion', icon: Settings },
-        { title: 'Mensajes', url: '/exportador/mensajes', icon: MessageSquare, requiredModule: 'mensajes' },
-      ],
-    },
-  ];
-}
+  },
+};
 
-function getCertificadoraNav(): NavGroupDef[] {
-  return [
-    { label: 'Panel Principal', icon: LayoutDashboard, standalone: true, url: '/certificadora/dashboard', items: [] },
-    {
-      label: 'Auditorías',
-      icon: ShieldCheck,
-      items: [
-        { title: 'Sesiones', url: '/certificadora/auditorias', icon: FileText },
-        { title: 'Verificaciones', url: '/certificadora/verificar', icon: ShieldCheck },
-      ],
-    },
-    {
-      label: 'Data Room',
-      icon: FolderOpen,
-      items: [
-        { title: 'Organizaciones', url: '/certificadora/orgs', icon: Building2 },
-        { title: 'Evidencia', url: '/certificadora/reportes', icon: Eye },
-      ],
-    },
-    { label: 'Reportes', icon: FileText, standalone: true, url: '/certificadora/reportes', items: [] },
-  ];
-}
+function getSidebarForRole(role: UserRole): NavGroupDef[] {
+  const rules = ROLE_VISIBILITY[role] || ROLE_VISIBILITY.cooperativa;
 
-function getAdminNav(): NavGroupDef[] {
-  return [
-    { label: 'Panel de Administración', icon: Shield, standalone: true, url: '/admin', items: [] },
-    {
-      label: 'Plataforma',
-      icon: Building2,
-      items: [
-        { title: 'Organizaciones', url: '/admin/directorio', icon: Building2 },
-        { title: 'Catálogos', url: '/admin/catalogos', icon: Sprout },
-        { title: 'Usuarios', url: '/admin', icon: Users },
-      ],
-    },
-  ];
-}
-
-function getNavGroupsByRole(role: UserRole, orgTipo: string | null | undefined): NavGroupDef[] {
-  const actorsLabel = getActorsNavLabel(orgTipo);
-  switch (role) {
-    case 'cooperativa': return getCooperativaNav(actorsLabel);
-    case 'exportador': return getExportadorNav(actorsLabel);
-    case 'productor': return getProductorNav();
-    case 'tecnico': return getTecnicoNav();
-    case 'certificadora': return getCertificadoraNav();
-    case 'admin': return getAdminNav();
-    default: return [];
-  }
-}
-
-/** Filter groups and items by active modules */
-function filterGroupsByModules(groups: NavGroupDef[], activeModules: OrgModule[], isAdmin: boolean): NavGroupDef[] {
-  if (isAdmin) return groups;
-
-  return groups
-    .map(group => {
-      if (group.requiredModule) {
-        const required = Array.isArray(group.requiredModule) ? group.requiredModule : [group.requiredModule];
-        if (!hasAnyModule(activeModules, required)) return null;
+  return FULL_SIDEBAR
+    .filter(g => rules.visibleGroups.includes(g.label))
+    .map(g => {
+      // Replace items if needed
+      if (rules.replacedItems?.[g.label]) {
+        return { ...g, items: rules.replacedItems[g.label] };
       }
 
-      if (group.standalone) return group;
-
-      const filteredItems = group.items.filter(item => {
-        if (!item.requiredModule) return true;
-        const required = Array.isArray(item.requiredModule) ? item.requiredModule : [item.requiredModule];
-        return hasAnyModule(activeModules, required);
+      let items = g.items.filter(item => {
+        if (rules.hiddenItems?.includes(item.title)) return false;
+        return true;
       });
 
-      if (filteredItems.length === 0) return null;
-      return { ...group, items: filteredItems };
-    })
-    .filter(Boolean) as NavGroupDef[];
-}
+      // Rename items
+      if (rules.renamedItems) {
+        items = items.map(item => {
+          const newName = rules.renamedItems![item.title];
+          return newName ? { ...item, title: newName } : item;
+        });
+      }
 
-// ── Check if a group contains the active route ──
-function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
-  if (group.standalone && group.url) return pathname.startsWith(group.url);
-  return group.items.some(item => pathname.startsWith(item.url));
+      return { ...g, items };
+    })
+    .filter(g => g.standalone || g.items.length > 0);
 }
 
 // ── COMPONENTS ──
@@ -410,17 +264,24 @@ function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick
   );
 }
 
+// ── Check if a group contains the active route ──
+function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
+  if (group.standalone && group.url) return pathname === group.url;
+  return group.items.some(item => pathname.startsWith(item.url));
+}
+
+// ── SIDEBAR ──
+
 interface SidebarProps { isOpen: boolean; onClose: () => void; }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user } = useAuth();
-  const { orgTipo, activeModules } = useOrgContext();
+  const { orgTipo } = useOrgContext();
   const location = useLocation();
 
   if (!user) return null;
 
-  const rawGroups = getNavGroupsByRole(user.role, orgTipo);
-  const navGroups = filterGroupsByModules(rawGroups, activeModules, user.role === 'admin');
+  const navGroups = getSidebarForRole(user.role);
   const orgTypeDisplay = getOrgTypeLabel(orgTipo);
 
   const sidebarContent = (
