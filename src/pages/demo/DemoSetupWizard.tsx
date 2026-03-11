@@ -322,9 +322,6 @@ function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; 
 function StepWelcome({ onStart }: { onStart: () => void }) {
   return (
     <WizardCard className="text-center max-w-lg mx-auto">
-      <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-[hsl(var(--accent-orange))]/15 mx-auto mb-5">
-        <Sparkles className="h-8 w-8 text-[hsl(var(--accent-orange))]" />
-      </div>
       <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">
         Configura un demo adaptado a tu operación
       </h1>
