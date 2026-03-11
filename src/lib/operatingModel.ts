@@ -28,12 +28,15 @@ export interface VisibilityPolicy {
   canSeeProducers: boolean;
   canSeeDeliveries: boolean;
   canSeeDocuments: boolean;
-  // Abastecimiento
-  canSeeSuppliers: boolean;
+  // Abastecimiento café
+  canSeeCoffeeSuppliers: boolean;
   canSeeReception: boolean;
   canSeePurchases: boolean;
   canSeeSupplierEvidence: boolean;
   canSeeOriginRisk: boolean;
+  // Insumos
+  canSeeInputSuppliers: boolean;
+  canSeeInputCatalog: boolean;
   // Agronomía
   canSeeAgronomy: boolean;
   // Jornales
