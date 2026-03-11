@@ -770,7 +770,120 @@ export function getParcelDetailDemo() {
   }));
 }
 
+// ── DOCUMENTOS ──
+
+export interface DemoDocumento {
+  id: string; nombre: string; tipo: string; parcela: string; proveedor: string;
+  fecha: string; estado: string; origen: string;
+}
+export function getDemoDocumentos(): DemoDocumento[] {
+  const tipos = ['Análisis de suelo', 'Evidencia de campo', 'Documento EUDR', 'Certificado', 'Calidad', 'Auditoría', 'Contrato', 'Factura'];
+  return memoized('documentos', () =>
+    Array.from({ length: 30 }, (_, i) => ({
+      id: `doc-${i}`,
+      nombre: `${pick(tipos)} — ${genParcelaName()}`,
+      tipo: pick(tipos),
+      parcela: genParcelaName(),
+      proveedor: genName(),
+      fecha: daysAgo(randInt(1, 180)),
+      estado: pick(['Vigente', 'Vigente', 'Vigente', 'Pendiente revisión', 'Vencido', 'Borrador']),
+      origen: pick(['Campo', 'Laboratorio', 'Sistema', 'Auditoría', 'Proveedor']),
+    }))
+  );
+}
+
+// ── RECEPCIONES ──
+
+export interface DemoRecepcion {
+  id: string; fecha: string; proveedor: string; region: string;
+  volumen: string; lote: string; calidad: number; estadoDoc: string;
+}
+export function getDemoRecepciones(): DemoRecepcion[] {
+  return memoized('recepciones', () =>
+    Array.from({ length: 25 }, (_, i) => ({
+      id: `rec-${i}`,
+      fecha: daysAgo(randInt(0, 90)),
+      proveedor: genName(),
+      region: pick(REGIONES),
+      volumen: `${randInt(5, 120)} qq`,
+      lote: genLoteCode('REC', i + 1),
+      calidad: randDec(80, 90, 1),
+      estadoDoc: pick(['Completa', 'Completa', 'Completa', 'Parcial', 'Pendiente']),
+    }))
+  );
+}
+
+// ── EVIDENCIAS PROVEEDOR ──
+
+export interface DemoProviderEvidence {
+  id: string; proveedor: string; region: string; tipoEvidencia: string;
+  fecha: string; estado: string; observacion: string;
+}
+export function getDemoProviderEvidence(): DemoProviderEvidence[] {
+  const tiposEv = ['Cédula jurídica', 'Geolocalización', 'Declaración EUDR', 'Certificado orgánico', 'Contrato vigente', 'Fotos parcela', 'Análisis suelo'];
+  return memoized('provider_evidence', () =>
+    Array.from({ length: 35 }, (_, i) => ({
+      id: `ev-${i}`,
+      proveedor: genName(),
+      region: pick(REGIONES),
+      tipoEvidencia: pick(tiposEv),
+      fecha: daysAgo(randInt(1, 120)),
+      estado: pick(['Completo', 'Completo', 'Completo', 'Pendiente', 'Pendiente', 'Riesgo']),
+      observacion: pick(['Vigente', 'Próximo a vencer', 'Falta firma', 'Requiere actualización', 'Aprobado', 'Sin observaciones']),
+    }))
+  );
+}
+
+// ── RIESGO DE ORIGEN ──
+
+export interface DemoRiskScore {
+  id: string; proveedor: string; region: string; eudr: string;
+  calidad: number; riesgoAgro: string; riesgoDoc: string; scoreGeneral: number;
+}
+export function getDemoRiskScores(): DemoRiskScore[] {
+  return memoized('risk_scores', () =>
+    Array.from({ length: 30 }, (_, i) => ({
+      id: `risk-${i}`,
+      proveedor: genName(),
+      region: pick(REGIONES),
+      eudr: pick(['Conforme', 'Conforme', 'Conforme', 'Pendiente', 'Riesgo']),
+      calidad: randDec(78, 92, 1),
+      riesgoAgro: pick(['Bajo', 'Bajo', 'Medio', 'Alto']),
+      riesgoDoc: pick(['Bajo', 'Bajo', 'Medio', 'Medio', 'Alto']),
+      scoreGeneral: randInt(40, 98),
+    }))
+  );
+}
+
+// ── TRAZABILIDAD ──
+
+export interface DemoTraceStep {
+  lote: string; origen: string; productores: number; volumen: string;
+  estado: string; pasos: { etapa: string; fecha: string; completado: boolean }[];
+}
+export function getDemoTraceability(): DemoTraceStep[] {
+  const etapas = ['Recepción', 'Consolidación', 'Documentación', 'Validación EUDR', 'Exportación'];
+  return memoized('traceability', () =>
+    Array.from({ length: 15 }, (_, i) => {
+      const completados = randInt(2, 5);
+      return {
+        lote: genLoteCode('LT', i + 1),
+        origen: pick(REGIONES),
+        productores: randInt(3, 25),
+        volumen: `${randInt(50, 500)} qq`,
+        estado: completados >= 5 ? 'Trazado' : completados >= 3 ? 'En proceso' : 'Pendiente',
+        pasos: etapas.map((e, j) => ({
+          etapa: e,
+          fecha: j < completados ? daysAgo(randInt(1, 60)) : '',
+          completado: j < completados,
+        })),
+      };
+    })
+  );
+}
+
 // ── Utility: clear cache on org change ──
 export function clearDemoCache() {
   Object.keys(cache).forEach(k => delete cache[k]);
 }
+
