@@ -19,7 +19,7 @@ import {
   type PlanTier, type DemoSetupConfig,
 } from '@/lib/pricingEngine';
 import {
-  Leaf, ArrowRight, ArrowLeft, Loader2, Sparkles,
+  Leaf, ArrowRight, ArrowLeft, Loader2,
   Building2, Sprout, Truck, ShieldCheck, Factory, Ship, Coffee,
   MapPin, Bug, TrendingUp, Heart, Shield, Award, Briefcase,
   Boxes, ShoppingCart, Package, ChevronRight, Play,
