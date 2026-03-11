@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { getOrgTypeLabel } from '@/lib/org-terminology';
-import { getOperatingModel, showsProductores, showsAbastecimiento, showsJornales, showsInventario, showsAgronomia, showsComercial, showsCumplimiento, showsOrigenes, showsAnalitica } from '@/lib/operatingModel';
+import { getOperatingModel, getVisibilityPolicy } from '@/lib/operatingModel';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { cn } from '@/lib/utils';
 import {
@@ -22,45 +22,48 @@ interface NavGroupDef { label: string; icon: LucideIcon; items: NavItemDef[]; st
 
 function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   const model = getOperatingModel(orgType);
+  const v = getVisibilityPolicy(model);
   const groups: NavGroupDef[] = [];
 
   // Inicio
-  const homeUrl = model === 'trader' ? '/origenes' : model === 'auditor' ? '/cumplimiento' : '/produccion';
+  const homeUrl = v.canSeeOrigins ? '/origenes' : model === 'auditor' ? '/cumplimiento' : '/produccion';
   groups.push({ label: 'Inicio', icon: LayoutDashboard, standalone: true, url: homeUrl, items: [] });
 
-  // Producción (not for trader/auditor)
-  if (model !== 'trader' && model !== 'auditor') {
-    const prodItems: NavItemDef[] = [
-      { title: 'Resumen', url: '/produccion', icon: Sprout },
-    ];
-    if (showsProductores(model)) prodItems.push({ title: 'Productores', url: '/produccion/productores', icon: Users });
-    prodItems.push({ title: 'Parcelas', url: '/produccion/parcelas', icon: Map });
-    prodItems.push({ title: 'Cultivos', url: '/produccion/cultivos', icon: Leaf });
-    if (model !== 'single_farm') prodItems.push({ title: 'Entregas', url: '/produccion/entregas', icon: Package });
-    prodItems.push({ title: 'Documentos', url: '/produccion/documentos', icon: FolderOpen });
-    groups.push({ label: 'Producción', icon: Sprout, items: prodItems });
+  // Producción (when org has own plots or manages third-party plots via agronomy)
+  if (v.canSeeOwnedPlots || v.canSeeThirdPartyPlots || v.canSeeAgronomy) {
+    // But NOT for trader/auditor — they don't have a "Producción" domain
+    if (model !== 'trader' && model !== 'auditor') {
+      const prodItems: NavItemDef[] = [
+        { title: 'Resumen', url: '/produccion', icon: Sprout },
+      ];
+      if (v.canSeeProducers) prodItems.push({ title: 'Productores', url: '/produccion/productores', icon: Users });
+      prodItems.push({ title: 'Parcelas', url: '/produccion/parcelas', icon: Map });
+      prodItems.push({ title: 'Cultivos', url: '/produccion/cultivos', icon: Leaf });
+      if (v.canSeeReception || v.canSeeProducers) prodItems.push({ title: 'Entregas', url: '/produccion/entregas', icon: Package });
+      prodItems.push({ title: 'Documentos', url: '/produccion/documentos', icon: FolderOpen });
+      groups.push({ label: 'Producción', icon: Sprout, items: prodItems });
+    }
   }
 
-  // Abastecimiento
-  if (showsAbastecimiento(model)) {
-    const abasItems: NavItemDef[] = [
-      { title: 'Recepción de café', url: '/abastecimiento/recepcion', icon: Package },
-      { title: 'Compras y lotes', url: '/abastecimiento/compras', icon: FileText },
-    ];
-    if (model === 'aggregator' || model === 'trader') {
+  // Abastecimiento (supply chain)
+  if (v.canSeePurchases || v.canSeeReception) {
+    const abasItems: NavItemDef[] = [];
+    if (v.canSeeReception) abasItems.push({ title: 'Recepción de café', url: '/abastecimiento/recepcion', icon: Package });
+    if (v.canSeePurchases) abasItems.push({ title: 'Compras y lotes', url: '/abastecimiento/compras', icon: FileText });
+    if (v.canSeeSuppliers) {
       abasItems.push({ title: 'Evidencias proveedor', url: '/abastecimiento/evidencias', icon: FolderOpen });
       abasItems.push({ title: 'Riesgo de origen', url: '/abastecimiento/riesgo', icon: AlertTriangle });
     }
-    groups.push({ label: 'Abastecimiento', icon: Truck, items: abasItems });
+    if (abasItems.length > 0) groups.push({ label: 'Abastecimiento', icon: Truck, items: abasItems });
   }
 
   // Orígenes (trader only)
-  if (showsOrigenes(model)) {
+  if (v.canSeeOrigins) {
     groups.push({ label: 'Orígenes', icon: Map, standalone: true, url: '/origenes', items: [] });
   }
 
   // Agronomía
-  if (showsAgronomia(model)) {
+  if (v.canSeeAgronomy) {
     groups.push({ label: 'Agronomía', icon: Leaf, items: [
       { title: 'Centro agronómico', url: '/agronomia', icon: Leaf },
       { title: 'Nutrición', url: '/agronomia/nutricion', icon: Sprout },
@@ -70,28 +73,28 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
     ]});
   }
 
-  // Analítica (trader only)
-  if (showsAnalitica(model)) {
+  // Analítica
+  if (v.canSeeAnalytics) {
     groups.push({ label: 'Analítica', icon: BarChart3, standalone: true, url: '/analitica', items: [] });
   }
 
   // Jornales
-  if (showsJornales(model)) {
+  if (v.canSeeLabor) {
     groups.push({ label: 'Jornales', icon: Briefcase, standalone: true, url: '/jornales', items: [] });
   }
 
   // Inventario
-  if (showsInventario(model)) {
+  if (v.canSeeInventory) {
     groups.push({ label: 'Inventario', icon: Package, standalone: true, url: '/operaciones/inventario', items: [] });
   }
 
-  // Resiliencia (not trader/auditor)
-  if (model !== 'trader' && model !== 'auditor') {
+  // Resiliencia
+  if (v.canSeeResilience) {
     groups.push({ label: 'Resiliencia', icon: Shield, standalone: true, url: '/resiliencia/vital', items: [] });
   }
 
   // Cumplimiento
-  if (showsCumplimiento(model)) {
+  if (v.canSeeCompliance) {
     const cumpItems: NavItemDef[] = [
       { title: 'Trazabilidad', url: '/cumplimiento/trazabilidad', icon: Eye },
       { title: 'Lotes', url: '/cumplimiento/lotes', icon: Package },
@@ -105,12 +108,12 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   }
 
   // Calidad
-  if (model !== 'auditor') {
+  if (v.canSeeNovaCup) {
     groups.push({ label: 'Calidad', icon: Award, standalone: true, url: '/calidad', items: [] });
   }
 
   // Comercial
-  if (showsComercial(model)) {
+  if (v.canSeeCommercial) {
     groups.push({ label: 'Comercial', icon: Coffee, items: [
       { title: 'Lotes comerciales', url: '/comercial/lotes', icon: Package },
       { title: 'Contratos', url: '/comercial/contratos', icon: FileText },
@@ -126,7 +129,7 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   }
 
   // Administración
-  if (['cooperativa', 'admin', 'exportador'].includes(role) || model === 'estate' || model === 'aggregator') {
+  if (['cooperativa', 'admin', 'exportador'].includes(role) || model === 'estate' || model === 'estate_hybrid' || model === 'aggregator') {
     groups.push({ label: 'Administración', icon: Settings, items: [
       { title: 'Usuarios y roles', url: '/admin/usuarios', icon: Users },
       { title: 'Organización', url: '/admin/organizacion', icon: Building2 },

@@ -40,7 +40,7 @@ interface DemoOrganization {
 const FALLBACK_ORGS: DemoOrganization[] = [
   {
     id: 'coop_demo', name: 'Cooperativa Regional', orgType: 'cooperativa',
-    operatingModel: 'agregacion_cooperativa', typeLabel: 'Cooperativa', country: 'Costa Rica',
+    operatingModel: 'aggregator', typeLabel: 'Cooperativa', country: 'Costa Rica',
     description: 'Agrupa productores socios, coordina trazabilidad, soporte técnico, cumplimiento EUDR y resiliencia climática.',
     stats: ['420 socios', '860 parcelas', '12 técnicos'],
     modules: ['Producción', 'Agronomía', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'],
@@ -53,7 +53,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'estate_demo', name: 'Finca Empresarial', orgType: 'finca_empresarial',
-    operatingModel: 'produccion_propia_y_compra_terceros', typeLabel: 'Finca empresarial', country: 'Costa Rica',
+    operatingModel: 'estate_hybrid', typeLabel: 'Finca empresarial', country: 'Costa Rica',
     description: 'Opera parcelas propias con manejo agronómico intensivo y también compra café a productores externos.',
     stats: ['74 ha propias', '82 proveedores', '6 cuadrillas'],
     modules: ['Producción', 'Abastecimiento', 'Jornales', 'Agronomía', 'VITAL', 'EUDR', 'Nova Cup', 'Finanzas'],
@@ -66,7 +66,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'exporter_demo', name: 'Exportador de Origen', orgType: 'exportador',
-    operatingModel: 'originacion_masiva', typeLabel: 'Exportador', country: 'Centroamérica',
+    operatingModel: 'trader', typeLabel: 'Exportador', country: 'Centroamérica',
     description: 'Gestiona miles de proveedores con foco en cumplimiento EUDR, lotes, calidad y analítica de origen.',
     stats: ['4,200 proveedores', '12 regiones', '38 contratos'],
     modules: ['Orígenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analítica', 'Nova Cup', 'Finanzas'],
@@ -78,7 +78,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'farm_demo', name: 'Finca Privada', orgType: 'productor_privado',
-    operatingModel: 'solo_produccion_propia', typeLabel: 'Productor privado', country: 'Costa Rica',
+    operatingModel: 'single_farm', typeLabel: 'Productor privado', country: 'Costa Rica',
     description: 'Finca tecnificada con foco agronómico intensivo: nutrición, guard, yield y jornales.',
     stats: ['48 ha', '14 parcelas', '3 variedades'],
     modules: ['Producción', 'Jornales', 'Agronomía', 'VITAL', 'Finanzas', 'Nova Cup'],
@@ -89,7 +89,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'cert_demo', name: 'Certificadora', orgType: 'certificadora',
-    operatingModel: 'auditoria', typeLabel: 'Certificadora', country: 'Regional',
+    operatingModel: 'auditor', typeLabel: 'Certificadora', country: 'Regional',
     description: 'Entidad de auditoría y verificación. Acceso read-only a evidencia, dossiers y sesiones.',
     stats: ['24 organizaciones auditadas'],
     modules: ['Auditorías', 'Data Room', 'Dossiers'],

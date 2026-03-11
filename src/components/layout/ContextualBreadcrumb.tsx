@@ -1,29 +1,42 @@
 /**
  * Contextual breadcrumb header.
  * Shows: [Organización] / [Módulo] / [Entidad]
- * Adapts labels by org type.
+ * Uses demo config when active to stay in sync with selected tenant.
  */
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { ChevronRight } from 'lucide-react';
 
 const ROUTE_LABELS: Record<string, string> = {
   // Producción
   'productores-hub': 'Actores',
+  'productores': 'Productores',
   'parcelas': 'Parcelas',
   'entregas': 'Entregas',
-  'acopio': 'Acopio',
-  'operaciones': 'Operaciones',
+  'cultivos': 'Cultivos',
+  'documentos': 'Documentos',
+  // Abastecimiento
+  'recepcion': 'Recepción',
+  'compras': 'Compras y lotes',
+  'evidencias': 'Evidencias',
+  'riesgo': 'Riesgo de origen',
   // Agronomía
   'nutricion': 'Nutrición',
   'calidad': 'Nova Cup',
-  'alertas': 'Nova Guard',
+  'alertas': 'Alertas',
+  'guard': 'Nova Guard',
+  'yield': 'Nova Yield',
   // Resiliencia
   'vital': 'Protocolo VITAL',
   'inclusion': 'Inclusión',
   'sostenibilidad': 'Sostenibilidad',
   // Cumplimiento
   'eudr': 'EUDR',
+  'trazabilidad': 'Trazabilidad',
+  'lotes': 'Lotes',
+  'auditorias': 'Auditorías',
+  'data-room': 'Data Room',
   // Comercial
   'exportadores': 'Exportadores',
   'ofertas-recibidas': 'Ofertas',
@@ -31,12 +44,12 @@ const ROUTE_LABELS: Record<string, string> = {
   'contratos': 'Contratos',
   'embarques': 'Embarques',
   'clientes': 'Clientes',
-  'lotes': 'Lotes',
   'proveedores': 'Proveedores',
   // Finanzas
   'finanzas-hub': 'Finanzas',
   'finanzas': 'Finanzas',
   'creditos': 'Créditos',
+  'panel': 'Panel financiero',
   // Comunicación
   'comunicacion': 'Comunicación',
   'mensajes': 'Mensajes',
@@ -48,37 +61,59 @@ const ROUTE_LABELS: Record<string, string> = {
   'configuracion': 'Configuración',
   'directorio': 'Directorio',
   'catalogos': 'Catálogos',
+  'organizacion': 'Organización',
   // Productor
-  'produccion': 'Mi Finca',
+  'produccion': 'Producción',
   'sanidad': 'Sanidad Vegetal',
   // Técnico
   'agenda': 'Agenda',
   // Certificadora
-  'auditorias': 'Auditorías',
   'orgs': 'Organizaciones',
   'verificar': 'Verificaciones',
   'reportes': 'Reportes',
+  // Operaciones
+  'inventario': 'Inventario',
+  // Otros
+  'origenes': 'Orígenes',
+  'analitica': 'Analítica',
+  'jornales': 'Jornales',
 };
 
 const DOMAIN_LABELS: Record<string, string> = {
+  'produccion': 'Producción',
+  'abastecimiento': 'Abastecimiento',
+  'agronomia': 'Agronomía',
+  'cumplimiento': 'Cumplimiento',
+  'comercial': 'Comercial',
+  'finanzas': 'Finanzas',
+  'resiliencia': 'Resiliencia',
+  'operaciones': 'Operaciones',
+  'origenes': 'Orígenes',
+  'analitica': 'Analítica',
+  'jornales': 'Jornales',
+  'calidad': 'Calidad',
+  'admin': 'Administración',
+  'ayuda': 'Ayuda',
+  // Legacy role-based routes
   'cooperativa': 'Producción',
   'exportador': 'Comercial',
   'productor': 'Mi Finca',
   'tecnico': 'Técnico',
   'certificadora': 'Certificadora',
-  'admin': 'Administración',
 };
 
 export function ContextualBreadcrumb() {
   const { user } = useAuth();
   const location = useLocation();
+  const demoConfig = getDemoConfig();
 
   if (!user) return null;
 
   const segments = location.pathname.split('/').filter(Boolean);
   if (segments.length === 0) return null;
 
-  const orgName = user.organizationName || 'Nova Silva';
+  // Use demo config org name when available for consistency
+  const orgName = demoConfig?.orgName || user.organizationName || 'Nova Silva';
   const domain = DOMAIN_LABELS[segments[0]] || segments[0];
   const pageKey = segments[segments.length - 1];
   const pageLabel = ROUTE_LABELS[pageKey] || '';

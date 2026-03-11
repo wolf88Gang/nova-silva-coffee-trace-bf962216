@@ -98,7 +98,7 @@ export default function ParcelDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{p.parcela_nombre}</h1>
-          <p className="text-sm text-muted-foreground">{p.productor_nombre} · {p.variedad} · {p.area_ha} ha · {p.altitud} msnm</p>
+          <p className="text-sm text-muted-foreground">{p.variedad} · {p.area_ha} ha · {p.altitud} msnm</p>
         </div>
         <Badge variant="default">Activa</Badge>
       </div>

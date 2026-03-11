@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Sprout, FileText, ClipboardList, AlertTriangle } from 'lucide-react';
 import { useNutricionOverview } from '@/hooks/useViewData';
 import { getNutricionKPIs, getDemoPlanesNutricion, getDemoAnalisisSuelo, getEjecucionesNutricion } from '@/lib/demoSeedData';
+import { useVisibilityPolicy } from '@/lib/operatingModel';
 
 const planColor: Record<string, string> = { Vigente: 'default', Vencido: 'destructive', Borrador: 'outline', 'Sin plan': 'secondary' };
 const ejColor: Record<string, string> = { Aplicado: 'default', Programado: 'secondary', Atrasado: 'destructive' };
@@ -19,6 +20,7 @@ export default function NutricionIndex() {
   const planes = getDemoPlanesNutricion();
   const analisis = getDemoAnalisisSuelo();
   const ejecuciones = getEjecucionesNutricion();
+  const v = useVisibilityPolicy();
 
   const kpis = [
     { label: 'Planes activos', value: overview?.planes_activos ?? demoKPIs.planes_activos, icon: Sprout, color: 'text-primary' },
@@ -65,7 +67,8 @@ export default function NutricionIndex() {
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="font-medium text-sm">{p.parcela}</p>
-                    <p className="text-xs text-muted-foreground">{p.productor} · Creado: {p.fechaCreacion}</p>
+                    {v.canSeeProducers && <p className="text-xs text-muted-foreground">{p.productor} · Creado: {p.fechaCreacion}</p>}
+                    {!v.canSeeProducers && <p className="text-xs text-muted-foreground">Creado: {p.fechaCreacion}</p>}
                   </div>
                   <Badge variant={(planColor[p.estado] as any) || 'secondary'}>{p.estado}</Badge>
                 </div>
@@ -86,7 +89,7 @@ export default function NutricionIndex() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-2 px-3 text-muted-foreground font-medium">Parcela</th>
-                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Productor</th>
+                  {v.canSeeProducers && <th className="text-left py-2 px-3 text-muted-foreground font-medium">Productor</th>}
                   <th className="text-left py-2 px-3 text-muted-foreground font-medium">Fecha</th>
                   <th className="text-center py-2 px-3 text-muted-foreground font-medium">pH</th>
                   <th className="text-center py-2 px-3 text-muted-foreground font-medium">MO%</th>
@@ -99,7 +102,7 @@ export default function NutricionIndex() {
                 {analisis.slice(0, 15).map((a, i) => (
                   <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
                     <td className="py-2 px-3 font-medium">{a.parcela}</td>
-                    <td className="py-2 px-3 text-muted-foreground">{a.productor}</td>
+                    {v.canSeeProducers && <td className="py-2 px-3 text-muted-foreground">{a.productor}</td>}
                     <td className="py-2 px-3 text-muted-foreground">{a.fecha}</td>
                     <td className="py-2 px-3 text-center">{a.ph}</td>
                     <td className="py-2 px-3 text-center">{a.mo}</td>
@@ -137,7 +140,8 @@ export default function NutricionIndex() {
                   <div key={i} className="flex items-center justify-between p-2 rounded bg-muted/30">
                     <div>
                       <p className="text-sm font-medium">{p.parcela}</p>
-                      <p className="text-xs text-muted-foreground">{p.productor} · Venció: {p.fechaVencimiento}</p>
+                      {v.canSeeProducers && <p className="text-xs text-muted-foreground">{p.productor} · Venció: {p.fechaVencimiento}</p>}
+                      {!v.canSeeProducers && <p className="text-xs text-muted-foreground">Venció: {p.fechaVencimiento}</p>}
                     </div>
                     <Badge variant="outline" className="text-xs">Archivado</Badge>
                   </div>
