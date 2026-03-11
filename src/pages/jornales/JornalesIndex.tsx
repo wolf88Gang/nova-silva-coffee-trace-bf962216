@@ -1,33 +1,40 @@
 import { PageHeader } from '@/components/common/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Briefcase, Users, DollarSign, Clock } from 'lucide-react';
+import { useJornalesOverview } from '@/hooks/useViewData';
 
-const registros = [
+const FALLBACK_REGISTROS = [
   { cuadrilla: 'Cuadrilla Norte', actividad: 'Recolección', parcela: 'Lote El Cedro', jornales: 12, costo: '₡ 156,000', fecha: '2026-03-10' },
   { cuadrilla: 'Cuadrilla Sur', actividad: 'Fertilización', parcela: 'Parcela Norte', jornales: 4, costo: '₡ 52,000', fecha: '2026-03-09' },
   { cuadrilla: 'Equipo Mantenimiento', actividad: 'Podas', parcela: 'Lote La Cumbre', jornales: 8, costo: '₡ 104,000', fecha: '2026-03-08' },
 ];
 
 export default function JornalesIndex() {
+  const { data, isLoading } = useJornalesOverview();
+  const overview = data?.[0] ?? null;
+
+  const kpis = [
+    { label: 'Cuadrillas activas', value: overview?.cuadrillas_activas ?? '6', icon: Users },
+    { label: 'Jornales (semana)', value: overview?.jornales_semana ?? '84', icon: Briefcase },
+    { label: 'Costo semanal', value: overview?.costo_semanal ?? '₡ 1.09M', icon: DollarSign },
+    { label: 'Pagos pendientes', value: overview?.pagos_pendientes ?? '3', icon: Clock },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader title="Jornales" description="Registro laboral, cuadrillas, costos y pagos de campaña" />
 
       <div className="grid gap-4 sm:grid-cols-4">
-        {[
-          { label: 'Cuadrillas activas', value: '6', icon: Users },
-          { label: 'Jornales (semana)', value: '84', icon: Briefcase },
-          { label: 'Costo semanal', value: '₡ 1.09M', icon: DollarSign },
-          { label: 'Pagos pendientes', value: '3', icon: Clock },
-        ].map(k => (
+        {kpis.map(k => (
           <Card key={k.label}>
             <CardContent className="pt-5">
               <div className="flex items-center gap-3">
                 <k.icon className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="text-2xl font-bold">{k.value}</p>
+                  {isLoading ? <Skeleton className="h-7 w-12" /> : <p className="text-2xl font-bold">{String(k.value)}</p>}
                   <p className="text-xs text-muted-foreground">{k.label}</p>
                 </div>
               </div>
@@ -44,7 +51,7 @@ export default function JornalesIndex() {
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
         </TabsList>
         <TabsContent value="registros" className="mt-4 space-y-3">
-          {registros.map((r, i) => (
+          {FALLBACK_REGISTROS.map((r, i) => (
             <Card key={i}>
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">

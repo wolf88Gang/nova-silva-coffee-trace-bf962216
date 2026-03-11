@@ -1,10 +1,12 @@
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sprout, FileText, ClipboardList, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Sprout, FileText, ClipboardList, AlertTriangle } from 'lucide-react';
+import { useNutricionOverview } from '@/hooks/useViewData';
 
-const parcelas = [
+const FALLBACK_PARCELAS = [
   { nombre: 'Lote El Cedro', productor: 'María Solano', plan: 'Vigente', ejecucion: '65%', ultimoAnalisis: '2026-01-15' },
   { nombre: 'Parcela Norte', productor: 'Carlos Méndez', plan: 'Vencido', ejecucion: '100%', ultimoAnalisis: '2025-08-20' },
   { nombre: 'Lote La Cumbre', productor: 'Ana Jiménez', plan: 'Vigente', ejecucion: '30%', ultimoAnalisis: '2026-02-10' },
@@ -14,23 +16,37 @@ const parcelas = [
 const planColor: Record<string, string> = { Vigente: 'default', Vencido: 'destructive', 'Sin plan': 'secondary' };
 
 export default function NutricionIndex() {
+  const { data, isLoading } = useNutricionOverview();
+  const overview = data?.[0] ?? null;
+
+  const kpis = [
+    { label: 'Planes activos', value: overview?.planes_activos ?? '—', icon: Sprout, color: 'text-primary' },
+    { label: 'Análisis pendientes', value: overview?.analisis_pendientes ?? '—', icon: FileText, color: 'text-warning' },
+    { label: 'Planes por ejecutar', value: overview?.planes_por_ejecutar ?? '—', icon: ClipboardList, color: 'text-accent' },
+    { label: 'Alertas cruzadas', value: overview?.alertas_cruzadas ?? '—', icon: AlertTriangle, color: 'text-destructive' },
+  ];
+
+  // Use view parcelas or fallback
+  const parcelas = (data && data.length > 1) ? data.slice(1).map(r => ({
+    nombre: String(r.parcela_nombre ?? ''),
+    productor: String(r.productor_nombre ?? ''),
+    plan: String(r.plan_estado ?? 'Sin plan'),
+    ejecucion: String(r.ejecucion ?? '—'),
+    ultimoAnalisis: String(r.ultimo_analisis ?? '—'),
+  })) : FALLBACK_PARCELAS;
+
   return (
     <div className="space-y-6">
       <PageHeader title="Nutrición" description="Análisis de suelo, planes nutricionales y ejecución por parcela" />
 
       <div className="grid gap-4 sm:grid-cols-4">
-        {[
-          { label: 'Planes activos', value: '312', icon: Sprout, color: 'text-primary' },
-          { label: 'Análisis pendientes', value: '14', icon: FileText, color: 'text-warning' },
-          { label: 'Planes por ejecutar', value: '28', icon: ClipboardList, color: 'text-accent' },
-          { label: 'Alertas cruzadas', value: '5', icon: AlertTriangle, color: 'text-destructive' },
-        ].map(k => (
+        {kpis.map(k => (
           <Card key={k.label}>
             <CardContent className="pt-5">
               <div className="flex items-center gap-3">
                 <k.icon className={`h-5 w-5 ${k.color}`} />
                 <div>
-                  <p className="text-2xl font-bold">{k.value}</p>
+                  {isLoading ? <Skeleton className="h-7 w-12" /> : <p className="text-2xl font-bold">{String(k.value)}</p>}
                   <p className="text-xs text-muted-foreground">{k.label}</p>
                 </div>
               </div>

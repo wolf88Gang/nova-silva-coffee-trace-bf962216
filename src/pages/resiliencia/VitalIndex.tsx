@@ -1,9 +1,11 @@
 import { PageHeader } from '@/components/common/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, TrendingUp, AlertTriangle, Users } from 'lucide-react';
+import { useVitalOverview } from '@/hooks/useViewData';
 
-const fincas = [
+const FALLBACK_FINCAS = [
   { nombre: 'Lote El Cedro', productor: 'María Solano', score: 72, exposicion: 65, sensibilidad: 58, capacidad: 82 },
   { nombre: 'Parcela Norte', productor: 'Carlos Méndez', score: 45, exposicion: 78, sensibilidad: 72, capacidad: 38 },
   { nombre: 'Lote La Cumbre', productor: 'Ana Jiménez', score: 88, exposicion: 32, sensibilidad: 28, capacidad: 91 },
@@ -16,23 +18,28 @@ function scoreColor(score: number) {
 }
 
 export default function VitalIndex() {
+  const { data, isLoading } = useVitalOverview();
+  const overview = data?.[0] ?? null;
+
+  const kpis = [
+    { label: 'Score promedio', value: overview?.score_promedio ?? '68', icon: Shield },
+    { label: 'Fincas evaluadas', value: overview?.fincas_evaluadas ?? '156', icon: Users },
+    { label: 'Brechas prioritarias', value: overview?.brechas_prioritarias ?? '12', icon: AlertTriangle },
+    { label: 'Tendencia', value: overview?.tendencia ?? '+4 pts', icon: TrendingUp },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader title="Protocolo VITAL" description="Evaluación estructural de resiliencia por finca y organización" />
 
       <div className="grid gap-4 sm:grid-cols-4">
-        {[
-          { label: 'Score promedio', value: '68', icon: Shield },
-          { label: 'Fincas evaluadas', value: '156', icon: Users },
-          { label: 'Brechas prioritarias', value: '12', icon: AlertTriangle },
-          { label: 'Tendencia', value: '+4 pts', icon: TrendingUp },
-        ].map(k => (
+        {kpis.map(k => (
           <Card key={k.label}>
             <CardContent className="pt-5">
               <div className="flex items-center gap-3">
                 <k.icon className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="text-2xl font-bold">{k.value}</p>
+                  {isLoading ? <Skeleton className="h-7 w-12" /> : <p className="text-2xl font-bold">{String(k.value)}</p>}
                   <p className="text-xs text-muted-foreground">{k.label}</p>
                 </div>
               </div>
@@ -50,7 +57,7 @@ export default function VitalIndex() {
           <TabsTrigger value="acciones">Acciones sugeridas</TabsTrigger>
         </TabsList>
         <TabsContent value="fincas" className="mt-4 space-y-3">
-          {fincas.map((f, i) => (
+          {FALLBACK_FINCAS.map((f, i) => (
             <Card key={i}>
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
