@@ -144,6 +144,10 @@ const App = () => (
               <Route path="/analitica/fitosanitario" element={<DL><PlaceholderPage /></DL>} />
               <Route path="/analitica/productivo" element={<DL><PlaceholderPage /></DL>} />
 
+              {/* INVENTARIO */}
+              <Route path="/operaciones/inventario" element={<DL><InventarioIndex /></DL>} />
+              <Route path="/inventario" element={<Navigate to="/operaciones/inventario" replace />} />
+
               {/* JORNALES */}
               <Route path="/jornales" element={<DL><JornalesIndex /></DL>} />
 
