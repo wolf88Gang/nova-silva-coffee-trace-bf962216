@@ -89,7 +89,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'cert_demo', name: 'Certificadora', orgType: 'certificadora',
-    operatingModel: 'auditoria', typeLabel: 'Certificadora', country: 'Regional',
+    operatingModel: 'auditor', typeLabel: 'Certificadora', country: 'Regional',
     description: 'Entidad de auditoría y verificación. Acceso read-only a evidencia, dossiers y sesiones.',
     stats: ['24 organizaciones auditadas'],
     modules: ['Auditorías', 'Data Room', 'Dossiers'],
