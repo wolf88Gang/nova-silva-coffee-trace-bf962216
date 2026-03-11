@@ -447,9 +447,14 @@ const DemoLogin = () => {
               <p className="text-white/30 text-xs">Entorno de demostración</p>
             </div>
           </div>
-          <Link to="/login" className="text-white/40 hover:text-white text-xs transition-colors">
-            Acceso real →
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/demo/setup" className="text-[hsl(var(--accent-orange))]/70 hover:text-[hsl(var(--accent-orange))] text-xs font-medium transition-colors">
+              ✨ Demo personalizado
+            </Link>
+            <Link to="/login" className="text-white/40 hover:text-white text-xs transition-colors">
+              Acceso real →
+            </Link>
+          </div>
         </header>
 
         {/* Content */}
