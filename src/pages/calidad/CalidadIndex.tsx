@@ -1,17 +1,13 @@
 import { PageHeader } from '@/components/common/PageHeader';
-import { Card, CardContent } from '@/components/ui/card';
+import { DemoBadge } from '@/components/common/DemoBadge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Award, TrendingUp, Star, Coffee } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useNovaCupOverview } from '@/hooks/useViewData';
-
-const FALLBACK_EVALUACIONES = [
-  { lote: 'Lote CMV-2026-014', productor: 'María Solano', score: 86.5, notas: 'Cítrico, chocolate, cuerpo medio', fecha: '2026-03-08' },
-  { lote: 'Lote CMV-2026-012', productor: 'Carlos Méndez', score: 84.0, notas: 'Floral, nuez, acidez brillante', fecha: '2026-03-05' },
-  { lote: 'Lote CMV-2026-009', productor: 'Ana Jiménez', score: 88.2, notas: 'Frutos rojos, panela, sedoso', fecha: '2026-02-28' },
-  { lote: 'Lote SE-2026-003', productor: 'Finca Santa Elena', score: 90.1, notas: 'Jasmine, bergamota, complejo', fecha: '2026-02-25' },
-];
+import { getCupKPIs, getDemoMuestrasCup, getCupTendencia } from '@/lib/demoSeedData';
 
 function scoreColor(score: number) {
   if (score >= 88) return 'text-primary';
@@ -22,17 +18,26 @@ function scoreColor(score: number) {
 export default function CalidadIndex() {
   const { data, isLoading } = useNovaCupOverview();
   const overview = data?.[0] ?? null;
+  const demoKPIs = getCupKPIs();
+  const muestras = getDemoMuestrasCup();
+  const tendencia = getCupTendencia();
 
   const kpis = [
-    { label: 'Evaluaciones (campaña)', value: overview?.evaluaciones ?? '148', icon: Award },
-    { label: 'Score promedio', value: overview?.score_promedio ?? '85.4', icon: Star },
-    { label: 'Lotes >86 pts', value: overview?.lotes_destacados ?? '34', icon: Coffee },
-    { label: 'Tendencia', value: overview?.tendencia ?? '+1.2 pts', icon: TrendingUp },
+    { label: 'Evaluaciones (campaña)', value: overview?.evaluaciones ?? demoKPIs.evaluaciones, icon: Award },
+    { label: 'Score promedio', value: overview?.score_promedio ?? demoKPIs.score_promedio, icon: Star },
+    { label: 'Lotes >86 pts', value: overview?.lotes_destacados ?? demoKPIs.lotes_destacados, icon: Coffee },
+    { label: 'Tendencia', value: overview?.tendencia ?? demoKPIs.tendencia, icon: TrendingUp },
   ];
+
+  const specialty = muestras.filter(m => m.score >= 85);
+  const topLotes = [...muestras].sort((a, b) => b.score - a.score).slice(0, 10);
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Calidad · Nova Cup" description="Evaluaciones de taza, tendencias de calidad y oferta destacada" />
+      <div className="flex items-center justify-between">
+        <PageHeader title="Calidad · Nova Cup" description="Evaluaciones de taza, tendencias de calidad y oferta destacada" />
+        <DemoBadge />
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
         {kpis.map(k => (
@@ -50,35 +55,82 @@ export default function CalidadIndex() {
         ))}
       </div>
 
+      {/* Trend chart */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Tendencia de score promedio (12 meses)</CardTitle></CardHeader>
+        <CardContent>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={tendencia}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="mes" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                <YAxis domain={[80, 92]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
+                <Line type="monotone" dataKey="score" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: 'hsl(var(--accent))' }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="evaluaciones">
         <TabsList>
-          <TabsTrigger value="evaluaciones">Evaluaciones de taza</TabsTrigger>
-          <TabsTrigger value="lotes">Resultados por lote</TabsTrigger>
-          <TabsTrigger value="tendencias">Tendencias</TabsTrigger>
-          <TabsTrigger value="oferta">Oferta destacada</TabsTrigger>
+          <TabsTrigger value="evaluaciones">Todas las evaluaciones</TabsTrigger>
+          <TabsTrigger value="top">Top lotes</TabsTrigger>
+          <TabsTrigger value="specialty">Specialty ({specialty.length})</TabsTrigger>
         </TabsList>
+
         <TabsContent value="evaluaciones" className="mt-4 space-y-3">
-          {FALLBACK_EVALUACIONES.map((e, i) => (
+          {muestras.map((e, i) => (
             <Card key={i} className="cursor-pointer hover:shadow-sm transition-shadow">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-sm">{e.lote}</p>
-                    <p className="text-xs text-muted-foreground">{e.productor} · {e.fecha}</p>
+                    <p className="text-xs text-muted-foreground">{e.productor} · {e.origen} · {e.variedad} · {e.fecha}</p>
                     <p className="text-xs text-muted-foreground mt-1 italic">{e.notas}</p>
                   </div>
-                  <div className="text-center">
+                  <div className="text-center shrink-0 ml-4">
                     <p className={`text-2xl font-bold ${scoreColor(e.score)}`}>{e.score}</p>
-                    <p className="text-xs text-muted-foreground">SCA</p>
+                    <p className="text-xs text-muted-foreground">{e.categoria}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </TabsContent>
-        <TabsContent value="lotes" className="mt-4"><Card><CardContent className="pt-5 text-center text-muted-foreground text-sm py-12">Resultados agrupados por lote comercial</CardContent></Card></TabsContent>
-        <TabsContent value="tendencias" className="mt-4"><Card><CardContent className="pt-5 text-center text-muted-foreground text-sm py-12">Evolución de scores por período, región y variedad</CardContent></Card></TabsContent>
-        <TabsContent value="oferta" className="mt-4"><Card><CardContent className="pt-5 text-center text-muted-foreground text-sm py-12">Lotes con score destacado disponibles para oferta</CardContent></Card></TabsContent>
+
+        <TabsContent value="top" className="mt-4 space-y-3">
+          {topLotes.map((e, i) => (
+            <Card key={i}>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">#{i + 1} – {e.lote}</p>
+                    <p className="text-xs text-muted-foreground">{e.productor} · {e.origen}</p>
+                  </div>
+                  <span className={`text-xl font-bold ${scoreColor(e.score)}`}>{e.score}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="specialty" className="mt-4 space-y-3">
+          {specialty.map((e, i) => (
+            <Card key={i}>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{e.lote}</p>
+                    <p className="text-xs text-muted-foreground">{e.productor} · {e.notas}</p>
+                  </div>
+                  <Badge variant="default">{e.score} SCA</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
       </Tabs>
     </div>
   );
