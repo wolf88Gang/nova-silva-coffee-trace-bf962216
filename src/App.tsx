@@ -178,8 +178,8 @@ const App = () => (
               <Route path="/comercial" element={<DL><ComercialIndex /></DL>} />
               <Route path="/comercial/lotes" element={<DL><ComercialLotesPage /></DL>} />
               <Route path="/comercial/contratos" element={<DL><ExportadorContratos /></DL>} />
-              <Route path="/comercial/mezclas" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/comercial/trazabilidad" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/comercial/mezclas" element={<DL><ComercialIndex /></DL>} />
+              <Route path="/comercial/trazabilidad" element={<Navigate to="/cumplimiento/trazabilidad" replace />} />
 
               {/* FINANZAS */}
               <Route path="/finanzas" element={<DL><FinanzasIndex /></DL>} />
