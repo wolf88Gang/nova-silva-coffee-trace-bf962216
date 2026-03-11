@@ -6,7 +6,7 @@ import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldChe
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
-import bgTerraces from '@/assets/bg-terraces.jpg';
+import bgForest from '@/assets/bg-forest-network.png';
 import { cn } from '@/lib/utils';
 
 // ── DATA MODEL ──
