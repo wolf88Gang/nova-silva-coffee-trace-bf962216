@@ -2,50 +2,50 @@
  * Terminología dinámica según tipo de organización (org_tipo).
  * La UI se adapta al tipo de organización del tenant, no se hardcodea "cooperativa".
  *
- * Mapping:
- * - cooperativa → Socios / Socio
- * - exportador → Proveedores / Proveedor
- * - beneficio_privado → Proveedores / Proveedor
- * - productor / productor_empresarial → Fincas / Finca (o Unidades / Unidad)
- * - aggregator → Proveedores / Proveedor
- * - default → Productores / Productor
+ * Unificación de tipos de producción:
+ * - cooperativa, productor, productor_empresarial → Todos son "Producción"
+ * - exportador, beneficio_privado, aggregator → Exportación / Comercio
+ * - certificadora → Certificación
+ *
+ * El valor en BD puede seguir siendo 'cooperativa' o 'productor';
+ * esta capa lo normaliza como 'produccion' en la UI.
  */
 export type OrgTipo = 'cooperativa' | 'exportador' | 'certificadora' | 'productor' | 'beneficio_privado' | 'productor_empresarial' | 'aggregator' | 'tecnico' | 'admin' | string;
 
+/** Returns true if this orgTipo belongs to the unified "Producción" group */
+export function isProduccionType(tipo: OrgTipo | null | undefined): boolean {
+  return ['cooperativa', 'productor', 'productor_empresarial'].includes(tipo ?? '');
+}
+
 // ── Plural labels ──
 
-/** Label for the collection of actors (plural): Socios / Proveedores / Fincas / Productores */
+/** Label for the collection of actors (plural): Productoras y productores / Proveedores / Fincas */
 export function getActorsLabel(tipo: OrgTipo | null | undefined): string {
   if (!tipo) return 'Actores';
+  if (isProduccionType(tipo)) return 'Productoras y productores';
   switch (tipo) {
-    case 'cooperativa': return 'Productoras y productores';
     case 'exportador':
     case 'beneficio_privado':
     case 'aggregator': return 'Proveedores';
-    case 'productor':
-    case 'productor_empresarial': return 'Fincas';
     default: return 'Actores';
   }
 }
 
-/** Label for a single actor: Socio / Proveedor / Finca / Productor */
+/** Label for a single actor: Persona productora / Proveedor */
 export function getActorLabel(tipo: OrgTipo | null | undefined): string {
   if (!tipo) return 'Actor';
+  if (isProduccionType(tipo)) return 'Persona productora';
   switch (tipo) {
-    case 'cooperativa': return 'Persona productora';
     case 'exportador':
     case 'beneficio_privado':
     case 'aggregator': return 'Proveedor';
-    case 'productor':
-    case 'productor_empresarial': return 'Finca';
     default: return 'Actor';
   }
 }
 
-/** "Nuevo Socio" / "Nuevo Proveedor" / "Nueva Finca" */
+/** "Nueva persona productora" / "Nuevo Proveedor" */
 export function getNewActorLabel(tipo: OrgTipo | null | undefined): string {
   const singular = getActorLabel(tipo);
-  // Spanish gender agreement
   if (['Finca', 'Persona productora'].includes(singular)) return `Nueva ${singular}`;
   return `Nuevo ${singular}`;
 }
@@ -56,13 +56,11 @@ export type ActorKind = 'socio' | 'proveedor' | 'unidad_propia' | 'auditado';
 
 export function getActorKind(tipo: OrgTipo | null | undefined): ActorKind {
   if (!tipo) return 'socio';
+  if (isProduccionType(tipo)) return 'socio';
   switch (tipo) {
-    case 'cooperativa': return 'socio';
     case 'exportador':
     case 'beneficio_privado':
     case 'aggregator': return 'proveedor';
-    case 'productor':
-    case 'productor_empresarial': return 'unidad_propia';
     case 'certificadora': return 'auditado';
     default: return 'socio';
   }
@@ -71,13 +69,11 @@ export function getActorKind(tipo: OrgTipo | null | undefined): ActorKind {
 /** Empty state message for actors list */
 export function getActorsEmptyState(tipo: OrgTipo | null | undefined): string {
   if (!tipo) return 'No hay actores registrados';
+  if (isProduccionType(tipo)) return 'No hay productoras ni productores registrados. Agrega tu primera persona socia para comenzar.';
   switch (tipo) {
-    case 'cooperativa': return 'No hay productoras ni productores registrados. Agrega tu primera persona socia para comenzar.';
     case 'exportador':
     case 'beneficio_privado':
     case 'aggregator': return 'No hay proveedores registrados. Agrega tu primer proveedor.';
-    case 'productor':
-    case 'productor_empresarial': return 'No tienes unidades productivas registradas.';
     case 'certificadora': return 'No hay unidades auditadas registradas.';
     default: return 'No hay actores registrados.';
   }
@@ -100,26 +96,22 @@ export function getProductoresLabel(tipo: OrgTipo | null | undefined): string {
 /** Dynamic label for the actors hub nav item based on org type */
 export function getActorsNavLabel(tipo: OrgTipo | null | undefined): string {
   if (!tipo) return 'Actores';
+  if (isProduccionType(tipo)) return 'Productoras y productores';
   switch (tipo) {
-    case 'cooperativa': return 'Productoras y productores';
     case 'exportador':
     case 'beneficio_privado':
     case 'aggregator': return 'Red de Proveedores';
-    case 'productor':
-    case 'productor_empresarial': return 'Mis Fincas';
     default: return 'Actores';
   }
 }
 
-/** Organization type display label */
+/** Organization type display label — unified under "Producción" */
 export function getOrgTypeLabel(tipo: OrgTipo | null | undefined): string {
   if (!tipo) return 'Organización';
+  if (isProduccionType(tipo)) return 'Producción';
   switch (tipo) {
-    case 'cooperativa': return 'Cooperativa';
     case 'exportador': return 'Casa de Exportación';
     case 'beneficio_privado': return 'Beneficio Privado';
-    case 'productor': return 'Persona productora';
-    case 'productor_empresarial': return 'Productor Empresarial';
     case 'aggregator': return 'Agregador';
     case 'certificadora': return 'Certificadora';
     case 'tecnico': return 'Persona técnica';

@@ -5,9 +5,11 @@
  * activeModules controls VISIBILITY of modules in the UI.
  * role controls PERMISSIONS within active modules.
  * 
- * These are orthogonal: a module can be active but a specific role
- * may only have read access within it.
+ * Unificación: cooperativa + productor + productor_empresarial = "produccion"
+ * Todos comparten el mismo set de módulos base.
  */
+
+import { isProduccionType } from '@/lib/org-terminology';
 
 export type OrgModule =
   | 'core'           // Always active: dashboard, profile, settings
@@ -66,20 +68,22 @@ export function getActiveModules(org: OrgModuleSource | null | undefined): OrgMo
 /**
  * Default modules by organization type.
  * Used when org.modules is null/empty (legacy orgs or new orgs without explicit config).
+ *
+ * Producción (cooperativa + productor + productor_empresarial) comparten
+ * el mismo set completo de módulos.
  */
 export function getOrgDefaultModules(orgTipo: string | null | undefined): OrgModule[] {
-  switch (orgTipo) {
-    case 'cooperativa':
-      return [
-        'core', 'productores', 'parcelas', 'entregas', 'lotes_acopio',
-        'calidad', 'vital', 'finanzas', 'creditos', 'jornales',
-        'inventario', 'mensajes', 'inclusion', 'nutricion',
-      ];
+  // Unified "Producción" type
+  if (isProduccionType(orgTipo)) {
+    return [
+      'core', 'productores', 'parcelas', 'entregas', 'lotes_acopio',
+      'calidad', 'vital', 'finanzas', 'creditos', 'jornales',
+      'inventario', 'mensajes', 'inclusion', 'nutricion',
+    ];
+  }
 
+  switch (orgTipo) {
     case 'exportador':
-      // Exportador operativo (full): includes field operations + commercial.
-      // Exportador comercial (trading-only) should have a reduced modules list
-      // set explicitly in org.modules — this default covers the broader case.
       return [
         'core', 'productores', 'parcelas', 'entregas', 'lotes_acopio',
         'lotes_comerciales', 'contratos', 'calidad', 'eudr', 'finanzas',
@@ -90,12 +94,6 @@ export function getOrgDefaultModules(orgTipo: string | null | undefined): OrgMod
       return [
         'core', 'productores', 'parcelas', 'entregas', 'lotes_acopio',
         'calidad', 'vital', 'finanzas', 'jornales', 'inventario', 'mensajes',
-      ];
-
-    case 'productor':
-    case 'productor_empresarial':
-      return [
-        'core', 'parcelas', 'vital', 'finanzas', 'inventario', 'mensajes',
       ];
 
     case 'aggregator':
