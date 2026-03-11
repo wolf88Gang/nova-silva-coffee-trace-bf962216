@@ -110,8 +110,14 @@ const ALL_GROUPS: NavGroupDef[] = [
     moduleKeys: ['Jornales', 'jornales'],
     items: [
       { title: 'Registro de jornales', url: '/jornales', icon: Briefcase },
-      { title: 'Cuadrillas', url: '/jornales', icon: Users },
-      { title: 'Costos laborales', url: '/jornales', icon: DollarSign },
+    ],
+  },
+  {
+    label: 'Inventario',
+    icon: Package,
+    moduleKeys: ['Inventario', 'inventario'],
+    items: [
+      { title: 'Control de inventario', url: '/operaciones/inventario', icon: Package },
     ],
   },
   {
