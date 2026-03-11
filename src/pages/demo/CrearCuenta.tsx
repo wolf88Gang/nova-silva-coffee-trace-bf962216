@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
-  Leaf, ArrowRight, ArrowLeft, Loader2, CheckCircle, Sparkles,
+  Leaf, ArrowRight, ArrowLeft, Loader2, CheckCircle,
   Building2, DollarSign, Package, Shield, Award, Briefcase,
   Boxes, ShoppingCart, Truck, Bug, Coffee,
 } from 'lucide-react';
