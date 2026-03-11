@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { getSetupConfig } from '@/lib/pricingEngine';
-import { X, Sparkles, ArrowRight } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function DemoBanner() {
