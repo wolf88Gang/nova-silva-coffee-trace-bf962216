@@ -21,6 +21,8 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 // Domain index pages
 import ProduccionIndex from "./pages/produccion/ProduccionIndex";
 import ParcelDetailPage from "./pages/produccion/ParcelDetailPage";
+import CultivosIndex from "./pages/produccion/CultivosIndex";
+import DocumentosIndex from "./pages/produccion/DocumentosIndex";
 import AgronomiaIndex from "./pages/agronomia/AgronomiaIndex";
 import NutricionIndex from "./pages/agronomia/NutricionIndex";
 import GuardIndex from "./pages/agronomia/GuardIndex";
@@ -28,15 +30,20 @@ import YieldIndex from "./pages/agronomia/YieldIndex";
 import AlertasAgronomia from "./pages/agronomia/AlertasAgronomia";
 import VitalIndex from "./pages/resiliencia/VitalIndex";
 import CumplimientoIndex from "./pages/cumplimiento/CumplimientoIndex";
+import CumplimientoLotesPage from "./pages/cumplimiento/CumplimientoLotesPage";
+import TrazabilidadIndex from "./pages/cumplimiento/TrazabilidadIndex";
 import FinanzasIndex from "./pages/finanzas/FinanzasIndex";
 import AbastecimientoIndex from "./pages/abastecimiento/AbastecimientoIndex";
+import RecepcionIndex from "./pages/abastecimiento/RecepcionIndex";
+import ComprasLotesIndex from "./pages/abastecimiento/ComprasLotesIndex";
+import EvidenciasIndex from "./pages/abastecimiento/EvidenciasIndex";
+import RiesgoOrigenIndex from "./pages/abastecimiento/RiesgoOrigenIndex";
 import CalidadIndex from "./pages/calidad/CalidadIndex";
 import JornalesIndex from "./pages/jornales/JornalesIndex";
 import OrigenesIndex from "./pages/origenes/OrigenesIndex";
 import AnaliticaIndex from "./pages/analitica/AnaliticaIndex";
 import ComercialIndex from "./pages/comercial/ComercialIndex";
 import ComercialLotesPage from "./pages/comercial/ComercialLotesPage";
-import CumplimientoLotesPage from "./pages/cumplimiento/CumplimientoLotesPage";
 import InventarioIndex from "./pages/operaciones/InventarioIndex";
 
 // Existing pages (reused)
@@ -109,27 +116,27 @@ const App = () => (
               <Route path="/produccion/productores" element={<DL><ProductoresHub /></DL>} />
               <Route path="/produccion/parcelas" element={<DL><TecnicoParcelas /></DL>} />
               <Route path="/produccion/parcelas/:id" element={<DL><ParcelDetailPage /></DL>} />
-              <Route path="/produccion/cultivos" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/produccion/cultivos" element={<DL><CultivosIndex /></DL>} />
               <Route path="/produccion/entregas" element={<DL><AcopioHub /></DL>} />
-              <Route path="/produccion/documentos" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/produccion/documentos" element={<DL><DocumentosIndex /></DL>} />
 
               {/* ABASTECIMIENTO */}
               <Route path="/abastecimiento" element={<DL><AbastecimientoIndex /></DL>} />
-              <Route path="/abastecimiento/proveedores" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/recepcion" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/compras" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/evidencias" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/riesgo" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/abastecimiento/eudr" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/abastecimiento/proveedores" element={<DL><AbastecimientoIndex /></DL>} />
+              <Route path="/abastecimiento/recepcion" element={<DL><RecepcionIndex /></DL>} />
+              <Route path="/abastecimiento/compras" element={<DL><ComprasLotesIndex /></DL>} />
+              <Route path="/abastecimiento/evidencias" element={<DL><EvidenciasIndex /></DL>} />
+              <Route path="/abastecimiento/riesgo" element={<DL><RiesgoOrigenIndex /></DL>} />
+              <Route path="/abastecimiento/eudr" element={<DL><RiesgoOrigenIndex /></DL>} />
 
               {/* ORÍGENES (exportador) */}
               <Route path="/origenes" element={<DL><OrigenesIndex /></DL>} />
-              <Route path="/origenes/proveedores" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/regiones" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/riesgo" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/eudr" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/calidad" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/origenes/potencial" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/origenes/proveedores" element={<DL><OrigenesIndex /></DL>} />
+              <Route path="/origenes/regiones" element={<DL><OrigenesIndex /></DL>} />
+              <Route path="/origenes/riesgo" element={<DL><RiesgoOrigenIndex /></DL>} />
+              <Route path="/origenes/eudr" element={<Navigate to="/cumplimiento/eudr" replace />} />
+              <Route path="/origenes/calidad" element={<Navigate to="/calidad" replace />} />
+              <Route path="/origenes/potencial" element={<DL><OrigenesIndex /></DL>} />
 
               {/* AGRONOMÍA */}
               <Route path="/agronomia" element={<DL><AgronomiaIndex /></DL>} />
@@ -141,10 +148,10 @@ const App = () => (
 
               {/* ANALÍTICA AGRONÓMICA (exportador) */}
               <Route path="/analitica" element={<DL><AnaliticaIndex /></DL>} />
-              <Route path="/analitica/riesgo" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/analitica/recomendaciones" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/analitica/fitosanitario" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/analitica/productivo" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/analitica/riesgo" element={<DL><AnaliticaIndex /></DL>} />
+              <Route path="/analitica/recomendaciones" element={<DL><AnaliticaIndex /></DL>} />
+              <Route path="/analitica/fitosanitario" element={<DL><AnaliticaIndex /></DL>} />
+              <Route path="/analitica/productivo" element={<DL><AnaliticaIndex /></DL>} />
 
               {/* INVENTARIO */}
               <Route path="/operaciones/inventario" element={<DL><InventarioIndex /></DL>} />
@@ -158,10 +165,10 @@ const App = () => (
 
               {/* CUMPLIMIENTO */}
               <Route path="/cumplimiento" element={<DL><CumplimientoIndex /></DL>} />
-              <Route path="/cumplimiento/trazabilidad" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/cumplimiento/trazabilidad" element={<DL><TrazabilidadIndex /></DL>} />
               <Route path="/cumplimiento/lotes" element={<DL><CumplimientoLotesPage /></DL>} />
               <Route path="/cumplimiento/eudr" element={<DL><ExportadorEUDR /></DL>} />
-              <Route path="/cumplimiento/data-room" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/cumplimiento/data-room" element={<DL><DocumentosIndex /></DL>} />
               <Route path="/cumplimiento/auditorias" element={<DL><CertificadoraAuditorias /></DL>} />
 
               {/* CALIDAD / NOVA CUP */}
@@ -171,28 +178,28 @@ const App = () => (
               <Route path="/comercial" element={<DL><ComercialIndex /></DL>} />
               <Route path="/comercial/lotes" element={<DL><ComercialLotesPage /></DL>} />
               <Route path="/comercial/contratos" element={<DL><ExportadorContratos /></DL>} />
-              <Route path="/comercial/mezclas" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/comercial/trazabilidad" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/comercial/mezclas" element={<DL><ComercialIndex /></DL>} />
+              <Route path="/comercial/trazabilidad" element={<Navigate to="/cumplimiento/trazabilidad" replace />} />
 
               {/* FINANZAS */}
               <Route path="/finanzas" element={<DL><FinanzasIndex /></DL>} />
               <Route path="/finanzas/panel" element={<DL><FinanzasHub /></DL>} />
               <Route path="/finanzas/creditos" element={<DL><CreditCommitteeDashboard /></DL>} />
-              <Route path="/finanzas/score-nova" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/finanzas/carbono" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/finanzas/score-nova" element={<DL><FinanzasIndex /></DL>} />
+              <Route path="/finanzas/carbono" element={<DL><FinanzasIndex /></DL>} />
               <Route path="/finanzas/facturacion" element={<DL><BillingReadOnly /></DL>} />
 
               {/* ADMINISTRACIÓN */}
               <Route path="/admin/usuarios" element={<DL><UsuariosOrg /></DL>} />
               <Route path="/admin/organizacion" element={<DL><AdminDirectorio /></DL>} />
-              <Route path="/admin/configuracion" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/admin/configuracion" element={<DL><AdminDirectorio /></DL>} />
               <Route path="/admin/billing" element={<DL><BillingReadOnly /></DL>} />
-              <Route path="/admin/logs" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/admin/logs" element={<DL><AdminDirectorio /></DL>} />
 
               {/* AYUDA */}
-              <Route path="/ayuda" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/ayuda/glosario" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/ayuda/soporte" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/ayuda" element={<DL><DocumentosIndex /></DL>} />
+              <Route path="/ayuda/glosario" element={<DL><DocumentosIndex /></DL>} />
+              <Route path="/ayuda/soporte" element={<DL><DocumentosIndex /></DL>} />
 
               {/* Shared */}
               <Route path="/mi-perfil" element={<DL><MiPerfil /></DL>} />
