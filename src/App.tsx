@@ -148,10 +148,10 @@ const App = () => (
 
               {/* ANALÍTICA AGRONÓMICA (exportador) */}
               <Route path="/analitica" element={<DL><AnaliticaIndex /></DL>} />
-              <Route path="/analitica/riesgo" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/analitica/recomendaciones" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/analitica/fitosanitario" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/analitica/productivo" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/analitica/riesgo" element={<DL><AnaliticaIndex /></DL>} />
+              <Route path="/analitica/recomendaciones" element={<DL><AnaliticaIndex /></DL>} />
+              <Route path="/analitica/fitosanitario" element={<DL><AnaliticaIndex /></DL>} />
+              <Route path="/analitica/productivo" element={<DL><AnaliticaIndex /></DL>} />
 
               {/* INVENTARIO */}
               <Route path="/operaciones/inventario" element={<DL><InventarioIndex /></DL>} />
