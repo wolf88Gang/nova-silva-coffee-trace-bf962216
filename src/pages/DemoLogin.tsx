@@ -489,7 +489,7 @@ const DemoLogin = () => {
     <div className="min-h-screen relative flex flex-col">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <img src={bgTerraces} alt="" className="w-full h-full object-cover" />
+        <img src={bgForest} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90" />
       </div>
 
