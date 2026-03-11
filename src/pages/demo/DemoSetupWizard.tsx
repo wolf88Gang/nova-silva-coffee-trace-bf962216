@@ -590,7 +590,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
               <span className="text-xs text-white font-medium">{orgLabel}</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
-              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
               <span className="text-xs text-white font-medium">{getModelLabel(model)}</span>
             </div>
           </div>

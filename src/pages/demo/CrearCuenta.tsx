@@ -357,9 +357,6 @@ function DonePhase({ orgName, onGo }: { orgName: string; onGo: () => void }) {
   return (
     <div className="max-w-md mx-auto text-center">
       <div className="bg-white/6 backdrop-blur-xl border border-white/10 rounded-2xl p-8 space-y-6">
-        <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-[hsl(var(--accent-orange))]/15 mx-auto">
-          <Sparkles className="h-8 w-8 text-[hsl(var(--accent-orange))]" />
-        </div>
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Bienvenido a Nova Silva</h2>
           <p className="text-white/40 text-sm">

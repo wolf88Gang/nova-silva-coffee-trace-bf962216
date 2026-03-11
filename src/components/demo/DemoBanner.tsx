@@ -51,9 +51,6 @@ export function DemoBanner() {
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="p-1.5 rounded-lg bg-primary/15 shrink-0">
-            <Sparkles className="h-4 w-4 text-primary" />
-          </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground">
               Este demo refleja tu operación
