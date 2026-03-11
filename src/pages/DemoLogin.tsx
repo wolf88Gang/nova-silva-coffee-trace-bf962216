@@ -441,62 +441,89 @@ const DemoLogin = () => {
       <div className="relative z-10 flex-1 flex flex-col">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <img src={logoNovasilva} alt="Nova Silva" className="h-9 w-9 object-contain" />
+          <button
+            onClick={() => setShowOrgList(prev => !prev)}
+            className="flex items-center gap-3 group cursor-pointer"
+            title="Mostrar arquetipos demo"
+          >
+            <img src={logoNovasilva} alt="Nova Silva" className="h-9 w-9 object-contain group-hover:scale-110 transition-transform" />
             <div>
               <h1 className="text-white font-bold text-lg tracking-tight">Nova Silva</h1>
               <p className="text-white/30 text-xs">Entorno de demostración</p>
             </div>
-          </div>
+          </button>
           <div className="flex items-center gap-4">
-            <Link to="/demo/setup" className="text-[hsl(var(--accent-orange))]/70 hover:text-[hsl(var(--accent-orange))] text-xs font-medium transition-colors">
-              ✨ Demo personalizado
-            </Link>
             <Link to="/login" className="text-white/40 hover:text-white text-xs transition-colors">
               Acceso real →
             </Link>
           </div>
         </header>
 
-        {/* Content */}
-        <div className="flex-1 flex">
-          {/* LEFT: org list */}
-          <div className="w-full lg:w-[380px] border-r border-white/8 flex flex-col">
-            <div className="px-5 py-3 border-b border-white/8">
-              <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold">Seleccionar organización</p>
-            </div>
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
-              {organizations.map(org => (
-                <OrganizationCard
-                  key={org.id}
-                  org={org}
-                  isSelected={selectedOrg?.id === org.id}
-                  onClick={() => handleSelectOrg(org)}
-                />
-              ))}
+        {/* Main: personalized demo CTA */}
+        {!showOrgList && !currentOrg && (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="w-full max-w-md text-center space-y-8">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Explora Nova Silva</h2>
+                <p className="text-white/40 text-sm leading-relaxed">
+                  Configura un demo adaptado a tu tipo de organización, modelo operativo y módulos de interés.
+                </p>
+              </div>
+              <Link
+                to="/demo/setup"
+                className="inline-flex items-center gap-2.5 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-8 rounded-xl transition-colors text-sm shadow-lg shadow-[hsl(var(--accent-orange))]/20"
+              >
+                <Sparkles className="h-4 w-4" />
+                Iniciar demo personalizado
+              </Link>
+              <p className="text-white/15 text-[10px]">
+                O haz clic en el logo para acceder a los arquetipos preconfigurados
+              </p>
             </div>
           </div>
+        )}
 
-          {/* RIGHT: detail + profiles */}
-          <div className="hidden lg:flex flex-1 items-start justify-center overflow-y-auto">
-            <div className="w-full max-w-lg px-8 py-6">
-              {currentOrg ? (
-                <OrganizationDetailPanel
-                  org={currentOrg}
-                  selectedProfile={selectedProfile}
-                  onSelectProfile={handleSelectProfile}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-64">
-                  <p className="text-white/20 text-sm">← Selecciona una organización para ver detalles</p>
-                </div>
-              )}
+        {/* Org list (toggled by logo click) */}
+        {showOrgList && (
+          <div className="flex-1 flex">
+            {/* LEFT: org list */}
+            <div className="w-full lg:w-[380px] border-r border-white/8 flex flex-col">
+              <div className="px-5 py-3 border-b border-white/8">
+                <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold">Seleccionar organización</p>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+                {organizations.map(org => (
+                  <OrganizationCard
+                    key={org.id}
+                    org={org}
+                    isSelected={selectedOrg?.id === org.id}
+                    onClick={() => handleSelectOrg(org)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* RIGHT: detail + profiles */}
+            <div className="hidden lg:flex flex-1 items-start justify-center overflow-y-auto">
+              <div className="w-full max-w-lg px-8 py-6">
+                {currentOrg ? (
+                  <OrganizationDetailPanel
+                    org={currentOrg}
+                    selectedProfile={selectedProfile}
+                    onSelectProfile={handleSelectProfile}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-64">
+                    <p className="text-white/20 text-sm">← Selecciona una organización para ver detalles</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Mobile: detail panel */}
-        {currentOrg && (
+        {showOrgList && currentOrg && (
           <div className="lg:hidden px-4 pb-6">
             <OrganizationDetailPanel
               org={currentOrg}
