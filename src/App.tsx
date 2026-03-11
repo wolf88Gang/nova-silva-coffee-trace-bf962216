@@ -76,6 +76,7 @@ import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminDirectorio from "./pages/admin/AdminDirectorio";
 import AdminCatalogos from "./pages/admin/AdminCatalogos";
+import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
 import MiPerfil from "./pages/perfil/MiPerfil";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
