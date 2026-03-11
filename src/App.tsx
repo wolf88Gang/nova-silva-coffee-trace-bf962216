@@ -106,6 +106,7 @@ const App = () => (
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/demo" element={<DemoLogin />} />
+              <Route path="/demo/setup" element={<DemoSetupWizard />} />
               <Route path="/registro" element={<Register />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
               <Route path="/onboarding/organization" element={<OnboardingOrganization />} />
