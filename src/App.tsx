@@ -192,14 +192,14 @@ const App = () => (
               {/* ADMINISTRACIÓN */}
               <Route path="/admin/usuarios" element={<DL><UsuariosOrg /></DL>} />
               <Route path="/admin/organizacion" element={<DL><AdminDirectorio /></DL>} />
-              <Route path="/admin/configuracion" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/admin/configuracion" element={<DL><AdminDirectorio /></DL>} />
               <Route path="/admin/billing" element={<DL><BillingReadOnly /></DL>} />
-              <Route path="/admin/logs" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/admin/logs" element={<DL><AdminDirectorio /></DL>} />
 
               {/* AYUDA */}
-              <Route path="/ayuda" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/ayuda/glosario" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/ayuda/soporte" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/ayuda" element={<DL><DocumentosIndex /></DL>} />
+              <Route path="/ayuda/glosario" element={<DL><DocumentosIndex /></DL>} />
+              <Route path="/ayuda/soporte" element={<DL><DocumentosIndex /></DL>} />
 
               {/* Shared */}
               <Route path="/mi-perfil" element={<DL><MiPerfil /></DL>} />
