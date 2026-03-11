@@ -25,6 +25,7 @@ import CultivosIndex from "./pages/produccion/CultivosIndex";
 import DocumentosIndex from "./pages/produccion/DocumentosIndex";
 import AgronomiaIndex from "./pages/agronomia/AgronomiaIndex";
 import NutricionIndex from "./pages/agronomia/NutricionIndex";
+import NutricionDashboard from "./components/nutricion/NutricionDashboard";
 import GuardIndex from "./pages/agronomia/GuardIndex";
 import YieldIndex from "./pages/agronomia/YieldIndex";
 import AlertasAgronomia from "./pages/agronomia/AlertasAgronomia";
