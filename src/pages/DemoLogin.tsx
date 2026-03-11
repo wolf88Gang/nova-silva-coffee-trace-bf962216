@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldCheck, Crown, Users, Map, Shield, Leaf, Package, DollarSign, Bug, Award, AlertTriangle, Settings, Eye } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldCheck, Crown, Users, Map, Shield, Leaf, Package, DollarSign, Bug, Award, AlertTriangle, Settings, Eye, Coffee, FileText, Briefcase, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
@@ -15,11 +15,8 @@ interface DemoProfile {
   id: string;
   label: string;
   description: string;
-  /** The actual demo email credential */
   email: string;
-  /** The role used for ensure-demo-user and redirect */
   role: UserRole;
-  /** Modules/areas this profile accesses */
   accessAreas: string[];
 }
 
@@ -29,7 +26,8 @@ interface DemoOrganization {
   type: string;
   typeLabel: string;
   country: string;
-  stats: string;
+  description: string;
+  stats: string[];
   modules: string[];
   profiles: DemoProfile[];
   icon: React.ElementType;
@@ -41,21 +39,24 @@ interface OrgCategory {
   orgs: DemoOrganization[];
 }
 
+// ── DEMO DATA ──
+
 const DEMO_ORGS: DemoOrganization[] = [
   {
-    id: 'coop-montes-verdes',
+    id: 'coop_montes_verdes',
     name: 'Cooperativa Montes Verdes',
     type: 'cooperativa',
     typeLabel: 'Cooperativa',
     country: 'Costa Rica',
-    stats: '420 socios · 860 parcelas',
-    modules: ['Producción', 'Nutrición', 'Nova Guard', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'],
+    description: 'Cooperativa cafetalera de altura con enfoque en trazabilidad y sostenibilidad.',
+    stats: ['420 productores', '860 parcelas'],
+    modules: ['Producción', 'Nutrición', 'Nova Guard', 'Nova Yield', 'VITAL', 'EUDR', 'Finanzas'],
     icon: Building2,
     profiles: [
       {
         id: 'coop-gerencia',
         label: 'Gerencia cooperativa',
-        description: 'Visión completa de operaciones, finanzas y cumplimiento.',
+        description: 'Vista estratégica de producción, cumplimiento y finanzas.',
         email: 'demo.cooperativa@novasilva.com',
         role: 'cooperativa',
         accessAreas: ['Producción', 'Agronomía', 'Resiliencia', 'Cumplimiento', 'Finanzas', 'Administración'],
@@ -71,19 +72,20 @@ const DEMO_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'finca-santa-elena',
+    id: 'finca_santa_elena',
     name: 'Finca Santa Elena',
     type: 'productor',
     typeLabel: 'Productor privado',
     country: 'Costa Rica',
-    stats: '74 ha · 12 parcelas',
-    modules: ['Producción', 'Nutrición', 'Nova Guard', 'VITAL'],
+    description: 'Finca privada de café de especialidad con 12 parcelas en producción.',
+    stats: ['74 ha', '12 parcelas'],
+    modules: ['Producción', 'Nutrición', 'Nova Guard', 'Nova Yield', 'VITAL'],
     icon: Sprout,
     profiles: [
       {
         id: 'prod-propietario',
         label: 'Propietario',
-        description: 'Gestión completa de la finca, parcelas, entregas y finanzas personales.',
+        description: 'Gestión integral de la finca y resultados productivos.',
         email: 'demo.productor@novasilva.com',
         role: 'productor',
         accessAreas: ['Mi Finca', 'Agronomía', 'Resiliencia', 'Finanzas'],
@@ -91,19 +93,20 @@ const DEMO_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'exp-altura-verde',
+    id: 'exportadora_altura',
     name: 'Exportadora Altura Verde',
     type: 'exportador',
     typeLabel: 'Casa de Exportación',
     country: 'Costa Rica',
-    stats: '38 proveedores · 12 contratos activos',
-    modules: ['Orígenes', 'Lotes', 'Contratos', 'EUDR', 'Finanzas'],
+    description: 'Exportadora de café verde con red de proveedores en Centroamérica.',
+    stats: ['38 proveedores', '12 contratos activos'],
+    modules: ['Orígenes', 'Lotes', 'Contratos', 'Cumplimiento', 'Analítica', 'Finanzas'],
     icon: Truck,
     profiles: [
       {
         id: 'exp-gerencia',
         label: 'Gerente de origen',
-        description: 'Gestiona proveedores, lotes comerciales, contratos y embarques.',
+        description: 'Gestión de proveedores, compras y oferta de café.',
         email: 'demo.exportador@novasilva.com',
         role: 'exportador',
         accessAreas: ['Orígenes', 'Comercial', 'Cumplimiento', 'Finanzas'],
@@ -111,13 +114,14 @@ const DEMO_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'cert-auditlatam',
+    id: 'auditlatam',
     name: 'AuditLatam',
     type: 'certificadora',
     typeLabel: 'Certificadora',
     country: 'Regional',
-    stats: '24 organizaciones auditadas',
-    modules: ['Auditorías', 'Data Room', 'Reportes'],
+    description: 'Entidad de auditoría y verificación para certificaciones agrícolas.',
+    stats: ['24 organizaciones auditadas'],
+    modules: ['Auditorías', 'Data Room', 'Dossiers'],
     icon: ShieldCheck,
     profiles: [
       {
@@ -131,13 +135,14 @@ const DEMO_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'admin-novasilva',
-    name: 'Nova Silva Admin',
+    id: 'nova_admin',
+    name: 'Nova Silva Platform',
     type: 'admin',
     typeLabel: 'Plataforma',
     country: '',
-    stats: 'Administración transversal',
-    modules: ['Organizaciones', 'Usuarios', 'Catálogos', 'Billing'],
+    description: 'Consola de administración transversal de la plataforma.',
+    stats: ['Administración transversal'],
+    modules: ['Organizaciones', 'Billing', 'Logs', 'Soporte'],
     icon: Crown,
     profiles: [
       {
@@ -146,7 +151,7 @@ const DEMO_ORGS: DemoOrganization[] = [
         description: 'Consola transversal de administración, billing y soporte.',
         email: 'info@novasilva.co',
         role: 'admin',
-        accessAreas: ['Organizaciones', 'Usuarios', 'Catálogos'],
+        accessAreas: ['Organizaciones', 'Usuarios', 'Catálogos', 'Billing'],
       },
     ],
   },
@@ -160,20 +165,8 @@ function groupOrgsByCategory(orgs: DemoOrganization[]): OrgCategory[] {
     { label: 'Certificadoras', icon: ShieldCheck, orgs: [] },
     { label: 'Plataforma', icon: Crown, orgs: [] },
   ];
-
-  const typeMap: Record<string, number> = {
-    cooperativa: 0,
-    productor: 1,
-    exportador: 2,
-    certificadora: 3,
-    admin: 4,
-  };
-
-  orgs.forEach(org => {
-    const idx = typeMap[org.type] ?? 4;
-    categories[idx].orgs.push(org);
-  });
-
+  const typeMap: Record<string, number> = { cooperativa: 0, productor: 1, exportador: 2, certificadora: 3, admin: 4 };
+  orgs.forEach(org => { categories[typeMap[org.type] ?? 4].orgs.push(org); });
   return categories.filter(c => c.orgs.length > 0);
 }
 
@@ -186,14 +179,195 @@ const ROLE_REDIRECTS: Record<string, string> = {
   admin: '/admin',
 };
 
-// ── COMPONENT ──
+// ── SUB-COMPONENTS ──
 
-type Step = 'org' | 'profile' | 'confirm';
+function OrganizationCard({ org, isSelected, onClick }: { org: DemoOrganization; isSelected: boolean; onClick: () => void }) {
+  const OrgIcon = org.icon;
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'group w-full bg-white/6 backdrop-blur-xl border rounded-xl p-4 text-left transition-all duration-200',
+        isSelected
+          ? 'border-[hsl(var(--accent-orange))]/60 bg-white/12'
+          : 'border-white/10 hover:bg-white/10 hover:border-white/20'
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          'p-2 rounded-lg shrink-0 transition-colors',
+          isSelected ? 'bg-[hsl(var(--accent-orange))]/20' : 'bg-white/8 group-hover:bg-white/12'
+        )}>
+          <OrgIcon className={cn('h-4 w-4', isSelected ? 'text-[hsl(var(--accent-orange))]' : 'text-white/60')} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-white font-medium text-sm truncate">{org.name}</h3>
+          <p className="text-white/40 text-xs">{org.typeLabel}{org.country ? ` · ${org.country}` : ''}</p>
+        </div>
+        <ChevronRight className={cn('h-4 w-4 shrink-0 transition-colors', isSelected ? 'text-[hsl(var(--accent-orange))]' : 'text-white/15')} />
+      </div>
+    </button>
+  );
+}
+
+function OrganizationDetailPanel({
+  org,
+  selectedProfile,
+  onSelectProfile,
+}: {
+  org: DemoOrganization;
+  selectedProfile: DemoProfile | null;
+  onSelectProfile: (p: DemoProfile) => void;
+}) {
+  const OrgIcon = org.icon;
+  return (
+    <div className="space-y-5">
+      {/* Org header */}
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2.5 rounded-xl bg-[hsl(var(--accent-orange))]/15">
+            <OrgIcon className="h-5 w-5 text-[hsl(var(--accent-orange))]" />
+          </div>
+          <div>
+            <h2 className="text-white font-semibold text-lg">{org.name}</h2>
+            <p className="text-white/40 text-xs">{org.typeLabel}{org.country ? ` · ${org.country}` : ''}</p>
+          </div>
+        </div>
+        <p className="text-white/50 text-sm leading-relaxed">{org.description}</p>
+      </div>
+
+      {/* Stats */}
+      <div className="flex flex-wrap gap-2">
+        {org.stats.map(stat => (
+          <span key={stat} className="text-xs px-3 py-1 rounded-full bg-white/8 text-white/60 border border-white/10">
+            {stat}
+          </span>
+        ))}
+      </div>
+
+      {/* Modules */}
+      <div>
+        <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Módulos activos</p>
+        <div className="flex flex-wrap gap-1.5">
+          {org.modules.map(mod => (
+            <span key={mod} className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/10 text-[hsl(var(--accent-orange))]/80 border border-[hsl(var(--accent-orange))]/15">
+              {mod}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-white/10" />
+
+      {/* Profiles */}
+      <div>
+        <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-3">Perfiles disponibles</p>
+        <div className="space-y-2.5">
+          {org.profiles.map(profile => (
+            <button
+              key={profile.id}
+              onClick={() => onSelectProfile(profile)}
+              className={cn(
+                'group w-full border rounded-xl p-4 text-left transition-all duration-200',
+                selectedProfile?.id === profile.id
+                  ? 'bg-[hsl(var(--accent-orange))]/10 border-[hsl(var(--accent-orange))]/40'
+                  : 'bg-white/5 border-white/10 hover:bg-white/8 hover:border-white/20'
+              )}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <h4 className="text-white font-medium text-sm">{profile.label}</h4>
+                <ChevronRight className={cn('h-3.5 w-3.5 transition-colors', selectedProfile?.id === profile.id ? 'text-[hsl(var(--accent-orange))]' : 'text-white/15 group-hover:text-white/30')} />
+              </div>
+              <p className="text-white/40 text-xs mb-2.5">{profile.description}</p>
+              <div className="flex flex-wrap gap-1">
+                {profile.accessAreas.map(area => (
+                  <span key={area} className="text-[10px] px-1.5 py-0.5 rounded bg-white/8 text-white/40">{area}</span>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccessSummary({
+  org,
+  profile,
+  onEnter,
+  onBack,
+  isLoading,
+}: {
+  org: DemoOrganization;
+  profile: DemoProfile;
+  onEnter: () => void;
+  onBack: () => void;
+  isLoading: boolean;
+}) {
+  const OrgIcon = org.icon;
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-white/8 backdrop-blur-xl border border-white/15 rounded-2xl p-6 space-y-5">
+        <div>
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Organización</p>
+          <div className="flex items-center gap-2">
+            <OrgIcon className="h-4 w-4 text-[hsl(var(--accent-orange))]" />
+            <span className="text-white font-medium text-sm">{org.name}</span>
+          </div>
+          <p className="text-white/30 text-xs mt-0.5">{org.typeLabel}{org.country ? ` · ${org.country}` : ''}</p>
+        </div>
+
+        <div>
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Perfil de acceso</p>
+          <p className="text-white font-medium text-sm">{profile.label}</p>
+          <p className="text-white/30 text-xs mt-0.5">{profile.description}</p>
+        </div>
+
+        <div>
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Acceso principal</p>
+          <div className="flex flex-wrap gap-1.5">
+            {profile.accessAreas.map(area => (
+              <span key={area} className="text-xs px-2.5 py-1 rounded-full bg-[hsl(var(--accent-orange))]/15 text-[hsl(var(--accent-orange))]">
+                {area}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={onEnter}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Ingresando…</span>
+            </>
+          ) : (
+            <span>Entrar al entorno demo</span>
+          )}
+        </button>
+      </div>
+
+      <button onClick={onBack} className="flex items-center justify-center gap-1.5 text-white/40 hover:text-white text-xs mt-4 mx-auto transition-colors">
+        <ChevronLeft className="h-3.5 w-3.5" />
+        <span>Cambiar selección</span>
+      </button>
+
+      <p className="text-white/15 text-xs text-center mt-3">Datos ficticios para demostración</p>
+    </div>
+  );
+}
+
+// ── MAIN COMPONENT ──
 
 const DemoLogin = () => {
-  const [step, setStep] = useState<Step>('org');
   const [selectedOrg, setSelectedOrg] = useState<DemoOrganization | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<DemoProfile | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const pendingRedirect = useRef<string | null>(null);
   const navigate = useNavigate();
@@ -212,34 +386,17 @@ const DemoLogin = () => {
   const handleSelectOrg = (org: DemoOrganization) => {
     setSelectedOrg(org);
     setSelectedProfile(null);
-    // If org has only one profile, auto-select it
-    if (org.profiles.length === 1) {
-      setSelectedProfile(org.profiles[0]);
-      setStep('confirm');
-    } else {
-      setStep('profile');
-    }
+    setShowConfirm(false);
   };
 
   const handleSelectProfile = (profile: DemoProfile) => {
     setSelectedProfile(profile);
-    setStep('confirm');
+    setShowConfirm(true);
   };
 
   const handleBack = () => {
-    if (step === 'confirm') {
-      if (selectedOrg && selectedOrg.profiles.length > 1) {
-        setStep('profile');
-      } else {
-        setStep('org');
-        setSelectedOrg(null);
-        setSelectedProfile(null);
-      }
-    } else if (step === 'profile') {
-      setStep('org');
-      setSelectedOrg(null);
-      setSelectedProfile(null);
-    }
+    setShowConfirm(false);
+    setSelectedProfile(null);
   };
 
   const handleEnter = async () => {
@@ -279,7 +436,6 @@ const DemoLogin = () => {
         pendingRedirect.current = null;
         toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
         setLoadingRole(null);
-        return;
       }
     } catch (err) {
       console.error('Demo login error:', err);
@@ -291,6 +447,44 @@ const DemoLogin = () => {
 
   const categories = groupOrgsByCategory(DEMO_ORGS);
 
+  // Confirmation screen (mobile full-screen, desktop overlay)
+  if (showConfirm && selectedOrg && selectedProfile) {
+    return (
+      <div className="min-h-screen relative flex flex-col">
+        <div className="absolute inset-0 z-0">
+          <img src={bgTerraces} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90" />
+        </div>
+        <header className="relative z-10 flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <img src={logoNovasilva} alt="Nova Silva" className="h-10 w-10 object-contain" />
+            <span className="text-white font-bold text-lg">Nova Silva</span>
+          </div>
+          <Link to="/login" className="text-white/60 hover:text-white text-sm transition-colors">Ir al login →</Link>
+        </header>
+        <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-12">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-6">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[hsl(var(--accent-orange))]" />
+            </span>
+            <span className="text-white/80 text-xs font-medium">Entorno de Demostración</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-white text-center mb-2">Acceso seleccionado</h1>
+          <p className="text-white/50 text-center mb-8 text-sm">Revise su selección antes de ingresar</p>
+          <AccessSummary
+            org={selectedOrg}
+            profile={selectedProfile}
+            onEnter={handleEnter}
+            onBack={handleBack}
+            isLoading={loadingRole !== null}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  // Main split-panel layout
   return (
     <div className="min-h-screen relative flex flex-col">
       {/* Background */}
@@ -311,185 +505,67 @@ const DemoLogin = () => {
       </header>
 
       {/* Content */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-12">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-6">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[hsl(var(--accent-orange))]" />
-          </span>
-          <span className="text-white/80 text-xs font-medium">Entorno de Demostración</span>
+      <main className="relative z-10 flex-1 flex flex-col px-4 sm:px-6 pb-8">
+        {/* Title section */}
+        <div className="text-center mb-6 pt-2">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-4">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[hsl(var(--accent-orange))]" />
+            </span>
+            <span className="text-white/80 text-xs font-medium">Entorno de Demostración</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Nova Silva Demo</h1>
+          <p className="text-white/40 text-sm max-w-lg mx-auto">
+            Explore la plataforma desde la perspectiva de una organización real.
+            Primero seleccione una organización y luego el perfil con el que desea ingresar.
+          </p>
         </div>
 
-        {/* Hero text */}
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white text-center mb-2 max-w-3xl leading-tight">
-          Nova Silva Demo
-        </h1>
-        <p className="text-white/50 text-center mb-8 max-w-xl text-sm">
-          {step === 'org' && 'Explore la plataforma desde la perspectiva de una organización real. Seleccione una organización demo para comenzar.'}
-          {step === 'profile' && `Seleccione un perfil de acceso dentro de ${selectedOrg?.name}.`}
-          {step === 'confirm' && 'Revise su selección antes de ingresar al entorno demo.'}
-        </p>
-
-        {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-8">
-          {(['org', 'profile', 'confirm'] as Step[]).map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <div className={cn(
-                'h-2 rounded-full transition-all',
-                step === s ? 'w-8 bg-[hsl(var(--accent-orange))]' : 'w-2 bg-white/20'
-              )} />
-            </div>
-          ))}
-        </div>
-
-        {/* Back button */}
-        {step !== 'org' && (
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-6 transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Volver</span>
-          </button>
-        )}
-
-        {/* STEP 1: Organization selection */}
-        {step === 'org' && (
-          <div className="w-full max-w-3xl space-y-6">
+        {/* Split panel: org list (left) + detail (right) */}
+        <div className="flex-1 w-full max-w-5xl mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-0">
+          {/* Left: Organization list */}
+          <div className="w-full lg:w-[340px] lg:shrink-0 space-y-4 overflow-y-auto lg:max-h-[calc(100vh-220px)] pr-1">
             {categories.map(cat => (
               <div key={cat.label}>
-                <div className="flex items-center gap-2 mb-3 px-1">
-                  <cat.icon className="h-4 w-4 text-white/40" />
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-white/40">{cat.label}</h2>
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <cat.icon className="h-3.5 w-3.5 text-white/30" />
+                  <h2 className="text-[10px] font-semibold uppercase tracking-wider text-white/30">{cat.label}</h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {cat.orgs.map(org => {
-                    const OrgIcon = org.icon;
-                    return (
-                      <button
-                        key={org.id}
-                        onClick={() => handleSelectOrg(org)}
-                        className="group bg-white/8 backdrop-blur-xl border border-white/15 rounded-xl p-5 text-left hover:bg-white/12 hover:border-[hsl(var(--accent-orange))]/40 transition-all duration-200"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-lg bg-[hsl(var(--accent-orange))]/10 group-hover:bg-[hsl(var(--accent-orange))]/20 transition-colors shrink-0">
-                            <OrgIcon className="h-5 w-5 text-[hsl(var(--accent-orange))]" />
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="text-white font-semibold text-sm mb-0.5">{org.name}</h3>
-                            <p className="text-white/40 text-xs mb-2">{org.typeLabel}{org.country ? ` · ${org.country}` : ''}</p>
-                            <p className="text-white/30 text-xs">{org.stats}</p>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/50 shrink-0 mt-1 transition-colors" />
-                        </div>
-                      </button>
-                    );
-                  })}
+                <div className="space-y-1.5">
+                  {cat.orgs.map(org => (
+                    <OrganizationCard
+                      key={org.id}
+                      org={org}
+                      isSelected={selectedOrg?.id === org.id}
+                      onClick={() => handleSelectOrg(org)}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
           </div>
-        )}
 
-        {/* STEP 2: Profile selection */}
-        {step === 'profile' && selectedOrg && (
-          <div className="w-full max-w-xl space-y-4">
-            {/* Org context card */}
-            <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 mb-2">
-              <div className="flex items-center gap-3">
-                <selectedOrg.icon className="h-5 w-5 text-[hsl(var(--accent-orange))]" />
-                <div>
-                  <p className="text-white font-medium text-sm">{selectedOrg.name}</p>
-                  <p className="text-white/40 text-xs">{selectedOrg.typeLabel} · {selectedOrg.stats}</p>
+          {/* Right: Organization detail + profiles */}
+          <div className="flex-1 min-w-0">
+            {selectedOrg ? (
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 overflow-y-auto lg:max-h-[calc(100vh-220px)]">
+                <OrganizationDetailPanel
+                  org={selectedOrg}
+                  selectedProfile={selectedProfile}
+                  onSelectProfile={handleSelectProfile}
+                />
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <Building2 className="h-10 w-10 text-white/10 mx-auto mb-3" />
+                  <p className="text-white/25 text-sm">Seleccione una organización para ver sus detalles y perfiles de acceso</p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-1.5 mt-3">
-                {selectedOrg.modules.map(mod => (
-                  <span key={mod} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/60">{mod}</span>
-                ))}
-              </div>
-            </div>
-
-            {/* Profiles */}
-            <div className="space-y-3">
-              {selectedOrg.profiles.map(profile => (
-                <button
-                  key={profile.id}
-                  onClick={() => handleSelectProfile(profile)}
-                  className="group w-full bg-white/8 backdrop-blur-xl border border-white/15 rounded-xl p-5 text-left hover:bg-white/12 hover:border-[hsl(var(--accent-orange))]/40 transition-all duration-200"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-white font-semibold text-sm">{profile.label}</h3>
-                    <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                  </div>
-                  <p className="text-white/40 text-xs mb-3">{profile.description}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {profile.accessAreas.map(area => (
-                      <span key={area} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/50">{area}</span>
-                    ))}
-                  </div>
-                </button>
-              ))}
-            </div>
+            )}
           </div>
-        )}
-
-        {/* STEP 3: Confirmation */}
-        {step === 'confirm' && selectedOrg && selectedProfile && (
-          <div className="w-full max-w-md">
-            <div className="bg-white/8 backdrop-blur-xl border border-white/15 rounded-2xl p-6 space-y-5">
-              {/* Org */}
-              <div>
-                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Organización</p>
-                <div className="flex items-center gap-2">
-                  <selectedOrg.icon className="h-4 w-4 text-[hsl(var(--accent-orange))]" />
-                  <span className="text-white font-medium text-sm">{selectedOrg.name}</span>
-                </div>
-                <p className="text-white/30 text-xs mt-0.5">{selectedOrg.typeLabel}{selectedOrg.country ? ` · ${selectedOrg.country}` : ''}</p>
-              </div>
-
-              {/* Profile */}
-              <div>
-                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Perfil de acceso</p>
-                <p className="text-white font-medium text-sm">{selectedProfile.label}</p>
-                <p className="text-white/30 text-xs mt-0.5">{selectedProfile.description}</p>
-              </div>
-
-              {/* Access areas */}
-              <div>
-                <p className="text-white/40 text-xs uppercase tracking-wider mb-2">Acceso principal</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedProfile.accessAreas.map(area => (
-                    <span key={area} className="text-xs px-2.5 py-1 rounded-full bg-[hsl(var(--accent-orange))]/15 text-[hsl(var(--accent-orange))]">
-                      {area}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Enter button */}
-              <button
-                onClick={handleEnter}
-                disabled={loadingRole !== null}
-                className="w-full flex items-center justify-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loadingRole ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Ingresando…</span>
-                  </>
-                ) : (
-                  <span>Entrar al entorno demo</span>
-                )}
-              </button>
-            </div>
-
-            <p className="text-white/20 text-xs text-center mt-4">
-              Datos ficticios para demostración
-            </p>
-          </div>
-        )}
+        </div>
       </main>
     </div>
   );
