@@ -159,6 +159,10 @@ const App = () => (
               <Route path="/operaciones/inventario" element={<DL><InventarioIndex /></DL>} />
               <Route path="/inventario" element={<Navigate to="/operaciones/inventario" replace />} />
 
+              {/* INSUMOS */}
+              <Route path="/insumos/proveedores" element={<DL><ProveedoresInsumosIndex /></DL>} />
+              <Route path="/insumos/catalogo" element={<DL><CatalogoInsumosIndex /></DL>} />
+
               {/* JORNALES */}
               <Route path="/jornales" element={<DL><JornalesIndex /></DL>} />
 
