@@ -76,6 +76,7 @@ import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminDirectorio from "./pages/admin/AdminDirectorio";
 import AdminCatalogos from "./pages/admin/AdminCatalogos";
+import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
 import MiPerfil from "./pages/perfil/MiPerfil";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
@@ -289,6 +290,7 @@ const App = () => (
               <Route path="/admin" element={<RequireAdmin><DL><AdminPanel /></DL></RequireAdmin>} />
               <Route path="/admin/directorio" element={<Navigate to="/admin/organizacion" replace />} />
               <Route path="/admin/catalogos" element={<DL><AdminCatalogos /></DL>} />
+              <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
