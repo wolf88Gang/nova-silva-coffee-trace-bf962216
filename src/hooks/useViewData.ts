@@ -207,3 +207,37 @@ export function useJornalesOverview() {
     retry: false,
   });
 }
+
+// ── VITAL granular views ──
+
+export interface VitalParcelaRow {
+  parcela_id: string;
+  organization_id: string;
+  productor_id: string;
+  ultimo_score_vital: number | null;
+}
+
+export interface VitalPromedioProductorRow {
+  productor_id: string;
+  vital_promedio_productor: number | null;
+}
+
+export function useVitalParcelas() {
+  const orgId = useActiveOrgId();
+  return useQuery({
+    queryKey: ['v_vital_parcela_last', orgId],
+    queryFn: () => queryView<VitalParcelaRow>('v_vital_parcela_last', { organization_id: orgId }),
+    enabled: !!orgId,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
+
+export function useVitalPromedioProductor() {
+  return useQuery({
+    queryKey: ['v_vital_promedio_productor'],
+    queryFn: () => queryView<VitalPromedioProductorRow>('v_vital_promedio_productor'),
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
