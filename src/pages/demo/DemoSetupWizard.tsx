@@ -1,6 +1,6 @@
 /**
  * DemoSetupWizard — 6-step premium wizard for prospects.
- * Captures org profile → maps to closest demo archetype → enters personalized demo.
+ * Captures org profile → maps to closest demo archetype → shows plan recommendation → enters personalized demo.
  */
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -14,11 +14,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
+  recommendPlan, recommendPacks, estimatePrice,
+  PLANS, PACKS, getOrgTypeLabel, getModelLabel,
+  type PlanTier, type DemoSetupConfig,
+} from '@/lib/pricingEngine';
+import {
   Leaf, ArrowRight, ArrowLeft, Loader2, Sparkles,
   Building2, Sprout, Truck, ShieldCheck, Factory, Ship, Coffee,
   MapPin, Bug, TrendingUp, Heart, Shield, Award, Briefcase,
   Boxes, ShoppingCart, Package, ChevronRight, Play,
-  Users, Eye, FileCheck,
+  Users, Eye, FileCheck, DollarSign, CheckCircle,
 } from 'lucide-react';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgForest from '@/assets/bg-forest-network.png';
