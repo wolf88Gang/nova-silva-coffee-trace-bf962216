@@ -25,6 +25,7 @@ import CultivosIndex from "./pages/produccion/CultivosIndex";
 import DocumentosIndex from "./pages/produccion/DocumentosIndex";
 import AgronomiaIndex from "./pages/agronomia/AgronomiaIndex";
 import NutricionIndex from "./pages/agronomia/NutricionIndex";
+import NutricionDashboard from "./components/nutricion/NutricionDashboard";
 import GuardIndex from "./pages/agronomia/GuardIndex";
 import YieldIndex from "./pages/agronomia/YieldIndex";
 import AlertasAgronomia from "./pages/agronomia/AlertasAgronomia";
@@ -142,7 +143,7 @@ const App = () => (
 
               {/* AGRONOMÍA */}
               <Route path="/agronomia" element={<DL><AgronomiaIndex /></DL>} />
-              <Route path="/agronomia/nutricion" element={<DL><NutricionIndex /></DL>} />
+              <Route path="/agronomia/nutricion" element={<DL><NutricionDashboard /></DL>} />
               <Route path="/agronomia/guard" element={<DL><GuardIndex /></DL>} />
               <Route path="/agronomia/yield" element={<DL><YieldIndex /></DL>} />
               <Route path="/agronomia/yield/nueva" element={<DL><PlaceholderPage /></DL>} />
@@ -179,6 +180,8 @@ const App = () => (
 
               {/* CALIDAD / NOVA CUP */}
               <Route path="/calidad" element={<DL><CalidadIndex /></DL>} />
+              <Route path="/calidad/lotes" element={<DL><CalidadIndex /></DL>} />
+              <Route path="/calidad/tendencias" element={<DL><CalidadIndex /></DL>} />
 
               {/* COMERCIAL */}
               <Route path="/comercial" element={<DL><ComercialIndex /></DL>} />

@@ -114,7 +114,11 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
 
   // ── Calidad ──
   if (v.canSeeNovaCup) {
-    groups.push({ label: 'Calidad', icon: Award, standalone: true, url: '/calidad', items: [] });
+    groups.push({ label: 'Calidad', icon: Award, items: [
+      { title: 'Nova Cup', url: '/calidad', icon: Award },
+      { title: 'Resultados por lote', url: '/calidad/lotes', icon: Coffee },
+      { title: 'Tendencias', url: '/calidad/tendencias', icon: TrendingUp },
+    ]});
   }
 
   // ── Comercial ──
