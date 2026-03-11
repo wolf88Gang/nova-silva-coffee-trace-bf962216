@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActorProvider } from '@/contexts/ActorContext';
 import { Sidebar } from './Sidebar';
+import { TopContextBar } from './TopContextBar';
 import { NotificacionesBell } from './NotificacionesBell';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ContextualBreadcrumb } from './ContextualBreadcrumb';
@@ -42,12 +43,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
   const isAllowed = allowedRoles.length === 0 || allowedRoles.includes(user?.role as UserRole) || user?.role === 'admin';
 
   if (!isAllowed) {
-    const redirectMap: Record<string, string> = {
-      cooperativa: '/cooperativa/dashboard', exportador: '/exportador/dashboard',
-      certificadora: '/certificadora/dashboard', productor: '/productor/dashboard',
-      tecnico: '/tecnico/dashboard', admin: '/admin',
-    };
-    return <Navigate to={redirectMap[user?.role || ''] || '/login'} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
@@ -55,15 +51,18 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
       <div className="min-h-screen bg-background">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="lg:ml-64">
+          {/* Top Context Bar */}
+          <TopContextBar />
+
           {/* Desktop top bar with contextual breadcrumb */}
-          <header className="hidden lg:flex fixed top-0 left-64 right-0 h-14 bg-background/95 backdrop-blur border-b border-border z-30 items-center justify-between px-8">
+          <header className="hidden lg:flex fixed top-[34px] left-64 right-0 h-14 bg-background/95 backdrop-blur border-b border-border z-30 items-center justify-between px-8">
             <ContextualBreadcrumb />
             <div className="flex items-center gap-3">
               <NotificacionesBell />
               <ProfileDropdown />
             </div>
           </header>
-          <div className="hidden lg:block h-14" />
+          <div className="hidden lg:block h-[82px]" />
 
           {/* Mobile top bar */}
           <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-30 flex items-center justify-between px-4">
@@ -86,7 +85,6 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
           </main>
         </div>
 
-        {/* Offline sync status */}
         <OfflineSyncBar />
       </div>
     </ActorProvider>
