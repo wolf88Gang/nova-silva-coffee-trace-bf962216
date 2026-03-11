@@ -473,7 +473,6 @@ const DemoLogin = () => {
                 to="/demo/setup"
                 className="inline-flex items-center gap-2.5 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-8 rounded-xl transition-colors text-sm shadow-lg shadow-[hsl(var(--accent-orange))]/20"
               >
-                <Sparkles className="h-4 w-4" />
                 Iniciar demo personalizado
               </Link>
               <p className="text-white/15 text-[10px]">
