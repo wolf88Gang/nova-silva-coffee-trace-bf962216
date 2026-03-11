@@ -719,6 +719,8 @@ export function getParcelDetailDemo() {
         n: randDec(0.15, 0.40, 2),
         p: randDec(5, 20, 0),
         k: randDec(0.2, 0.9, 2),
+        ca: randDec(3, 10, 1),
+        mg: randDec(0.5, 2.5, 1),
         interpretacion: 'pH ligeramente ácido, fósforo adecuado, potasio deficiente. Recomendar enmienda calcárea y refuerzo potásico.',
       },
       plan: {

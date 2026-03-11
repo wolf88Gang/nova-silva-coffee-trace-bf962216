@@ -110,8 +110,14 @@ const ALL_GROUPS: NavGroupDef[] = [
     moduleKeys: ['Jornales', 'jornales'],
     items: [
       { title: 'Registro de jornales', url: '/jornales', icon: Briefcase },
-      { title: 'Cuadrillas', url: '/jornales', icon: Users },
-      { title: 'Costos laborales', url: '/jornales', icon: DollarSign },
+    ],
+  },
+  {
+    label: 'Inventario',
+    icon: Package,
+    moduleKeys: ['Inventario', 'inventario'],
+    items: [
+      { title: 'Control de inventario', url: '/operaciones/inventario', icon: Package },
     ],
   },
   {
@@ -366,11 +372,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
 function getDefaultModulesForRole(role: string): string[] {
   switch (role) {
-    case 'cooperativa': return ['Producción', 'Agronomía', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'];
-    case 'productor': return ['Producción', 'Agronomía', 'VITAL', 'Finanzas', 'Nova Cup'];
+    case 'cooperativa': return ['Producción', 'Agronomía', 'VITAL', 'EUDR', 'Cumplimiento', 'Finanzas', 'Nova Cup', 'calidad', 'Jornales', 'Inventario', 'comercial', 'Lotes'];
+    case 'productor': return ['Producción', 'Agronomía', 'VITAL', 'Finanzas', 'Nova Cup', 'calidad', 'Inventario', 'Jornales'];
     case 'tecnico': return ['Producción', 'Agronomía', 'VITAL'];
-    case 'exportador': return ['Orígenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analítica', 'Nova Cup', 'Finanzas'];
-    case 'certificadora': return ['Auditorías', 'Data Room', 'Dossiers'];
+    case 'exportador': return ['Orígenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analítica', 'Nova Cup', 'calidad', 'Finanzas', 'comercial'];
+    case 'certificadora': return ['Cumplimiento', 'Auditorías', 'Data Room', 'Dossiers'];
     case 'admin': return ['Producción', 'Agronomía', 'VITAL', 'Cumplimiento', 'Finanzas'];
     default: return ['Producción'];
   }

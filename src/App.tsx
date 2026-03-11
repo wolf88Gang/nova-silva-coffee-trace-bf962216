@@ -35,6 +35,8 @@ import JornalesIndex from "./pages/jornales/JornalesIndex";
 import OrigenesIndex from "./pages/origenes/OrigenesIndex";
 import AnaliticaIndex from "./pages/analitica/AnaliticaIndex";
 import ComercialIndex from "./pages/comercial/ComercialIndex";
+import ComercialLotesPage from "./pages/comercial/ComercialLotesPage";
+import CumplimientoLotesPage from "./pages/cumplimiento/CumplimientoLotesPage";
 import InventarioIndex from "./pages/operaciones/InventarioIndex";
 
 // Existing pages (reused)
@@ -157,7 +159,7 @@ const App = () => (
               {/* CUMPLIMIENTO */}
               <Route path="/cumplimiento" element={<DL><CumplimientoIndex /></DL>} />
               <Route path="/cumplimiento/trazabilidad" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/cumplimiento/lotes" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/cumplimiento/lotes" element={<DL><CumplimientoLotesPage /></DL>} />
               <Route path="/cumplimiento/eudr" element={<DL><ExportadorEUDR /></DL>} />
               <Route path="/cumplimiento/data-room" element={<DL><PlaceholderPage /></DL>} />
               <Route path="/cumplimiento/auditorias" element={<DL><CertificadoraAuditorias /></DL>} />
@@ -167,7 +169,7 @@ const App = () => (
 
               {/* COMERCIAL */}
               <Route path="/comercial" element={<DL><ComercialIndex /></DL>} />
-              <Route path="/comercial/lotes" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/comercial/lotes" element={<DL><ComercialLotesPage /></DL>} />
               <Route path="/comercial/contratos" element={<DL><ExportadorContratos /></DL>} />
               <Route path="/comercial/mezclas" element={<DL><PlaceholderPage /></DL>} />
               <Route path="/comercial/trazabilidad" element={<DL><PlaceholderPage /></DL>} />
