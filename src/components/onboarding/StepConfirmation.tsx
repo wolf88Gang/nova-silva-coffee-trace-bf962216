@@ -91,7 +91,7 @@ export function StepConfirmation({ orgType, selectedModules, onBack, onSubmit, i
             id="org-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ej: Cooperativa Los Andes"
+            placeholder="Ej: Organización Los Andes"
             required
           />
         </div>

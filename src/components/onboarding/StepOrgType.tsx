@@ -19,7 +19,7 @@ interface OrgTypeOption {
 const ORG_TYPES: OrgTypeOption[] = [
   {
     value: 'cooperativa',
-    label: 'Cooperativa',
+    label: 'Producción Cooperativa',
     icon: Users,
     description: 'Organización que gestiona múltiples socios productores y procesa café.',
     features: ['Gestiona múltiples socios', 'Recibe entregas de campo', 'Ofrece créditos a productores', 'Ejecuta Protocolo VITAL organizacional'],
@@ -29,21 +29,21 @@ const ORG_TYPES: OrgTypeOption[] = [
     label: 'Beneficio Privado / Aggregator',
     icon: Package,
     description: 'Empresa privada que compra, procesa y comercializa café de proveedores.',
-    features: ['Compra y procesa café', 'Gestiona proveedores', 'Controla calidad y beneficio', 'Similar a cooperativa pero privado'],
+    features: ['Compra y procesa café', 'Gestiona proveedores', 'Controla calidad y beneficio', 'Operación privada de producción'],
   },
   {
     value: 'productor_empresarial',
-    label: 'Productor Empresarial',
+    label: 'Producción Empresarial',
     icon: Leaf,
     description: 'Finca o empresa que gestiona sus propias operaciones agrícolas.',
-    features: ['Gestiona tus propias fincas', 'Exportas o vendes directo', 'Necesitas EUDR y score VITAL', 'No dependes de cooperativa'],
+    features: ['Gestiona tus propias fincas', 'Exportas o vendes directo', 'Necesitas EUDR y score VITAL', 'Operación independiente de producción'],
   },
   {
     value: 'exportador',
     label: 'Exportador / Trader',
     icon: Ship,
-    description: 'Empresa exportadora que compra a cooperativas o productores directos.',
-    features: ['Compra a cooperativas o productores', 'Genera contratos comerciales', 'Crea lotes comerciales de exportación', 'Necesita Dossier EUDR'],
+    description: 'Empresa exportadora que compra a organizaciones de producción o productores directos.',
+    features: ['Compra a organizaciones de producción', 'Genera contratos comerciales', 'Crea lotes comerciales de exportación', 'Necesita Dossier EUDR'],
   },
 ];
 
