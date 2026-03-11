@@ -14,6 +14,7 @@ assertSupabaseHost();
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DemoLogin from "./pages/DemoLogin";
+import DemoSetupWizard from "./pages/demo/DemoSetupWizard";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import NotFound from "./pages/NotFound";
 import PlaceholderPage from "./pages/PlaceholderPage";
