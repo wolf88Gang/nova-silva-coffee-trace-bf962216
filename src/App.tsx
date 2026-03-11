@@ -142,7 +142,7 @@ const App = () => (
 
               {/* AGRONOMÍA */}
               <Route path="/agronomia" element={<DL><AgronomiaIndex /></DL>} />
-              <Route path="/agronomia/nutricion" element={<DL><NutricionIndex /></DL>} />
+              <Route path="/agronomia/nutricion" element={<DL><NutricionDashboard /></DL>} />
               <Route path="/agronomia/guard" element={<DL><GuardIndex /></DL>} />
               <Route path="/agronomia/yield" element={<DL><YieldIndex /></DL>} />
               <Route path="/agronomia/yield/nueva" element={<DL><PlaceholderPage /></DL>} />
