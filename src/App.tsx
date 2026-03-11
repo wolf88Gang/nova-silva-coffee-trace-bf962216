@@ -35,6 +35,7 @@ import JornalesIndex from "./pages/jornales/JornalesIndex";
 import OrigenesIndex from "./pages/origenes/OrigenesIndex";
 import AnaliticaIndex from "./pages/analitica/AnaliticaIndex";
 import ComercialIndex from "./pages/comercial/ComercialIndex";
+import InventarioIndex from "./pages/operaciones/InventarioIndex";
 
 // Existing pages (reused)
 import ProductoresHub from "./pages/cooperativa/ProductoresHub";
