@@ -52,7 +52,7 @@ const ORG_TYPES: { value: OrgType; label: string; icon: typeof Users; desc: stri
 
 const ACTIVITIES = [
   { value: 'produce', label: 'Produce', desc: 'Cultiva y cosecha en fincas propias o asociadas' },
-  { value: 'compra', label: 'Compra a terceros', desc: 'Adquiere cafe de productores, cooperativas u otros proveedores' },
+  { value: 'compra', label: 'Compra a terceros', desc: 'Adquiere cafe de productores, organizaciones u otros proveedores' },
   { value: 'procesa', label: 'Procesa', desc: 'Beneficio humedo/seco, despulpado, lavado, secado' },
   { value: 'exporta', label: 'Exporta', desc: 'Vende a compradores internacionales directamente' },
 ];
