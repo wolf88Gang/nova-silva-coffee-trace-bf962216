@@ -8,6 +8,7 @@ import { NotificacionesBell } from './NotificacionesBell';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ContextualBreadcrumb } from './ContextualBreadcrumb';
 import { OfflineSyncBar } from './OfflineSyncBar';
+import { DemoBanner } from '@/components/demo/DemoBanner';
 import { UserRole } from '@/types';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -82,6 +83,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
           <div className="lg:hidden h-14" />
 
           <main className="p-4 md:p-6 lg:p-8 animate-fade-in">
+            <DemoBanner />
             {children}
           </main>
         </div>
