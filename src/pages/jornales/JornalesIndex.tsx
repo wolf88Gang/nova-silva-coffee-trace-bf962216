@@ -1,31 +1,35 @@
 import { PageHeader } from '@/components/common/PageHeader';
-import { Card, CardContent } from '@/components/ui/card';
+import { DemoBadge } from '@/components/common/DemoBadge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Briefcase, Users, DollarSign, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useJornalesOverview } from '@/hooks/useViewData';
-
-const FALLBACK_REGISTROS = [
-  { cuadrilla: 'Cuadrilla Norte', actividad: 'Recolección', parcela: 'Lote El Cedro', jornales: 12, costo: '₡ 156,000', fecha: '2026-03-10' },
-  { cuadrilla: 'Cuadrilla Sur', actividad: 'Fertilización', parcela: 'Parcela Norte', jornales: 4, costo: '₡ 52,000', fecha: '2026-03-09' },
-  { cuadrilla: 'Equipo Mantenimiento', actividad: 'Podas', parcela: 'Lote La Cumbre', jornales: 8, costo: '₡ 104,000', fecha: '2026-03-08' },
-];
+import { getJornalesKPIs, getDemoRegistrosJornales, getJornalesMensuales, getCuadrillas } from '@/lib/demoSeedData';
 
 export default function JornalesIndex() {
   const { data, isLoading } = useJornalesOverview();
   const overview = data?.[0] ?? null;
+  const demoKPIs = getJornalesKPIs();
+  const registros = getDemoRegistrosJornales();
+  const mensuales = getJornalesMensuales();
+  const cuadrillas = getCuadrillas();
 
   const kpis = [
-    { label: 'Cuadrillas activas', value: overview?.cuadrillas_activas ?? '6', icon: Users },
-    { label: 'Jornales (semana)', value: overview?.jornales_semana ?? '84', icon: Briefcase },
-    { label: 'Costo semanal', value: overview?.costo_semanal ?? '₡ 1.09M', icon: DollarSign },
-    { label: 'Pagos pendientes', value: overview?.pagos_pendientes ?? '3', icon: Clock },
+    { label: 'Cuadrillas activas', value: overview?.cuadrillas_activas ?? demoKPIs.cuadrillas_activas, icon: Users },
+    { label: 'Jornales (semana)', value: overview?.jornales_semana ?? demoKPIs.jornales_semana, icon: Briefcase },
+    { label: 'Costo semanal', value: overview?.costo_semanal ?? demoKPIs.costo_semanal, icon: DollarSign },
+    { label: 'Pagos pendientes', value: overview?.pagos_pendientes ?? demoKPIs.pagos_pendientes, icon: Clock },
   ];
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Jornales" description="Registro laboral, cuadrillas, costos y pagos de campaña" />
+      <div className="flex items-center justify-between">
+        <PageHeader title="Jornales" description="Registro laboral, cuadrillas, costos y pagos de campaña" />
+        <DemoBadge />
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
         {kpis.map(k => (
@@ -43,15 +47,33 @@ export default function JornalesIndex() {
         ))}
       </div>
 
+      {/* Monthly chart */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Jornales mensuales (últimos 12 meses)</CardTitle></CardHeader>
+        <CardContent>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={mensuales}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="mes" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
+                <Bar dataKey="jornales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="registros">
         <TabsList>
-          <TabsTrigger value="registros">Registros</TabsTrigger>
+          <TabsTrigger value="registros">Registros recientes</TabsTrigger>
           <TabsTrigger value="cuadrillas">Cuadrillas</TabsTrigger>
           <TabsTrigger value="costos">Costos laborales</TabsTrigger>
-          <TabsTrigger value="pagos">Pagos</TabsTrigger>
         </TabsList>
+
         <TabsContent value="registros" className="mt-4 space-y-3">
-          {FALLBACK_REGISTROS.map((r, i) => (
+          {registros.slice(0, 15).map((r, i) => (
             <Card key={i}>
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
@@ -68,9 +90,54 @@ export default function JornalesIndex() {
             </Card>
           ))}
         </TabsContent>
-        <TabsContent value="cuadrillas" className="mt-4"><Card><CardContent className="pt-5 text-center text-muted-foreground text-sm py-12">Gestión de cuadrillas y asignación de personal</CardContent></Card></TabsContent>
-        <TabsContent value="costos" className="mt-4"><Card><CardContent className="pt-5 text-center text-muted-foreground text-sm py-12">Análisis de costos laborales por actividad y parcela</CardContent></Card></TabsContent>
-        <TabsContent value="pagos" className="mt-4"><Card><CardContent className="pt-5 text-center text-muted-foreground text-sm py-12">Registro de pagos y liquidaciones de cuadrillas</CardContent></Card></TabsContent>
+
+        <TabsContent value="cuadrillas" className="mt-4 space-y-3">
+          {cuadrillas.map((c, i) => (
+            <Card key={i}>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{c.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{c.miembros} miembros · Última: {c.ultimaActividad}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm">{c.costoPeriodo}</span>
+                    <Badge variant={c.activa ? 'default' : 'secondary'}>{c.activa ? 'Activa' : 'Inactiva'}</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="costos" className="mt-4">
+          <Card>
+            <CardContent className="pt-5">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-2 px-3 text-muted-foreground font-medium">Actividad</th>
+                      <th className="text-left py-2 px-3 text-muted-foreground font-medium">Parcela</th>
+                      <th className="text-center py-2 px-3 text-muted-foreground font-medium">Jornales</th>
+                      <th className="text-right py-2 px-3 text-muted-foreground font-medium">Costo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {registros.slice(0, 20).map((r, i) => (
+                      <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
+                        <td className="py-2 px-3 font-medium">{r.actividad}</td>
+                        <td className="py-2 px-3 text-muted-foreground">{r.parcela}</td>
+                        <td className="py-2 px-3 text-center">{r.jornales}</td>
+                        <td className="py-2 px-3 text-right font-medium">{r.costo}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
