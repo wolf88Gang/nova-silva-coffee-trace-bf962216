@@ -78,7 +78,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'farm_demo', name: 'Finca Privada', orgType: 'productor_privado',
-    operatingModel: 'solo_produccion_propia', typeLabel: 'Productor privado', country: 'Costa Rica',
+    operatingModel: 'single_farm', typeLabel: 'Productor privado', country: 'Costa Rica',
     description: 'Finca tecnificada con foco agronómico intensivo: nutrición, guard, yield y jornales.',
     stats: ['48 ha', '14 parcelas', '3 variedades'],
     modules: ['Producción', 'Jornales', 'Agronomía', 'VITAL', 'Finanzas', 'Nova Cup'],
