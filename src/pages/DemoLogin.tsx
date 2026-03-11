@@ -66,7 +66,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'exporter_demo', name: 'Exportador de Origen', orgType: 'exportador',
-    operatingModel: 'originacion_masiva', typeLabel: 'Exportador', country: 'Centroamérica',
+    operatingModel: 'trader', typeLabel: 'Exportador', country: 'Centroamérica',
     description: 'Gestiona miles de proveedores con foco en cumplimiento EUDR, lotes, calidad y analítica de origen.',
     stats: ['4,200 proveedores', '12 regiones', '38 contratos'],
     modules: ['Orígenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analítica', 'Nova Cup', 'Finanzas'],
