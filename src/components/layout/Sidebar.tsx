@@ -11,8 +11,9 @@ import {
   Leaf, X, LayoutDashboard, Users, Package, Building2,
   ShieldCheck, Shield, FileText, Sprout, Settings, Map,
   DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp,
-  Wallet, Eye, FolderOpen, CreditCard, HelpCircle,
+  Wallet, Eye, FolderOpen, CreditCard,
   Award, Briefcase, Coffee, BarChart3, Truck, Cloud,
+  Boxes, ShoppingCart,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -47,14 +48,23 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
     groups.push({ label: 'Producción', icon: Sprout, items });
   }
 
-  // ── Abastecimiento ──
-  if (v.canSeeSuppliers || v.canSeeReception || v.canSeePurchases) {
+  // ── Abastecimiento café ──
+  if (v.canSeeCoffeeSuppliers || v.canSeeReception || v.canSeePurchases) {
     const items: NavItemDef[] = [];
     if (v.canSeeReception) items.push({ title: 'Recepción de café', url: '/abastecimiento/recepcion', icon: Package });
     if (v.canSeePurchases) items.push({ title: 'Compras y lotes', url: '/abastecimiento/compras', icon: FileText });
     if (v.canSeeSupplierEvidence) items.push({ title: 'Evidencias proveedor', url: '/abastecimiento/evidencias', icon: FolderOpen });
     if (v.canSeeOriginRisk) items.push({ title: 'Riesgo de origen', url: '/abastecimiento/riesgo', icon: AlertTriangle });
-    if (items.length > 0) groups.push({ label: 'Abastecimiento', icon: Truck, items });
+    if (items.length > 0) groups.push({ label: 'Abastecimiento café', icon: Truck, items });
+  }
+
+  // ── Insumos ──
+  if (v.canSeeInputSuppliers || v.canSeeInputCatalog || v.canSeeInventory) {
+    const items: NavItemDef[] = [];
+    if (v.canSeeInputSuppliers) items.push({ title: 'Proveedores insumos', url: '/insumos/proveedores', icon: ShoppingCart });
+    if (v.canSeeInputCatalog) items.push({ title: 'Catálogo', url: '/insumos/catalogo', icon: Boxes });
+    if (v.canSeeInventory) items.push({ title: 'Inventario', url: '/operaciones/inventario', icon: Package });
+    groups.push({ label: 'Insumos', icon: Boxes, items });
   }
 
   // ── Orígenes (trader) ──
@@ -81,11 +91,6 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   // ── Jornales ──
   if (v.canSeeLabor) {
     groups.push({ label: 'Jornales', icon: Briefcase, standalone: true, url: '/jornales', items: [] });
-  }
-
-  // ── Inventario ──
-  if (v.canSeeInventory) {
-    groups.push({ label: 'Inventario', icon: Package, standalone: true, url: '/operaciones/inventario', items: [] });
   }
 
   // ── Resiliencia ──

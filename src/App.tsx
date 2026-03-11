@@ -45,6 +45,8 @@ import AnaliticaIndex from "./pages/analitica/AnaliticaIndex";
 import ComercialIndex from "./pages/comercial/ComercialIndex";
 import ComercialLotesPage from "./pages/comercial/ComercialLotesPage";
 import InventarioIndex from "./pages/operaciones/InventarioIndex";
+import ProveedoresInsumosIndex from "./pages/insumos/ProveedoresInsumosIndex";
+import CatalogoInsumosIndex from "./pages/insumos/CatalogoInsumosIndex";
 
 // Existing pages (reused)
 import ProductoresHub from "./pages/cooperativa/ProductoresHub";
@@ -156,6 +158,10 @@ const App = () => (
               {/* INVENTARIO */}
               <Route path="/operaciones/inventario" element={<DL><InventarioIndex /></DL>} />
               <Route path="/inventario" element={<Navigate to="/operaciones/inventario" replace />} />
+
+              {/* INSUMOS */}
+              <Route path="/insumos/proveedores" element={<DL><ProveedoresInsumosIndex /></DL>} />
+              <Route path="/insumos/catalogo" element={<DL><CatalogoInsumosIndex /></DL>} />
 
               {/* JORNALES */}
               <Route path="/jornales" element={<DL><JornalesIndex /></DL>} />

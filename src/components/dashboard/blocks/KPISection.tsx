@@ -47,8 +47,8 @@ function buildKPIs(model: OperatingModel, orgTipo: string | null): KPI[] {
         { label: 'Parcelas activas', value: 14, icon: Leaf, route: '/produccion/parcelas' },
         { label: 'Cuadrillas', value: 6, icon: Briefcase, route: '/jornales' },
       ];
-      if (v.canSeeSuppliers) {
-        kpis.push({ label: 'Proveedores', value: 82, sub: 'Abastecimiento externo', icon: Users, route: '/abastecimiento/recepcion' });
+      if (v.canSeeCoffeeSuppliers) {
+        kpis.push({ label: 'Proveedores café', value: 82, sub: 'Abastecimiento externo', icon: Users, route: '/abastecimiento/recepcion' });
       }
       kpis.push({ label: 'VITAL promedio', value: `${s.promedioVITAL}/100`, icon: Shield, route: '/resiliencia/vital', module: 'vital' });
       kpis.push({ label: 'Alertas', value: s.alertasPendientes, icon: AlertTriangle });

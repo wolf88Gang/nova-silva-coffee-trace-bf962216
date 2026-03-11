@@ -28,12 +28,15 @@ export interface VisibilityPolicy {
   canSeeProducers: boolean;
   canSeeDeliveries: boolean;
   canSeeDocuments: boolean;
-  // Abastecimiento
-  canSeeSuppliers: boolean;
+  // Abastecimiento café
+  canSeeCoffeeSuppliers: boolean;
   canSeeReception: boolean;
   canSeePurchases: boolean;
   canSeeSupplierEvidence: boolean;
   canSeeOriginRisk: boolean;
+  // Insumos
+  canSeeInputSuppliers: boolean;
+  canSeeInputCatalog: boolean;
   // Agronomía
   canSeeAgronomy: boolean;
   // Jornales
@@ -68,9 +71,6 @@ export interface VisibilityPolicy {
 /**
  * Definitive visibility matrix — aligned with product spec.
  * ✔ = full access, ⚪ = read-only/analytical, ✖ = hidden
- *
- * Read-only items are still shown (canSee = true) but
- * editing flags (canEditPlots) are set separately.
  */
 const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
   single_farm: {
@@ -80,11 +80,13 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeProducers: false,
     canSeeDeliveries: false,
     canSeeDocuments: true,
-    canSeeSuppliers: false,
+    canSeeCoffeeSuppliers: false,
     canSeeReception: false,
     canSeePurchases: false,
     canSeeSupplierEvidence: false,
     canSeeOriginRisk: false,
+    canSeeInputSuppliers: true,
+    canSeeInputCatalog: false,
     canSeeAgronomy: true,
     canSeeLabor: true,
     canSeeVital: true,
@@ -111,11 +113,13 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeProducers: false,
     canSeeDeliveries: false,
     canSeeDocuments: true,
-    canSeeSuppliers: false,
-    canSeeReception: false,  // ⚪ occasional
-    canSeePurchases: false,  // ⚪ occasional
+    canSeeCoffeeSuppliers: false,
+    canSeeReception: false,
+    canSeePurchases: false,
     canSeeSupplierEvidence: false,
     canSeeOriginRisk: false,
+    canSeeInputSuppliers: true,
+    canSeeInputCatalog: false,
     canSeeAgronomy: true,
     canSeeLabor: true,
     canSeeVital: true,
@@ -140,13 +144,15 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeePlots: true,
     canSeeCrops: true,
     canSeeProducers: false,
-    canSeeDeliveries: false,  // ⚪ via abastecimiento
+    canSeeDeliveries: false,
     canSeeDocuments: true,
-    canSeeSuppliers: true,
+    canSeeCoffeeSuppliers: true,
     canSeeReception: true,
     canSeePurchases: true,
     canSeeSupplierEvidence: true,
     canSeeOriginRisk: true,
+    canSeeInputSuppliers: true,
+    canSeeInputCatalog: false,
     canSeeAgronomy: true,
     canSeeLabor: true,
     canSeeVital: true,
@@ -173,13 +179,15 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeProducers: true,
     canSeeDeliveries: true,
     canSeeDocuments: true,
-    canSeeSuppliers: true,
+    canSeeCoffeeSuppliers: true,
     canSeeReception: true,
     canSeePurchases: true,
     canSeeSupplierEvidence: true,
     canSeeOriginRisk: true,
+    canSeeInputSuppliers: true,
+    canSeeInputCatalog: true,
     canSeeAgronomy: true,
-    canSeeLabor: false,  // cooperativas don't manage jornales
+    canSeeLabor: false,
     canSeeVital: true,
     canSeeClimate: true,
     canSeeTraceability: true,
@@ -202,13 +210,15 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeePlots: false,
     canSeeCrops: false,
     canSeeProducers: false,
-    canSeeDeliveries: true,  // ⚪ read-only
-    canSeeDocuments: true,   // ⚪ read-only
-    canSeeSuppliers: true,
+    canSeeDeliveries: true,
+    canSeeDocuments: true,
+    canSeeCoffeeSuppliers: true,
     canSeeReception: true,
     canSeePurchases: true,
     canSeeSupplierEvidence: true,
     canSeeOriginRisk: true,
+    canSeeInputSuppliers: false,
+    canSeeInputCatalog: false,
     canSeeAgronomy: false,
     canSeeLabor: false,
     canSeeVital: false,
@@ -234,15 +244,17 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeCrops: false,
     canSeeProducers: false,
     canSeeDeliveries: false,
-    canSeeDocuments: true,   // ⚪ read-only
-    canSeeSuppliers: false,  // ⚪ via evidence
+    canSeeDocuments: true,
+    canSeeCoffeeSuppliers: false,
     canSeeReception: false,
     canSeePurchases: false,
     canSeeSupplierEvidence: true,
     canSeeOriginRisk: true,
+    canSeeInputSuppliers: false,
+    canSeeInputCatalog: false,
     canSeeAgronomy: false,
     canSeeLabor: false,
-    canSeeVital: true,       // ⚪ read-only
+    canSeeVital: true,
     canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: true,
@@ -303,12 +315,12 @@ export function showsProductores(model: OperatingModel): boolean {
 }
 
 export function showsProveedores(model: OperatingModel): boolean {
-  return getVisibilityPolicy(model).canSeeSuppliers;
+  return getVisibilityPolicy(model).canSeeCoffeeSuppliers;
 }
 
 export function showsAbastecimiento(model: OperatingModel): boolean {
   const p = getVisibilityPolicy(model);
-  return p.canSeePurchases || p.canSeeReception || p.canSeeSuppliers;
+  return p.canSeePurchases || p.canSeeReception || p.canSeeCoffeeSuppliers;
 }
 
 export function showsRecepcion(model: OperatingModel): boolean {
