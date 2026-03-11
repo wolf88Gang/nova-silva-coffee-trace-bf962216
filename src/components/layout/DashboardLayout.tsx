@@ -5,8 +5,10 @@ import { ActorProvider } from '@/contexts/ActorContext';
 import { Sidebar } from './Sidebar';
 import { NotificacionesBell } from './NotificacionesBell';
 import { ProfileDropdown } from './ProfileDropdown';
+import { ContextualBreadcrumb } from './ContextualBreadcrumb';
+import { OfflineSyncBar } from './OfflineSyncBar';
 import { UserRole } from '@/types';
-import { Menu, Leaf } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 
@@ -53,11 +55,9 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
       <div className="min-h-screen bg-background">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="lg:ml-64">
-          {/* Desktop top bar */}
+          {/* Desktop top bar with contextual breadcrumb */}
           <header className="hidden lg:flex fixed top-0 left-64 right-0 h-14 bg-background/95 backdrop-blur border-b border-border z-30 items-center justify-between px-8">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">{user?.organizationName || 'Nova Silva'}</span>
-            </div>
+            <ContextualBreadcrumb />
             <div className="flex items-center gap-3">
               <NotificacionesBell />
               <ProfileDropdown />
@@ -85,6 +85,9 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
             {children}
           </main>
         </div>
+
+        {/* Offline sync status */}
+        <OfflineSyncBar />
       </div>
     </ActorProvider>
   );
