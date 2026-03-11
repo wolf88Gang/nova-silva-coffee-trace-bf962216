@@ -1,43 +1,38 @@
 /**
  * Contextual breadcrumb header.
  * Shows: [Organización] / [Módulo] / [Entidad]
- * Uses demo config when active to stay in sync with selected tenant.
+ * Each segment is clickable for navigation.
  */
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const ROUTE_LABELS: Record<string, string> = {
-  // Producción
   'productores-hub': 'Actores',
   'productores': 'Productores',
   'parcelas': 'Parcelas',
   'entregas': 'Entregas',
   'cultivos': 'Cultivos',
   'documentos': 'Documentos',
-  // Abastecimiento
   'recepcion': 'Recepción',
   'compras': 'Compras y lotes',
   'evidencias': 'Evidencias',
   'riesgo': 'Riesgo de origen',
-  // Agronomía
   'nutricion': 'Nutrición',
   'calidad': 'Nova Cup',
   'alertas': 'Alertas',
   'guard': 'Nova Guard',
   'yield': 'Nova Yield',
-  // Resiliencia
   'vital': 'Protocolo VITAL',
   'inclusion': 'Inclusión',
   'sostenibilidad': 'Sostenibilidad',
-  // Cumplimiento
   'eudr': 'EUDR',
   'trazabilidad': 'Trazabilidad',
   'lotes': 'Lotes',
   'auditorias': 'Auditorías',
   'data-room': 'Data Room',
-  // Comercial
   'exportadores': 'Exportadores',
   'ofertas-recibidas': 'Ofertas',
   'cafe': 'Gestión de Café',
@@ -45,16 +40,13 @@ const ROUTE_LABELS: Record<string, string> = {
   'embarques': 'Embarques',
   'clientes': 'Clientes',
   'proveedores': 'Proveedores',
-  // Finanzas
   'finanzas-hub': 'Finanzas',
   'finanzas': 'Finanzas',
   'creditos': 'Créditos',
   'panel': 'Panel financiero',
-  // Comunicación
   'comunicacion': 'Comunicación',
   'mensajes': 'Mensajes',
   'avisos': 'Avisos',
-  // Admin
   'dashboard': 'Panel Principal',
   'diagnostico': 'Diagnóstico',
   'usuarios': 'Usuarios',
@@ -62,21 +54,18 @@ const ROUTE_LABELS: Record<string, string> = {
   'directorio': 'Directorio',
   'catalogos': 'Catálogos',
   'organizacion': 'Organización',
-  // Productor
   'produccion': 'Producción',
   'sanidad': 'Sanidad Vegetal',
-  // Técnico
   'agenda': 'Agenda',
-  // Certificadora
   'orgs': 'Organizaciones',
   'verificar': 'Verificaciones',
   'reportes': 'Reportes',
-  // Operaciones
   'inventario': 'Inventario',
-  // Otros
   'origenes': 'Orígenes',
   'analitica': 'Analítica',
   'jornales': 'Jornales',
+  'insumos': 'Insumos',
+  'catalogo': 'Catálogo',
 };
 
 const DOMAIN_LABELS: Record<string, string> = {
@@ -94,7 +83,7 @@ const DOMAIN_LABELS: Record<string, string> = {
   'calidad': 'Calidad',
   'admin': 'Administración',
   'ayuda': 'Ayuda',
-  // Legacy role-based routes
+  'insumos': 'Insumos',
   'cooperativa': 'Producción',
   'exportador': 'Comercial',
   'productor': 'Mi Finca',
@@ -105,6 +94,7 @@ const DOMAIN_LABELS: Record<string, string> = {
 export function ContextualBreadcrumb() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const demoConfig = getDemoConfig();
 
   if (!user) return null;
@@ -112,25 +102,44 @@ export function ContextualBreadcrumb() {
   const segments = location.pathname.split('/').filter(Boolean);
   if (segments.length === 0) return null;
 
-  // Use demo config org name when available for consistency
   const orgName = demoConfig?.orgName || user.organizationName || 'Nova Silva';
   const domain = DOMAIN_LABELS[segments[0]] || segments[0];
   const pageKey = segments[segments.length - 1];
   const pageLabel = ROUTE_LABELS[pageKey] || '';
 
-  const crumbs = [orgName, domain];
-  if (pageLabel && pageLabel !== domain) crumbs.push(pageLabel);
+  // Build crumbs with paths
+  interface Crumb { label: string; path: string | null; }
+  const crumbs: Crumb[] = [
+    { label: orgName, path: '/app' },
+    { label: domain, path: '/' + segments[0] },
+  ];
+  if (pageLabel && pageLabel !== domain) {
+    crumbs.push({ label: pageLabel, path: location.pathname });
+  }
 
   return (
     <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
-      {crumbs.map((crumb, i) => (
-        <span key={i} className="flex items-center gap-1.5 min-w-0">
-          {i > 0 && <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/50" />}
-          <span className={i === crumbs.length - 1 ? 'font-medium text-foreground truncate' : 'truncate'}>
-            {crumb}
+      {crumbs.map((crumb, i) => {
+        const isLast = i === crumbs.length - 1;
+        return (
+          <span key={i} className="flex items-center gap-1.5 min-w-0">
+            {i > 0 && <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/50" />}
+            {isLast ? (
+              <span className="font-medium text-foreground truncate">{crumb.label}</span>
+            ) : (
+              <button
+                onClick={() => crumb.path && navigate(crumb.path)}
+                className={cn(
+                  'truncate hover:text-foreground hover:underline underline-offset-2 transition-colors cursor-pointer',
+                  'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm px-0.5'
+                )}
+              >
+                {crumb.label}
+              </button>
+            )}
           </span>
-        </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
