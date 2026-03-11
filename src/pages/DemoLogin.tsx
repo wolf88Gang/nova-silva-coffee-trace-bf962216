@@ -53,7 +53,7 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   },
   {
     id: 'estate_demo', name: 'Finca Empresarial', orgType: 'finca_empresarial',
-    operatingModel: 'produccion_propia_y_compra_terceros', typeLabel: 'Finca empresarial', country: 'Costa Rica',
+    operatingModel: 'estate_hybrid', typeLabel: 'Finca empresarial', country: 'Costa Rica',
     description: 'Opera parcelas propias con manejo agronómico intensivo y también compra café a productores externos.',
     stats: ['74 ha propias', '82 proveedores', '6 cuadrillas'],
     modules: ['Producción', 'Abastecimiento', 'Jornales', 'Agronomía', 'VITAL', 'EUDR', 'Nova Cup', 'Finanzas'],
