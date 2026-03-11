@@ -185,8 +185,8 @@ const App = () => (
               <Route path="/finanzas" element={<DL><FinanzasIndex /></DL>} />
               <Route path="/finanzas/panel" element={<DL><FinanzasHub /></DL>} />
               <Route path="/finanzas/creditos" element={<DL><CreditCommitteeDashboard /></DL>} />
-              <Route path="/finanzas/score-nova" element={<DL><PlaceholderPage /></DL>} />
-              <Route path="/finanzas/carbono" element={<DL><PlaceholderPage /></DL>} />
+              <Route path="/finanzas/score-nova" element={<DL><FinanzasIndex /></DL>} />
+              <Route path="/finanzas/carbono" element={<DL><FinanzasIndex /></DL>} />
               <Route path="/finanzas/facturacion" element={<DL><BillingReadOnly /></DL>} />
 
               {/* ADMINISTRACIÓN */}
