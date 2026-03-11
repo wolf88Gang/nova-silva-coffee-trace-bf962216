@@ -179,6 +179,8 @@ const App = () => (
 
               {/* CALIDAD / NOVA CUP */}
               <Route path="/calidad" element={<DL><CalidadIndex /></DL>} />
+              <Route path="/calidad/lotes" element={<DL><CalidadIndex /></DL>} />
+              <Route path="/calidad/tendencias" element={<DL><CalidadIndex /></DL>} />
 
               {/* COMERCIAL */}
               <Route path="/comercial" element={<DL><ComercialIndex /></DL>} />
