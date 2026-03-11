@@ -313,6 +313,7 @@ const DemoLogin = () => {
   const [selectedProfile, setSelectedProfile] = useState<DemoProfile | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
+  const [showOrgList, setShowOrgList] = useState(false);
   const pendingRedirect = useRef<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
