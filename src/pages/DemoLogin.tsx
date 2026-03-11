@@ -2,30 +2,180 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck, Crown } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Building2, Sprout, Truck, ShieldCheck, Crown, Users, Map, Shield, Leaf, Package, DollarSign, Bug, Award, AlertTriangle, Settings, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgTerraces from '@/assets/bg-terraces.jpg';
+import { cn } from '@/lib/utils';
 
+// ── DATA MODEL ──
 
-interface DemoRole {
-  role: UserRole;
-  email: string;
+interface DemoProfile {
+  id: string;
   label: string;
   description: string;
+  /** The actual demo email credential */
+  email: string;
+  /** The role used for ensure-demo-user and redirect */
+  role: UserRole;
+  /** Modules/areas this profile accesses */
+  accessAreas: string[];
+}
+
+interface DemoOrganization {
+  id: string;
+  name: string;
+  type: string;
+  typeLabel: string;
+  country: string;
+  stats: string;
+  modules: string[];
+  profiles: DemoProfile[];
   icon: React.ElementType;
 }
 
-const DEMO_ROLES: DemoRole[] = [
-  { role: 'productor', email: 'demo.productor@novasilva.com', label: 'Productor', description: 'Agricultor de café', icon: Sprout },
-  { role: 'tecnico', email: 'demo.tecnico@novasilva.com', label: 'Técnico', description: 'Asistente técnico de campo', icon: Wrench },
-  { role: 'cooperativa', email: 'demo.cooperativa@novasilva.com', label: 'Producción', description: 'Gestión de producción y trazabilidad', icon: Building2 },
-  { role: 'exportador', email: 'demo.exportador@novasilva.com', label: 'Exportador', description: 'Exportadora con EUDR', icon: Truck },
-  { role: 'certificadora', email: 'demo.certificadora@novasilva.com', label: 'Certificadora', description: 'Auditoría y certificación', icon: ShieldCheck },
-  { role: 'admin', email: 'info@novasilva.co', label: 'Admin', description: 'Administrador de plataforma', icon: Crown },
+interface OrgCategory {
+  label: string;
+  icon: React.ElementType;
+  orgs: DemoOrganization[];
+}
+
+const DEMO_ORGS: DemoOrganization[] = [
+  {
+    id: 'coop-montes-verdes',
+    name: 'Cooperativa Montes Verdes',
+    type: 'cooperativa',
+    typeLabel: 'Cooperativa',
+    country: 'Costa Rica',
+    stats: '420 socios · 860 parcelas',
+    modules: ['Producción', 'Nutrición', 'Nova Guard', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'],
+    icon: Building2,
+    profiles: [
+      {
+        id: 'coop-gerencia',
+        label: 'Gerencia cooperativa',
+        description: 'Visión completa de operaciones, finanzas y cumplimiento.',
+        email: 'demo.cooperativa@novasilva.com',
+        role: 'cooperativa',
+        accessAreas: ['Producción', 'Agronomía', 'Resiliencia', 'Cumplimiento', 'Finanzas', 'Administración'],
+      },
+      {
+        id: 'coop-tecnico',
+        label: 'Técnico de campo',
+        description: 'Registra visitas, ejecuta diagnósticos, revisa nutrición y captura evidencia.',
+        email: 'demo.tecnico@novasilva.com',
+        role: 'tecnico',
+        accessAreas: ['Producción', 'Agronomía', 'Resiliencia', 'Agenda'],
+      },
+    ],
+  },
+  {
+    id: 'finca-santa-elena',
+    name: 'Finca Santa Elena',
+    type: 'productor',
+    typeLabel: 'Productor privado',
+    country: 'Costa Rica',
+    stats: '74 ha · 12 parcelas',
+    modules: ['Producción', 'Nutrición', 'Nova Guard', 'VITAL'],
+    icon: Sprout,
+    profiles: [
+      {
+        id: 'prod-propietario',
+        label: 'Propietario',
+        description: 'Gestión completa de la finca, parcelas, entregas y finanzas personales.',
+        email: 'demo.productor@novasilva.com',
+        role: 'productor',
+        accessAreas: ['Mi Finca', 'Agronomía', 'Resiliencia', 'Finanzas'],
+      },
+    ],
+  },
+  {
+    id: 'exp-altura-verde',
+    name: 'Exportadora Altura Verde',
+    type: 'exportador',
+    typeLabel: 'Casa de Exportación',
+    country: 'Costa Rica',
+    stats: '38 proveedores · 12 contratos activos',
+    modules: ['Orígenes', 'Lotes', 'Contratos', 'EUDR', 'Finanzas'],
+    icon: Truck,
+    profiles: [
+      {
+        id: 'exp-gerencia',
+        label: 'Gerente de origen',
+        description: 'Gestiona proveedores, lotes comerciales, contratos y embarques.',
+        email: 'demo.exportador@novasilva.com',
+        role: 'exportador',
+        accessAreas: ['Orígenes', 'Comercial', 'Cumplimiento', 'Finanzas'],
+      },
+    ],
+  },
+  {
+    id: 'cert-auditlatam',
+    name: 'AuditLatam',
+    type: 'certificadora',
+    typeLabel: 'Certificadora',
+    country: 'Regional',
+    stats: '24 organizaciones auditadas',
+    modules: ['Auditorías', 'Data Room', 'Reportes'],
+    icon: ShieldCheck,
+    profiles: [
+      {
+        id: 'cert-auditor',
+        label: 'Auditor líder',
+        description: 'Revisa evidencia, verifica cumplimiento y genera reportes de auditoría.',
+        email: 'demo.certificadora@novasilva.com',
+        role: 'certificadora',
+        accessAreas: ['Auditorías', 'Data Room', 'Reportes'],
+      },
+    ],
+  },
+  {
+    id: 'admin-novasilva',
+    name: 'Nova Silva Admin',
+    type: 'admin',
+    typeLabel: 'Plataforma',
+    country: '',
+    stats: 'Administración transversal',
+    modules: ['Organizaciones', 'Usuarios', 'Catálogos', 'Billing'],
+    icon: Crown,
+    profiles: [
+      {
+        id: 'admin-platform',
+        label: 'Platform Admin',
+        description: 'Consola transversal de administración, billing y soporte.',
+        email: 'info@novasilva.co',
+        role: 'admin',
+        accessAreas: ['Organizaciones', 'Usuarios', 'Catálogos'],
+      },
+    ],
+  },
 ];
+
+function groupOrgsByCategory(orgs: DemoOrganization[]): OrgCategory[] {
+  const categories: OrgCategory[] = [
+    { label: 'Cooperativas', icon: Building2, orgs: [] },
+    { label: 'Fincas Privadas', icon: Sprout, orgs: [] },
+    { label: 'Exportadores', icon: Truck, orgs: [] },
+    { label: 'Certificadoras', icon: ShieldCheck, orgs: [] },
+    { label: 'Plataforma', icon: Crown, orgs: [] },
+  ];
+
+  const typeMap: Record<string, number> = {
+    cooperativa: 0,
+    productor: 1,
+    exportador: 2,
+    certificadora: 3,
+    admin: 4,
+  };
+
+  orgs.forEach(org => {
+    const idx = typeMap[org.type] ?? 4;
+    categories[idx].orgs.push(org);
+  });
+
+  return categories.filter(c => c.orgs.length > 0);
+}
 
 const ROLE_REDIRECTS: Record<string, string> = {
   cooperativa: '/cooperativa/dashboard',
@@ -36,14 +186,20 @@ const ROLE_REDIRECTS: Record<string, string> = {
   admin: '/admin',
 };
 
+// ── COMPONENT ──
+
+type Step = 'org' | 'profile' | 'confirm';
+
 const DemoLogin = () => {
+  const [step, setStep] = useState<Step>('org');
+  const [selectedOrg, setSelectedOrg] = useState<DemoOrganization | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<DemoProfile | null>(null);
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const pendingRedirect = useRef<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
 
-  // Navigate once auth state is ready after login
   useEffect(() => {
     if (isAuthenticated && user && pendingRedirect.current) {
       const dest = pendingRedirect.current;
@@ -53,14 +209,48 @@ const DemoLogin = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
-  const handleDemoLogin = async (demoRole: DemoRole) => {
-    setLoadingRole(demoRole.role);
+  const handleSelectOrg = (org: DemoOrganization) => {
+    setSelectedOrg(org);
+    setSelectedProfile(null);
+    // If org has only one profile, auto-select it
+    if (org.profiles.length === 1) {
+      setSelectedProfile(org.profiles[0]);
+      setStep('confirm');
+    } else {
+      setStep('profile');
+    }
+  };
+
+  const handleSelectProfile = (profile: DemoProfile) => {
+    setSelectedProfile(profile);
+    setStep('confirm');
+  };
+
+  const handleBack = () => {
+    if (step === 'confirm') {
+      if (selectedOrg && selectedOrg.profiles.length > 1) {
+        setStep('profile');
+      } else {
+        setStep('org');
+        setSelectedOrg(null);
+        setSelectedProfile(null);
+      }
+    } else if (step === 'profile') {
+      setStep('org');
+      setSelectedOrg(null);
+      setSelectedProfile(null);
+    }
+  };
+
+  const handleEnter = async () => {
+    if (!selectedProfile || !selectedOrg) return;
+    setLoadingRole(selectedProfile.role);
+
     try {
-      console.log('Calling ensure-demo-user with role:', demoRole.role);
       const SUPABASE_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
-      // Skip ensure-demo-user for admin — user already exists, and deployed function may not support it yet
-      if (demoRole.role !== 'admin') {
+
+      if (selectedProfile.role !== 'admin') {
         try {
           const res = await fetch(`${SUPABASE_URL}/functions/v1/ensure-demo-user`, {
             method: 'POST',
@@ -69,32 +259,28 @@ const DemoLogin = () => {
               'apikey': SUPABASE_ANON_KEY,
               'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
             },
-            body: JSON.stringify({ role: demoRole.role }),
+            body: JSON.stringify({ role: selectedProfile.role }),
           });
           const data = await res.json();
-          console.log('ensure-demo-user response:', data);
-          if (!res.ok) console.warn('ensure-demo-user warning (will try login anyway):', data);
+          if (!res.ok) console.warn('ensure-demo-user warning:', data);
         } catch (fnErr) {
-          console.warn('ensure-demo-user fetch error (will try login anyway):', fnErr);
+          console.warn('ensure-demo-user fetch error:', fnErr);
         }
       }
 
-      // Set pending redirect BEFORE signing in so useEffect catches the auth change
-      pendingRedirect.current = ROLE_REDIRECTS[demoRole.role] || '/';
+      pendingRedirect.current = ROLE_REDIRECTS[selectedProfile.role] || '/';
 
       const { error } = await supabase.auth.signInWithPassword({
-        email: demoRole.email,
+        email: selectedProfile.email,
         password: 'demo123456',
       });
 
       if (error) {
         pendingRedirect.current = null;
-        toast({ title: 'Error de autenticación', description: `${error.message}. Verifica que la edge function ensure-demo-user esté desplegada correctamente.`, variant: 'destructive' });
+        toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
         setLoadingRole(null);
         return;
       }
-
-      // Navigation will happen via useEffect when isAuthenticated becomes true
     } catch (err) {
       console.error('Demo login error:', err);
       pendingRedirect.current = null;
@@ -102,6 +288,8 @@ const DemoLogin = () => {
       setLoadingRole(null);
     }
   };
+
+  const categories = groupOrgsByCategory(DEMO_ORGS);
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -133,47 +321,175 @@ const DemoLogin = () => {
           <span className="text-white/80 text-xs font-medium">Entorno de Demostración</span>
         </div>
 
-        {/* Hero */}
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white text-center mb-3 max-w-3xl leading-tight">
-          Plataforma de Diligencia{' '}
-          <span className="text-[hsl(var(--accent-orange))]">Debida Digital</span>
+        {/* Hero text */}
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white text-center mb-2 max-w-3xl leading-tight">
+          Nova Silva Demo
         </h1>
-        <p className="text-white/50 text-center mb-10 max-w-xl text-sm sm:text-base">
-          Selecciona un rol para explorar la plataforma de trazabilidad de café
+        <p className="text-white/50 text-center mb-8 max-w-xl text-sm">
+          {step === 'org' && 'Explore la plataforma desde la perspectiva de una organización real. Seleccione una organización demo para comenzar.'}
+          {step === 'profile' && `Seleccione un perfil de acceso dentro de ${selectedOrg?.name}.`}
+          {step === 'confirm' && 'Revise su selección antes de ingresar al entorno demo.'}
         </p>
 
-        {/* Role grid — 5 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl">
-          {DEMO_ROLES.map((dr) => {
-            const Icon = dr.icon;
-            const isLoading = loadingRole === dr.role;
-            const isDisabled = loadingRole !== null;
-            return (
-              <button
-                key={dr.role}
-                onClick={() => handleDemoLogin(dr)}
-                disabled={isDisabled}
-                className="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 text-left hover:bg-white/15 hover:border-[hsl(var(--accent-orange))]/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[hsl(var(--accent-orange))]/15 group-hover:bg-[hsl(var(--accent-orange))]/25 transition-colors">
-                    <Icon className="h-5 w-5 text-[hsl(var(--accent-orange))]" />
-                  </div>
-                  {isLoading && <Loader2 className="h-4 w-4 animate-spin text-white/60" />}
-                </div>
-                <h3 className="text-white font-semibold text-sm mb-1">{dr.label}</h3>
-                <p className="text-white/40 text-xs">{dr.description}</p>
-              </button>
-            );
-          })}
+        {/* Step indicator */}
+        <div className="flex items-center gap-2 mb-8">
+          {(['org', 'profile', 'confirm'] as Step[]).map((s, i) => (
+            <div key={s} className="flex items-center gap-2">
+              <div className={cn(
+                'h-2 rounded-full transition-all',
+                step === s ? 'w-8 bg-[hsl(var(--accent-orange))]' : 'w-2 bg-white/20'
+              )} />
+            </div>
+          ))}
         </div>
 
-        {/* Footer links */}
-        <div className="mt-10 flex flex-col items-center gap-2">
-          <p className="text-white/30 text-xs">
-            Contraseña demo: <code className="text-white/50">demo123456</code>
-          </p>
-        </div>
+        {/* Back button */}
+        {step !== 'org' && (
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-6 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Volver</span>
+          </button>
+        )}
+
+        {/* STEP 1: Organization selection */}
+        {step === 'org' && (
+          <div className="w-full max-w-3xl space-y-6">
+            {categories.map(cat => (
+              <div key={cat.label}>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <cat.icon className="h-4 w-4 text-white/40" />
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-white/40">{cat.label}</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {cat.orgs.map(org => {
+                    const OrgIcon = org.icon;
+                    return (
+                      <button
+                        key={org.id}
+                        onClick={() => handleSelectOrg(org)}
+                        className="group bg-white/8 backdrop-blur-xl border border-white/15 rounded-xl p-5 text-left hover:bg-white/12 hover:border-[hsl(var(--accent-orange))]/40 transition-all duration-200"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-lg bg-[hsl(var(--accent-orange))]/10 group-hover:bg-[hsl(var(--accent-orange))]/20 transition-colors shrink-0">
+                            <OrgIcon className="h-5 w-5 text-[hsl(var(--accent-orange))]" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-white font-semibold text-sm mb-0.5">{org.name}</h3>
+                            <p className="text-white/40 text-xs mb-2">{org.typeLabel}{org.country ? ` · ${org.country}` : ''}</p>
+                            <p className="text-white/30 text-xs">{org.stats}</p>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/50 shrink-0 mt-1 transition-colors" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* STEP 2: Profile selection */}
+        {step === 'profile' && selectedOrg && (
+          <div className="w-full max-w-xl space-y-4">
+            {/* Org context card */}
+            <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 mb-2">
+              <div className="flex items-center gap-3">
+                <selectedOrg.icon className="h-5 w-5 text-[hsl(var(--accent-orange))]" />
+                <div>
+                  <p className="text-white font-medium text-sm">{selectedOrg.name}</p>
+                  <p className="text-white/40 text-xs">{selectedOrg.typeLabel} · {selectedOrg.stats}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {selectedOrg.modules.map(mod => (
+                  <span key={mod} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/60">{mod}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Profiles */}
+            <div className="space-y-3">
+              {selectedOrg.profiles.map(profile => (
+                <button
+                  key={profile.id}
+                  onClick={() => handleSelectProfile(profile)}
+                  className="group w-full bg-white/8 backdrop-blur-xl border border-white/15 rounded-xl p-5 text-left hover:bg-white/12 hover:border-[hsl(var(--accent-orange))]/40 transition-all duration-200"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-white font-semibold text-sm">{profile.label}</h3>
+                    <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                  </div>
+                  <p className="text-white/40 text-xs mb-3">{profile.description}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {profile.accessAreas.map(area => (
+                      <span key={area} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/50">{area}</span>
+                    ))}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: Confirmation */}
+        {step === 'confirm' && selectedOrg && selectedProfile && (
+          <div className="w-full max-w-md">
+            <div className="bg-white/8 backdrop-blur-xl border border-white/15 rounded-2xl p-6 space-y-5">
+              {/* Org */}
+              <div>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Organización</p>
+                <div className="flex items-center gap-2">
+                  <selectedOrg.icon className="h-4 w-4 text-[hsl(var(--accent-orange))]" />
+                  <span className="text-white font-medium text-sm">{selectedOrg.name}</span>
+                </div>
+                <p className="text-white/30 text-xs mt-0.5">{selectedOrg.typeLabel}{selectedOrg.country ? ` · ${selectedOrg.country}` : ''}</p>
+              </div>
+
+              {/* Profile */}
+              <div>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Perfil de acceso</p>
+                <p className="text-white font-medium text-sm">{selectedProfile.label}</p>
+                <p className="text-white/30 text-xs mt-0.5">{selectedProfile.description}</p>
+              </div>
+
+              {/* Access areas */}
+              <div>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-2">Acceso principal</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedProfile.accessAreas.map(area => (
+                    <span key={area} className="text-xs px-2.5 py-1 rounded-full bg-[hsl(var(--accent-orange))]/15 text-[hsl(var(--accent-orange))]">
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Enter button */}
+              <button
+                onClick={handleEnter}
+                disabled={loadingRole !== null}
+                className="w-full flex items-center justify-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingRole ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Ingresando…</span>
+                  </>
+                ) : (
+                  <span>Entrar al entorno demo</span>
+                )}
+              </button>
+            </div>
+
+            <p className="text-white/20 text-xs text-center mt-4">
+              Datos ficticios para demostración
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );
