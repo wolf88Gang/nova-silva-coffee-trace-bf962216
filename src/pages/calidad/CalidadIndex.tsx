@@ -1,10 +1,12 @@
 import { PageHeader } from '@/components/common/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Award, TrendingUp, Star, Coffee } from 'lucide-react';
+import { useNovaCupOverview } from '@/hooks/useViewData';
 
-const evaluaciones = [
+const FALLBACK_EVALUACIONES = [
   { lote: 'Lote CMV-2026-014', productor: 'María Solano', score: 86.5, notas: 'Cítrico, chocolate, cuerpo medio', fecha: '2026-03-08' },
   { lote: 'Lote CMV-2026-012', productor: 'Carlos Méndez', score: 84.0, notas: 'Floral, nuez, acidez brillante', fecha: '2026-03-05' },
   { lote: 'Lote CMV-2026-009', productor: 'Ana Jiménez', score: 88.2, notas: 'Frutos rojos, panela, sedoso', fecha: '2026-02-28' },
@@ -18,23 +20,28 @@ function scoreColor(score: number) {
 }
 
 export default function CalidadIndex() {
+  const { data, isLoading } = useNovaCupOverview();
+  const overview = data?.[0] ?? null;
+
+  const kpis = [
+    { label: 'Evaluaciones (campaña)', value: overview?.evaluaciones ?? '148', icon: Award },
+    { label: 'Score promedio', value: overview?.score_promedio ?? '85.4', icon: Star },
+    { label: 'Lotes >86 pts', value: overview?.lotes_destacados ?? '34', icon: Coffee },
+    { label: 'Tendencia', value: overview?.tendencia ?? '+1.2 pts', icon: TrendingUp },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader title="Calidad · Nova Cup" description="Evaluaciones de taza, tendencias de calidad y oferta destacada" />
 
       <div className="grid gap-4 sm:grid-cols-4">
-        {[
-          { label: 'Evaluaciones (campaña)', value: '148', icon: Award },
-          { label: 'Score promedio', value: '85.4', icon: Star },
-          { label: 'Lotes >86 pts', value: '34', icon: Coffee },
-          { label: 'Tendencia', value: '+1.2 pts', icon: TrendingUp },
-        ].map(k => (
+        {kpis.map(k => (
           <Card key={k.label}>
             <CardContent className="pt-5">
               <div className="flex items-center gap-3">
                 <k.icon className="h-5 w-5 text-accent" />
                 <div>
-                  <p className="text-2xl font-bold">{k.value}</p>
+                  {isLoading ? <Skeleton className="h-7 w-12" /> : <p className="text-2xl font-bold">{String(k.value)}</p>}
                   <p className="text-xs text-muted-foreground">{k.label}</p>
                 </div>
               </div>
@@ -51,7 +58,7 @@ export default function CalidadIndex() {
           <TabsTrigger value="oferta">Oferta destacada</TabsTrigger>
         </TabsList>
         <TabsContent value="evaluaciones" className="mt-4 space-y-3">
-          {evaluaciones.map((e, i) => (
+          {FALLBACK_EVALUACIONES.map((e, i) => (
             <Card key={i} className="cursor-pointer hover:shadow-sm transition-shadow">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
