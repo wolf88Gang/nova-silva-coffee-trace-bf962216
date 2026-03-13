@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -270,6 +270,42 @@ const DemoLogin = () => {
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
 
+  // Secret admin access: tap logo 5 times
+  const tapCount = useRef(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleLogoTap = useCallback(async () => {
+    tapCount.current += 1;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 2000);
+    if (tapCount.current >= 5) {
+      tapCount.current = 0;
+      setLoadingRole('admin');
+      setDemoConfig({
+        orgId: 'platform_admin',
+        orgName: 'Nova Silva Platform',
+        orgType: 'admin',
+        operatingModel: 'platform',
+        modules: ['admin'],
+        profileLabel: 'Admin Nova Silva',
+      });
+      pendingRedirect.current = '/admin';
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: 'info@novasilva.co',
+          password: 'demo123456',
+        });
+        if (error) {
+          pendingRedirect.current = null;
+          toast({ title: 'Error', description: error.message, variant: 'destructive' });
+          setLoadingRole(null);
+        }
+      } catch {
+        pendingRedirect.current = null;
+        setLoadingRole(null);
+      }
+    }
+  }, [toast]);
+
   const { data: dbOrgs } = useDemoOrganizations();
   const { data: dbProfiles } = useDemoProfiles(selectedOrg?.id || null);
 
@@ -392,7 +428,7 @@ const DemoLogin = () => {
         {/* Header */}
         <header className="flex items-center justify-between px-5 md:px-8 py-4">
           <div className="flex items-center gap-3">
-            <img src={logoNovasilva} alt="Nova Silva" className="h-9 w-9 object-contain" />
+            <img src={logoNovasilva} alt="Nova Silva" className="h-9 w-9 object-contain cursor-pointer select-none" onClick={handleLogoTap} />
             <div>
               <h1 className="text-white font-bold text-lg tracking-tight">Nova Silva</h1>
               <p className="text-white/30 text-xs">Entorno de demostración</p>
