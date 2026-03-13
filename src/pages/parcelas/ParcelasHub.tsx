@@ -140,7 +140,7 @@ export default function ParcelasHub() {
                 {filtered.map(p => (
                   <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors">
                     <td className="px-4 py-3 font-medium text-foreground">{p.nombre}</td>
-                    {!effectiveActorId && <td className="px-4 py-3 text-muted-foreground">{p.productorNombre}</td>}
+                    {!effectiveActorId && !isSelfManaged && <td className="px-4 py-3 text-muted-foreground">{p.productorNombre}</td>}
                     <td className="px-4 py-3">{p.comunidad}</td>
                     <td className="px-4 py-3">{p.area} ha</td>
                     <td className="px-4 py-3">{p.variedad}</td>
