@@ -270,6 +270,9 @@ export default function DashboardProductor() {
         </Card>
       </div>
 
+      {/* Cooperative association */}
+      <CooperativaAssociationCard />
+
       {/* ── Entrega Detail Dialog ── */}
       <Dialog open={!!selectedEntrega} onOpenChange={(o) => !o && setSelectedEntrega(null)}>
         <DialogContent className="sm:max-w-md">
