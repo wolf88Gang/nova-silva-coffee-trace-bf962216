@@ -16,6 +16,9 @@ import { Switch } from '@/components/ui/switch';
 import {
   recommendPlan, recommendPacks, estimatePrice,
   PLANS, PACKS, getOrgTypeLabel, getModelLabel,
+  getPricingModel, FARMER_BASE, FARMER_SCALE, FARMER_PACKS,
+  estimateFarmerPrice, getFarmerScaleTierIndex,
+  AGGREGATOR_PLANS, AGGREGATOR_PACKS, estimateAggregatorPrice,
   type PlanTier, type DemoSetupConfig,
 } from '@/lib/pricingEngine';
 import {
@@ -555,6 +558,9 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   const orgLabel = ORG_TYPES.find(o => o.value === state.orgType)?.label || state.orgType;
   const uniqueModules = [...new Set(archetype.modules)];
 
+  const pricingModel = getPricingModel(state.orgType || 'cooperativa');
+  const isFarmer = pricingModel === 'farmer';
+
   // Pricing recommendation
   const setupConfig: DemoSetupConfig = {
     orgType: state.orgType || 'cooperativa',
@@ -567,14 +573,24 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
     hasInventory: state.hasInventory,
     hasExports: state.hasExports,
   };
-  const plan = recommendPlan(setupConfig);
-  const packs = recommendPacks(setupConfig);
-  const pricing = estimatePrice(plan, packs);
+  const recPacks = recommendPacks(setupConfig);
+
+  // Farmer pricing
+  const plotCount = parseInt(state.scalePlots?.match(/(\d+)/)?.[1] || '5');
+  const farmerEst = estimateFarmerPrice(plotCount, recPacks.filter(k => FARMER_PACKS.some(p => p.key === k)));
+  const farmerPacks = recPacks.filter(k => FARMER_PACKS.some(p => p.key === k));
+
+  // Aggregator pricing
+  const recPlan = recommendPlan(setupConfig);
+  const aggEst = estimateAggregatorPrice(recPlan, recPacks);
 
   const PACK_ICONS_MAP: Record<string, typeof Bug> = {
     agronomia: Bug, cumplimiento: Shield, calidad: Award,
     operacion: Briefcase, abastecimiento: Truck, catalogo: ShoppingCart,
   };
+
+  const activePacks = isFarmer ? FARMER_PACKS : AGGREGATOR_PACKS;
+  const displayPacks = isFarmer ? farmerPacks : recPacks;
 
   return (
     <WizardCard className="max-w-3xl">
@@ -623,37 +639,62 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
 
         {/* Right: Plan recommendation */}
         <div className="space-y-4">
-          <div>
-            <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Plan recomendado</p>
-            <div className="space-y-2">
-              {PLANS.map(p => (
-                <div key={p.tier} className={cn(
-                  'flex items-center justify-between p-3 rounded-xl border transition-all',
-                  p.tier === plan
-                    ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
-                    : 'border-white/8 bg-white/3'
-                )}>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-white">{p.label}</span>
-                      {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))] font-bold">{p.badge}</span>}
-                      {p.tier === plan && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))] text-white font-bold">RECOMENDADO</span>}
+          {isFarmer ? (
+            /* ── FARMER PRICING ── */
+            <>
+              <div>
+                <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Tu plan de finca</p>
+                <div className="p-3 rounded-xl border border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-semibold text-white">Suscripción base</span>
+                      <p className="text-[10px] text-white/30 mt-0.5">Producción · Parcelas · Registros · 2 usuarios</p>
                     </div>
-                    <p className="text-[10px] text-white/30 mt-0.5">{p.limit}</p>
+                    <span className="text-base font-bold text-white">${FARMER_BASE}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
                   </div>
-                  <span className="text-base font-bold text-white">${p.base}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                  {farmerEst.scaleSurcharge > 0 && (
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/8">
+                      <span className="text-[10px] text-white/40">Escala ({FARMER_SCALE[getFarmerScaleTierIndex(plotCount)].label})</span>
+                      <span className="text-xs text-white font-mono">+${farmerEst.scaleSurcharge}/mes</span>
+                    </div>
+                  )}
                 </div>
-              ))}
+              </div>
+            </>
+          ) : (
+            /* ── AGGREGATOR PLAN CARDS ── */
+            <div>
+              <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Plan recomendado</p>
+              <div className="space-y-2">
+                {AGGREGATOR_PLANS.map(p => (
+                  <div key={p.tier} className={cn(
+                    'flex items-center justify-between p-3 rounded-xl border transition-all',
+                    p.tier === recPlan
+                      ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
+                      : 'border-white/8 bg-white/3'
+                  )}>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-white">{p.label}</span>
+                        {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))] font-bold">{p.badge}</span>}
+                        {p.tier === recPlan && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))] text-white font-bold">RECOMENDADO</span>}
+                      </div>
+                      <p className="text-[10px] text-white/30 mt-0.5">{p.limit}</p>
+                    </div>
+                    <span className="text-base font-bold text-white">${p.base}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Packs */}
-          {packs.length > 0 && (
+          {displayPacks.length > 0 && (
             <div>
               <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Packs incluidos</p>
               <div className="space-y-1.5">
-                {packs.map(pk => {
-                  const pack = PACKS.find(p => p.key === pk);
+                {displayPacks.map(pk => {
+                  const pack = activePacks.find(p => p.key === pk);
                   const Icon = PACK_ICONS_MAP[pk] || Package;
                   return pack ? (
                     <div key={pk} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 border border-white/8">
@@ -671,20 +712,51 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
 
           {/* Total */}
           <div className="border-t border-white/10 pt-3 space-y-1.5">
-            <div className="flex justify-between text-xs">
-              <span className="text-white/40">Plan {plan}</span>
-              <span className="text-white font-mono">${pricing.base}</span>
-            </div>
-            {pricing.addons > 0 && (
-              <div className="flex justify-between text-xs">
-                <span className="text-white/40">Packs ({packs.length})</span>
-                <span className="text-white font-mono">${pricing.addons}</span>
-              </div>
+            {isFarmer ? (
+              <>
+                <div className="flex justify-between text-xs">
+                  <span className="text-white/40">Base finca</span>
+                  <span className="text-white font-mono">${farmerEst.base}</span>
+                </div>
+                {farmerEst.scaleSurcharge > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-white/40">Escala parcelas</span>
+                    <span className="text-white font-mono">+${farmerEst.scaleSurcharge}</span>
+                  </div>
+                )}
+                {farmerEst.packs > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-white/40">Packs ({farmerPacks.length})</span>
+                    <span className="text-white font-mono">${farmerEst.packs}</span>
+                  </div>
+                )}
+                <div className="border-t border-white/10 pt-2 flex justify-between items-end">
+                  <span className="text-white text-xs font-semibold">Estimado mensual</span>
+                  <span className="text-xl font-bold text-[hsl(var(--accent-orange))]">${farmerEst.monthly}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                </div>
+                <div className="flex justify-between text-[10px] text-white/25">
+                  <span>Estimado anual (15% desc.)</span>
+                  <span>${farmerEst.annual}/año</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-between text-xs">
+                  <span className="text-white/40">Plan {recPlan}</span>
+                  <span className="text-white font-mono">${aggEst.base}</span>
+                </div>
+                {aggEst.packs > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-white/40">Packs ({displayPacks.length})</span>
+                    <span className="text-white font-mono">${aggEst.packs}</span>
+                  </div>
+                )}
+                <div className="border-t border-white/10 pt-2 flex justify-between items-end">
+                  <span className="text-white text-xs font-semibold">Estimado mensual</span>
+                  <span className="text-xl font-bold text-[hsl(var(--accent-orange))]">${aggEst.monthly}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                </div>
+              </>
             )}
-            <div className="border-t border-white/10 pt-2 flex justify-between items-end">
-              <span className="text-white text-xs font-semibold">Estimado mensual</span>
-              <span className="text-xl font-bold text-[hsl(var(--accent-orange))]">${pricing.total}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
-            </div>
             <p className="text-[9px] text-white/15">Precio estimado en USD. El monto final depende del uso real. 14 días de prueba gratuita.</p>
           </div>
         </div>
