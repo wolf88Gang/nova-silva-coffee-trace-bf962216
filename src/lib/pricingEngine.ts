@@ -195,6 +195,27 @@ export function getPacksForModel(model: PricingModel): PackDef[] {
   return model === 'farmer' ? FARMER_PACKS : AGGREGATOR_PACKS;
 }
 
+/** @deprecated backward compat shim used by DemoSetupWizard / CrearCuenta */
+export function estimatePrice(plan: PlanTier, packKeys: string[]): { base: number; addons: number; total: number } {
+  const est = estimateAggregatorPrice(plan, packKeys);
+  return { base: est.base, addons: est.packs, total: est.monthly };
+}
+
+/** Module-level price for per-toggle display in StepModules (farmer model) */
+export function getModulePrice(model: PricingModel, moduleKey: string): number {
+  if (model === 'farmer') {
+    // Farmer doesn't have per-module prices; pricing is base + scale + packs
+    return 0;
+  }
+  const AGGREGATOR_MODULE_PRICES: Record<string, number> = {
+    productores: 15, parcelas: 12, entregas: 10, lotes_acopio: 10,
+    lotes_comerciales: 18, contratos: 15, calidad: 20, vital: 25,
+    eudr: 30, finanzas: 12, creditos: 18, jornales: 8,
+    inventario: 8, mensajes: 5, inclusion: 10, nutricion: 25,
+  };
+  return AGGREGATOR_MODULE_PRICES[moduleKey] ?? 0;
+}
+
 export interface DemoSetupConfig {
   orgType: string;
   operatingModel: string;
