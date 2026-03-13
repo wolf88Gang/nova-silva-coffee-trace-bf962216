@@ -91,7 +91,7 @@ export default function ParcelasHub() {
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex gap-2">
-          {canWrite(role) && <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nueva parcela</Button>}
+          {canWrite(role, model) && <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nueva parcela</Button>}
         </div>
       </div>
 
