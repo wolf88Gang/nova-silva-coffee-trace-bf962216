@@ -196,7 +196,38 @@ function NavGroup({ group, onClick, isOpen, onToggle }: { group: NavGroupDef; on
 
 function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
   if (group.standalone && group.url) return pathname === group.url || pathname.startsWith(group.url + '/');
-  return group.items.some(item => pathname.startsWith(item.url));
+  return group.items.some(item => pathname === item.url || pathname.startsWith(item.url + '/'));
+}
+
+/** Accordion-style nav: only one group open at a time */
+function SidebarNav({ groups, pathname, onItemClick }: { groups: NavGroupDef[]; pathname: string; onItemClick?: () => void }) {
+  // Find which group contains the active route
+  const activeIndex = groups.findIndex(g => groupContainsRoute(g, pathname));
+  const [openIndex, setOpenIndex] = useState<number | null>(activeIndex >= 0 ? activeIndex : null);
+
+  // Update open group when route changes
+  const prevPathRef = useRef(pathname);
+  if (prevPathRef.current !== pathname) {
+    prevPathRef.current = pathname;
+    const newActive = groups.findIndex(g => groupContainsRoute(g, pathname));
+    if (newActive >= 0 && newActive !== openIndex) {
+      setOpenIndex(newActive);
+    }
+  }
+
+  return (
+    <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+      {groups.map((group, i) => (
+        <NavGroup
+          key={group.label + i}
+          group={group}
+          onClick={onItemClick}
+          isOpen={openIndex === i}
+          onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+        />
+      ))}
+    </nav>
+  );
 }
 
 // ── SIDEBAR ──
