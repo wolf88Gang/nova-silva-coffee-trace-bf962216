@@ -37,6 +37,7 @@ import type { SoilAnalysisInput } from '@/lib/soilIntelligenceEngine';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Lightbulb, ShieldCheck, TrendingUp } from 'lucide-react';
+import { useNutricionTab } from './NutricionDashboard';
 
 // ── Sufficiency ranges for soil nutrients (coffee) ──
 
