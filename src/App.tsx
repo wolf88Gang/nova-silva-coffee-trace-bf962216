@@ -32,7 +32,7 @@ import GuardIndex from "./pages/agronomia/GuardIndex";
 import YieldIndex from "./pages/agronomia/YieldIndex";
 import AlertasAgronomia from "./pages/agronomia/AlertasAgronomia";
 import VitalIndex from "./pages/resiliencia/VitalIndex";
-import ClimaDashboard from "./pages/cooperativa/ClimaDashboard";
+
 import CumplimientoIndex from "./pages/cumplimiento/CumplimientoIndex";
 import CumplimientoLotesPage from "./pages/cumplimiento/CumplimientoLotesPage";
 import TrazabilidadIndex from "./pages/cumplimiento/TrazabilidadIndex";
