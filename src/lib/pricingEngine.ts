@@ -10,15 +10,14 @@
 
 export type PricingModel = 'farmer' | 'aggregator';
 
+/**
+ * Solo productores pequeños individuales (finca privada) usan pricing farmer.
+ * Cualquier organización que compre a terceros o gestione productores
+ * (beneficio, finca empresarial, cooperativa, exportador) paga como aggregator.
+ */
 export function getPricingModel(orgType: string): PricingModel {
-  switch (orgType) {
-    case 'productor_privado':
-    case 'productor_empresarial':
-    case 'finca_empresarial':
-      return 'farmer';
-    default: // cooperativa, beneficio, exportador
-      return 'aggregator';
-  }
+  if (orgType === 'productor_privado') return 'farmer';
+  return 'aggregator'; // cooperativa, beneficio, finca_empresarial, productor_empresarial, exportador
 }
 
 // ═══════════════════════════════════════════════
