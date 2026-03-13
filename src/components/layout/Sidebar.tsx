@@ -235,11 +235,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-sidebar-accent text-sidebar-accent-foreground capitalize">{orgTypeDisplay}</span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
-        {navGroups.map((group, i) => (
-          <NavGroup key={group.label + i} group={group} onClick={onClose} defaultOpen={groupContainsRoute(group, location.pathname)} />
-        ))}
-      </nav>
+      <SidebarNav groups={navGroups} pathname={location.pathname} onItemClick={onClose} />
     </div>
   );
 
