@@ -42,20 +42,22 @@ const eudrBadge = (s: string) => {
   return <Badge variant="destructive">No cumple</Badge>;
 };
 
-function canWrite(role: string | null): boolean {
-  return ['admin', 'cooperativa', 'exportador'].includes(role ?? '');
+function canWrite(role: string | null, model: string): boolean {
+  return ['admin', 'cooperativa', 'exportador'].includes(role ?? '') || model === 'single_farm' || model === 'estate' || model === 'estate_hybrid';
 }
 
 export default function ParcelasHub() {
   const { orgTipo, role, activeModules, productorId } = useOrgContext();
   const { selectedActorId, selectedActor } = useActorContext();
+  const model = useOperatingModel();
   const actorLabel = getActorLabel(orgTipo);
 
   const [search, setSearch] = useState('');
   const [comunidad, setComunidad] = useState('todas');
 
-  // Scope: productor sees only their own; otherwise org-wide with optional actor filter
-  const effectiveActorId = role === 'productor' ? (productorId ?? null) : selectedActorId;
+  // For single_farm / estate, the producer IS the org — show all parcels
+  const isSelfManaged = model === 'single_farm' || model === 'estate';
+  const effectiveActorId = isSelfManaged ? null : (role === 'productor' ? (productorId ?? null) : selectedActorId);
 
   const baseParcelas = useMemo(() => {
     let data = DEMO_PARCELAS;
