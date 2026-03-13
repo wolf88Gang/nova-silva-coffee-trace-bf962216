@@ -8,6 +8,8 @@ import { Shield, TrendingUp, AlertTriangle, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { useVitalOverview } from '@/hooks/useViewData';
 import { getVitalKPIs, getDemoVitalFincas, getVitalDistribucion, getVitalBrechas, getVitalAcciones } from '@/lib/demoSeedData';
+import { useOperatingModel } from '@/lib/operatingModel';
+import SostenibilidadHub from '@/pages/productor/SostenibilidadHub';
 
 function scoreColor(score: number) {
   if (score >= 75) return 'text-primary';
