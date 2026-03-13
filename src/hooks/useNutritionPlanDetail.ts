@@ -74,13 +74,65 @@ export function useNutritionPlanDetail(planId: string | null) {
   return useQuery({
     queryKey: ['nutrition_plan_detail', planId],
     queryFn: async (): Promise<PlanDetail> => {
-      const { data, error } = await supabase.rpc('get_plan_detail', {
-        p_plan_id: planId!,
-      });
-      if (error) throw error;
-      // RPC returns jsonb — may be wrapped in an object or be the object itself
-      const plan = typeof data === 'string' ? JSON.parse(data) : data;
-      return plan as PlanDetail;
+      // Try RPC first
+      try {
+        const { data, error } = await supabase.rpc('get_plan_detail', {
+          p_plan_id: planId!,
+        });
+        if (!error) {
+          const plan = typeof data === 'string' ? JSON.parse(data) : data;
+          return plan as PlanDetail;
+        }
+        // If the error is about missing tables/functions, fall through to direct query
+        const msg = error.message ?? '';
+        if (!msg.includes('does not exist') && !msg.includes('could not find')) {
+          throw error;
+        }
+      } catch (rpcErr: any) {
+        const msg = rpcErr?.message ?? '';
+        if (!msg.includes('does not exist') && !msg.includes('could not find')) {
+          throw rpcErr;
+        }
+      }
+
+      // Fallback: direct query from nutricion_planes + nutricion_fraccionamientos
+      const { data: planRow, error: planErr } = await supabase
+        .from('nutricion_planes')
+        .select('*')
+        .eq('id', planId!)
+        .maybeSingle();
+      if (planErr) throw planErr;
+      if (!planRow) throw new Error('Plan no encontrado');
+
+      const { data: fraccs } = await supabase
+        .from('nutricion_fraccionamientos')
+        .select('*')
+        .eq('plan_id', planId!)
+        .order('numero_aplicacion');
+
+      const p = planRow as any;
+      return {
+        id: p.id,
+        parcela_id: p.parcela_id,
+        organization_id: p.organization_id ?? p.cooperativa_id ?? '',
+        ciclo: p.ciclo ?? '',
+        objetivo: p.objetivo ?? null,
+        status: p.status ?? 'generado',
+        nivel_confianza: p.nivel_confianza ?? null,
+        modo_calculo: p.modo_calculo ?? null,
+        engine_version: p.engine_version ?? null,
+        hash_receta: p.hash_receta ?? null,
+        approved_at: p.approved_at ?? null,
+        approved_by: p.approved_by ?? null,
+        created_at: p.created_at,
+        plan_json: p.plan_json ?? p.supuestos_json ?? null,
+        nutrients: [],
+        products: [],
+        schedule: [],
+        explain_steps: [],
+        audit_events: [],
+        fraccionamientos: fraccs ?? [],
+      } as PlanDetail;
     },
     enabled: !!planId,
     staleTime: 30_000,
