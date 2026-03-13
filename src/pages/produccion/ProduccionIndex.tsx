@@ -43,7 +43,7 @@ export default function ProduccionIndex() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {defaultSections.map(s => (
+        {sections.map(s => (
           <Card key={s.path} className="cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(s.path)}>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
