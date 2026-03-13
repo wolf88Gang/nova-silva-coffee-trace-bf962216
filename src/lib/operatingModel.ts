@@ -43,7 +43,6 @@ export interface VisibilityPolicy {
   canSeeLabor: boolean;
   // Resiliencia
   canSeeVital: boolean;
-  canSeeClimate: boolean;
   // Cumplimiento
   canSeeTraceability: boolean;
   canSeeLots: boolean;
