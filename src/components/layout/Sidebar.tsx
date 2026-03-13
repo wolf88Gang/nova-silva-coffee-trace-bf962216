@@ -16,7 +16,7 @@ import {
   Boxes, ShoppingCart,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 interface NavGroupDef { label: string; icon: LucideIcon; items: NavItemDef[]; standalone?: boolean; url?: string; }
@@ -153,7 +153,7 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
 
 function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void }) {
   return (
-    <NavLink to={item.url} onClick={onClick}
+    <NavLink to={item.url} end onClick={onClick}
       className={({ isActive }) => cn(
         'flex items-center gap-3 px-3 py-1.5 rounded-md text-sm transition-colors',
         isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
@@ -164,12 +164,10 @@ function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void
   );
 }
 
-function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick?: () => void; defaultOpen?: boolean }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen ?? false);
-
+function NavGroup({ group, onClick, isOpen, onToggle }: { group: NavGroupDef; onClick?: () => void; isOpen: boolean; onToggle: () => void }) {
   if (group.standalone && group.url) {
     return (
-      <NavLink to={group.url} onClick={onClick}
+      <NavLink to={group.url} end onClick={onClick}
         className={({ isActive }) => cn(
           'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
           isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
@@ -182,7 +180,7 @@ function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick
 
   return (
     <div className="space-y-0.5">
-      <button onClick={() => setIsOpen(!isOpen)}
+      <button onClick={onToggle}
         className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/70 transition-colors">
         <div className="flex items-center gap-2"><group.icon className="h-3.5 w-3.5" /><span>{group.label}</span></div>
         <ChevronDown className={cn('h-3 w-3 transition-transform', isOpen ? '' : '-rotate-90')} />
@@ -198,7 +196,38 @@ function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick
 
 function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
   if (group.standalone && group.url) return pathname === group.url || pathname.startsWith(group.url + '/');
-  return group.items.some(item => pathname.startsWith(item.url));
+  return group.items.some(item => pathname === item.url || pathname.startsWith(item.url + '/'));
+}
+
+/** Accordion-style nav: only one group open at a time */
+function SidebarNav({ groups, pathname, onItemClick }: { groups: NavGroupDef[]; pathname: string; onItemClick?: () => void }) {
+  // Find which group contains the active route
+  const activeIndex = groups.findIndex(g => groupContainsRoute(g, pathname));
+  const [openIndex, setOpenIndex] = useState<number | null>(activeIndex >= 0 ? activeIndex : null);
+
+  // Update open group when route changes
+  const prevPathRef = useRef(pathname);
+  if (prevPathRef.current !== pathname) {
+    prevPathRef.current = pathname;
+    const newActive = groups.findIndex(g => groupContainsRoute(g, pathname));
+    if (newActive >= 0 && newActive !== openIndex) {
+      setOpenIndex(newActive);
+    }
+  }
+
+  return (
+    <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+      {groups.map((group, i) => (
+        <NavGroup
+          key={group.label + i}
+          group={group}
+          onClick={onItemClick}
+          isOpen={openIndex === i}
+          onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+        />
+      ))}
+    </nav>
+  );
 }
 
 // ── SIDEBAR ──
@@ -237,11 +266,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-sidebar-accent text-sidebar-accent-foreground capitalize">{orgTypeDisplay}</span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
-        {navGroups.map((group, i) => (
-          <NavGroup key={group.label + i} group={group} onClick={onClose} defaultOpen={groupContainsRoute(group, location.pathname)} />
-        ))}
-      </nav>
+      <SidebarNav groups={navGroups} pathname={location.pathname} onItemClick={onClose} />
     </div>
   );
 
