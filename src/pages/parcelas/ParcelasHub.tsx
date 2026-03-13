@@ -128,7 +128,7 @@ export default function ParcelasHub() {
               <thead>
                 <tr className="border-b text-muted-foreground text-left">
                   <th className="px-4 py-3 font-medium">Parcela</th>
-                  {!effectiveActorId && <th className="px-4 py-3 font-medium">{actorLabel}</th>}
+                  {!effectiveActorId && !isSelfManaged && <th className="px-4 py-3 font-medium">{actorLabel}</th>}
                   <th className="px-4 py-3 font-medium">Comunidad</th>
                   <th className="px-4 py-3 font-medium">Área</th>
                   <th className="px-4 py-3 font-medium">Variedad</th>
