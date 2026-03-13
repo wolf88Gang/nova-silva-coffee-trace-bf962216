@@ -76,11 +76,11 @@
     --muted: 210 14% 24%;
     --muted-foreground: 210 10% 70%;
     --accent: 25 75% 55%;
-    --accent-foreground: 210 20% 8%;
+    --accent-foreground: 210 10% 95%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
     --warning: 38 92% 55%;
-    --warning-foreground: 210 20% 8%;
+    --warning-foreground: 0 0% 100%;
     --success: 145 55% 45%;
     --success-foreground: 0 0% 100%;
     --border: 210 14% 28%;
