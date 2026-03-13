@@ -16,6 +16,9 @@ import { Switch } from '@/components/ui/switch';
 import {
   recommendPlan, recommendPacks, estimatePrice,
   PLANS, PACKS, getOrgTypeLabel, getModelLabel,
+  getPricingModel, FARMER_BASE, FARMER_SCALE, FARMER_PACKS,
+  estimateFarmerPrice, getFarmerScaleTierIndex,
+  AGGREGATOR_PLANS, AGGREGATOR_PACKS, estimateAggregatorPrice,
   type PlanTier, type DemoSetupConfig,
 } from '@/lib/pricingEngine';
 import {
