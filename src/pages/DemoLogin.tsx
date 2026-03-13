@@ -428,7 +428,7 @@ const DemoLogin = () => {
         {/* Header */}
         <header className="flex items-center justify-between px-5 md:px-8 py-4">
           <div className="flex items-center gap-3">
-            <img src={logoNovasilva} alt="Nova Silva" className="h-9 w-9 object-contain" />
+            <img src={logoNovasilva} alt="Nova Silva" className="h-9 w-9 object-contain cursor-pointer select-none" onClick={handleLogoTap} />
             <div>
               <h1 className="text-white font-bold text-lg tracking-tight">Nova Silva</h1>
               <p className="text-white/30 text-xs">Entorno de demostración</p>
