@@ -8,6 +8,7 @@ import { useOrgContext } from '@/hooks/useOrgContext';
 import { useActorContext } from '@/contexts/ActorContext';
 import { hasModule } from '@/lib/org-modules';
 import { getActorLabel } from '@/lib/org-terminology';
+import { useOperatingModel } from '@/lib/operatingModel';
 import { DEMO_PRODUCTORES } from '@/lib/demo-data';
 import { Search, Plus, MapPin, Sprout, Mountain } from 'lucide-react';
 
@@ -41,20 +42,22 @@ const eudrBadge = (s: string) => {
   return <Badge variant="destructive">No cumple</Badge>;
 };
 
-function canWrite(role: string | null): boolean {
-  return ['admin', 'cooperativa', 'exportador'].includes(role ?? '');
+function canWrite(role: string | null, model: string): boolean {
+  return ['admin', 'cooperativa', 'exportador'].includes(role ?? '') || model === 'single_farm' || model === 'estate' || model === 'estate_hybrid';
 }
 
 export default function ParcelasHub() {
   const { orgTipo, role, activeModules, productorId } = useOrgContext();
   const { selectedActorId, selectedActor } = useActorContext();
+  const model = useOperatingModel();
   const actorLabel = getActorLabel(orgTipo);
 
   const [search, setSearch] = useState('');
   const [comunidad, setComunidad] = useState('todas');
 
-  // Scope: productor sees only their own; otherwise org-wide with optional actor filter
-  const effectiveActorId = role === 'productor' ? (productorId ?? null) : selectedActorId;
+  // For single_farm / estate, the producer IS the org — show all parcels
+  const isSelfManaged = model === 'single_farm' || model === 'estate';
+  const effectiveActorId = isSelfManaged ? null : (role === 'productor' ? (productorId ?? null) : selectedActorId);
 
   const baseParcelas = useMemo(() => {
     let data = DEMO_PARCELAS;
@@ -70,9 +73,11 @@ export default function ParcelasHub() {
     return matchSearch && matchCom;
   }), [baseParcelas, search, comunidad]);
 
-  const subtitle = effectiveActorId && selectedActor
-    ? `Mostrando parcelas de ${actorLabel}: ${selectedActor.nombre}`
-    : 'Mostrando parcelas de toda la organización';
+  const subtitle = isSelfManaged
+    ? 'Parcelas de tu finca'
+    : effectiveActorId && selectedActor
+      ? `Mostrando parcelas de ${actorLabel}: ${selectedActor.nombre}`
+      : 'Mostrando parcelas de toda la organización';
 
   const totalArea = filtered.reduce((s, p) => s + p.area, 0);
   const avgAltitud = filtered.length ? Math.round(filtered.reduce((s, p) => s + p.altitud, 0) / filtered.length) : 0;
@@ -86,7 +91,7 @@ export default function ParcelasHub() {
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex gap-2">
-          {canWrite(role) && <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nueva parcela</Button>}
+          {canWrite(role, model) && <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nueva parcela</Button>}
         </div>
       </div>
 
@@ -123,7 +128,7 @@ export default function ParcelasHub() {
               <thead>
                 <tr className="border-b text-muted-foreground text-left">
                   <th className="px-4 py-3 font-medium">Parcela</th>
-                  {!effectiveActorId && <th className="px-4 py-3 font-medium">{actorLabel}</th>}
+                  {!effectiveActorId && !isSelfManaged && <th className="px-4 py-3 font-medium">{actorLabel}</th>}
                   <th className="px-4 py-3 font-medium">Comunidad</th>
                   <th className="px-4 py-3 font-medium">Área</th>
                   <th className="px-4 py-3 font-medium">Variedad</th>
@@ -135,7 +140,7 @@ export default function ParcelasHub() {
                 {filtered.map(p => (
                   <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors">
                     <td className="px-4 py-3 font-medium text-foreground">{p.nombre}</td>
-                    {!effectiveActorId && <td className="px-4 py-3 text-muted-foreground">{p.productorNombre}</td>}
+                    {!effectiveActorId && !isSelfManaged && <td className="px-4 py-3 text-muted-foreground">{p.productorNombre}</td>}
                     <td className="px-4 py-3">{p.comunidad}</td>
                     <td className="px-4 py-3">{p.area} ha</td>
                     <td className="px-4 py-3">{p.variedad}</td>
