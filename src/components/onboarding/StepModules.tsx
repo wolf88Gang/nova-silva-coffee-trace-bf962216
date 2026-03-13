@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -6,30 +7,31 @@ import { cn } from '@/lib/utils';
 import {
   ArrowRight, ArrowLeft, Users, Map, Truck, Package, BarChart3,
   ShieldCheck, Heart, DollarSign, CreditCard, HardHat, Boxes,
-  MessageSquare, Scale, Leaf, FileCheck, Sparkles,
+  MessageSquare, Scale, Leaf, FileCheck, Sparkles, Calendar,
 } from 'lucide-react';
 import { type OrgModule, getOrgDefaultModules } from '@/lib/org-modules';
 import type { OnboardingOrgType } from './StepOrgType';
+import { getPricingModel, getModulePrice, type PricingModel } from '@/lib/pricingEngine';
 
-const MODULE_INFO: Record<string, {
-  label: string; description: string; price: string; icon: React.ElementType; category: string;
+const MODULE_META: Record<string, {
+  label: string; description: string; icon: React.ElementType; category: string;
 }> = {
-  productores: { label: 'Gestión de Actores', description: 'Administra socios, proveedores o productores asociados a tu organización', price: '$15/mes', icon: Users, category: 'Operaciones' },
-  parcelas: { label: 'Parcelas y Mapas', description: 'Geolocalización, áreas productivas, historial de manejo y mapas interactivos', price: '$12/mes', icon: Map, category: 'Operaciones' },
-  entregas: { label: 'Entregas de Campo', description: 'Recepción de café en centro de acopio con trazabilidad por productor', price: '$10/mes', icon: Truck, category: 'Operaciones' },
-  lotes_acopio: { label: 'Lotes de Acopio', description: 'Consolidación, procesamiento y preparación de lotes para venta', price: '$10/mes', icon: Package, category: 'Operaciones' },
-  lotes_comerciales: { label: 'Lotes Comerciales', description: 'Preparación de lotes para exportación con documentación completa', price: '$18/mes', icon: BarChart3, category: 'Comercial' },
-  contratos: { label: 'Contratos', description: 'Gestión de contratos con compradores, precios, volúmenes e Incoterms', price: '$15/mes', icon: FileCheck, category: 'Comercial' },
-  calidad: { label: 'Calidad / Nova Cup', description: 'Cataciones SCA, evaluaciones de taza, perfiles sensoriales y ranking', price: '$20/mes', icon: Sparkles, category: 'Calidad' },
-  vital: { label: 'Protocolo VITAL', description: 'Diagnóstico integral de sostenibilidad con acciones prioritarias y seguimiento', price: '$25/mes', icon: Heart, category: 'Sostenibilidad' },
-  eudr: { label: 'Cumplimiento EUDR', description: 'Paquetes de debida diligencia, trazabilidad y declaración de deforestación cero', price: '$30/mes', icon: ShieldCheck, category: 'Cumplimiento' },
-  finanzas: { label: 'Finanzas', description: 'Transacciones financieras, pagos a productores, reportes contables', price: '$12/mes', icon: DollarSign, category: 'Finanzas' },
-  creditos: { label: 'Créditos', description: 'Préstamos y adelantos a productores con scoring crediticio Nova', price: '$18/mes', icon: CreditCard, category: 'Finanzas' },
-  jornales: { label: 'Jornales', description: 'Gestión de mano de obra, campañas de cosecha y cuadrillas', price: '$8/mes', icon: HardHat, category: 'Operaciones' },
-  inventario: { label: 'Inventario', description: 'Control de equipos, insumos y suministros con alertas de reposición', price: '$8/mes', icon: Boxes, category: 'Operaciones' },
-  mensajes: { label: 'Mensajes', description: 'Comunicación interna entre usuarios, avisos y notificaciones', price: '$5/mes', icon: MessageSquare, category: 'Comunicación' },
-  inclusion: { label: 'Inclusión y Equidad', description: 'Indicadores de género, juventud, equidad y métricas de impacto social', price: '$10/mes', icon: Scale, category: 'Sostenibilidad' },
-  nutricion: { label: 'Nutrición Vegetal', description: 'Análisis de suelo, planes de fertilización, heatmaps de fertilidad y motores de cálculo', price: '$25/mes', icon: Leaf, category: 'Agronomía' },
+  productores: { label: 'Gestión de Actores', description: 'Administra socios, proveedores o productores asociados a tu organización', icon: Users, category: 'Operaciones' },
+  parcelas: { label: 'Parcelas y Mapas', description: 'Geolocalización, áreas productivas, historial de manejo y mapas interactivos', icon: Map, category: 'Operaciones' },
+  entregas: { label: 'Entregas de Campo', description: 'Recepción de café en centro de acopio con trazabilidad por productor', icon: Truck, category: 'Operaciones' },
+  lotes_acopio: { label: 'Lotes de Acopio', description: 'Consolidación, procesamiento y preparación de lotes para venta', icon: Package, category: 'Operaciones' },
+  lotes_comerciales: { label: 'Lotes Comerciales', description: 'Preparación de lotes para exportación con documentación completa', icon: BarChart3, category: 'Comercial' },
+  contratos: { label: 'Contratos', description: 'Gestión de contratos con compradores, precios, volúmenes e Incoterms', icon: FileCheck, category: 'Comercial' },
+  calidad: { label: 'Calidad / Nova Cup', description: 'Cataciones SCA, evaluaciones de taza, perfiles sensoriales y ranking', icon: Sparkles, category: 'Calidad' },
+  vital: { label: 'Protocolo VITAL', description: 'Diagnóstico integral de sostenibilidad con acciones prioritarias y seguimiento', icon: Heart, category: 'Sostenibilidad' },
+  eudr: { label: 'Cumplimiento EUDR', description: 'Paquetes de debida diligencia, trazabilidad y declaración de deforestación cero', icon: ShieldCheck, category: 'Cumplimiento' },
+  finanzas: { label: 'Finanzas', description: 'Transacciones financieras, pagos a productores, reportes contables', icon: DollarSign, category: 'Finanzas' },
+  creditos: { label: 'Créditos', description: 'Préstamos y adelantos a productores con scoring crediticio Nova', icon: CreditCard, category: 'Finanzas' },
+  jornales: { label: 'Jornales', description: 'Gestión de mano de obra, campañas de cosecha y cuadrillas', icon: HardHat, category: 'Operaciones' },
+  inventario: { label: 'Inventario', description: 'Control de equipos, insumos y suministros con alertas de reposición', icon: Boxes, category: 'Operaciones' },
+  mensajes: { label: 'Mensajes', description: 'Comunicación interna entre usuarios, avisos y notificaciones', icon: MessageSquare, category: 'Comunicación' },
+  inclusion: { label: 'Inclusión y Equidad', description: 'Indicadores de género, juventud, equidad y métricas de impacto social', icon: Scale, category: 'Sostenibilidad' },
+  nutricion: { label: 'Nutrición Vegetal', description: 'Análisis de suelo, planes de fertilización, heatmaps de fertilidad y motores de cálculo', icon: Leaf, category: 'Agronomía' },
 };
 
 const TOGGLEABLE: OrgModule[] = [
@@ -48,7 +50,11 @@ interface StepModulesProps {
   onBack: () => void;
 }
 
+type BillingCycle = 'monthly' | 'annual';
+
 export function StepModules({ orgType, selectedModules, onModulesChange, onNext, onBack }: StepModulesProps) {
+  const [billing, setBilling] = useState<BillingCycle>('monthly');
+  const pricingModel = getPricingModel(orgType);
   const defaults = getOrgDefaultModules(orgType).filter((m): m is OrgModule => m !== 'core');
 
   const toggle = (mod: OrgModule) => {
@@ -61,18 +67,17 @@ export function StepModules({ orgType, selectedModules, onModulesChange, onNext,
 
   const isDefault = (mod: OrgModule) => defaults.includes(mod);
 
-  // Group by category
   const grouped = CATEGORIES.map(cat => ({
     category: cat,
-    modules: TOGGLEABLE.filter(m => MODULE_INFO[m]?.category === cat),
+    modules: TOGGLEABLE.filter(m => MODULE_META[m]?.category === cat),
   })).filter(g => g.modules.length > 0);
 
-  const totalPrice = selectedModules.reduce((sum, mod) => {
-    const info = MODULE_INFO[mod];
-    if (!info) return sum;
-    const num = parseInt(info.price.replace(/[^0-9]/g, ''));
-    return sum + (isNaN(num) ? 0 : num);
-  }, 0);
+  const monthlyTotal = selectedModules.reduce((sum, mod) => sum + getModulePrice(pricingModel, mod), 0);
+  const annualTotal = monthlyTotal * 12;
+  const annualDiscounted = Math.round(annualTotal * 0.85); // 15% discount
+  const displayMonthly = billing === 'annual' ? Math.round(annualDiscounted / 12) : monthlyTotal;
+
+  const formatPrice = (n: number) => n.toLocaleString('en-US');
 
   return (
     <div className="space-y-8">
@@ -84,12 +89,64 @@ export function StepModules({ orgType, selectedModules, onModulesChange, onNext,
           Cada módulo es un addon independiente. Hemos pre-seleccionado lo que tu tipo de organización
           normalmente necesita, pero tú decides qué activar.
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-          <DollarSign className="h-4 w-4 text-primary" />
-          <span className="text-sm font-semibold text-primary">
-            Total estimado: ${totalPrice}/mes
-          </span>
-          <span className="text-xs text-muted-foreground">· {selectedModules.length} módulos</span>
+
+        {/* Billing toggle */}
+        <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-1 gap-0.5">
+          <button
+            onClick={() => setBilling('monthly')}
+            className={cn(
+              'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
+              billing === 'monthly'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Mensual
+          </button>
+          <button
+            onClick={() => setBilling('annual')}
+            className={cn(
+              'px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5',
+              billing === 'annual'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Anual
+            <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-accent text-accent-foreground">
+              -15%
+            </Badge>
+          </button>
+        </div>
+
+        {/* Price summary */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 py-2">
+          <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary/10 border border-primary/20">
+            <DollarSign className="h-5 w-5 text-primary" />
+            <div className="text-left">
+              <span className="text-xl font-bold text-primary">${formatPrice(displayMonthly)}</span>
+              <span className="text-sm text-primary/70">/mes</span>
+              {billing === 'annual' && (
+                <span className="block text-xs text-muted-foreground line-through">
+                  ${formatPrice(monthlyTotal)}/mes
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>
+                {billing === 'annual'
+                  ? `$${formatPrice(annualDiscounted)}/año`
+                  : `$${formatPrice(annualTotal)}/año`
+                }
+              </span>
+            </div>
+            <span className="text-xs">·</span>
+            <span>{selectedModules.length} módulos</span>
+          </div>
         </div>
       </div>
 
@@ -98,11 +155,15 @@ export function StepModules({ orgType, selectedModules, onModulesChange, onNext,
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{category}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {modules.map((mod) => {
-              const info = MODULE_INFO[mod];
+              const info = MODULE_META[mod];
               if (!info) return null;
               const checked = selectedModules.includes(mod);
               const recommended = isDefault(mod);
               const Icon = info.icon;
+              const modulePrice = getModulePrice(pricingModel, mod);
+              const displayPrice = billing === 'annual'
+                ? Math.round(modulePrice * 0.85)
+                : modulePrice;
 
               return (
                 <Card
@@ -132,7 +193,9 @@ export function StepModules({ orgType, selectedModules, onModulesChange, onNext,
                         <span className="text-sm font-semibold text-foreground">{info.label}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{info.description}</p>
-                      <p className="text-xs font-bold text-primary mt-1">{info.price}</p>
+                      <p className="text-xs font-bold text-primary mt-1">
+                        {modulePrice === 0 ? 'Incluido' : `$${displayPrice}/mes`}
+                      </p>
                     </div>
                     <Switch
                       checked={checked}
