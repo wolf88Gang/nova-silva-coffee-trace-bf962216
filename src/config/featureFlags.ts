@@ -11,7 +11,7 @@ export const ORG_ID_ONLY = true;
 /** Module-level feature flags */
 export const ENABLE_CREDITS = true;
 export const ENABLE_EXPORTER_MODULE = true;
-export const ENABLE_NOVA_GUARD = false; // Not yet implemented
+export const ENABLE_NOVA_GUARD = true;
 export const ENABLE_VITAL = true;
 export const ENABLE_QUALITY = true;
 export const ENABLE_EVIDENCE_BLOCKCHAIN = false; // Future

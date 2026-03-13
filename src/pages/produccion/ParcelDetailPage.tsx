@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useParcelaHub } from '@/hooks/useViewData';
 import { DemoBadge } from '@/components/common/DemoBadge';
@@ -16,8 +17,10 @@ import {
 import {
   Sprout, Bug, TrendingUp, Shield, FolderOpen, ArrowRight,
   ChevronLeft, Beaker, FileText, Camera, Droplets, Thermometer,
-  AlertTriangle, CheckCircle2, Clock, Leaf,
+  AlertTriangle, CheckCircle2, Clock, Leaf, Plus,
 } from 'lucide-react';
+import GuardDiagnosticWizard from '@/components/guard/GuardDiagnosticWizard';
+import GuardTreatmentPlan from '@/components/guard/GuardTreatmentPlan';
 
 const FALLBACK = {
   parcela_nombre: 'Lote El Cedro',
@@ -48,6 +51,7 @@ export default function ParcelDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading } = useParcelaHub(id || null);
+  const [showGuardWizard, setShowGuardWizard] = useState(false);
 
   const hub = data?.[0] ?? null;
   const p = {
@@ -278,10 +282,23 @@ export default function ParcelDetailPage() {
 
         {/* ═══ NOVA GUARD ═══ */}
         <TabsContent value="guard" className="mt-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold flex items-center gap-2"><Bug className="h-4 w-4 text-warning" /> Historial fitosanitario</h3>
-            <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate('/agronomia/guard')}> Nova Guard <ArrowRight className="h-3 w-3" /></Button>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-sm font-semibold flex items-center gap-2"><Bug className="h-4 w-4 text-warning" /> Diagnóstico y tratamiento fitosanitario</h3>
+            <div className="flex gap-2">
+              <Button size="sm" className="gap-1" onClick={() => setShowGuardWizard(true)}>
+                <Plus className="h-3.5 w-3.5" /> Nuevo diagnóstico
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate('/agronomia/guard')}> Nova Guard <ArrowRight className="h-3 w-3" /></Button>
+            </div>
           </div>
+
+          {showGuardWizard && (
+            <GuardDiagnosticWizard
+              parcelaName={p.parcela_nombre}
+              onSaved={() => setShowGuardWizard(false)}
+              onCancel={() => setShowGuardWizard(false)}
+            />
+          )}
 
           {/* Guard summary */}
           <div className="grid gap-3 sm:grid-cols-3">
@@ -290,6 +307,14 @@ export default function ParcelDetailPage() {
             <Card><CardContent className="pt-4 text-center"><p className="text-2xl font-bold">{demo.guard.diagnosticos.length}</p><p className="text-xs text-muted-foreground">Total diagnósticos</p></CardContent></Card>
           </div>
 
+          {/* Treatment plans for this parcel */}
+          <GuardTreatmentPlan
+            parcelaFilter={p.parcela_nombre}
+            onGeneratePlan={() => setShowGuardWizard(true)}
+          />
+
+          {/* Diagnostics list */}
+          <h4 className="text-sm font-medium mt-2">Historial de diagnósticos</h4>
           {demo.guard.diagnosticos.map((d, i) => (
             <Card key={i}>
               <CardContent className="pt-4">
