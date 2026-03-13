@@ -16,10 +16,27 @@ import { toast } from 'sonner';
 import { useJornalesOverview } from '@/hooks/useViewData';
 import { getJornalesKPIs, getDemoRegistrosJornales, getJornalesMensuales, getCuadrillas } from '@/lib/demoSeedData';
 
+const ACTIVIDADES = ['Cosecha', 'Poda', 'Fertilización', 'Desyerba', 'Resiembra', 'Muestreo', 'Fumigación', 'Regulación de sombra'];
+const PARCELAS = ['El Mirador', 'La Esperanza', 'Cerro Verde', 'Los Naranjos', 'San Rafael'];
+
 export default function JornalesIndex() {
   const { data, isLoading } = useJornalesOverview();
   const overview = data?.[0] ?? null;
   const demoKPIs = getJornalesKPIs();
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ actividad: '', parcela: '', personas: '', horas: '', fecha: new Date().toISOString().split('T')[0] });
+  const tarifa = 2250;
+
+  const handleAdd = () => {
+    if (!form.actividad || !form.parcela || !form.personas || !form.horas) {
+      toast.error('Complete todos los campos obligatorios');
+      return;
+    }
+    const costo = Number(form.personas) * Number(form.horas) * tarifa;
+    toast.success(`Jornal registrado: ${form.actividad} en ${form.parcela} — ₡${costo.toLocaleString()}. Se reflejará en Finanzas → Costos finca.`);
+    setShowAdd(false);
+    setForm({ actividad: '', parcela: '', personas: '', horas: '', fecha: new Date().toISOString().split('T')[0] });
+  };
   const registros = getDemoRegistrosJornales();
   const mensuales = getJornalesMensuales();
   const cuadrillas = getCuadrillas();
