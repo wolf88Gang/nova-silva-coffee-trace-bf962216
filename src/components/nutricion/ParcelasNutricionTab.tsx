@@ -243,6 +243,7 @@ function ParcelaInsightsSection({ parcelaId }: { parcelaId: string }) {
 export default function ParcelasNutricionTab() {
   const { organizationId } = useOrgContext();
   const queryClient = useQueryClient();
+  const switchTab = useNutricionTab();
   const [expandedParcela, setExpandedParcela] = useState<string | null>(null);
   const [showSueloForm, setShowSueloForm] = useState(false);
   const [showHojaForm, setShowHojaForm] = useState(false);
