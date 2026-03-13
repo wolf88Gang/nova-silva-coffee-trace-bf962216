@@ -17,8 +17,10 @@ import {
 import {
   Sprout, Bug, TrendingUp, Shield, FolderOpen, ArrowRight,
   ChevronLeft, Beaker, FileText, Camera, Droplets, Thermometer,
-  AlertTriangle, CheckCircle2, Clock, Leaf,
+  AlertTriangle, CheckCircle2, Clock, Leaf, Plus,
 } from 'lucide-react';
+import GuardDiagnosticWizard from '@/components/guard/GuardDiagnosticWizard';
+import GuardTreatmentPlan from '@/components/guard/GuardTreatmentPlan';
 
 const FALLBACK = {
   parcela_nombre: 'Lote El Cedro',
