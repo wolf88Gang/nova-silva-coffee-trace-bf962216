@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { getProductorStats } from '@/lib/demo-data';
 import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
+import CooperativaAssociationCard from '@/components/productor/CooperativaAssociationCard';
 
 /* ── demo data ── */
 
