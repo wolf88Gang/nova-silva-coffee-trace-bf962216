@@ -153,7 +153,7 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
 
 function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void }) {
   return (
-    <NavLink to={item.url} onClick={onClick}
+    <NavLink to={item.url} end onClick={onClick}
       className={({ isActive }) => cn(
         'flex items-center gap-3 px-3 py-1.5 rounded-md text-sm transition-colors',
         isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
@@ -164,12 +164,10 @@ function NavItemLink({ item, onClick }: { item: NavItemDef; onClick?: () => void
   );
 }
 
-function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick?: () => void; defaultOpen?: boolean }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen ?? false);
-
+function NavGroup({ group, onClick, isOpen, onToggle }: { group: NavGroupDef; onClick?: () => void; isOpen: boolean; onToggle: () => void }) {
   if (group.standalone && group.url) {
     return (
-      <NavLink to={group.url} onClick={onClick}
+      <NavLink to={group.url} end onClick={onClick}
         className={({ isActive }) => cn(
           'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
           isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium' : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
@@ -182,7 +180,7 @@ function NavGroup({ group, onClick, defaultOpen }: { group: NavGroupDef; onClick
 
   return (
     <div className="space-y-0.5">
-      <button onClick={() => setIsOpen(!isOpen)}
+      <button onClick={onToggle}
         className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/70 transition-colors">
         <div className="flex items-center gap-2"><group.icon className="h-3.5 w-3.5" /><span>{group.label}</span></div>
         <ChevronDown className={cn('h-3 w-3 transition-transform', isOpen ? '' : '-rotate-90')} />
