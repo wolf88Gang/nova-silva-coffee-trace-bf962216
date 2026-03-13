@@ -43,7 +43,6 @@ export interface VisibilityPolicy {
   canSeeLabor: boolean;
   // Resiliencia
   canSeeVital: boolean;
-  canSeeClimate: boolean;
   // Cumplimiento
   canSeeTraceability: boolean;
   canSeeLots: boolean;
@@ -90,7 +89,6 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeAgronomy: true,
     canSeeLabor: true,
     canSeeVital: true,
-    canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: false,
     canSeeEudr: true,
@@ -123,7 +121,6 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeAgronomy: true,
     canSeeLabor: true,
     canSeeVital: true,
-    canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: true,
     canSeeEudr: true,
@@ -156,7 +153,6 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeAgronomy: true,
     canSeeLabor: true,
     canSeeVital: true,
-    canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: true,
     canSeeEudr: true,
@@ -189,7 +185,6 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeAgronomy: true,
     canSeeLabor: false,
     canSeeVital: true,
-    canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: true,
     canSeeEudr: true,
@@ -222,7 +217,6 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeAgronomy: false,
     canSeeLabor: false,
     canSeeVital: false,
-    canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: true,
     canSeeEudr: true,
@@ -255,7 +249,6 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeAgronomy: false,
     canSeeLabor: false,
     canSeeVital: true,
-    canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: true,
     canSeeEudr: true,
