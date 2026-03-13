@@ -24,6 +24,9 @@ export default function ProduccionIndex() {
   const { orgTipo } = useOrgContext();
   const { data, isLoading } = useProduccionOverview();
   const isProducer = orgTipo === 'productor_privado' || orgTipo === 'productor';
+  const v = useVisibilityPolicy();
+
+  const sections = allSections.filter(s => !s.visKey || (v as any)[s.visKey]);
 
   const overview = data?.[0] ?? null;
   const demoKPIs = getProduccionKPIs();
