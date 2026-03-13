@@ -51,6 +51,7 @@ export default function ParcelDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading } = useParcelaHub(id || null);
+  const [showGuardWizard, setShowGuardWizard] = useState(false);
 
   const hub = data?.[0] ?? null;
   const p = {
