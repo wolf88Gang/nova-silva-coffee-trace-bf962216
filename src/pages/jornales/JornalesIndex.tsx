@@ -50,9 +50,12 @@ export default function JornalesIndex() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <PageHeader title="Jornales" description="Registro laboral, cuadrillas, costos y pagos de campaña" />
-        <DemoBadge />
+        <div className="flex items-center gap-3">
+          <DemoBadge />
+          <Button onClick={() => setShowAdd(true)} className="gap-2"><Plus className="h-4 w-4" /> Registrar jornal</Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
