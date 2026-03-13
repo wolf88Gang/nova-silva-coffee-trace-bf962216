@@ -8,7 +8,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import logoNovasilva from '@/assets/logo-novasilva.png';
-import bgForest from '@/assets/bg-forest-network.png';
+import bgLogin from '@/assets/bg-login-aerial-tech.jpg';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -56,7 +56,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <img src={bgForest} alt="" className="w-full h-full object-cover" />
+        <img src={bgLogin} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
