@@ -270,6 +270,42 @@ const DemoLogin = () => {
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
 
+  // Secret admin access: tap logo 5 times
+  const tapCount = useRef(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleLogoTap = useCallback(async () => {
+    tapCount.current += 1;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 2000);
+    if (tapCount.current >= 5) {
+      tapCount.current = 0;
+      setLoadingRole('admin');
+      setDemoConfig({
+        orgId: 'platform_admin',
+        orgName: 'Nova Silva Platform',
+        orgType: 'admin',
+        operatingModel: 'platform',
+        modules: ['admin'],
+        profileLabel: 'Admin Nova Silva',
+      });
+      pendingRedirect.current = '/admin';
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: 'info@novasilva.co',
+          password: 'demo123456',
+        });
+        if (error) {
+          pendingRedirect.current = null;
+          toast({ title: 'Error', description: error.message, variant: 'destructive' });
+          setLoadingRole(null);
+        }
+      } catch {
+        pendingRedirect.current = null;
+        setLoadingRole(null);
+      }
+    }
+  }, [toast]);
+
   const { data: dbOrgs } = useDemoOrganizations();
   const { data: dbProfiles } = useDemoProfiles(selectedOrg?.id || null);
 
