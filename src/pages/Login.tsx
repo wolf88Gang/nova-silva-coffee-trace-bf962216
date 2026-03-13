@@ -56,7 +56,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <img src={bgForest} alt="" className="w-full h-full object-cover" />
+        <img src={bgLogin} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
