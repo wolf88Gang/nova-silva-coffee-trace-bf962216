@@ -217,7 +217,6 @@ const POLICIES: Record<OperatingModel, VisibilityPolicy> = {
     canSeeAgronomy: false,
     canSeeLabor: false,
     canSeeVital: false,
-    canSeeClimate: true,
     canSeeTraceability: true,
     canSeeLots: true,
     canSeeEudr: true,
