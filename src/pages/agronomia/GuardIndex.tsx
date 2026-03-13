@@ -1,13 +1,18 @@
+import { useState } from 'react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { DemoBadge } from '@/components/common/DemoBadge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bug, MapPin, Clock, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Bug, MapPin, Clock, TrendingUp, Plus, Shield, FlaskConical, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useGuardOverview } from '@/hooks/useViewData';
 import { getGuardKPIs, getDemoDiagnosticosGuard, getGuardPorEnfermedad } from '@/lib/demoSeedData';
+import GuardDiagnosticWizard from '@/components/guard/GuardDiagnosticWizard';
+import GuardTreatmentPlan from '@/components/guard/GuardTreatmentPlan';
+import GuardExecutionTracker from '@/components/guard/GuardExecutionTracker';
 
 const severityColor: Record<string, string> = { Alta: 'destructive', Media: 'secondary', Baja: 'outline' };
 const estadoColor: Record<string, string> = { Activo: 'destructive', 'En tratamiento': 'secondary', Resuelto: 'outline' };
@@ -18,6 +23,9 @@ export default function GuardIndex() {
   const demoKPIs = getGuardKPIs();
   const diagnosticos = getDemoDiagnosticosGuard();
   const porEnfermedad = getGuardPorEnfermedad();
+
+  const [activeTab, setActiveTab] = useState('brotes');
+  const [showWizard, setShowWizard] = useState(false);
 
   const brotes = diagnosticos.filter(d => d.estado === 'Activo' || d.estado === 'En tratamiento');
   const resueltos = diagnosticos.filter(d => d.estado === 'Resuelto');
@@ -32,8 +40,13 @@ export default function GuardIndex() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <PageHeader title="Nova Guard" description="Diagnóstico fitosanitario, brotes activos y alertas regionales" />
-        <DemoBadge />
+        <PageHeader title="Nova Guard" description="Diagnóstico fitosanitario, planes de tratamiento y seguimiento de ejecución" />
+        <div className="flex items-center gap-2">
+          <DemoBadge />
+          <Button size="sm" className="gap-1" onClick={() => { setShowWizard(true); setActiveTab('diagnostico'); }}>
+            <Plus className="h-4 w-4" /> Nuevo diagnóstico
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
@@ -52,12 +65,14 @@ export default function GuardIndex() {
         ))}
       </div>
 
-      <Tabs defaultValue="brotes">
-        <TabsList>
-          <TabsTrigger value="brotes">Brotes activos</TabsTrigger>
-          <TabsTrigger value="diagnosticos">Todos los diagnósticos</TabsTrigger>
-          <TabsTrigger value="enfermedad">Por enfermedad</TabsTrigger>
-          <TabsTrigger value="historial">Historial resuelto</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="brotes"><Bug className="h-3.5 w-3.5 mr-1" /> Brotes activos</TabsTrigger>
+          <TabsTrigger value="diagnostico"><Plus className="h-3.5 w-3.5 mr-1" /> Diagnóstico</TabsTrigger>
+          <TabsTrigger value="planes"><Shield className="h-3.5 w-3.5 mr-1" /> Planes de tratamiento</TabsTrigger>
+          <TabsTrigger value="ejecucion"><Calendar className="h-3.5 w-3.5 mr-1" /> Ejecución</TabsTrigger>
+          <TabsTrigger value="enfermedad"><FlaskConical className="h-3.5 w-3.5 mr-1" /> Por enfermedad</TabsTrigger>
+          <TabsTrigger value="historial">Historial</TabsTrigger>
         </TabsList>
 
         <TabsContent value="brotes" className="mt-4 space-y-3">
@@ -80,33 +95,29 @@ export default function GuardIndex() {
           ))}
         </TabsContent>
 
-        <TabsContent value="diagnosticos" className="mt-4">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Parcela</th>
-                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Enfermedad</th>
-                  <th className="text-center py-2 px-3 text-muted-foreground font-medium">Severidad</th>
-                  <th className="text-center py-2 px-3 text-muted-foreground font-medium">Incidencia</th>
-                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Fecha</th>
-                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {diagnosticos.slice(0, 20).map((d, i) => (
-                  <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
-                    <td className="py-2 px-3 font-medium">{d.parcela}</td>
-                    <td className="py-2 px-3">{d.enfermedad}</td>
-                    <td className="py-2 px-3 text-center"><Badge variant={(severityColor[d.severidad] as any) || 'secondary'} className="text-xs">{d.severidad}</Badge></td>
-                    <td className="py-2 px-3 text-center">{d.incidencia}%</td>
-                    <td className="py-2 px-3 text-muted-foreground">{d.fecha}</td>
-                    <td className="py-2 px-3"><Badge variant={(estadoColor[d.estado] as any) || 'secondary'} className="text-xs">{d.estado}</Badge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <TabsContent value="diagnostico" className="mt-4">
+          {showWizard ? (
+            <GuardDiagnosticWizard
+              onSaved={() => { setShowWizard(false); setActiveTab('planes'); }}
+              onCancel={() => { setShowWizard(false); setActiveTab('brotes'); }}
+            />
+          ) : (
+            <div className="text-center py-10 space-y-3">
+              <Bug className="h-12 w-12 mx-auto text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Registra un nuevo diagnóstico fitosanitario paso a paso</p>
+              <Button size="sm" className="gap-1" onClick={() => setShowWizard(true)}>
+                <Plus className="h-4 w-4" /> Iniciar diagnóstico
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="planes" className="mt-4">
+          <GuardTreatmentPlan onGeneratePlan={() => { setShowWizard(true); setActiveTab('diagnostico'); }} />
+        </TabsContent>
+
+        <TabsContent value="ejecucion" className="mt-4">
+          <GuardExecutionTracker />
         </TabsContent>
 
         <TabsContent value="enfermedad" className="mt-4">
