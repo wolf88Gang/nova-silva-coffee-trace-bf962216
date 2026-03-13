@@ -94,10 +94,9 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   }
 
   // ── Resiliencia ──
-  if (v.canSeeVital || v.canSeeClimate) {
+  if (v.canSeeVital) {
     const items: NavItemDef[] = [];
-    if (v.canSeeVital) items.push({ title: 'Protocolo VITAL', url: '/resiliencia/vital', icon: Shield });
-    if (v.canSeeClimate) items.push({ title: 'Clima', url: '/resiliencia/clima', icon: Cloud });
+    items.push({ title: 'Protocolo VITAL', url: '/resiliencia/vital', icon: Shield });
     groups.push({ label: 'Resiliencia', icon: Shield, items });
   }
 

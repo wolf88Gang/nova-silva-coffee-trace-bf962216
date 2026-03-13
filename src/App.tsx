@@ -175,7 +175,7 @@ const App = () => (
 
               {/* RESILIENCIA */}
               <Route path="/resiliencia/vital" element={<DL><VitalIndex /></DL>} />
-              <Route path="/resiliencia/clima" element={<DL><ClimaDashboard /></DL>} />
+              <Route path="/resiliencia/clima" element={<Navigate to="/resiliencia/vital" replace />} />
 
               {/* CUMPLIMIENTO */}
               <Route path="/cumplimiento" element={<DL><CumplimientoIndex /></DL>} />
