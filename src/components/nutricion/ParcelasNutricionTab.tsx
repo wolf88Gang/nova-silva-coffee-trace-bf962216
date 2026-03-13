@@ -622,21 +622,11 @@ export default function ParcelasNutricionTab() {
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                       {row.plan_id ? (
-                        <Button size="sm" variant="outline" asChild>
-                          <a href={`#plan-${row.plan_id}`} onClick={(e) => {
-                            e.preventDefault();
-                            // Navigate to Planes tab and select this plan
-                            const tabTrigger = document.querySelector('[data-value="planes"]') as HTMLElement;
-                            tabTrigger?.click();
-                          }}>
-                            <Eye className="h-4 w-4 mr-1" /> Ver Plan
-                          </a>
+                        <Button size="sm" variant="outline" onClick={() => switchTab('planes')}>
+                          <Eye className="h-4 w-4 mr-1" /> Ver Plan
                         </Button>
                       ) : (
-                        <Button size="sm" onClick={() => {
-                          const tabTrigger = document.querySelector('[data-value="planes"]') as HTMLElement;
-                          tabTrigger?.click();
-                        }}>
+                        <Button size="sm" onClick={() => switchTab('planes')}>
                           <Zap className="h-4 w-4 mr-1" /> Generar Plan
                         </Button>
                       )}
