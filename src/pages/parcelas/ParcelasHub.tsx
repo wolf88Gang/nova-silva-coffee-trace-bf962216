@@ -8,6 +8,7 @@ import { useOrgContext } from '@/hooks/useOrgContext';
 import { useActorContext } from '@/contexts/ActorContext';
 import { hasModule } from '@/lib/org-modules';
 import { getActorLabel } from '@/lib/org-terminology';
+import { useOperatingModel } from '@/lib/operatingModel';
 import { DEMO_PRODUCTORES } from '@/lib/demo-data';
 import { Search, Plus, MapPin, Sprout, Mountain } from 'lucide-react';
 
