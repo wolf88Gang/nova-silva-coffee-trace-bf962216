@@ -32,6 +32,7 @@ import GuardIndex from "./pages/agronomia/GuardIndex";
 import YieldIndex from "./pages/agronomia/YieldIndex";
 import AlertasAgronomia from "./pages/agronomia/AlertasAgronomia";
 import VitalIndex from "./pages/resiliencia/VitalIndex";
+import ClimaDashboard from "./pages/cooperativa/ClimaDashboard";
 import CumplimientoIndex from "./pages/cumplimiento/CumplimientoIndex";
 import CumplimientoLotesPage from "./pages/cumplimiento/CumplimientoLotesPage";
 import TrazabilidadIndex from "./pages/cumplimiento/TrazabilidadIndex";
@@ -174,6 +175,7 @@ const App = () => (
 
               {/* RESILIENCIA */}
               <Route path="/resiliencia/vital" element={<DL><VitalIndex /></DL>} />
+              <Route path="/resiliencia/clima" element={<DL><ClimaDashboard /></DL>} />
 
               {/* CUMPLIMIENTO */}
               <Route path="/cumplimiento" element={<DL><CumplimientoIndex /></DL>} />

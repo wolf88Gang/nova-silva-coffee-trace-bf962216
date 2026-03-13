@@ -4,15 +4,39 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Briefcase, Users, DollarSign, Clock } from 'lucide-react';
+import { Briefcase, Users, DollarSign, Clock, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { useJornalesOverview } from '@/hooks/useViewData';
 import { getJornalesKPIs, getDemoRegistrosJornales, getJornalesMensuales, getCuadrillas } from '@/lib/demoSeedData';
+
+const ACTIVIDADES = ['Cosecha', 'Poda', 'Fertilización', 'Desyerba', 'Resiembra', 'Muestreo', 'Fumigación', 'Regulación de sombra'];
+const PARCELAS = ['El Mirador', 'La Esperanza', 'Cerro Verde', 'Los Naranjos', 'San Rafael'];
 
 export default function JornalesIndex() {
   const { data, isLoading } = useJornalesOverview();
   const overview = data?.[0] ?? null;
   const demoKPIs = getJornalesKPIs();
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ actividad: '', parcela: '', personas: '', horas: '', fecha: new Date().toISOString().split('T')[0] });
+  const tarifa = 2250;
+
+  const handleAdd = () => {
+    if (!form.actividad || !form.parcela || !form.personas || !form.horas) {
+      toast.error('Complete todos los campos obligatorios');
+      return;
+    }
+    const costo = Number(form.personas) * Number(form.horas) * tarifa;
+    toast.success(`Jornal registrado: ${form.actividad} en ${form.parcela} — ₡${costo.toLocaleString()}. Se reflejará en Finanzas → Costos finca.`);
+    setShowAdd(false);
+    setForm({ actividad: '', parcela: '', personas: '', horas: '', fecha: new Date().toISOString().split('T')[0] });
+  };
   const registros = getDemoRegistrosJornales();
   const mensuales = getJornalesMensuales();
   const cuadrillas = getCuadrillas();
@@ -26,9 +50,12 @@ export default function JornalesIndex() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <PageHeader title="Jornales" description="Registro laboral, cuadrillas, costos y pagos de campaña" />
-        <DemoBadge />
+        <div className="flex items-center gap-3">
+          <DemoBadge />
+          <Button onClick={() => setShowAdd(true)} className="gap-2"><Plus className="h-4 w-4" /> Registrar jornal</Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
@@ -139,6 +166,55 @@ export default function JornalesIndex() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add jornal dialog */}
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Briefcase className="h-5 w-5 text-primary" /> Registrar Jornal</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Actividad *</Label>
+              <Select value={form.actividad} onValueChange={v => setForm(f => ({ ...f, actividad: v }))}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar actividad" /></SelectTrigger>
+                <SelectContent>{ACTIVIDADES.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Parcela *</Label>
+              <Select value={form.parcela} onValueChange={v => setForm(f => ({ ...f, parcela: v }))}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar parcela" /></SelectTrigger>
+                <SelectContent>{PARCELAS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Personas *</Label>
+                <Input type="number" placeholder="Ej: 4" value={form.personas} onChange={e => setForm(f => ({ ...f, personas: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Horas *</Label>
+                <Input type="number" placeholder="Ej: 8" value={form.horas} onChange={e => setForm(f => ({ ...f, horas: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Fecha</Label>
+              <Input type="date" value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+            </div>
+            {form.personas && form.horas && (
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                <p className="text-sm text-foreground">Costo estimado: <span className="font-bold text-primary">₡{(Number(form.personas) * Number(form.horas) * tarifa).toLocaleString()}</span></p>
+                <p className="text-xs text-muted-foreground">Tarifa base: ₡{tarifa.toLocaleString()}/hr por persona</p>
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAdd(false)}>Cancelar</Button>
+              <Button onClick={handleAdd}>Registrar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

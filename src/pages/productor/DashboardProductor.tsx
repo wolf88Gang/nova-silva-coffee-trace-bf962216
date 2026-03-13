@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { getProductorStats } from '@/lib/demo-data';
 import { tooltipStyle, tooltipItemStyle, tooltipLabelStyle, chartCursorStyle } from '@/lib/chartStyles';
+import CooperativaAssociationCard from '@/components/productor/CooperativaAssociationCard';
 
 /* ── demo data ── */
 
@@ -268,6 +269,9 @@ export default function DashboardProductor() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cooperative association */}
+      <CooperativaAssociationCard />
 
       {/* ── Entrega Detail Dialog ── */}
       <Dialog open={!!selectedEntrega} onOpenChange={(o) => !o && setSelectedEntrega(null)}>
