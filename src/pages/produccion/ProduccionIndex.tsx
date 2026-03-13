@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { useProduccionOverview } from '@/hooks/useViewData';
+import { useVisibilityPolicy } from '@/lib/operatingModel';
 import { PageHeader } from '@/components/common/PageHeader';
 import { DemoBadge } from '@/components/common/DemoBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +11,12 @@ import { Users, Map, Package, Sprout, FolderOpen, ArrowRight } from 'lucide-reac
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { getProduccionKPIs, getEntregasMensuales, getTopVariedades, getDemoProductores, getDemoParcelas } from '@/lib/demoSeedData';
 
-const defaultSections = [
-  { title: 'Productores', description: 'Registro y estado de socios productores', icon: Users, path: '/produccion/productores', statKey: 'productores_count', color: 'text-primary' },
-  { title: 'Parcelas', description: 'Catálogo de parcelas con estado agronómico y VITAL', icon: Map, path: '/produccion/parcelas', statKey: 'parcelas_count', color: 'text-accent' },
-  { title: 'Cultivos', description: 'Variedades, edades y catálogo productivo', icon: Sprout, path: '/produccion/cultivos', statKey: 'variedades_count', color: 'text-chart-3' },
-  { title: 'Entregas', description: 'Recibos, trazabilidad y consolidación', icon: Package, path: '/produccion/entregas', statKey: 'entregas_count', color: 'text-chart-2' },
-  { title: 'Documentos y evidencias', description: 'Estudios de suelo, PDFs, evidencia fotográfica', icon: FolderOpen, path: '/produccion/documentos', statKey: 'documentos_count', color: 'text-muted-foreground' },
+const allSections = [
+  { title: 'Productores', description: 'Registro y estado de socios productores', icon: Users, path: '/produccion/productores', statKey: 'productores_count', color: 'text-primary', visKey: 'canSeeProducers' as const },
+  { title: 'Parcelas', description: 'Catálogo de parcelas con estado agronómico y VITAL', icon: Map, path: '/produccion/parcelas', statKey: 'parcelas_count', color: 'text-accent', visKey: null },
+  { title: 'Cultivos', description: 'Variedades, edades y catálogo productivo', icon: Sprout, path: '/produccion/cultivos', statKey: 'variedades_count', color: 'text-chart-3', visKey: null },
+  { title: 'Entregas', description: 'Recibos, trazabilidad y consolidación', icon: Package, path: '/produccion/entregas', statKey: 'entregas_count', color: 'text-chart-2', visKey: 'canSeeDeliveries' as const },
+  { title: 'Documentos y evidencias', description: 'Estudios de suelo, PDFs, evidencia fotográfica', icon: FolderOpen, path: '/produccion/documentos', statKey: 'documentos_count', color: 'text-muted-foreground', visKey: null },
 ];
 
 export default function ProduccionIndex() {
@@ -23,6 +24,9 @@ export default function ProduccionIndex() {
   const { orgTipo } = useOrgContext();
   const { data, isLoading } = useProduccionOverview();
   const isProducer = orgTipo === 'productor_privado' || orgTipo === 'productor';
+  const v = useVisibilityPolicy();
+
+  const sections = allSections.filter(s => !s.visKey || (v as any)[s.visKey]);
 
   const overview = data?.[0] ?? null;
   const demoKPIs = getProduccionKPIs();
@@ -39,7 +43,7 @@ export default function ProduccionIndex() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {defaultSections.map(s => (
+        {sections.map(s => (
           <Card key={s.path} className="cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(s.path)}>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
