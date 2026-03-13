@@ -166,6 +166,55 @@ export default function JornalesIndex() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add jornal dialog */}
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Briefcase className="h-5 w-5 text-primary" /> Registrar Jornal</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Actividad *</Label>
+              <Select value={form.actividad} onValueChange={v => setForm(f => ({ ...f, actividad: v }))}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar actividad" /></SelectTrigger>
+                <SelectContent>{ACTIVIDADES.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Parcela *</Label>
+              <Select value={form.parcela} onValueChange={v => setForm(f => ({ ...f, parcela: v }))}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar parcela" /></SelectTrigger>
+                <SelectContent>{PARCELAS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Personas *</Label>
+                <Input type="number" placeholder="Ej: 4" value={form.personas} onChange={e => setForm(f => ({ ...f, personas: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Horas *</Label>
+                <Input type="number" placeholder="Ej: 8" value={form.horas} onChange={e => setForm(f => ({ ...f, horas: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Fecha</Label>
+              <Input type="date" value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+            </div>
+            {form.personas && form.horas && (
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                <p className="text-sm text-foreground">Costo estimado: <span className="font-bold text-primary">₡{(Number(form.personas) * Number(form.horas) * tarifa).toLocaleString()}</span></p>
+                <p className="text-xs text-muted-foreground">Tarifa base: ₡{tarifa.toLocaleString()}/hr por persona</p>
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAdd(false)}>Cancelar</Button>
+              <Button onClick={handleAdd}>Registrar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

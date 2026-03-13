@@ -18,6 +18,13 @@ function scoreColor(score: number) {
 }
 
 export default function VitalIndex() {
+  const model = useOperatingModel();
+
+  // For single farm / estate producers, show the producer VITAL hub directly
+  if (model === 'single_farm' || model === 'estate') {
+    return <SostenibilidadHub />;
+  }
+
   const { data, isLoading } = useVitalOverview();
   const overview = data?.[0] ?? null;
   const demoKPIs = getVitalKPIs();
