@@ -73,9 +73,11 @@ export default function ParcelasHub() {
     return matchSearch && matchCom;
   }), [baseParcelas, search, comunidad]);
 
-  const subtitle = effectiveActorId && selectedActor
-    ? `Mostrando parcelas de ${actorLabel}: ${selectedActor.nombre}`
-    : 'Mostrando parcelas de toda la organización';
+  const subtitle = isSelfManaged
+    ? 'Parcelas de tu finca'
+    : effectiveActorId && selectedActor
+      ? `Mostrando parcelas de ${actorLabel}: ${selectedActor.nombre}`
+      : 'Mostrando parcelas de toda la organización';
 
   const totalArea = filtered.reduce((s, p) => s + p.area, 0);
   const avgAltitud = filtered.length ? Math.round(filtered.reduce((s, p) => s + p.altitud, 0) / filtered.length) : 0;
