@@ -101,6 +101,11 @@
     --sidebar-border: 210 14% 22%;
     --sidebar-ring: 25 75% 55%;
     --sidebar-muted: 210 10% 50%;
+    --chart-surface: 210 16% 17%;
+    --chart-surface-elevated: 210 18% 20%;
+    --chart-grid: 210 14% 30%;
+    --chart-axis: 210 10% 74%;
+    --chart-tooltip: 210 18% 20%;
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.30);
     --shadow-glow: 0 0 30px hsl(25 75% 55% / 0.20);
     --shadow-glow-primary: 0 0 30px hsl(120 55% 23% / 0.20);
