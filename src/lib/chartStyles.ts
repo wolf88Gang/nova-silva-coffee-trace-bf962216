@@ -5,11 +5,12 @@ import type React from 'react';
  * contentStyle only sets the wrapper; itemStyle/labelStyle override Recharts' inline colors.
  */
 export const tooltipStyle: React.CSSProperties = {
-  backgroundColor: 'hsl(var(--card))',
+  backgroundColor: 'hsl(var(--chart-tooltip))',
   border: '1px solid hsl(var(--border))',
-  borderRadius: 8,
+  borderRadius: 10,
   color: 'hsl(var(--foreground))',
   fontSize: 12,
+  boxShadow: 'var(--shadow-md)',
 };
 
 /** Apply to Tooltip itemStyle to fix text color in dark mode */
