@@ -45,6 +45,11 @@
     --chart-3: 120 35% 45%;
     --chart-4: 30 65% 60%;
     --chart-5: 145 55% 45%;
+    --chart-surface: 210 22% 96%;
+    --chart-surface-elevated: 0 0% 100%;
+    --chart-grid: 210 18% 84%;
+    --chart-axis: 210 10% 42%;
+    --chart-tooltip: 0 0% 100%;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.12);
     --shadow-glow: 0 0 30px hsl(25 75% 55% / 0.18);
