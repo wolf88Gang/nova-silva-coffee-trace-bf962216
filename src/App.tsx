@@ -296,11 +296,18 @@ const App = () => (
               <Route path="/certificadora/verificar" element={<DL><CertificadoraVerificar /></DL>} />
               <Route path="/certificadora/reportes" element={<DL><CertificadoraReportes /></DL>} />
 
-              <Route path="/admin" element={<RequireAdmin><DL><AdminPanel /></DL></RequireAdmin>} />
-              <Route path="/admin/directorio" element={<Navigate to="/admin/organizacion" replace />} />
+              <Route path="/admin" element={<RequireAdmin><DL><AdminOverview /></DL></RequireAdmin>} />
+              <Route path="/admin/organizaciones" element={<RequireAdmin><DL><AdminOrganizations /></DL></RequireAdmin>} />
+              <Route path="/admin/usuarios" element={<RequireAdmin><DL><AdminUsers /></DL></RequireAdmin>} />
+              <Route path="/admin/billing" element={<RequireAdmin><DL><AdminBilling /></DL></RequireAdmin>} />
+              <Route path="/admin/sistema" element={<RequireAdmin><DL><AdminSystem /></DL></RequireAdmin>} />
+              <Route path="/admin/cumplimiento" element={<RequireAdmin><DL><AdminCompliance /></DL></RequireAdmin>} />
+              <Route path="/admin/growth" element={<RequireAdmin><DL><AdminGrowth /></DL></RequireAdmin>} />
               <Route path="/admin/catalogos" element={<RequireAdmin><DL><AdminCatalogos /></DL></RequireAdmin>} />
               <Route path="/admin/modulos" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
+              <Route path="/admin/organizacion" element={<Navigate to="/admin/organizaciones" replace />} />
+              <Route path="/admin/directorio" element={<Navigate to="/admin/organizaciones" replace />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
