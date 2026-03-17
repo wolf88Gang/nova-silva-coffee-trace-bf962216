@@ -1,6 +1,6 @@
 /**
  * Admin Overview — Control Tower
- * The most important page: real-time operational status of the entire platform.
+ * Uses real Supabase data for orgs/users, mock enrichment for billing/activity.
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,11 +11,10 @@ import {
   DollarSign, FileText, Map, RefreshCw, Shield, TrendingUp,
   Users, XCircle, Zap, Wallet,
 } from 'lucide-react';
-import { useAdminKPIs, useSystemHealth } from '@/hooks/useAdminData';
+import { useSystemHealth } from '@/hooks/useAdminData';
+import { useAdminKPIsAdapter, useAdminGrowthData } from '@/hooks/useAdminDataAdapters';
 import { MetricCard, AlertList, SectionHeader } from '@/components/admin/shared/AdminComponents';
-import {
-  MOCK_REVENUE, MOCK_ALERTS, MOCK_ORGS,
-} from '@/lib/adminMockData';
+import { MOCK_REVENUE } from '@/lib/adminMockData';
 import { useNavigate } from 'react-router-dom';
 
 // ── Status Banner ──
@@ -42,8 +41,8 @@ function StatusBanner({ checks }: { checks: ReturnType<typeof useSystemHealth>['
       <span className="text-xs text-muted-foreground ml-auto">
         {checks.filter(c => c.status === 'ok').length}/{checks.length} servicios activos
       </span>
-      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => {}}>
-        Ver detalles <ArrowRight className="h-3 w-3" />
+      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" asChild>
+        <a href="/admin/platform">Ver detalles <ArrowRight className="h-3 w-3" /></a>
       </Button>
     </div>
   );
@@ -51,14 +50,16 @@ function StatusBanner({ checks }: { checks: ReturnType<typeof useSystemHealth>['
 
 // ── Activity Row ──
 
-function ActivityRow({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) {
+function ActivityRow({ label, value, icon: Icon, loading }: { label: string; value: string | number; icon: React.ElementType; loading?: boolean }) {
   return (
     <div className="flex items-center justify-between p-2.5 rounded-md bg-muted/40">
       <div className="flex items-center gap-2.5">
         <Icon className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-foreground">{label}</span>
       </div>
-      <span className="font-semibold text-foreground tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</span>
+      {loading ? <Skeleton className="h-5 w-12" /> : (
+        <span className="font-semibold text-foreground tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</span>
+      )}
     </div>
   );
 }
@@ -78,12 +79,12 @@ function RiskRow({ label, value, severity }: { label: string; value: number; sev
 
 // ── Accounts Summary ──
 
-function AccountsSummary() {
+function AccountsSummary({ orgs }: { orgs: ReturnType<typeof useAdminKPIsAdapter>['orgs'] }) {
   const navigate = useNavigate();
-  const active = MOCK_ORGS.filter(o => o.status === 'active').length;
-  const trial = MOCK_ORGS.filter(o => o.status === 'trial').length;
-  const suspended = MOCK_ORGS.filter(o => o.status === 'suspended').length;
-  const overdue = MOCK_ORGS.filter(o => o.billing.pendingBalance > 0).length;
+  const active = orgs.filter(o => o._enriched.status === 'active').length;
+  const trial = orgs.filter(o => o._enriched.status === 'trial').length;
+  const suspended = orgs.filter(o => o._enriched.status === 'suspended').length;
+  const overdue = orgs.filter(o => o._enriched.billing.pendingBalance > 0).length;
 
   return (
     <Card>
@@ -117,13 +118,13 @@ function AccountsSummary() {
 // ── Main ──
 
 export default function AdminOverview() {
-  const kpis = useAdminKPIs();
+  const kpis = useAdminKPIsAdapter();
   const health = useSystemHealth();
+  const growth = useAdminGrowthData();
 
-  // Derived mock activity data
-  const totalProducers = MOCK_ORGS.reduce((s, o) => s + o.usage.producers, 0);
-  const totalPlots = MOCK_ORGS.reduce((s, o) => s + o.usage.plots, 0);
-  const totalDossiers = MOCK_ORGS.reduce((s, o) => s + o.usage.dossiers, 0);
+  const totalProducers = kpis.orgs.reduce((s, o) => s + o._enriched.usage.producers, 0);
+  const totalPlots = kpis.orgs.reduce((s, o) => s + o._enriched.usage.plots, 0);
+  const totalDossiers = kpis.orgs.reduce((s, o) => s + o._enriched.usage.dossiers, 0);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -137,7 +138,6 @@ export default function AdminOverview() {
         }
       />
 
-      {/* Global status banner */}
       <StatusBanner checks={health.data} />
 
       {/* Revenue KPIs */}
@@ -157,22 +157,22 @@ export default function AdminOverview() {
             <CardTitle className="text-base flex items-center gap-2"><Activity className="h-4 w-4 text-primary" /> Actividad</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <ActivityRow label="Productores activos" value={totalProducers} icon={Users} />
-            <ActivityRow label="Parcelas registradas" value={totalPlots} icon={Map} />
-            <ActivityRow label="Dossiers EUDR" value={totalDossiers} icon={FileText} />
-            <ActivityRow label="Orgs con uso hoy" value={MOCK_ORGS.filter(o => o.lastActivity.includes('h') || o.lastActivity.includes('min')).length} icon={Building2} />
+            <ActivityRow label="Productores activos" value={totalProducers} icon={Users} loading={kpis.isLoading} />
+            <ActivityRow label="Parcelas registradas" value={totalPlots} icon={Map} loading={kpis.isLoading} />
+            <ActivityRow label="Dossiers EUDR" value={totalDossiers} icon={FileText} loading={kpis.isLoading} />
+            <ActivityRow label="Organizaciones" value={kpis.orgCount} icon={Building2} loading={kpis.isLoading} />
           </CardContent>
         </Card>
 
-        <AccountsSummary />
+        <AccountsSummary orgs={kpis.orgs} />
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-warning" /> Riesgo operativo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <RiskRow label="Orgs con pago atrasado" value={MOCK_ORGS.filter(o => o.billing.pendingBalance > 0).length} severity="high" />
-            <RiskRow label="Orgs sin actividad reciente" value={MOCK_ORGS.filter(o => o.lastActivity.includes('d')).length} severity="medium" />
+            <RiskRow label="Orgs con pago atrasado" value={kpis.orgs.filter(o => o._enriched.billing.pendingBalance > 0).length} severity="high" />
+            <RiskRow label="Orgs sin actividad reciente" value={kpis.orgs.filter(o => o._enriched.lastActivity.includes('d')).length} severity="medium" />
             <RiskRow label="Errores de integridad" value={2} severity="high" />
             <RiskRow label="Lotes con riesgo" value={5} severity="medium" />
           </CardContent>
@@ -184,11 +184,11 @@ export default function AdminOverview() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2"><Zap className="h-4 w-4 text-destructive" /> Alertas críticas</CardTitle>
-            <Badge variant="outline">{MOCK_ALERTS.length}</Badge>
+            <Badge variant="outline">{growth.alerts.length}</Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <AlertList alerts={MOCK_ALERTS} />
+          <AlertList alerts={growth.alerts} />
         </CardContent>
       </Card>
     </div>
