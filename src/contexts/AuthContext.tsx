@@ -162,7 +162,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
       setSession(sess);
-      if (sess) { const u = await buildUserFromSession(sess); setUser(u); }
+      if (sess) {
+        if (!isDemoEligibleUser({ id: sess.user.id, email: sess.user.email })) clearDemoConfig();
+        const u = await buildUserFromSession(sess);
+        setUser(u);
+      }
       setIsLoading(false);
     });
 
