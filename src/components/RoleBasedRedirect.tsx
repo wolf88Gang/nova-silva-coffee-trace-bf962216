@@ -31,13 +31,14 @@ const RoleBasedRedirect: React.FC = () => {
     }
 
     const isDemo = user.id.startsWith('demo-');
+    const isPlatformAdmin = user.role === 'admin';
 
-    if (!user.organizationId && !isDemo) {
+    if (!user.organizationId && !isDemo && !isPlatformAdmin) {
       navigate("/onboarding/organization");
       return;
     }
 
-    if (user.organizationId && !isDemo) {
+    if (user.organizationId && !isDemo && !isPlatformAdmin) {
       if (setupState === null || setupState?.is_completed === false) {
         navigate("/onboarding/organization");
         return;
