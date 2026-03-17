@@ -173,11 +173,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess ?? null);
       if (event === 'SIGNED_IN' && sess) {
+        if (!isDemoEligibleUser({ id: sess.user.id, email: sess.user.email })) clearDemoConfig();
         setTimeout(async () => {
           const u = await buildUserFromSession(sess);
           setUser(u); setIsLoading(false);
         }, 0);
       } else if (event === 'SIGNED_OUT') {
+        clearDemoConfig();
         setUser(null); setIsLoading(false);
       }
     });
