@@ -54,10 +54,10 @@ function KPICard({ label, value, icon: Icon, sublabel, trend, loading }: {
           <div className="flex items-center gap-2">
             <Icon className="h-4 w-4 text-primary" />
             <span className="text-xs text-muted-foreground">{label}</span>
-          </div>
+        </div>
           {trend === 'up' && <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
         </div>
-        <p className="text-2xl font-bold text-foreground">{value}</p>
+        {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold text-foreground">{value}</p>}
         {sublabel && <p className="text-xs text-muted-foreground mt-0.5">{sublabel}</p>}
       </CardContent>
     </Card>
