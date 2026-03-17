@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import {
   Leaf, X, LayoutDashboard, Users, Package, Building2,
   ShieldCheck, Shield, FileText, Sprout, Settings, Map,
-  DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp,
+  DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp, Database,
   Wallet, Eye, FolderOpen, CreditCard,
   Award, Briefcase, Coffee, BarChart3, Truck, Cloud,
   Boxes, ShoppingCart,
@@ -26,6 +26,21 @@ interface NavGroupDef { label: string; icon: LucideIcon; items: NavItemDef[]; st
  * This is the ONLY place that decides what goes in the sidebar.
  */
 function getNavGroups(orgType: string, role: string): NavGroupDef[] {
+  // ── Platform admin: stripped-down sidebar ──
+  if (role === 'admin') {
+    return [
+      { label: 'Panel admin', icon: LayoutDashboard, standalone: true, url: '/admin', items: [] },
+      { label: 'Administración', icon: Settings, items: [
+        { title: 'Organizaciones', url: '/admin/organizacion', icon: Building2 },
+        { title: 'Usuarios y roles', url: '/admin/usuarios', icon: Users },
+        { title: 'Catálogos', url: '/admin/catalogos', icon: Database },
+        { title: 'Módulos', url: '/admin/modulos', icon: Boxes },
+        { title: 'Facturación', url: '/admin/billing', icon: CreditCard },
+      ]},
+      { label: 'Reportes', icon: BarChart3, standalone: true, url: '/reportes', items: [] },
+    ];
+  }
+
   const model = getOperatingModel(orgType);
   const v = getVisibilityPolicy(model);
   const groups: NavGroupDef[] = [];
@@ -138,7 +153,7 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   }
 
   // ── Administración ──
-  if (['cooperativa', 'admin', 'exportador'].includes(role) || model === 'estate' || model === 'estate_hybrid' || model === 'aggregator') {
+  if (['cooperativa', 'exportador'].includes(role) || model === 'estate' || model === 'estate_hybrid' || model === 'aggregator') {
     groups.push({ label: 'Administración', icon: Settings, items: [
       { title: 'Usuarios y roles', url: '/admin/usuarios', icon: Users },
       { title: 'Organización', url: '/admin/organizacion', icon: Building2 },
