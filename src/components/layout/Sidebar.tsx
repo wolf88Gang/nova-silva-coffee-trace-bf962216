@@ -10,9 +10,9 @@ import { cn } from '@/lib/utils';
 import {
   Leaf, X, LayoutDashboard, Users, Package, Building2,
   ShieldCheck, Shield, FileText, Sprout, Settings, Map,
-  DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp, Database,
+  DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp, Database, Cloud,
   Wallet, Eye, FolderOpen, CreditCard,
-  Award, Briefcase, Coffee, BarChart3, Truck, Cloud,
+  Award, Briefcase, Coffee, BarChart3, Truck,
   Boxes, ShoppingCart,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
@@ -29,15 +29,13 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
   // ── Platform admin: stripped-down sidebar ──
   if (role === 'admin') {
     return [
-      { label: 'Panel admin', icon: LayoutDashboard, standalone: true, url: '/admin', items: [] },
-      { label: 'Administración', icon: Settings, items: [
-        { title: 'Organizaciones', url: '/admin/organizacion', icon: Building2 },
-        { title: 'Usuarios y roles', url: '/admin/usuarios', icon: Users },
-        { title: 'Catálogos', url: '/admin/catalogos', icon: Database },
-        { title: 'Módulos', url: '/admin/modulos', icon: Boxes },
-        { title: 'Facturación', url: '/admin/billing', icon: CreditCard },
-      ]},
-      { label: 'Reportes', icon: BarChart3, standalone: true, url: '/reportes', items: [] },
+      { label: 'Overview', icon: LayoutDashboard, standalone: true, url: '/admin', items: [] },
+      { label: 'Organizaciones', icon: Building2, standalone: true, url: '/admin/organizaciones', items: [] },
+      { label: 'Usuarios', icon: Users, standalone: true, url: '/admin/usuarios', items: [] },
+      { label: 'Billing', icon: CreditCard, standalone: true, url: '/admin/billing', items: [] },
+      { label: 'Plataforma', icon: Cloud, standalone: true, url: '/admin/sistema', items: [] },
+      { label: 'Cumplimiento', icon: Shield, standalone: true, url: '/admin/cumplimiento', items: [] },
+      { label: 'Growth', icon: TrendingUp, standalone: true, url: '/admin/growth', items: [] },
     ];
   }
 
