@@ -44,8 +44,8 @@ function StatusBanner({ checks }: { checks: ReturnType<typeof useSystemHealth>['
   );
 }
 
-function KPICard({ label, value, icon: Icon, sublabel, trend }: {
-  label: string; value: string | number; icon: React.ElementType; sublabel?: string; trend?: 'up' | 'down' | 'neutral';
+function KPICard({ label, value, icon: Icon, sublabel, trend, loading }: {
+  label: string; value: string | number; icon: React.ElementType; sublabel?: string; trend?: 'up' | 'down' | 'neutral'; loading?: boolean;
 }) {
   return (
     <Card>
