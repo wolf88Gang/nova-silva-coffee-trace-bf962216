@@ -2,7 +2,7 @@ import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { getDemoConfig } from '@/hooks/useDemoConfig';
+import { getActiveDemoConfig } from '@/hooks/useDemoConfig';
 import { getOrgTypeLabel } from '@/lib/org-terminology';
 import { getOperatingModel, getVisibilityPolicy } from '@/lib/operatingModel';
 import { ThemeToggle } from '@/components/common/ThemeToggle';

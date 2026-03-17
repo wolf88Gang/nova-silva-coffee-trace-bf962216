@@ -3,6 +3,7 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
 import type { OrgModule } from '@/lib/org-modules';
+import { clearDemoConfig, isDemoEligibleUser } from '@/hooks/useDemoConfig';
 
 /** Organization type as stored in organizaciones.tipo_organizacion */
 export type OrgTipo = 'cooperativa' | 'exportador' | 'certificadora' | 'productor' | 'beneficio_privado' | 'productor_empresarial' | 'aggregator' | string;

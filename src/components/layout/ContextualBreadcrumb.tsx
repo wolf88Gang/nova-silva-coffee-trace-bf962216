@@ -5,7 +5,7 @@
  */
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { getDemoConfig } from '@/hooks/useDemoConfig';
+import { getActiveDemoConfig } from '@/hooks/useDemoConfig';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
