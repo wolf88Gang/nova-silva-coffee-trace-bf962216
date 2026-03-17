@@ -154,7 +154,7 @@ function ModuleHealthCard({ mod, onClick }: { mod: MockModuleHealth; onClick: ()
         <p className="text-xs text-muted-foreground">{mod.description}</p>
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-semibold text-foreground">{mod.uptime}%</@>
+        <p className="text-sm font-semibold text-foreground">{mod.uptime}%</p>
         <p className="text-xs text-muted-foreground">uptime</p>
       </div>
       {mod.lastIncident && (
