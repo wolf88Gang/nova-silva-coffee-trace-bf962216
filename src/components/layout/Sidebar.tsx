@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import {
   Leaf, X, LayoutDashboard, Users, Package, Building2,
   ShieldCheck, Shield, FileText, Sprout, Settings, Map,
-  DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp,
+  DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp, Database,
   Wallet, Eye, FolderOpen, CreditCard,
   Award, Briefcase, Coffee, BarChart3, Truck, Cloud,
   Boxes, ShoppingCart,
