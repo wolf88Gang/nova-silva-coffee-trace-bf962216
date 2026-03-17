@@ -42,7 +42,7 @@ function StatusBanner({ checks }: { checks: ReturnType<typeof useSystemHealth>['
         {checks.filter(c => c.status === 'ok').length}/{checks.length} servicios activos
       </span>
       <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" asChild>
-        <a href="/admin/platform">Ver detalles <ArrowRight className="h-3 w-3" /></a>
+        <a href="/admin/sistema">Ver detalles <ArrowRight className="h-3 w-3" /></a>
       </Button>
     </div>
   );
