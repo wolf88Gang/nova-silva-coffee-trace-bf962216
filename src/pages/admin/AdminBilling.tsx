@@ -1,5 +1,6 @@
 /**
- * Admin Billing — Subscriptions & revenue management (mock)
+ * Admin Billing — Uses adapter layer with mock billing data.
+ * TODO: Connect to billing_subscriptions, invoices, payments tables when ready.
  */
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +8,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, TrendingUp, Search, FileText, Zap, Calculator } from 'lucide-react';
-import { useAdminOrganizations } from '@/hooks/useAdminData';
+import {
+  DollarSign, TrendingUp, Search, FileText, Zap, Calculator,
+  CreditCard, Wallet, ArrowRight, Calendar, RefreshCw,
+} from 'lucide-react';
+import {
+  MetricCard, SectionHeader, SearchInput, StatusBadge,
+  EmptyState, PendingIntegration,
+} from '@/components/admin/shared/AdminComponents';
+import { useAdminBillingData } from '@/hooks/useAdminDataAdapters';
+import { getInvoiceStatusVariant, getStatusBadgeVariant } from '@/lib/adminMockData';
 
 const MOCK_PLANS = ['lite', 'smart', 'plus', 'enterprise'];
 const PLAN_PRICES: Record<string, number> = { lite: 0, smart: 750, plus: 1400, enterprise: 2500 };
@@ -54,7 +63,7 @@ function PricingSimulator() {
         <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
           <div className="flex justify-between text-sm"><span>Plan base</span><span>${base}</span></div>
           <div className="flex justify-between text-sm"><span>Add-ons</span><span>${addonTotal}</span></div>
-          {overage > 0 && <div className="flex justify-between text-sm text-yellow-500"><span>Exceso ({producers - 500} prod.)</span><span>${overage}</span></div>}
+          {overage > 0 && <div className="flex justify-between text-sm text-warning"><span>Exceso ({producers - 500} prod.)</span><span>${overage}</span></div>}
           <div className="flex justify-between text-base font-bold mt-2 pt-2 border-t border-primary/20">
             <span>Total mensual</span><span>${total}/mes</span>
           </div>
@@ -65,72 +74,166 @@ function PricingSimulator() {
 }
 
 export default function AdminBilling() {
-  const { data: orgs } = useAdminOrganizations();
+  const billing = useAdminBillingData();
   const [search, setSearch] = useState('');
+  const [invSearch, setInvSearch] = useState('');
+  const [paySearch, setPaySearch] = useState('');
 
-  const mockSubs = (orgs ?? []).map((o, i) => ({
-    ...o,
-    plan: i === 0 ? 'smart' : i === 1 ? 'plus' : 'enterprise',
-    status: 'active' as const,
-    mrr: [750, 1400, 2500][i % 3],
-    usage: { producers: [420, 180, 24][i % 3], limit: [500, 300, 50][i % 3] },
-    nextInvoice: '2026-04-01',
-  }));
+  const filteredSubs = billing.subscriptions.filter(s =>
+    s.orgName.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const filtered = mockSubs.filter(s => s.nombre.toLowerCase().includes(search.toLowerCase()));
+  const filteredInvoices = billing.invoices.filter(inv =>
+    inv.orgName.toLowerCase().includes(invSearch.toLowerCase()) ||
+    inv.number.toLowerCase().includes(invSearch.toLowerCase())
+  );
+
+  const filteredPayments = billing.payments.filter(pay =>
+    pay.orgName.toLowerCase().includes(paySearch.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Suscripciones & Billing</h1>
-        <p className="text-sm text-muted-foreground mt-1">Gestión de planes, facturación y revenue</p>
-      </div>
+      <SectionHeader
+        title="Suscripciones & Billing"
+        subtitle="Centro de control comercial y financiero"
+        actions={<PendingIntegration feature="Backend de billing" />}
+      />
 
       {/* Revenue KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card><CardContent className="pt-4 pb-3 px-4">
-          <p className="text-xs text-muted-foreground">MRR</p><p className="text-2xl font-bold text-foreground">$4,250</p>
-        </CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3 px-4">
-          <p className="text-xs text-muted-foreground">ARR proyectado</p><p className="text-2xl font-bold text-foreground">$51,000</p>
-        </CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3 px-4">
-          <p className="text-xs text-muted-foreground">Facturas pendientes</p><p className="text-2xl font-bold text-yellow-500">1</p>
-        </CardContent></Card>
-        <Card><CardContent className="pt-4 pb-3 px-4">
-          <p className="text-xs text-muted-foreground">Churn rate</p><p className="text-2xl font-bold text-foreground">0%</p>
-        </CardContent></Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+        <MetricCard label="MRR" value={`$${billing.revenue.mrr.toLocaleString()}`} icon={DollarSign} trend="up" />
+        <MetricCard label="ARR estimado" value={`$${billing.revenue.arrProjected.toLocaleString()}`} icon={TrendingUp} />
+        <MetricCard label="Cobrado" value={`$${billing.revenue.collectedThisMonth.toLocaleString()}`} icon={Wallet} />
+        <MetricCard label="Por cobrar" value={`$${billing.revenue.accountsReceivable.toLocaleString()}`} icon={CreditCard} />
+        <MetricCard label="Trials a vencer" value={billing.revenue.trialsExpiringSoon} icon={Calendar} />
+        <MetricCard label="Upgrades" value={billing.revenue.recentUpgrades} icon={Zap} />
+        <MetricCard label="Churn" value={`${billing.revenue.churnRate}%`} icon={TrendingUp} />
+        <MetricCard label="Suspensiones" value={billing.revenue.suspensions} icon={FileText} />
       </div>
 
       <Tabs defaultValue="suscripciones">
-        <TabsList><TabsTrigger value="suscripciones">Suscripciones</TabsTrigger><TabsTrigger value="simulador">Simulador</TabsTrigger></TabsList>
+        <TabsList>
+          <TabsTrigger value="suscripciones">Suscripciones</TabsTrigger>
+          <TabsTrigger value="facturas">Facturas</TabsTrigger>
+          <TabsTrigger value="pagos">Pagos</TabsTrigger>
+          <TabsTrigger value="simulador">Simulador</TabsTrigger>
+        </TabsList>
 
+        {/* Subscriptions */}
         <TabsContent value="suscripciones" className="mt-4 space-y-3">
-          <div className="relative max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" /></div>
-
-          {filtered.map(s => (
-            <Card key={s.id}>
-              <CardContent className="pt-4 flex items-center gap-4">
+          <SearchInput value={search} onChange={setSearch} placeholder="Buscar organización..." />
+          {filteredSubs.map(s => (
+            <Card key={s.orgId}>
+              <CardContent className="pt-4 flex items-center gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground">{s.nombre}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{s.tipo}</p>
+                  <p className="font-medium text-foreground">{s.orgName}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{s.orgType}</p>
                 </div>
                 <Badge variant="outline" className="capitalize">{s.plan}</Badge>
                 <span className="text-sm font-semibold">${s.mrr}/mes</span>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Uso: {s.usage.producers}/{s.usage.limit}</p>
+                  <p className="text-xs text-muted-foreground">Prod: {s.usage.producers}/{s.usage.producersLimit}</p>
                   <div className="w-24 h-1.5 bg-muted rounded-full mt-1">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min((s.usage.producers / s.usage.limit) * 100, 100)}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min((s.usage.producers / s.usage.producersLimit) * 100, 100)}%` }} />
                   </div>
                 </div>
-                <Badge variant="default">{s.status}</Badge>
+                {s.addons.length > 0 && (
+                  <div className="flex gap-1">{s.addons.map(a => <Badge key={a} variant="secondary" className="text-xs">{a}</Badge>)}</div>
+                )}
+                <Badge variant={getStatusBadgeVariant(s.status)}>{s.status}</Badge>
+                {s.pendingBalance > 0 && <span className="text-xs text-destructive font-semibold">${s.pendingBalance} pendiente</span>}
                 <Button variant="ghost" size="sm">Gestionar</Button>
               </CardContent>
             </Card>
           ))}
         </TabsContent>
 
+        {/* Invoices */}
+        <TabsContent value="facturas" className="mt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <SearchInput value={invSearch} onChange={setInvSearch} placeholder="Buscar factura..." />
+            <Button variant="outline" size="sm" className="gap-1.5"><FileText className="h-3.5 w-3.5" /> Crear factura manual</Button>
+          </div>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-muted-foreground">
+                      <th className="pb-2 font-medium">Número</th>
+                      <th className="pb-2 font-medium">Organización</th>
+                      <th className="pb-2 font-medium">Período</th>
+                      <th className="pb-2 font-medium">Monto</th>
+                      <th className="pb-2 font-medium">Estado</th>
+                      <th className="pb-2 font-medium">Emisión</th>
+                      <th className="pb-2 font-medium">Vencimiento</th>
+                      <th className="pb-2 font-medium text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredInvoices.map(inv => (
+                      <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-3 font-mono text-xs text-foreground">{inv.number}</td>
+                        <td className="py-3 text-foreground">{inv.orgName}</td>
+                        <td className="py-3 text-muted-foreground">{inv.period}</td>
+                        <td className="py-3 font-semibold text-foreground">${inv.amount}</td>
+                        <td className="py-3"><Badge variant={getInvoiceStatusVariant(inv.status)} className="capitalize">{inv.status === 'paid' ? 'Pagada' : inv.status === 'overdue' ? 'Vencida' : inv.status === 'pending' ? 'Pendiente' : 'Cancelada'}</Badge></td>
+                        <td className="py-3 text-muted-foreground text-xs">{inv.issuedAt}</td>
+                        <td className="py-3 text-muted-foreground text-xs">{inv.dueAt}</td>
+                        <td className="py-3 text-right">
+                          <Button variant="ghost" size="sm" className="h-7 text-xs">
+                            {inv.status === 'overdue' ? 'Marcar pagada' : 'Ver'}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Payments */}
+        <TabsContent value="pagos" className="mt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <SearchInput value={paySearch} onChange={setPaySearch} placeholder="Buscar pago..." />
+            <Button variant="outline" size="sm" className="gap-1.5"><Wallet className="h-3.5 w-3.5" /> Registrar pago manual</Button>
+          </div>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-muted-foreground">
+                      <th className="pb-2 font-medium">Organización</th>
+                      <th className="pb-2 font-medium">Monto</th>
+                      <th className="pb-2 font-medium">Fecha</th>
+                      <th className="pb-2 font-medium">Método</th>
+                      <th className="pb-2 font-medium">Referencia</th>
+                      <th className="pb-2 font-medium">Registrado por</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredPayments.map(pay => (
+                      <tr key={pay.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-3 text-foreground">{pay.orgName}</td>
+                        <td className="py-3 font-semibold text-foreground">${pay.amount}</td>
+                        <td className="py-3 text-muted-foreground text-xs">{pay.date}</td>
+                        <td className="py-3"><Badge variant="outline" className="capitalize">{pay.method}</Badge></td>
+                        <td className="py-3 font-mono text-xs text-muted-foreground">{pay.reference}</td>
+                        <td className="py-3 text-muted-foreground">{pay.registeredBy}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Simulator */}
         <TabsContent value="simulador" className="mt-4">
           <PricingSimulator />
         </TabsContent>
