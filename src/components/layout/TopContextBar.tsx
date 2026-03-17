@@ -11,13 +11,15 @@ export function TopContextBar() {
 
   if (!user) return null;
 
-  const demoConfig = getDemoConfig();
-  const isDemo = !!demoConfig || user.email?.includes('demo') || user.email?.includes('novasilva.com');
+  const demoConfig = getActiveDemoConfig(user);
+  const isDemo = !!demoConfig || isDemoEligibleUser(user);
 
-  const orgName = demoConfig?.orgName || user.organizationName || 'Nova Silva';
+  const orgName = demoConfig?.orgName || user.organizationName || 'Nova Silva Platform';
   const orgType = demoConfig?.orgType
     ? formatOrgType(demoConfig.orgType)
-    : user.orgTipo || '';
+    : user.role === 'admin'
+      ? 'Plataforma'
+      : user.orgTipo || '';
   const profileLabel = demoConfig?.profileLabel || user.name;
 
   const chipBase = 'px-2.5 py-0.5 rounded-full cursor-pointer transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';

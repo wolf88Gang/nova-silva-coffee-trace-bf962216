@@ -210,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true };
   }, []);
 
-  const logout = useCallback(async () => { await supabase.auth.signOut(); setUser(null); setSession(null); }, []);
+  const logout = useCallback(async () => { clearDemoConfig(); await supabase.auth.signOut(); setUser(null); setSession(null); }, []);
   const hasRole = useCallback((role: UserRole): boolean => user?.role === role, [user]);
 
   const loginAsDemo = useCallback((role: UserRole) => {

@@ -44,7 +44,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
     return <Navigate to="/produccion" replace />;
   }
 
-  const demoConfig = getDemoConfig();
+  const demoConfig = getActiveDemoConfig(user);
   const orgDisplayName = demoConfig?.orgName || user?.organizationName || 'Nova Silva';
 
   return (

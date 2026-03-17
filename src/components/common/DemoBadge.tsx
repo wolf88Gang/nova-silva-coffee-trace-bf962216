@@ -1,9 +1,13 @@
-import { getDemoConfig } from '@/hooks/useDemoConfig';
+import { useAuth } from '@/contexts/AuthContext';
+import { getActiveDemoConfig } from '@/hooks/useDemoConfig';
 import { Info } from 'lucide-react';
 
 export function DemoBadge() {
-  const cfg = getDemoConfig();
+  const { user } = useAuth();
+  const cfg = getActiveDemoConfig(user);
+
   if (!cfg) return null;
+
   return (
     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/10 border border-warning/20 text-warning text-xs font-medium">
       <Info className="h-3 w-3" />

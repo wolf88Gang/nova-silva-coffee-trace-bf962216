@@ -255,11 +255,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   if (!user) return null;
 
-  const demoConfig = getDemoConfig();
-  const effectiveOrgType = demoConfig?.orgType || orgTipo || 'cooperativa';
+  const demoConfig = getActiveDemoConfig(user);
+  const effectiveOrgType = demoConfig?.orgType || orgTipo || (user.role === 'admin' ? 'admin' : 'cooperativa');
   const navGroups = getNavGroups(effectiveOrgType, user.role);
-  const orgTypeDisplay = demoConfig?.orgType ? formatOrgType(demoConfig.orgType) : getOrgTypeLabel(orgTipo);
-  const orgDisplayName = demoConfig?.orgName || user.organizationName;
+  const orgTypeDisplay = demoConfig?.orgType ? formatOrgType(demoConfig.orgType) : getOrgTypeLabel(user.role === 'admin' ? 'admin' : orgTipo);
+  const orgDisplayName = demoConfig?.orgName || user.organizationName || 'Nova Silva Platform';
 
   const sidebarContent = (
     <div className="flex flex-col h-full">

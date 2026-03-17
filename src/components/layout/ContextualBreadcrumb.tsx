@@ -95,14 +95,14 @@ export function ContextualBreadcrumb() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const demoConfig = getDemoConfig();
+  const demoConfig = getActiveDemoConfig(user);
 
   if (!user) return null;
 
   const segments = location.pathname.split('/').filter(Boolean);
   if (segments.length === 0) return null;
 
-  const orgName = demoConfig?.orgName || user.organizationName || 'Nova Silva';
+  const orgName = demoConfig?.orgName || user.organizationName || 'Nova Silva Platform';
   const domain = DOMAIN_LABELS[segments[0]] || segments[0];
   const pageKey = segments[segments.length - 1];
   const pageLabel = ROUTE_LABELS[pageKey] || '';
