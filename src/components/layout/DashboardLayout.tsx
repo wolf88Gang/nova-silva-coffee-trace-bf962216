@@ -13,7 +13,7 @@ import { UserRole } from '@/types';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import logoNovasilva from '@/assets/logo-novasilva.png';
-import { getDemoConfig } from '@/hooks/useDemoConfig';
+import { getActiveDemoConfig } from '@/hooks/useDemoConfig';
 
 interface DashboardLayoutProps { children: ReactNode; requiredRole?: UserRole | UserRole[]; }
 
@@ -44,7 +44,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
     return <Navigate to="/produccion" replace />;
   }
 
-  const demoConfig = getDemoConfig();
+  const demoConfig = getActiveDemoConfig(user);
   const orgDisplayName = demoConfig?.orgName || user?.organizationName || 'Nova Silva';
 
   return (

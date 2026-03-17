@@ -3,6 +3,7 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
 import type { OrgModule } from '@/lib/org-modules';
+import { clearDemoConfig, isDemoEligibleUser } from '@/hooks/useDemoConfig';
 
 /** Organization type as stored in organizaciones.tipo_organizacion */
 export type OrgTipo = 'cooperativa' | 'exportador' | 'certificadora' | 'productor' | 'beneficio_privado' | 'productor_empresarial' | 'aggregator' | string;
@@ -161,18 +162,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
       setSession(sess);
-      if (sess) { const u = await buildUserFromSession(sess); setUser(u); }
+      if (sess) {
+        if (!isDemoEligibleUser({ id: sess.user.id, email: sess.user.email })) clearDemoConfig();
+        const u = await buildUserFromSession(sess);
+        setUser(u);
+      }
       setIsLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess ?? null);
       if (event === 'SIGNED_IN' && sess) {
+        if (!isDemoEligibleUser({ id: sess.user.id, email: sess.user.email })) clearDemoConfig();
         setTimeout(async () => {
           const u = await buildUserFromSession(sess);
           setUser(u); setIsLoading(false);
         }, 0);
       } else if (event === 'SIGNED_OUT') {
+        clearDemoConfig();
         setUser(null); setIsLoading(false);
       }
     });
@@ -203,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true };
   }, []);
 
-  const logout = useCallback(async () => { await supabase.auth.signOut(); setUser(null); setSession(null); }, []);
+  const logout = useCallback(async () => { clearDemoConfig(); await supabase.auth.signOut(); setUser(null); setSession(null); }, []);
   const hasRole = useCallback((role: UserRole): boolean => user?.role === role, [user]);
 
   const loginAsDemo = useCallback((role: UserRole) => {

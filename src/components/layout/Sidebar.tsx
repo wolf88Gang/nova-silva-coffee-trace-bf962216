@@ -2,7 +2,7 @@ import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
-import { getDemoConfig } from '@/hooks/useDemoConfig';
+import { getActiveDemoConfig } from '@/hooks/useDemoConfig';
 import { getOrgTypeLabel } from '@/lib/org-terminology';
 import { getOperatingModel, getVisibilityPolicy } from '@/lib/operatingModel';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
@@ -255,11 +255,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   if (!user) return null;
 
-  const demoConfig = getDemoConfig();
-  const effectiveOrgType = demoConfig?.orgType || orgTipo || 'cooperativa';
+  const demoConfig = getActiveDemoConfig(user);
+  const effectiveOrgType = demoConfig?.orgType || orgTipo || (user.role === 'admin' ? 'admin' : 'cooperativa');
   const navGroups = getNavGroups(effectiveOrgType, user.role);
-  const orgTypeDisplay = demoConfig?.orgType ? formatOrgType(demoConfig.orgType) : getOrgTypeLabel(orgTipo);
-  const orgDisplayName = demoConfig?.orgName || user.organizationName;
+  const orgTypeDisplay = demoConfig?.orgType ? formatOrgType(demoConfig.orgType) : getOrgTypeLabel(user.role === 'admin' ? 'admin' : orgTipo);
+  const orgDisplayName = demoConfig?.orgName || user.organizationName || 'Nova Silva Platform';
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
