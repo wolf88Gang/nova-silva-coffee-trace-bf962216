@@ -376,6 +376,75 @@ export const MOCK_OPPORTUNITIES = [
   { orgName: 'Asociación Cafetalera Chirripó', type: 'reactivation', reason: 'Cuenta suspendida con 210 productores. Potencial de recuperación.', engagement: 0 },
 ];
 
+// ── M&E / MEL Data ──
+
+export interface MELIndicator {
+  id: string;
+  category: 'impact' | 'eudr' | 'platform' | 'adoption';
+  name: string;
+  value: number | string;
+  unit: string;
+  baseline?: number | string;
+  target?: number | string;
+  period: string;
+  trend?: 'up' | 'down' | 'stable';
+  source: 'real' | 'mock';
+}
+
+export interface MELOrgImpact {
+  orgName: string;
+  orgType: string;
+  country: string;
+  producers: number;
+  plots: number;
+  geolocated: number;
+  vitalAvg: number;
+  eudrCompliance: number;
+  modulesActive: number;
+  lastActivity: string;
+}
+
+export const MOCK_MEL_INDICATORS: MELIndicator[] = [
+  // Impact
+  { id: 'mel-01', category: 'impact', name: 'Productores alcanzados', value: 1527, unit: 'personas', baseline: '0 (Jun 2025)', target: '2,000', period: 'Acumulado', trend: 'up', source: 'mock' },
+  { id: 'mel-02', category: 'impact', name: 'Parcelas registradas', value: 3094, unit: 'parcelas', baseline: '0', target: '5,000', period: 'Acumulado', trend: 'up', source: 'mock' },
+  { id: 'mel-03', category: 'impact', name: 'Hectáreas bajo gestión digital', value: 4862, unit: 'ha', baseline: '0', target: '8,000', period: 'Acumulado', trend: 'up', source: 'mock' },
+  { id: 'mel-04', category: 'impact', name: 'Score VITAL promedio', value: 72.4, unit: 'pts /100', baseline: '—', target: '≥75', period: 'Q1 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-05', category: 'impact', name: 'Organizaciones activas', value: 5, unit: 'orgs', baseline: '0', target: '15', period: 'Acumulado', trend: 'up', source: 'mock' },
+  { id: 'mel-06', category: 'impact', name: 'Países con presencia', value: 3, unit: 'países', baseline: '1', target: '5', period: 'Acumulado', trend: 'stable', source: 'mock' },
+
+  // EUDR
+  { id: 'mel-10', category: 'eudr', name: 'Dossiers EUDR generados', value: 87, unit: 'dossiers', target: '200', period: 'Acumulado', trend: 'up', source: 'mock' },
+  { id: 'mel-11', category: 'eudr', name: 'Dossiers aprobables', value: 74, unit: 'dossiers', period: 'Acumulado', source: 'mock' },
+  { id: 'mel-12', category: 'eudr', name: 'Parcelas geolocalizadas', value: '89%', unit: '%', target: '100%', period: 'Actual', trend: 'up', source: 'mock' },
+  { id: 'mel-13', category: 'eudr', name: 'Lotes con trazabilidad completa', value: '76%', unit: '%', target: '95%', period: 'Q1 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-14', category: 'eudr', name: 'Parcelas en riesgo deforestación', value: 8, unit: 'parcelas', target: '0', period: 'Actual', trend: 'down', source: 'mock' },
+  { id: 'mel-15', category: 'eudr', name: 'Brechas documentales activas', value: 5, unit: 'orgs', target: '0', period: 'Actual', source: 'mock' },
+
+  // Platform
+  { id: 'mel-20', category: 'platform', name: 'Usuarios activos (30d)', value: 42, unit: 'usuarios', period: 'Mar 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-21', category: 'platform', name: 'Sesiones promedio/usuario/semana', value: 4.2, unit: 'sesiones', period: 'Mar 2026', trend: 'stable', source: 'mock' },
+  { id: 'mel-22', category: 'platform', name: 'Retención mensual', value: '87%', unit: '%', target: '≥90%', period: 'Mar 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-23', category: 'platform', name: 'Tasa de conversión trial→paid', value: '42%', unit: '%', target: '≥50%', period: 'Q1 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-24', category: 'platform', name: 'NPS estimado', value: 68, unit: 'pts', target: '≥70', period: 'Q1 2026', source: 'mock' },
+
+  // Adoption
+  { id: 'mel-30', category: 'adoption', name: 'Módulo más adoptado', value: 'Producción', unit: '', period: 'Actual', source: 'mock' },
+  { id: 'mel-31', category: 'adoption', name: 'Planes nutrición generados', value: 34, unit: 'planes', period: 'Q1 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-32', category: 'adoption', name: 'Diagnósticos Nova Guard', value: 67, unit: 'diagnósticos', period: 'Q1 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-33', category: 'adoption', name: 'Estimaciones Nova Yield', value: 142, unit: 'inferencias', period: 'Mar 2026', trend: 'up', source: 'mock' },
+  { id: 'mel-34', category: 'adoption', name: 'Evaluaciones VITAL completadas', value: 28, unit: 'evaluaciones', period: 'Q1 2026', source: 'mock' },
+];
+
+export const MOCK_MEL_ORG_IMPACT: MELOrgImpact[] = [
+  { orgName: 'Cooperativa La Montaña', orgType: 'cooperativa', country: 'Costa Rica', producers: 420, plots: 890, geolocated: 812, vitalAvg: 78, eudrCompliance: 91, modulesActive: 5, lastActivity: 'Hace 2h' },
+  { orgName: 'Exportadora Volcán del Café', orgType: 'exportador', country: 'Costa Rica', producers: 180, plots: 340, geolocated: 340, vitalAvg: 85, eudrCompliance: 96, modulesActive: 5, lastActivity: 'Hace 5h' },
+  { orgName: 'Cooperativa El Progreso', orgType: 'cooperativa', country: 'Guatemala', producers: 85, plots: 120, geolocated: 48, vitalAvg: 58, eudrCompliance: 40, modulesActive: 2, lastActivity: 'Hace 1d' },
+  { orgName: 'Finca San Cristóbal', orgType: 'finca', country: 'Honduras', producers: 12, plots: 24, geolocated: 22, vitalAvg: 65, eudrCompliance: 83, modulesActive: 2, lastActivity: 'Hace 3d' },
+  { orgName: 'Beneficio Central del Valle', orgType: 'cooperativa', country: 'Costa Rica', producers: 620, plots: 1340, geolocated: 1290, vitalAvg: 82, eudrCompliance: 94, modulesActive: 7, lastActivity: 'Hace 30min' },
+  { orgName: 'Asociación Cafetalera Chirripó', orgType: 'cooperativa', country: 'Costa Rica', producers: 210, plots: 380, geolocated: 190, vitalAvg: 45, eudrCompliance: 50, modulesActive: 1, lastActivity: 'Hace 45d' },
+];
+
 // ── Helpers ──
 
 export function getStatusColor(status: OrgStatus): string {
