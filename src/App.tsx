@@ -74,6 +74,13 @@ import CertificadoraAuditorias from "./pages/certificadora/CertificadoraAuditori
 import CertificadoraOrgs from "./pages/certificadora/CertificadoraOrgs";
 import CertificadoraVerificar from "./pages/certificadora/CertificadoraVerificar";
 import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminOrganizations from "./pages/admin/AdminOrganizations";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminBilling from "./pages/admin/AdminBilling";
+import AdminSystem from "./pages/admin/AdminSystem";
+import AdminCompliance from "./pages/admin/AdminCompliance";
+import AdminGrowth from "./pages/admin/AdminGrowth";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminDirectorio from "./pages/admin/AdminDirectorio";
 import AdminCatalogos from "./pages/admin/AdminCatalogos";

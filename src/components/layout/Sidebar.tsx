@@ -12,7 +12,7 @@ import {
   ShieldCheck, Shield, FileText, Sprout, Settings, Map,
   DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp, Database, Cloud,
   Wallet, Eye, FolderOpen, CreditCard,
-  Award, Briefcase, Coffee, BarChart3, Truck, Cloud,
+  Award, Briefcase, Coffee, BarChart3, Truck,
   Boxes, ShoppingCart,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
