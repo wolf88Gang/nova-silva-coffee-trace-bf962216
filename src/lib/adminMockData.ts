@@ -251,13 +251,13 @@ export const MOCK_PAYMENTS: MockPayment[] = [
 // ── Mock Alerts ──
 
 export const MOCK_ALERTS: MockAlert[] = [
-  { id: 1, level: 'critical', message: 'Asociación Chirripó: 2 facturas vencidas ($1,500 pendiente)', orgName: 'Asociación Cafetalera Chirripó', time: 'Hace 1h', actionLabel: 'Ver cuenta', actionUrl: '/admin/organizations' },
-  { id: 2, level: 'critical', message: 'Finca San Cristóbal: factura vencida de Marzo ($65)', orgName: 'Finca San Cristóbal', time: 'Hace 2h', actionLabel: 'Ver factura' },
-  { id: 3, level: 'warning', message: 'Cooperativa El Progreso: trial vence en 14 días, bajo engagement', orgName: 'Cooperativa El Progreso', time: 'Hace 6h', actionLabel: 'Ver trial' },
-  { id: 4, level: 'warning', message: 'Nova Yield: tasa de error superior al 3% en últimas 24h', time: 'Hace 8h', actionLabel: 'Ver plataforma' },
-  { id: 5, level: 'warning', message: 'Hash mismatch detectado en 2 registros de nutricion_aplicaciones', time: 'Hace 12h', actionLabel: 'Ver integridad' },
-  { id: 6, level: 'info', message: 'Beneficio Central del Valle superó 600 productores activos (plan: 800)', orgName: 'Beneficio Central del Valle', time: 'Hace 1d' },
-  { id: 7, level: 'info', message: 'Nuevo trial registrado: Cooperativa El Progreso (Guatemala)', time: 'Hace 16d' },
+  { id: 1, level: 'critical', message: '1 organización con cuenta suspendida por mora. Notificación enviada al admin de la org.', time: 'Hace 1h', actionLabel: 'Ver estado notificación' },
+  { id: 2, level: 'critical', message: '1 organización con factura vencida. Se envió recordatorio automático.', time: 'Hace 2h', actionLabel: 'Verificar envío' },
+  { id: 3, level: 'warning', message: '1 trial próximo a vencer (14 días). El admin de la org aún no ha recibido la guía de conversión.', time: 'Hace 6h', actionLabel: 'Reenviar guía' },
+  { id: 4, level: 'warning', message: 'Módulo Nova Yield: tasa de error superior al 3%. Equipo técnico notificado.', time: 'Hace 8h', actionLabel: 'Ver plataforma' },
+  { id: 5, level: 'warning', message: 'Incidente de integridad detectado (2 registros). Auditoría interna iniciada automáticamente.', time: 'Hace 12h', actionLabel: 'Ver auditoría' },
+  { id: 6, level: 'info', message: '1 organización superó el 75% de su límite de productores. Notificación de upgrade enviada.', time: 'Hace 1d' },
+  { id: 7, level: 'info', message: 'Nuevo trial registrado. Secuencia de onboarding activada automáticamente.', time: 'Hace 16d' },
 ];
 
 // ── Mock Feedback ──
