@@ -29,7 +29,7 @@ const Login = () => {
     const result = await login(email, password);
     setLoading(false);
     if (result.success) {
-      navigate('/');
+      navigate('/app', { replace: true });
     } else {
       toast({ title: 'Error al iniciar sesión', description: result.error, variant: 'destructive' });
     }
