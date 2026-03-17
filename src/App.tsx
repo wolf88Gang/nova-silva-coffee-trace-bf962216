@@ -291,7 +291,8 @@ const App = () => (
 
               <Route path="/admin" element={<RequireAdmin><DL><AdminPanel /></DL></RequireAdmin>} />
               <Route path="/admin/directorio" element={<Navigate to="/admin/organizacion" replace />} />
-              <Route path="/admin/catalogos" element={<DL><AdminCatalogos /></DL>} />
+              <Route path="/admin/catalogos" element={<RequireAdmin><DL><AdminCatalogos /></DL></RequireAdmin>} />
+              <Route path="/admin/modulos" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
 
               <Route path="*" element={<NotFound />} />
