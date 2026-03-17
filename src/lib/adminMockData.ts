@@ -108,7 +108,42 @@ export interface MockModuleHealth {
   lastIncident: string | null;
   uptime: number;
   description: string;
+  details?: string;
+  remediation?: string;
 }
+
+export interface MockHealthEvent {
+  date: string;
+  event: string;
+  severity: 'warning' | 'info';
+  module?: string;
+  details?: string;
+  remediation?: string;
+}
+
+export interface ServiceRemediation {
+  service: string;
+  remediation: string;
+}
+
+export const SERVICE_REMEDIATIONS: ServiceRemediation[] = [
+  {
+    service: 'Base de datos (PostgreSQL)',
+    remediation: 'Verificar en Supabase Dashboard > Settings > Database que la instancia esté activa. Si persiste, ejecutar en SQL Editor:\n\nSELECT pg_is_in_recovery();\n\nSi retorna true, la base está en modo de recuperación. Contactar soporte de Supabase.',
+  },
+  {
+    service: 'Autenticación (GoTrue)',
+    remediation: 'Verificar en Supabase Dashboard > Authentication > Settings que el servicio esté habilitado. Revisar los Rate Limits en Settings > Auth > Rate Limits. Si el token JWT expiró, hacer logout y login nuevamente.',
+  },
+  {
+    service: 'Storage',
+    remediation: 'Verificar en Supabase Dashboard > Storage que los buckets existan. Si hay error de permisos, revisar las políticas RLS del Storage:\n\nSELECT * FROM storage.policies;',
+  },
+  {
+    service: 'Edge Functions',
+    remediation: 'La Edge Function no está desplegada o tiene un error de CORS. Pasos:\n\n1. En Supabase Dashboard > Edge Functions, verificar que "ensure-demo-user" exista y esté activa\n2. Si no está desplegada: supabase functions deploy ensure-demo-user\n3. Si hay error CORS, agregar headers en la función:\n\nconst corsHeaders = {\n  "Access-Control-Allow-Origin": "*",\n  "Access-Control-Allow-Methods": "POST, OPTIONS",\n};\n\n4. Verificar logs en Supabase Dashboard > Edge Functions > Logs',
+  },
+];
 
 export interface MockComplianceIssue {
   id: number;
