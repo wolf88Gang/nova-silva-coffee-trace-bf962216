@@ -108,7 +108,42 @@ export interface MockModuleHealth {
   lastIncident: string | null;
   uptime: number;
   description: string;
+  details?: string;
+  remediation?: string;
 }
+
+export interface MockHealthEvent {
+  date: string;
+  event: string;
+  severity: 'warning' | 'info';
+  module?: string;
+  details?: string;
+  remediation?: string;
+}
+
+export interface ServiceRemediation {
+  service: string;
+  remediation: string;
+}
+
+export const SERVICE_REMEDIATIONS: ServiceRemediation[] = [
+  {
+    service: 'Base de datos (PostgreSQL)',
+    remediation: 'Verificar en Supabase Dashboard > Settings > Database que la instancia esté activa. Si persiste, ejecutar en SQL Editor:\n\nSELECT pg_is_in_recovery();\n\nSi retorna true, la base está en modo de recuperación. Contactar soporte de Supabase.',
+  },
+  {
+    service: 'Autenticación (GoTrue)',
+    remediation: 'Verificar en Supabase Dashboard > Authentication > Settings que el servicio esté habilitado. Revisar los Rate Limits en Settings > Auth > Rate Limits. Si el token JWT expiró, hacer logout y login nuevamente.',
+  },
+  {
+    service: 'Storage',
+    remediation: 'Verificar en Supabase Dashboard > Storage que los buckets existan. Si hay error de permisos, revisar las políticas RLS del Storage:\n\nSELECT * FROM storage.policies;',
+  },
+  {
+    service: 'Edge Functions',
+    remediation: 'La Edge Function no está desplegada o tiene un error de CORS. Pasos:\n\n1. En Supabase Dashboard > Edge Functions, verificar que "ensure-demo-user" exista y esté activa\n2. Si no está desplegada: supabase functions deploy ensure-demo-user\n3. Si hay error CORS, agregar headers en la función:\n\nconst corsHeaders = {\n  "Access-Control-Allow-Origin": "*",\n  "Access-Control-Allow-Methods": "POST, OPTIONS",\n};\n\n4. Verificar logs en Supabase Dashboard > Edge Functions > Logs',
+  },
+];
 
 export interface MockComplianceIssue {
   id: number;
@@ -247,14 +282,14 @@ export const MOCK_CAMPAIGNS: MockCampaign[] = [
 // ── Module Health ──
 
 export const MOCK_MODULE_HEALTH: MockModuleHealth[] = [
-  { name: 'EUDR / Trazabilidad', code: 'eudr', status: 'stable', lastIncident: null, uptime: 99.9, description: 'Dossiers, geolocalización, cadena de custodia' },
-  { name: 'Nova Guard', code: 'guard', status: 'stable', lastIncident: '2026-02-28', uptime: 99.5, description: 'Diagnóstico fitosanitario y tratamientos' },
-  { name: 'Nova Yield', code: 'yield', status: 'degraded', lastIncident: '2026-03-16', uptime: 97.2, description: 'Estimaciones de cosecha y modelos predictivos' },
-  { name: 'Protocolo VITAL', code: 'vital', status: 'stable', lastIncident: null, uptime: 99.8, description: 'Diagnóstico de resiliencia y sostenibilidad' },
-  { name: 'Jornales', code: 'jornales', status: 'stable', lastIncident: null, uptime: 99.9, description: 'Gestión de mano de obra y costos laborales' },
-  { name: 'Finanzas', code: 'finanzas', status: 'stable', lastIncident: null, uptime: 99.7, description: 'Costos, ingresos, scoring crediticio' },
-  { name: 'Inventario', code: 'inventario', status: 'beta', lastIncident: null, uptime: 98.0, description: 'Control de insumos y productos en bodega' },
-  { name: 'Nutrición', code: 'nutricion', status: 'stable', lastIncident: '2026-03-02', uptime: 99.4, description: 'Planes nutricionales, análisis de suelo y ejecución' },
+  { name: 'EUDR / Trazabilidad', code: 'eudr', status: 'stable', lastIncident: null, uptime: 99.9, description: 'Dossiers, geolocalización, cadena de custodia', details: 'Módulo de cumplimiento EUDR operando normalmente. 87 dossiers generados, 74 listos para aprobación. Sin incidentes recientes.', remediation: 'Si hay problemas de geolocalización, verificar la tabla parcelas tenga coordenadas válidas:\n\nSELECT id, nombre FROM parcelas WHERE coordenadas IS NULL;' },
+  { name: 'Nova Guard', code: 'guard', status: 'stable', lastIncident: '2026-02-28', uptime: 99.5, description: 'Diagnóstico fitosanitario y tratamientos', details: 'Último incidente el 28 de febrero: falso positivo en diagnóstico de roya por umbral de sensibilidad muy bajo. Se ajustó el threshold de 0.65 a 0.75.', remediation: 'Si se repiten falsos positivos, ajustar el umbral de detección en la configuración del motor:\n\nUPDATE guard_config SET detection_threshold = 0.75 WHERE module = \'roya\';' },
+  { name: 'Nova Yield', code: 'yield', status: 'degraded', lastIncident: '2026-03-16', uptime: 97.2, description: 'Estimaciones de cosecha y modelos predictivos', details: 'DEGRADADO: Latencia elevada (>800ms) durante 45 min el 16 de marzo. El modelo predictivo está consumiendo más recursos de lo esperado en organizaciones con >500 parcelas.', remediation: '1. Verificar el rendimiento de la Edge Function:\n   supabase functions logs nova-yield --tail\n\n2. Si la latencia persiste, optimizar la query principal:\n   CREATE INDEX idx_parcelas_org_yield ON parcelas(organization_id) WHERE variedad IS NOT NULL;\n\n3. Considerar paginar las estimaciones por lotes de 100 parcelas.' },
+  { name: 'Protocolo VITAL', code: 'vital', status: 'stable', lastIncident: null, uptime: 99.8, description: 'Diagnóstico de resiliencia y sostenibilidad', details: 'Protocolo VITAL operando normalmente. Cuestionarios de diagnóstico activos para 5 organizaciones.', remediation: 'Si los scores no se calculan, verificar que las respuestas estén guardadas:\n\nSELECT COUNT(*) FROM vital_respuestas WHERE created_at > NOW() - INTERVAL \'7 days\';' },
+  { name: 'Jornales', code: 'jornales', status: 'stable', lastIncident: null, uptime: 99.9, description: 'Gestión de mano de obra y costos laborales', details: 'Módulo de jornales estable. Procesamiento de planillas y costos sin incidentes.', remediation: 'Si hay errores en cálculos de horas extra, verificar la configuración de jornada en la organización.' },
+  { name: 'Finanzas', code: 'finanzas', status: 'stable', lastIncident: null, uptime: 99.7, description: 'Costos, ingresos, scoring crediticio', details: 'Motor financiero y scoring crediticio funcionando correctamente. Última calibración del modelo: 2026-03-01.', remediation: 'Si el scoring no actualiza, revisar que la vista materializada esté refrescándose:\n\nREFRESH MATERIALIZED VIEW CONCURRENTLY mv_credit_scores;' },
+  { name: 'Inventario', code: 'inventario', status: 'beta', lastIncident: null, uptime: 98.0, description: 'Control de insumos y productos en bodega', details: 'Módulo en BETA. Funcionalidad básica de registro de insumos disponible. Pendientes: alertas de stock bajo, integración con proveedores.', remediation: 'Módulo en beta — reportar bugs directamente en el canal de desarrollo. No requiere intervención de producción.' },
+  { name: 'Nutrición', code: 'nutricion', status: 'stable', lastIncident: '2026-03-02', uptime: 99.4, description: 'Planes nutricionales, análisis de suelo y ejecución', details: 'Último incidente el 2 de marzo: error de cálculo en motor v2.1 al procesar recomendaciones con pH < 4.0. Corregido en v2.1.1.', remediation: 'Si se detectan cálculos incorrectos en planes nutricionales:\n\n1. Verificar versión del motor: SELECT version FROM nutrition_engine_config;\n2. Si es < 2.1.1, actualizar: UPDATE nutrition_engine_config SET version = \'2.1.1\';\n3. Recalcular planes afectados con el RPC: SELECT recalculate_nutrition_plan(plan_id);' },
 ];
 
 // ── Compliance Issues ──
@@ -313,12 +348,12 @@ export const MOCK_INFRA = {
 
 // ── Health Timeline ──
 
-export const MOCK_HEALTH_TIMELINE = [
-  { date: '2026-03-16', event: 'Nova Yield: latencia elevada (>800ms) durante 45 min', severity: 'warning' as const },
-  { date: '2026-03-14', event: 'Migración de base de datos completada sin incidentes', severity: 'info' as const },
-  { date: '2026-03-10', event: 'Edge Function send-client-email: timeout intermitente', severity: 'warning' as const },
-  { date: '2026-03-02', event: 'Nutrición: error de cálculo corregido en motor v2.1', severity: 'info' as const },
-  { date: '2026-02-28', event: 'Nova Guard: falso positivo en diagnóstico de roya', severity: 'warning' as const },
+export const MOCK_HEALTH_TIMELINE: MockHealthEvent[] = [
+  { date: '2026-03-16', event: 'Nova Yield: latencia elevada (>800ms) durante 45 min', severity: 'warning', module: 'Nova Yield', details: 'El modelo predictivo superó los 800ms de latencia durante 45 minutos entre las 14:30 y 15:15 UTC. Afectó a 3 organizaciones con más de 400 parcelas. Se estabilizó automáticamente al reducirse la carga concurrente.', remediation: 'Monitorear con:\n\nsupabase functions logs nova-yield --since 1h\n\nSi recurre, crear un índice optimizado:\nCREATE INDEX idx_yield_org_active ON yield_estimates(organization_id) WHERE status = \'active\';' },
+  { date: '2026-03-14', event: 'Migración de base de datos completada sin incidentes', severity: 'info', module: 'Base de datos', details: 'Migración planificada para agregar columnas de auditoría (created_by, updated_by) a 12 tablas principales. Ejecutada en ventana de mantenimiento (02:00-02:15 UTC). Sin downtime.', remediation: 'No requiere acción. Migración exitosa.' },
+  { date: '2026-03-10', event: 'Edge Function send-client-email: timeout intermitente', severity: 'warning', module: 'Edge Functions', details: 'La función send-client-email experimentó timeouts intermitentes durante 2 horas. Causa: el proveedor SMTP (Resend) tuvo degradación en su API. 12 emails quedaron en cola y se reenviaron automáticamente.', remediation: 'Verificar cola de emails pendientes:\n\nSELECT * FROM email_queue WHERE status = \'pending\' ORDER BY created_at DESC;\n\nSi hay emails atascados, reenviar manualmente o reiniciar la cola.' },
+  { date: '2026-03-02', event: 'Nutrición: error de cálculo corregido en motor v2.1', severity: 'info', module: 'Nutrición', details: 'Bug detectado: el motor v2.1 calculaba incorrectamente recomendaciones de cal para suelos con pH < 4.0, generando valores negativos. Afectó 3 planes de nutrición. Corregido en v2.1.1 y planes recalculados.', remediation: 'Verificar que no queden planes con valores negativos:\n\nSELECT plan_id, recommendation FROM nutrition_recommendations WHERE quantity < 0;' },
+  { date: '2026-02-28', event: 'Nova Guard: falso positivo en diagnóstico de roya', severity: 'warning', module: 'Nova Guard', details: 'El modelo de detección generó 5 falsos positivos de roya en parcelas de Cooperativa La Montaña. Causa: imágenes con alta saturación por lluvia reciente confundieron el clasificador. Se ajustó el threshold de detección de 0.65 a 0.75.', remediation: 'Si se repiten falsos positivos:\n\n1. Revisar las imágenes en Storage > guard-diagnostics/\n2. Ajustar threshold: UPDATE guard_config SET detection_threshold = 0.75;\n3. Re-ejecutar diagnóstico en parcelas afectadas.' },
 ];
 
 // ── Audit Log ──
