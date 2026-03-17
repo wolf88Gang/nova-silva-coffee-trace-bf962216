@@ -348,12 +348,12 @@ export const MOCK_INFRA = {
 
 // ── Health Timeline ──
 
-export const MOCK_HEALTH_TIMELINE = [
-  { date: '2026-03-16', event: 'Nova Yield: latencia elevada (>800ms) durante 45 min', severity: 'warning' as const },
-  { date: '2026-03-14', event: 'Migración de base de datos completada sin incidentes', severity: 'info' as const },
-  { date: '2026-03-10', event: 'Edge Function send-client-email: timeout intermitente', severity: 'warning' as const },
-  { date: '2026-03-02', event: 'Nutrición: error de cálculo corregido en motor v2.1', severity: 'info' as const },
-  { date: '2026-02-28', event: 'Nova Guard: falso positivo en diagnóstico de roya', severity: 'warning' as const },
+export const MOCK_HEALTH_TIMELINE: MockHealthEvent[] = [
+  { date: '2026-03-16', event: 'Nova Yield: latencia elevada (>800ms) durante 45 min', severity: 'warning', module: 'Nova Yield', details: 'El modelo predictivo superó los 800ms de latencia durante 45 minutos entre las 14:30 y 15:15 UTC. Afectó a 3 organizaciones con más de 400 parcelas. Se estabilizó automáticamente al reducirse la carga concurrente.', remediation: 'Monitorear con:\n\nsupabase functions logs nova-yield --since 1h\n\nSi recurre, crear un índice optimizado:\nCREATE INDEX idx_yield_org_active ON yield_estimates(organization_id) WHERE status = \'active\';' },
+  { date: '2026-03-14', event: 'Migración de base de datos completada sin incidentes', severity: 'info', module: 'Base de datos', details: 'Migración planificada para agregar columnas de auditoría (created_by, updated_by) a 12 tablas principales. Ejecutada en ventana de mantenimiento (02:00-02:15 UTC). Sin downtime.', remediation: 'No requiere acción. Migración exitosa.' },
+  { date: '2026-03-10', event: 'Edge Function send-client-email: timeout intermitente', severity: 'warning', module: 'Edge Functions', details: 'La función send-client-email experimentó timeouts intermitentes durante 2 horas. Causa: el proveedor SMTP (Resend) tuvo degradación en su API. 12 emails quedaron en cola y se reenviaron automáticamente.', remediation: 'Verificar cola de emails pendientes:\n\nSELECT * FROM email_queue WHERE status = \'pending\' ORDER BY created_at DESC;\n\nSi hay emails atascados, reenviar manualmente o reiniciar la cola.' },
+  { date: '2026-03-02', event: 'Nutrición: error de cálculo corregido en motor v2.1', severity: 'info', module: 'Nutrición', details: 'Bug detectado: el motor v2.1 calculaba incorrectamente recomendaciones de cal para suelos con pH < 4.0, generando valores negativos. Afectó 3 planes de nutrición. Corregido en v2.1.1 y planes recalculados.', remediation: 'Verificar que no queden planes con valores negativos:\n\nSELECT plan_id, recommendation FROM nutrition_recommendations WHERE quantity < 0;' },
+  { date: '2026-02-28', event: 'Nova Guard: falso positivo en diagnóstico de roya', severity: 'warning', module: 'Nova Guard', details: 'El modelo de detección generó 5 falsos positivos de roya en parcelas de Cooperativa La Montaña. Causa: imágenes con alta saturación por lluvia reciente confundieron el clasificador. Se ajustó el threshold de detección de 0.65 a 0.75.', remediation: 'Si se repiten falsos positivos:\n\n1. Revisar las imágenes en Storage > guard-diagnostics/\n2. Ajustar threshold: UPDATE guard_config SET detection_threshold = 0.75;\n3. Re-ejecutar diagnóstico en parcelas afectadas.' },
 ];
 
 // ── Audit Log ──
