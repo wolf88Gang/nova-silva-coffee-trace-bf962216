@@ -141,7 +141,7 @@ export const SERVICE_REMEDIATIONS: ServiceRemediation[] = [
   },
   {
     service: 'Edge Functions',
-    remediation: 'La Edge Function no está desplegada o tiene un error de CORS. Pasos:\n\n1. En Supabase Dashboard > Edge Functions, verificar que "ensure-demo-user" exista y esté activa\n2. Si no está desplegada: supabase functions deploy ensure-demo-user\n3. Si hay error CORS, agregar headers en la función:\n\nconst corsHeaders = {\n  "Access-Control-Allow-Origin": "*",\n  "Access-Control-Allow-Methods": "POST, OPTIONS",\n};\n\n4. Verificar logs en Supabase Dashboard > Edge Functions > Logs',
+    remediation: 'La Edge Function no respondió correctamente. Posibles causas:\n\n1. Función no desplegada → Desplegar desde Supabase Dashboard > Edge Functions\n2. Error de red o configuración CORS → Verificar headers de la función\n3. Error interno → Revisar logs en Supabase Dashboard > Edge Functions > Logs\n4. Sesión expirada → Hacer logout y login nuevamente',
   },
 ];
 
