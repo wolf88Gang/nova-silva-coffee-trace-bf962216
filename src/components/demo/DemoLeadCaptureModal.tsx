@@ -210,8 +210,10 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
                 placeholder="tu@empresa.com"
                 className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 required
+                maxLength={255}
                 disabled={submitState === 'loading'}
               />
+              {fieldErrors.email && <p className="text-[11px] text-destructive">{fieldErrors.email}</p>}
             </div>
 
             {/* Organización */}
