@@ -5,6 +5,7 @@
  * Adapter-ready: swap submitLead() for real backend when available.
  */
 import { useState } from 'react';
+import { z } from 'zod';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -34,13 +35,21 @@ interface LeadPayload {
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'error';
 
+// ── Validation ──
+
+const leadSchema = z.object({
+  nombre: z.string().trim().min(2, 'Mínimo 2 caracteres').max(100),
+  email: z.string().trim().email('Email inválido').max(255),
+  organizacion: z.string().trim().max(150).optional().default(''),
+  tipoOrganizacion: z.string().max(50).optional().default(''),
+  mensaje: z.string().trim().max(1000).optional().default(''),
+});
+
 // ── Adapter (swap for real backend) ──
 
 async function submitLead(_payload: LeadPayload): Promise<{ ok: boolean; message?: string }> {
   // TODO: Replace with real endpoint when available.
   // Options: Supabase insert to demo_leads, webhook, or email API.
-  // For now, log and return placeholder.
-  console.info('[DemoLeadCapture] Lead captured (no backend connected yet):', _payload);
   return { ok: true, message: 'placeholder' };
 }
 
@@ -74,23 +83,37 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
   const [mensaje, setMensaje] = useState('');
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const isValid = nombre.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid || submitState === 'loading') return;
+    if (submitState === 'loading') return;
+
+    // Validate with Zod
+    const parsed = leadSchema.safeParse({ nombre, email, organizacion, tipoOrganizacion, mensaje });
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      parsed.error.issues.forEach(issue => {
+        const key = String(issue.path[0] || '');
+        if (key && !errs[key]) errs[key] = issue.message;
+      });
+      setFieldErrors(errs);
+      return;
+    }
+    setFieldErrors({});
 
     setSubmitState('loading');
     setErrorMsg('');
 
     try {
       const result = await submitLead({
-        nombre: nombre.trim(),
-        email: email.trim().toLowerCase(),
-        organizacion: organizacion.trim(),
-        tipoOrganizacion,
-        mensaje: mensaje.trim(),
+        nombre: parsed.data.nombre,
+        email: parsed.data.email.toLowerCase(),
+        organizacion: parsed.data.organizacion || '',
+        tipoOrganizacion: parsed.data.tipoOrganizacion || '',
+        mensaje: parsed.data.mensaje || '',
         demoOrgType: config?.orgType || '',
         demoProfileLabel: config?.profileLabel || '',
         demoRoute: location.pathname,
@@ -114,6 +137,7 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
     // Reset after animation
     setTimeout(() => {
       setSubmitState('idle');
+      setFieldErrors({});
       setNombre('');
       setEmail('');
       setOrganizacion('');
@@ -144,7 +168,7 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
               </p>
             </div>
             <p className="text-[10px] text-muted-foreground/60 pt-2">
-              Pendiente de conexión a backend. Lead registrado en consola.
+              Pendiente de conexión a backend.
             </p>
             <button
               onClick={handleClose}
@@ -168,8 +192,10 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
                 placeholder="Tu nombre"
                 className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 required
+                maxLength={100}
                 disabled={submitState === 'loading'}
               />
+              {fieldErrors.nombre && <p className="text-[11px] text-destructive">{fieldErrors.nombre}</p>}
             </div>
 
             {/* Email */}
@@ -185,8 +211,10 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
                 placeholder="tu@empresa.com"
                 className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 required
+                maxLength={255}
                 disabled={submitState === 'loading'}
               />
+              {fieldErrors.email && <p className="text-[11px] text-destructive">{fieldErrors.email}</p>}
             </div>
 
             {/* Organización */}
