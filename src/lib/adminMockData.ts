@@ -77,6 +77,15 @@ export interface MockAlert {
   time: string;
   actionLabel?: string;
   actionUrl?: string;
+  /** Detail fields for expanded view */
+  detail?: {
+    descripcion: string;
+    accionTomada: string;
+    estado: 'enviado' | 'pendiente' | 'resuelto' | 'en_progreso';
+    fechaAccion?: string;
+    destinatario?: string;
+    canal?: string;
+  };
 }
 
 export interface MockFeedback {
