@@ -12,6 +12,7 @@ import {
   SectionHeader, EmptyState, PendingIntegration,
 } from '@/components/admin/shared/AdminComponents';
 import { useState } from 'react';
+import LeadsPipelineTable from '@/components/admin/LeadsPipelineTable';
 
 const MEL_EMPTY = "Pendiente de integración con backend de analítica.";
 
@@ -26,6 +27,9 @@ export default function AdminGrowth() {
       />
 
       <PendingIntegration feature="Analytics backend (eventos, métricas de uso, conversiones)" />
+
+      {/* Leads pipeline — reads from demo_leads */}
+      <LeadsPipelineTable />
 
       {/* M&E / MEL Section */}
       <Card className="border-primary/20">
