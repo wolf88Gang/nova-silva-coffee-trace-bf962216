@@ -459,28 +459,53 @@ const DemoLogin = () => {
 
             {/* Step 0: Landing */}
             {step === 0 && (
-              <div className="text-center space-y-8 animate-fade-in">
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Explora Nova Silva</h2>
-                  <p className="text-white/50 text-sm leading-relaxed max-w-md mx-auto">
-                    Configura un demo adaptado a tu tipo de organización, modelo operativo y módulos de interés.
+              <div className="text-center space-y-10 animate-fade-in">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/10 text-white/50 text-xs mb-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--accent-orange))]" />
+                    </span>
+                    Entorno interactivo
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                    Explora Nova Silva<br />
+                    <span className="text-[hsl(var(--accent-orange))]">en modo demo</span>
+                  </h2>
+                  <p className="text-white/45 text-sm leading-relaxed max-w-lg mx-auto">
+                    Simula la experiencia como cooperativa, exportador, finca empresarial o certificadora. Sin registro, sin compromiso.
                   </p>
                 </div>
+
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link
-                    to="/demo/setup"
-                    className="inline-flex items-center gap-2.5 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-8 rounded-xl transition-all text-sm shadow-lg shadow-[hsl(var(--accent-orange))]/20 active:scale-[0.97]"
-                  >
-                    Iniciar demo personalizado
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
                   <button
                     onClick={() => setStep(1)}
-                    className="inline-flex items-center gap-2 text-white/50 hover:text-white text-sm py-3 px-6 rounded-xl border border-white/15 hover:border-white/30 hover:bg-white/5 transition-all active:scale-[0.97]"
+                    className="inline-flex items-center gap-2.5 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-10 rounded-xl transition-all text-sm shadow-lg shadow-[hsl(var(--accent-orange))]/20 active:scale-[0.97]"
                   >
-                    Arquetipos preconfigurados
-                    <ChevronRight className="h-4 w-4" />
+                    Iniciar demo
+                    <ArrowRight className="h-4 w-4" />
                   </button>
+                  <Link
+                    to="/demo/setup"
+                    className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm py-3 px-6 rounded-xl border border-white/15 hover:border-white/30 hover:bg-white/5 transition-all active:scale-[0.97]"
+                  >
+                    Configurar demo personalizado
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+
+                <div className="flex items-center justify-center gap-6 pt-2">
+                  {[
+                    { icon: Building2, label: 'Cooperativas' },
+                    { icon: Truck, label: 'Exportadores' },
+                    { icon: Sprout, label: 'Fincas' },
+                    { icon: ShieldCheck, label: 'Certificadoras' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center gap-1.5 text-white/25 text-xs">
+                      <item.icon className="h-3.5 w-3.5" />
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -493,8 +518,8 @@ const DemoLogin = () => {
                     <button onClick={handleBack} className="flex items-center gap-1 text-white/40 hover:text-white text-xs mb-2 transition-colors">
                       <ChevronLeft className="h-3.5 w-3.5" /> Volver
                     </button>
-                    <h2 className="text-xl md:text-2xl font-bold text-white">Elige tu organización</h2>
-                    <p className="text-white/40 text-xs mt-1">Selecciona el tipo de organización que quieres explorar</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-white">Elige tu tipo de organizacion</h2>
+                    <p className="text-white/40 text-xs mt-1">Selecciona la operacion que quieres explorar</p>
                   </div>
                   <StepIndicator current={0} total={3} />
                 </div>
