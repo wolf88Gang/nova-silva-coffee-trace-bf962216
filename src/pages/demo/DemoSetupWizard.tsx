@@ -785,8 +785,16 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         </div>
       </div>
 
+      {/* Error display */}
+      {enterError && (
+        <div className="mt-4 p-4 rounded-xl border border-destructive/40 bg-destructive/10 space-y-2">
+          <p className="text-sm font-semibold text-destructive">{enterError.title}</p>
+          <p className="text-xs text-white/60">{enterError.description}</p>
+        </div>
+      )}
+
       {/* CTA */}
-      <div className="mt-6">
+      <div className="mt-4">
         <button
           onClick={onEnter}
           disabled={entering}
@@ -799,6 +807,8 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         >
           {entering ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Preparando tu demo…</>
+          ) : enterError ? (
+            <><Play className="h-4 w-4" /> Reintentar</>
           ) : (
             <><Play className="h-4 w-4" /> Entrar al demo</>
           )}
