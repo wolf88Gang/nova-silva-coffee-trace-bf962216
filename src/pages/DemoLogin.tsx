@@ -367,7 +367,7 @@ const DemoLogin = () => {
   };
 
   const handleEnter = async () => {
-    if (!selectedProfile || !selectedOrg) return;
+    if (!selectedProfile || !selectedOrg || loadingRole) return;
     setLoadingRole(selectedProfile.role);
 
     setDemoConfig({
@@ -383,14 +383,23 @@ const DemoLogin = () => {
       if (selectedProfile.role !== 'admin') {
         const result = await ensureDemoUser(selectedProfile.role);
         if (!result.ok) {
+          const errInfo = interpretDemoError(result);
           console.error('ensure-demo-user failed:', result.error, result.status);
           toast({
-            title: 'Error preparando demo',
-            description: result.error || 'No se pudo preparar el usuario demo',
+            title: errInfo.title,
+            description: errInfo.description,
             variant: 'destructive',
           });
           setLoadingRole(null);
           return;
+        }
+
+        // Check for no-org warning
+        if (isNoOrgResult(result)) {
+          toast({
+            title: 'Demo sin organización',
+            description: 'Estás en modo demo sin organización. Algunas funciones pueden estar limitadas.',
+          });
         }
       }
 
@@ -406,10 +415,14 @@ const DemoLogin = () => {
         toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
         setLoadingRole(null);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Demo login error:', err);
       pendingRedirect.current = null;
-      toast({ title: 'Error', description: 'Error de conexión. Intenta de nuevo.', variant: 'destructive' });
+      toast({
+        title: 'Sin conexión',
+        description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+        variant: 'destructive',
+      });
       setLoadingRole(null);
     }
   };
