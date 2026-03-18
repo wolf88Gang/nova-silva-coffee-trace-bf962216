@@ -191,8 +191,10 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
                 placeholder="Tu nombre"
                 className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 required
+                maxLength={100}
                 disabled={submitState === 'loading'}
               />
+              {fieldErrors.nombre && <p className="text-[11px] text-destructive">{fieldErrors.nombre}</p>}
             </div>
 
             {/* Email */}
