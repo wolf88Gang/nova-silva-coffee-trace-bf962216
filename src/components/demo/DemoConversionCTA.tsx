@@ -170,9 +170,11 @@ function CTAConfirmation({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
         : 'bg-primary/5 text-primary border border-primary/10'
     )}>
       <span className="relative flex h-1.5 w-1.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
       </span>
+      Listo para conectar con formulario o Calendly
+    </div>
       Listo para conectar con formulario o Calendly
     </div>
   );
