@@ -9,6 +9,7 @@ import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { ensureDemoUser } from '@/lib/ensureDemoUser';
+import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -162,6 +163,7 @@ function getNarrative(state: SetupState): string {
 export default function DemoSetupWizard() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState<Step>(0);
   const [state, setState] = useState<SetupState>(INITIAL);
   const [entering, setEntering] = useState(false);
@@ -209,6 +211,11 @@ export default function DemoSetupWizard() {
       const result = await ensureDemoUser(arch.role);
       if (!result.ok) {
         console.error('ensure-demo-user failed:', result.error, result.status);
+        toast({
+          title: 'Error preparando demo',
+          description: result.error || 'No se pudo preparar el usuario demo',
+          variant: 'destructive',
+        });
         setEntering(false);
         return;
       }
