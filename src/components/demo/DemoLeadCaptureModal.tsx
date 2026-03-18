@@ -2,10 +2,11 @@
  * DemoLeadCaptureModal — Captures commercial intent from demo users.
  * Fields: nombre, email, organización, tipo, mensaje.
  * Pre-fills orgType and profileLabel from demo config.
- * Adapter-ready: swap submitLead() for real backend when available.
+ * Uses external Supabase (table: demo_leads) for persistence.
  */
 import { useState } from 'react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -47,10 +48,28 @@ const leadSchema = z.object({
 
 // ── Adapter (swap for real backend) ──
 
-async function submitLead(_payload: LeadPayload): Promise<{ ok: boolean; message?: string }> {
-  // TODO: Replace with real endpoint when available.
-  // Options: Supabase insert to demo_leads, webhook, or email API.
-  return { ok: true, message: 'placeholder' };
+async function submitLead(payload: LeadPayload): Promise<{ ok: boolean; message?: string }> {
+  try {
+    const { error } = await supabase.from('demo_leads').insert({
+      nombre: payload.nombre,
+      email: payload.email,
+      organizacion: payload.organizacion || null,
+      tipo_organizacion: payload.tipoOrganizacion || null,
+      mensaje: payload.mensaje || null,
+      demo_org_type: payload.demoOrgType || null,
+      demo_profile_label: payload.demoProfileLabel || null,
+      demo_route: payload.demoRoute || null,
+      cta_source: payload.ctaSource || null,
+    });
+    if (error) {
+      console.error('[DemoLead] insert error:', error.message);
+      return { ok: false, message: 'No se pudo guardar la solicitud. Intenta de nuevo.' };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error('[DemoLead] network error:', err);
+    return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
+  }
 }
 
 // ── Org type options ──
@@ -167,9 +186,6 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
                 Nuestro equipo te contactará pronto.
               </p>
             </div>
-            <p className="text-[10px] text-muted-foreground/60 pt-2">
-              Pendiente de conexión a backend.
-            </p>
             <button
               onClick={handleClose}
               className="mt-2 text-xs font-medium text-primary hover:underline"
