@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   TrendingUp, Users, MessageSquare, Mail, Megaphone, ArrowRight,
-  BarChart3, Globe, Shield, Cpu, Download, FileText, Target,
+  BarChart3, Globe, Shield, Cpu, Download, Target,
   ArrowUpRight, ArrowDownRight, Minus,
 } from 'lucide-react';
-import { SectionHeader, MetricCard, StatusBadge, PendingIntegration } from '@/components/admin/shared/AdminComponents';
+import {
+  SectionHeader, MetricCard, StatusBadge, EmptyState,
+  DataSourceBadge, PendingIntegration, LimitedDataNotice,
+} from '@/components/admin/shared/AdminComponents';
 import { useAdminGrowthData } from '@/hooks/useAdminDataAdapters';
 import {
   MOCK_MEL_INDICATORS, MOCK_MEL_ORG_IMPACT,
@@ -35,8 +38,9 @@ function IndicatorRow({ ind }: { ind: MELIndicator }) {
         <p className="text-sm font-medium text-foreground">{ind.name}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-xs text-muted-foreground">{ind.period}</span>
-          {ind.baseline && <span className="text-xs text-muted-foreground">· Base: {ind.baseline}</span>}
-          {ind.target && <span className="text-xs text-muted-foreground">· Meta: {ind.target}</span>}
+          {ind.baseline && <span className="text-xs text-muted-foreground">. Base: {ind.baseline}</span>}
+          {ind.target && <span className="text-xs text-muted-foreground">. Meta: {ind.target}</span>}
+          <DataSourceBadge source={ind.source === 'real' ? 'real' : 'mock'} />
         </div>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
@@ -51,6 +55,9 @@ function IndicatorRow({ ind }: { ind: MELIndicator }) {
 // ── M&E Org Impact Table ──
 
 function OrgImpactTable({ orgs }: { orgs: MELOrgImpact[] }) {
+  if (orgs.length === 0) {
+    return <EmptyState title="No hay datos disponibles" description="Sin datos de impacto por organización." />;
+  }
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -175,21 +182,26 @@ export default function AdminGrowth() {
   return (
     <div className="space-y-6 animate-fade-in">
       <SectionHeader
-        title="Growth, Feedback & M&E"
+        title="Growth, Feedback y M&E"
         subtitle="Leads, conversión, feedback, campañas e indicadores de impacto"
-        actions={<PendingIntegration feature="Analytics backend" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <DataSourceBadge source="mock" />
+          </div>
+        }
       />
 
-      {/* ═══ M&E / MEL Section ═══ */}
+      <PendingIntegration feature="Analytics backend (eventos, métricas de uso, conversiones)" />
+
+      {/* M&E / MEL Section */}
       <Card className="border-primary/20">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
-              Monitoreo, Evaluación & Aprendizaje (M&E)
+              Monitoreo, Evaluación y Aprendizaje (M&E)
             </CardTitle>
             <div className="flex items-center gap-2">
-              <PendingIntegration feature="Datos reales M&E" />
               <Button variant="outline" size="sm" className="gap-1.5" onClick={exportMELToCSV}>
                 <Download className="h-3.5 w-3.5" /> Exportar indicadores CSV
               </Button>
@@ -207,19 +219,27 @@ export default function AdminGrowth() {
             </TabsList>
 
             <TabsContent value="impact" className="space-y-2">
-              {impactIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
+              {impactIndicators.length === 0 ? (
+                <EmptyState title="No hay datos disponibles" description="Sin indicadores de impacto configurados." />
+              ) : impactIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
             </TabsContent>
 
             <TabsContent value="eudr" className="space-y-2">
-              {eudrIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
+              {eudrIndicators.length === 0 ? (
+                <EmptyState title="No hay datos disponibles" description="Sin indicadores EUDR configurados." />
+              ) : eudrIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
             </TabsContent>
 
             <TabsContent value="platform" className="space-y-2">
-              {platformIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
+              {platformIndicators.length === 0 ? (
+                <EmptyState title="No hay datos disponibles" description="Sin indicadores de plataforma configurados." />
+              ) : platformIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
             </TabsContent>
 
             <TabsContent value="adoption" className="space-y-2">
-              {adoptionIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
+              {adoptionIndicators.length === 0 ? (
+                <EmptyState title="No hay datos disponibles" description="Sin indicadores de adopción configurados." />
+              ) : adoptionIndicators.map(i => <IndicatorRow key={i.id} ind={i} />)}
             </TabsContent>
 
             <TabsContent value="orgs">
@@ -235,20 +255,33 @@ export default function AdminGrowth() {
         </CardContent>
       </Card>
 
-      {/* ═══ Conversion KPIs ═══ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MetricCard label="Nuevos registros (mes)" value={7} icon={Users} />
-        <MetricCard label="Conversión trial→paid" value="42%" icon={TrendingUp} trend="up" />
-        <MetricCard label="Bugs reportados" value={growth.feedback.filter(f => f.type === 'bug').length} icon={MessageSquare} />
-        <MetricCard label="Sugerencias" value={growth.feedback.filter(f => f.type === 'sugerencia').length} icon={MessageSquare} />
+      {/* Conversion KPIs */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Conversión y feedback</span>
+          <DataSourceBadge source="mock" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <MetricCard label="Nuevos registros (mes)" value={7} icon={Users} source="mock" />
+          <MetricCard label="Conversión trial a paid" value="42%" icon={TrendingUp} trend="up" source="mock" />
+          <MetricCard label="Bugs reportados" value={growth.feedback.filter(f => f.type === 'bug').length} icon={MessageSquare} source="mock" />
+          <MetricCard label="Sugerencias" value={growth.feedback.filter(f => f.type === 'sugerencia').length} icon={MessageSquare} source="mock" />
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
         {/* Opportunities */}
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Oportunidades</CardTitle></CardHeader>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Oportunidades</CardTitle>
+              <DataSourceBadge source="mock" />
+            </div>
+          </CardHeader>
           <CardContent className="space-y-2">
-            {growth.opportunities.map((opp, i) => (
+            {growth.opportunities.length === 0 ? (
+              <EmptyState title="No hay datos disponibles" description="Sin oportunidades detectadas." />
+            ) : growth.opportunities.map((opp, i) => (
               <div key={i} className="p-3 rounded-lg bg-muted/40 border border-border/50">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-medium text-foreground">{opp.orgName}</span>
@@ -263,13 +296,20 @@ export default function AdminGrowth() {
 
         {/* Feedback */}
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Feedback</CardTitle></CardHeader>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Feedback</CardTitle>
+              <DataSourceBadge source="mock" />
+            </div>
+          </CardHeader>
           <CardContent className="space-y-2">
-            {growth.feedback.map(f => (
+            {growth.feedback.length === 0 ? (
+              <EmptyState title="No hay datos disponibles" description="Sin feedback recibido." />
+            ) : growth.feedback.map(f => (
               <div key={f.id} className="p-3 rounded-lg bg-muted/40 border border-border/50">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-medium text-foreground">{f.user}</span>
-                  <span className="text-xs text-muted-foreground">· {f.orgName}</span>
+                  <span className="text-xs text-muted-foreground">. {f.orgName}</span>
                   <Badge variant={f.type === 'bug' ? 'destructive' : f.type === 'sugerencia' ? 'secondary' : 'outline'} className="ml-auto text-xs">{f.type}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{f.message}</p>
@@ -292,16 +332,21 @@ export default function AdminGrowth() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2"><Megaphone className="h-4 w-4" /> Campañas</CardTitle>
-            <Button variant="outline" size="sm" className="gap-1.5"><Mail className="h-3.5 w-3.5" /> Nueva campaña</Button>
+            <div className="flex items-center gap-2">
+              <DataSourceBadge source="mock" />
+              <Button variant="outline" size="sm" className="gap-1.5"><Mail className="h-3.5 w-3.5" /> Nueva campaña</Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          {growth.campaigns.map(c => (
+          {growth.campaigns.length === 0 ? (
+            <EmptyState title="No hay datos disponibles" description="Sin campañas registradas." />
+          ) : growth.campaigns.map(c => (
             <div key={c.id} className="flex items-center gap-4 p-4 rounded-lg bg-muted/40 border border-border/50">
               <Mail className="h-5 w-5 text-primary" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">{c.name}</p>
-                <p className="text-xs text-muted-foreground">{c.audience} · {c.audienceCount} orgs · {c.date}</p>
+                <p className="text-xs text-muted-foreground">{c.audience} . {c.audienceCount} orgs . {c.date}</p>
               </div>
               {c.openRate !== undefined && <span className="text-xs text-muted-foreground">{c.openRate}% apertura</span>}
               <Badge variant={c.status === 'sent' ? 'default' : c.status === 'scheduled' ? 'secondary' : 'outline'} className="capitalize">

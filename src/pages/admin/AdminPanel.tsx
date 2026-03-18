@@ -15,25 +15,11 @@ import {
   useAdminKPIs,
   useSystemHealth,
 } from '@/hooks/useAdminData';
-
-// ── KPI Card ──
-function KPICard({ label, value, icon: Icon, loading }: { label: string; value: number | string; icon: React.ElementType; loading?: boolean }) {
-  return (
-    <Card>
-      <CardContent className="pt-4 pb-3 px-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Icon className="h-4 w-4 text-primary" />
-          <span className="text-xs text-muted-foreground">{label}</span>
-        </div>
-        {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold text-foreground">{value}</p>}
-      </CardContent>
-    </Card>
-  );
-}
+import { ErrorState, EmptyState, DataSourceBadge, MetricCard } from '@/components/admin/shared/AdminComponents';
 
 // ── Organizations Tab ──
 function OrganizationsTab() {
-  const { data: orgs, isLoading, refetch } = useAdminOrganizations();
+  const { data: orgs, isLoading, isError, error, refetch } = useAdminOrganizations();
   const [search, setSearch] = useState('');
 
   const filtered = (orgs ?? []).filter(o =>
@@ -46,7 +32,10 @@ function OrganizationsTab() {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Organizaciones registradas</CardTitle>
-          <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
+          <div className="flex items-center gap-2">
+            <DataSourceBadge source="real" />
+            <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
+          </div>
         </div>
         <div className="relative mt-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -56,8 +45,10 @@ function OrganizationsTab() {
       <CardContent>
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-14 w-full" />)}</div>
+        ) : isError ? (
+          <ErrorState message={error?.message ?? 'Verificar conexión o permisos.'} onRetry={() => refetch()} />
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">No se encontraron organizaciones</p>
+          <EmptyState title="No hay datos disponibles" description="No se encontraron organizaciones." />
         ) : (
           <div className="space-y-2">
             {filtered.map(o => (
@@ -66,7 +57,7 @@ function OrganizationsTab() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{o.nombre}</p>
                   <p className="text-xs text-muted-foreground">
-                    ID: <span className="font-mono">{o.id.slice(0, 8)}…</span> · Creado: {new Date(o.created_at).toLocaleDateString('es')}
+                    ID: <span className="font-mono">{o.id.slice(0, 8)}...</span> . Creado: {new Date(o.created_at).toLocaleDateString('es')}
                   </p>
                 </div>
                 <Badge variant="outline" className="capitalize shrink-0">{o.tipo}</Badge>
@@ -81,7 +72,7 @@ function OrganizationsTab() {
 
 // ── Users Tab ──
 function UsersTab() {
-  const { data: users, isLoading, refetch } = useAdminUsers();
+  const { data: users, isLoading, isError, error, refetch } = useAdminUsers();
   const [search, setSearch] = useState('');
 
   const filtered = (users ?? []).filter(u =>
@@ -101,7 +92,10 @@ function UsersTab() {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Usuarios del sistema</CardTitle>
-          <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
+          <div className="flex items-center gap-2">
+            <DataSourceBadge source="real" />
+            <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
+          </div>
         </div>
         <div className="relative mt-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -111,8 +105,10 @@ function UsersTab() {
       <CardContent>
         {isLoading ? (
           <div className="space-y-3">{[1,2,3,4].map(i => <Skeleton key={i} className="h-14 w-full" />)}</div>
+        ) : isError ? (
+          <ErrorState message={error?.message ?? 'Verificar conexión o permisos.'} onRetry={() => refetch()} />
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">No se encontraron usuarios</p>
+          <EmptyState title="No hay datos disponibles" description="No se encontraron usuarios." />
         ) : (
           <div className="space-y-2">
             {filtered.map(u => (
@@ -121,10 +117,10 @@ function UsersTab() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{u.name ?? 'Sin nombre'}</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {u.organization_name ?? 'Sin organización'} · <span className="font-mono">{u.user_id.slice(0, 8)}…</span>
+                    {u.organization_name ?? 'Sin organización'} . <span className="font-mono">{u.user_id.slice(0, 8)}...</span>
                   </p>
                 </div>
-                <Badge variant={roleBadgeVariant(u.role)} className="capitalize shrink-0">{u.role ?? 'sin rol'}</Badge>
+                <Badge variant={roleBadgeVariant(u.role)} className="capitalize shrink-0">{u.role ?? 'Sin rol'}</Badge>
               </div>
             ))}
           </div>
@@ -136,10 +132,10 @@ function UsersTab() {
 
 // ── System Health Tab ──
 function SystemHealthTab() {
-  const { data: checks, isLoading, refetch, dataUpdatedAt } = useSystemHealth();
+  const { data: checks, isLoading, isError, error, refetch, dataUpdatedAt } = useSystemHealth();
 
   const statusIcon = (status: string) => {
-    if (status === 'ok') return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
+    if (status === 'ok') return <CheckCircle2 className="h-5 w-5 text-success" />;
     if (status === 'error') return <XCircle className="h-5 w-5 text-destructive" />;
     return <Clock className="h-5 w-5 text-muted-foreground animate-spin" />;
   };
@@ -150,9 +146,10 @@ function SystemHealthTab() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Estado del sistema</CardTitle>
           <div className="flex items-center gap-2">
+            <DataSourceBadge source="real" label="Health checks reales" />
             {dataUpdatedAt > 0 && (
               <span className="text-xs text-muted-foreground">
-                Último check: {new Date(dataUpdatedAt).toLocaleTimeString('es')}
+                Ultimo check: {new Date(dataUpdatedAt).toLocaleTimeString('es')}
               </span>
             )}
             <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
@@ -162,9 +159,13 @@ function SystemHealthTab() {
       <CardContent>
         {isLoading ? (
           <div className="space-y-3">{[1,2,3,4].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
+        ) : isError ? (
+          <ErrorState message={error?.message ?? 'No se pudo verificar el estado del sistema.'} onRetry={() => refetch()} />
+        ) : !checks || checks.length === 0 ? (
+          <EmptyState title="No hay datos disponibles" description="Sin servicios para verificar." />
         ) : (
           <div className="space-y-3">
-            {(checks ?? []).map(c => (
+            {checks.map(c => (
               <div key={c.service} className="flex items-center gap-4 p-4 rounded-lg bg-muted/40 border border-border/50">
                 {statusIcon(c.status)}
                 <div className="flex-1">
@@ -188,21 +189,25 @@ function SystemHealthTab() {
 // ── Main Admin Panel ──
 export default function AdminPanel() {
   const kpis = useAdminKPIs();
+  const hasError = !!kpis.error;
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Panel de administración</h1>
-        <p className="text-sm text-muted-foreground mt-1">Gestión centralizada de Nova Silva Platform</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Panel de administración</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gestión centralizada de Nova Silva Platform</p>
+        </div>
+        <DataSourceBadge source="real" />
       </div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KPICard label="Organizaciones" value={kpis.orgCount} icon={Building2} loading={kpis.isLoading} />
-        <KPICard label="Usuarios totales" value={kpis.userCount} icon={Users} loading={kpis.isLoading} />
-        <KPICard label="Administradores" value={kpis.adminCount} icon={Shield} loading={kpis.isLoading} />
-        <KPICard label="Tipos de org" value={kpis.orgTypes.size} icon={Boxes} loading={kpis.isLoading} />
+        <MetricCard label="Organizaciones" value={kpis.orgCount} icon={Building2} loading={kpis.isLoading} error={hasError} />
+        <MetricCard label="Usuarios totales" value={kpis.userCount} icon={Users} loading={kpis.isLoading} error={hasError} />
+        <MetricCard label="Administradores" value={kpis.adminCount} icon={Shield} loading={kpis.isLoading} error={hasError} />
+        <MetricCard label="Tipos de org" value={kpis.orgTypes.size} icon={Boxes} loading={kpis.isLoading} error={hasError} />
       </div>
 
       {/* Tabbed sections */}

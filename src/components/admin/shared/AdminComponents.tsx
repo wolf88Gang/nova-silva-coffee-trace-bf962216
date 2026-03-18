@@ -30,12 +30,14 @@ export function StatusBadge({ status, label }: { status: 'ok' | 'warning' | 'err
 
 // ── MetricCard ──
 
-export function MetricCard({ label, value, icon: Icon, sublabel, trend, loading, className }: {
+export function MetricCard({ label, value, icon: Icon, sublabel, trend, loading, className, source, error }: {
   label: string; value: string | number; icon: React.ElementType; sublabel?: string;
   trend?: 'up' | 'down' | 'neutral'; loading?: boolean; className?: string;
+  source?: 'real' | 'mock' | 'partial'; error?: boolean;
 }) {
+  const isEmpty = !loading && !error && (value === '' || value === 0 || value === '0' || value === null || value === undefined);
   return (
-    <Card className={className}>
+    <Card className={cn(className, error && 'border-destructive/30')}>
       <CardContent className="pt-4 pb-3 px-4">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
@@ -45,8 +47,17 @@ export function MetricCard({ label, value, icon: Icon, sublabel, trend, loading,
           {trend === 'up' && <TrendingUp className="h-3.5 w-3.5 text-success" />}
           {trend === 'down' && <TrendingDown className="h-3.5 w-3.5 text-destructive" />}
         </div>
-        {loading ? <Skeleton className="h-8 w-20" /> : <p className="text-2xl font-bold text-foreground">{value}</p>}
+        {loading ? (
+          <Skeleton className="h-8 w-20" />
+        ) : error ? (
+          <p className="text-sm text-destructive">Error</p>
+        ) : isEmpty ? (
+          <p className="text-sm text-muted-foreground">Sin datos</p>
+        ) : (
+          <p className="text-2xl font-bold text-foreground">{value}</p>
+        )}
         {sublabel && <p className="text-xs text-muted-foreground mt-0.5">{sublabel}</p>}
+        {source === 'mock' && <p className="text-[10px] text-muted-foreground/60 mt-1 italic">Pendiente de integración</p>}
       </CardContent>
     </Card>
   );
@@ -147,14 +158,71 @@ export function EmptyState({ title, description, icon: Icon }: {
 
 // ── PendingIntegration ──
 
-export function PendingIntegration({ feature }: { feature: string }) {
+export function PendingIntegration({ feature, compact }: { feature: string; compact?: boolean }) {
+  if (compact) {
+    return (
+      <Badge variant="outline" className="gap-1 text-xs font-normal border-dashed border-warning/40 text-warning bg-warning/5">
+        <Construction className="h-3 w-3" /> Pendiente de integración
+      </Badge>
+    );
+  }
   return (
-    <div className="flex items-center gap-3 p-4 rounded-lg border border-dashed border-border bg-muted/20">
-      <Construction className="h-5 w-5 text-muted-foreground shrink-0" />
+    <div className="flex items-center gap-3 p-4 rounded-lg border border-dashed border-warning/30 bg-warning/5">
+      <Construction className="h-5 w-5 text-warning shrink-0" />
       <div>
         <p className="text-sm font-medium text-foreground">{feature}</p>
-        <p className="text-xs text-muted-foreground">Pendiente de integración con backend. Datos de ejemplo.</p>
+        <p className="text-xs text-muted-foreground">Pendiente de integración con backend. Datos no verificables.</p>
       </div>
+    </div>
+  );
+}
+
+// ── DataSourceBadge ── Shows whether data is real or mock/pending
+
+export function DataSourceBadge({ source, label }: { source: 'real' | 'mock' | 'partial'; label?: string }) {
+  if (source === 'real') {
+    return (
+      <Badge variant="outline" className="gap-1 text-xs font-normal border-success/40 text-success bg-success/5">
+        <CheckCircle2 className="h-3 w-3" /> {label ?? 'Datos reales'}
+      </Badge>
+    );
+  }
+  if (source === 'partial') {
+    return (
+      <Badge variant="outline" className="gap-1 text-xs font-normal border-warning/40 text-warning bg-warning/5">
+        <AlertTriangle className="h-3 w-3" /> {label ?? 'Datos limitados'}
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="gap-1 text-xs font-normal border-dashed border-muted-foreground/40 text-muted-foreground">
+      <Construction className="h-3 w-3" /> {label ?? 'Pendiente de integración'}
+    </Badge>
+  );
+}
+
+// ── ErrorState ──
+
+export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <XCircle className="h-10 w-10 text-destructive/50 mb-3" />
+      <p className="text-sm font-medium text-foreground">Error al cargar datos</p>
+      <p className="text-xs text-muted-foreground mt-1 max-w-sm">{message ?? 'Verificar conexión o permisos.'}</p>
+      {onRetry && (
+        <button onClick={onRetry} className="mt-3 text-xs text-primary hover:underline">Reintentar</button>
+      )}
+    </div>
+  );
+}
+
+// ── LimitedDataNotice ──
+
+export function LimitedDataNotice({ message }: { message?: string }) {
+  return (
+    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-dashed border-warning/30 bg-warning/5">
+      <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+      <p className="text-xs text-muted-foreground">{message ?? 'Datos limitados o pendiente de integración'}</p>
     </div>
   );
 }
