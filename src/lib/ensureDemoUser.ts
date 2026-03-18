@@ -10,6 +10,7 @@ const FUNCTION_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co/functions/v1/ensu
 export interface EnsureDemoResult {
   ok: boolean;
   error?: string;
+  message?: string;
   /** HTTP status code if available */
   status?: number;
 }
