@@ -28,6 +28,9 @@ export default function AdminGrowth() {
 
       <PendingIntegration feature="Analytics backend (eventos, métricas de uso, conversiones)" />
 
+      {/* Leads pipeline — reads from demo_leads */}
+      <LeadsPipelineTable />
+
       {/* M&E / MEL Section */}
       <Card className="border-primary/20">
         <CardHeader className="pb-3">
