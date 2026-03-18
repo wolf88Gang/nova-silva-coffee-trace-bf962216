@@ -3,7 +3,7 @@
  * Shows dismissable tooltip-like hints on key dashboard areas.
  * After visiting 3+ sections, shows a conversion CTA.
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { isDemoEligibleUser } from '@/hooks/useDemoConfig';
 import { useLocation } from 'react-router-dom';
