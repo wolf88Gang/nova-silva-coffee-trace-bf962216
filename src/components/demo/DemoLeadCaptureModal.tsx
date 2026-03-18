@@ -137,6 +137,7 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
     // Reset after animation
     setTimeout(() => {
       setSubmitState('idle');
+      setFieldErrors({});
       setNombre('');
       setEmail('');
       setOrganizacion('');
