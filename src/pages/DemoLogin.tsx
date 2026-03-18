@@ -614,7 +614,14 @@ const DemoLogin = () => {
                     disabled={!!loadingRole}
                     className="w-full flex items-center justify-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[hsl(var(--accent-orange))]/20 active:scale-[0.97]"
                   >
-                    {loadingRole ? (<><Loader2 className="h-4 w-4 animate-spin" /><span>Ingresando…</span></>) : (<span>Entrar al entorno demo</span>)}
+                    {loadingRole ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Preparando entorno…</span>
+                      </>
+                    ) : (
+                      <span>Entrar al entorno demo</span>
+                    )}
                   </button>
                 </div>
                 <button onClick={handleBack} className="flex items-center justify-center gap-1.5 text-white/40 hover:text-white text-xs mt-4 mx-auto transition-colors">
