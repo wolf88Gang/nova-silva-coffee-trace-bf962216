@@ -573,9 +573,10 @@ function StepScale({ state, update, onNext, onBack }: { state: SetupState; updat
 
 // ── Step 5: Summary ──
 
-function StepSummary({ state, model, archetype, narrative, onEnter, onBack, entering }: {
+function StepSummary({ state, model, archetype, narrative, onEnter, onBack, entering, enterError }: {
   state: SetupState; model: string; archetype: ReturnType<typeof mapToArchetype>; narrative: string;
   onEnter: () => void; onBack: () => void; entering: boolean;
+  enterError: { title: string; description: string } | null;
 }) {
   const orgLabel = ORG_TYPES.find(o => o.value === state.orgType)?.label || state.orgType;
   const uniqueModules = [...new Set(archetype.modules)];
