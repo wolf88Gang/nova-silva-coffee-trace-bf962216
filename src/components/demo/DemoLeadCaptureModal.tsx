@@ -35,13 +35,21 @@ interface LeadPayload {
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'error';
 
+// ── Validation ──
+
+const leadSchema = z.object({
+  nombre: z.string().trim().min(2, 'Mínimo 2 caracteres').max(100),
+  email: z.string().trim().email('Email inválido').max(255),
+  organizacion: z.string().trim().max(150).optional().default(''),
+  tipoOrganizacion: z.string().max(50).optional().default(''),
+  mensaje: z.string().trim().max(1000).optional().default(''),
+});
+
 // ── Adapter (swap for real backend) ──
 
 async function submitLead(_payload: LeadPayload): Promise<{ ok: boolean; message?: string }> {
   // TODO: Replace with real endpoint when available.
   // Options: Supabase insert to demo_leads, webhook, or email API.
-  // For now, log and return placeholder.
-  console.info('[DemoLeadCapture] Lead captured (no backend connected yet):', _payload);
   return { ok: true, message: 'placeholder' };
 }
 
