@@ -148,7 +148,7 @@ export function DemoWelcomeModal() {
         </div>
 
         {/* CTA */}
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 space-y-3">
           <button
             onClick={handleClose}
             className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
@@ -156,6 +156,7 @@ export function DemoWelcomeModal() {
             Comenzar recorrido
             <ArrowRight className="h-4 w-4" />
           </button>
+          <DemoConversionCTA variant="modal" onClose={handleClose} />
         </div>
       </div>
     </div>
