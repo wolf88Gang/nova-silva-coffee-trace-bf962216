@@ -12,6 +12,7 @@ import bgHillside from '@/assets/bg-hillside-farm.jpg';
 import { cn } from '@/lib/utils';
 import { ensureDemoUser } from '@/lib/ensureDemoUser';
 import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
+import { DemoConversionCTA } from '@/components/demo/DemoConversionCTA';
 
 // ── FALLBACK DATA (used when views don't exist) ──
 

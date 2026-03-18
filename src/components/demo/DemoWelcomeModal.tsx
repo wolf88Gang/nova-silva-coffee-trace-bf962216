@@ -10,6 +10,7 @@ import {
   X, MapPin, Shield, BarChart3, Leaf,
   ArrowRight, AlertTriangle, Lock,
 } from 'lucide-react';
+import { DemoConversionCTA } from './DemoConversionCTA';
 
 const WELCOME_SHOWN_KEY = 'novasilva_demo_welcome_shown';
 
