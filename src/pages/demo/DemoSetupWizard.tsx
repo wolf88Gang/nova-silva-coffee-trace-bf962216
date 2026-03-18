@@ -291,7 +291,7 @@ export default function DemoSetupWizard() {
             {step === 2 && <StepOperations state={state} update={update} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
             {step === 3 && <StepInterests state={state} update={update} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
             {step === 4 && <StepScale state={state} update={update} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
-            {step === 5 && <StepSummary state={state} model={model} archetype={archetype} narrative={getNarrative(state)} onEnter={handleEnterDemo} onBack={() => setStep(4)} entering={entering} />}
+            {step === 5 && <StepSummary state={state} model={model} archetype={archetype} narrative={getNarrative(state)} onEnter={handleEnterDemo} onBack={() => setStep(4)} entering={entering} enterError={enterError} />}
           </div>
         </main>
       </div>
