@@ -168,6 +168,7 @@ export default function DemoSetupWizard() {
   const [step, setStep] = useState<Step>(0);
   const [state, setState] = useState<SetupState>(INITIAL);
   const [entering, setEntering] = useState(false);
+  const [enterError, setEnterError] = useState<{ title: string; description: string } | null>(null);
   const pendingRedirect = useRef<string | null>(null);
 
   const update = (partial: Partial<SetupState>) => setState(prev => ({ ...prev, ...partial }));
