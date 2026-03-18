@@ -50,7 +50,13 @@ export async function ensureDemoUser(role: string): Promise<EnsureDemoResult> {
       return { ok: false, status, error: `Error HTTP ${status}: ${body}` };
     }
 
-    return { ok: true, status: res.status };
+    // Parse response body for message/details
+    try {
+      const body = await res.json();
+      return { ok: body.ok !== false, status: res.status, message: body.message, error: body.error };
+    } catch {
+      return { ok: true, status: res.status };
+    }
   } catch (err: any) {
     // Network or CORS failure — no HTTP status available
     return {
