@@ -186,7 +186,9 @@ export default function DemoSetupWizard() {
   }, [isAuthenticated, user, navigate]);
 
   const handleEnterDemo = async () => {
+    if (entering) return;
     setEntering(true);
+    setEnterError(null);
     const arch = archetype;
 
     // Deduplicate modules
@@ -212,14 +214,23 @@ export default function DemoSetupWizard() {
     try {
       const result = await ensureDemoUser(arch.role);
       if (!result.ok) {
+        const errInfo = interpretDemoError(result);
         console.error('ensure-demo-user failed:', result.error, result.status);
+        setEnterError({ title: errInfo.title, description: errInfo.description });
         toast({
-          title: 'Error preparando demo',
-          description: result.error || 'No se pudo preparar el usuario demo',
+          title: errInfo.title,
+          description: errInfo.description,
           variant: 'destructive',
         });
         setEntering(false);
         return;
+      }
+
+      if (isNoOrgResult(result)) {
+        toast({
+          title: 'Demo sin organización',
+          description: 'Algunas funciones pueden estar limitadas.',
+        });
       }
 
       pendingRedirect.current = arch.redirectPath;
@@ -227,11 +238,16 @@ export default function DemoSetupWizard() {
 
       if (error) {
         pendingRedirect.current = null;
+        setEnterError({ title: 'Error de autenticación', description: error.message });
         setEntering(false);
         console.error('Demo auth error:', error.message);
       }
-    } catch {
+    } catch (err: any) {
       pendingRedirect.current = null;
+      setEnterError({
+        title: 'Sin conexión',
+        description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+      });
       setEntering(false);
     }
   };
