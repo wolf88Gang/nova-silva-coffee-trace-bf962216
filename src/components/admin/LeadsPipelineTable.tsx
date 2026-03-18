@@ -85,7 +85,7 @@ function useDemoLeads() {
         email: row.email ?? '',
         organizacion: row.organizacion,
         cta_source: row.cta_source,
-        estado: (['new', 'contacted', 'qualified', 'closed'].includes(row.estado) ? row.estado : 'new') as LeadStatus,
+        estado: 'new' as LeadStatus,
         created_at: row.created_at,
       }));
     },
