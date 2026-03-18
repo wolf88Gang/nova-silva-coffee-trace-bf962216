@@ -186,9 +186,6 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
                 Nuestro equipo te contactará pronto.
               </p>
             </div>
-            <p className="text-[10px] text-muted-foreground/60 pt-2">
-              Pendiente de conexión a backend.
-            </p>
             <button
               onClick={handleClose}
               className="mt-2 text-xs font-medium text-primary hover:underline"
