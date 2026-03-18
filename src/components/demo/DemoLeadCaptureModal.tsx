@@ -2,10 +2,11 @@
  * DemoLeadCaptureModal — Captures commercial intent from demo users.
  * Fields: nombre, email, organización, tipo, mensaje.
  * Pre-fills orgType and profileLabel from demo config.
- * Adapter-ready: swap submitLead() for real backend when available.
+ * Uses external Supabase (table: demo_leads) for persistence.
  */
 import { useState } from 'react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
