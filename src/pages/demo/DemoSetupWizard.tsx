@@ -9,6 +9,7 @@ import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { ensureDemoUser } from '@/lib/ensureDemoUser';
+import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
