@@ -175,7 +175,5 @@ function CTAConfirmation({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
       </span>
       Listo para conectar con formulario o Calendly
     </div>
-      Listo para conectar con formulario o Calendly
-    </div>
   );
 }
