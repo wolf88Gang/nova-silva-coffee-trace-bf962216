@@ -83,23 +83,37 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
   const [mensaje, setMensaje] = useState('');
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const isValid = nombre.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid || submitState === 'loading') return;
+    if (submitState === 'loading') return;
+
+    // Validate with Zod
+    const parsed = leadSchema.safeParse({ nombre, email, organizacion, tipoOrganizacion, mensaje });
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      parsed.error.issues.forEach(issue => {
+        const key = String(issue.path[0] || '');
+        if (key && !errs[key]) errs[key] = issue.message;
+      });
+      setFieldErrors(errs);
+      return;
+    }
+    setFieldErrors({});
 
     setSubmitState('loading');
     setErrorMsg('');
 
     try {
       const result = await submitLead({
-        nombre: nombre.trim(),
-        email: email.trim().toLowerCase(),
-        organizacion: organizacion.trim(),
-        tipoOrganizacion,
-        mensaje: mensaje.trim(),
+        nombre: parsed.data.nombre,
+        email: parsed.data.email.toLowerCase(),
+        organizacion: parsed.data.organizacion || '',
+        tipoOrganizacion: parsed.data.tipoOrganizacion || '',
+        mensaje: parsed.data.mensaje || '',
         demoOrgType: config?.orgType || '',
         demoProfileLabel: config?.profileLabel || '',
         demoRoute: location.pathname,
