@@ -211,6 +211,11 @@ export default function DemoSetupWizard() {
       const result = await ensureDemoUser(arch.role);
       if (!result.ok) {
         console.error('ensure-demo-user failed:', result.error, result.status);
+        toast({
+          title: 'Error preparando demo',
+          description: result.error || 'No se pudo preparar el usuario demo',
+          variant: 'destructive',
+        });
         setEntering(false);
         return;
       }
