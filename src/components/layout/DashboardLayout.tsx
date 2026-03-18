@@ -10,6 +10,8 @@ import { ContextualBreadcrumb } from './ContextualBreadcrumb';
 import { OfflineSyncBar } from './OfflineSyncBar';
 import { DemoBanner } from '@/components/demo/DemoBanner';
 import { DemoModeBanner } from '@/components/demo/DemoModeBanner';
+import { DemoWelcomeModal } from '@/components/demo/DemoWelcomeModal';
+import { DemoTourHint } from '@/components/demo/DemoTourHint';
 import { UserRole } from '@/types';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
