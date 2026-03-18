@@ -9,12 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  DollarSign, TrendingUp, Search, FileText, Zap, Calculator,
-  CreditCard, Wallet, ArrowRight, Calendar, RefreshCw,
+  DollarSign, TrendingUp, FileText, Zap, Calculator,
+  CreditCard, Wallet, Calendar, RefreshCw,
 } from 'lucide-react';
 import {
   MetricCard, SectionHeader, SearchInput, StatusBadge,
-  EmptyState, PendingIntegration,
+  EmptyState, PendingIntegration, DataSourceBadge, LimitedDataNotice,
 } from '@/components/admin/shared/AdminComponents';
 import { useAdminBillingData } from '@/hooks/useAdminDataAdapters';
 import { getInvoiceStatusVariant, getStatusBadgeVariant } from '@/lib/adminMockData';
@@ -95,21 +95,27 @@ export default function AdminBilling() {
   return (
     <div className="space-y-6 animate-fade-in">
       <SectionHeader
-        title="Suscripciones & Billing"
+        title="Suscripciones y Facturación"
         subtitle="Centro de control comercial y financiero"
-        actions={<PendingIntegration feature="Backend de billing" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <DataSourceBadge source="mock" />
+          </div>
+        }
       />
+
+      <PendingIntegration feature="Backend de billing (invoices, pagos, suscripciones)" />
 
       {/* Revenue KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        <MetricCard label="MRR" value={`$${billing.revenue.mrr.toLocaleString()}`} icon={DollarSign} trend="up" />
-        <MetricCard label="ARR estimado" value={`$${billing.revenue.arrProjected.toLocaleString()}`} icon={TrendingUp} />
-        <MetricCard label="Cobrado" value={`$${billing.revenue.collectedThisMonth.toLocaleString()}`} icon={Wallet} />
-        <MetricCard label="Por cobrar" value={`$${billing.revenue.accountsReceivable.toLocaleString()}`} icon={CreditCard} />
-        <MetricCard label="Trials a vencer" value={billing.revenue.trialsExpiringSoon} icon={Calendar} />
-        <MetricCard label="Upgrades" value={billing.revenue.recentUpgrades} icon={Zap} />
-        <MetricCard label="Churn" value={`${billing.revenue.churnRate}%`} icon={TrendingUp} />
-        <MetricCard label="Suspensiones" value={billing.revenue.suspensions} icon={FileText} />
+        <MetricCard label="MRR" value={`$${billing.revenue.mrr.toLocaleString()}`} icon={DollarSign} trend="up" source="mock" />
+        <MetricCard label="ARR estimado" value={`$${billing.revenue.arrProjected.toLocaleString()}`} icon={TrendingUp} source="mock" />
+        <MetricCard label="Cobrado" value={`$${billing.revenue.collectedThisMonth.toLocaleString()}`} icon={Wallet} source="mock" />
+        <MetricCard label="Por cobrar" value={`$${billing.revenue.accountsReceivable.toLocaleString()}`} icon={CreditCard} source="mock" />
+        <MetricCard label="Trials a vencer" value={billing.revenue.trialsExpiringSoon} icon={Calendar} source="mock" />
+        <MetricCard label="Upgrades" value={billing.revenue.recentUpgrades} icon={Zap} source="mock" />
+        <MetricCard label="Churn" value={`${billing.revenue.churnRate}%`} icon={TrendingUp} source="mock" />
+        <MetricCard label="Suspensiones" value={billing.revenue.suspensions} icon={FileText} source="mock" />
       </div>
 
       <Tabs defaultValue="suscripciones">
@@ -123,7 +129,9 @@ export default function AdminBilling() {
         {/* Subscriptions */}
         <TabsContent value="suscripciones" className="mt-4 space-y-3">
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar organización..." />
-          {filteredSubs.map(s => (
+          {filteredSubs.length === 0 ? (
+            <EmptyState title="No hay datos disponibles" description="No se encontraron suscripciones." />
+          ) : filteredSubs.map(s => (
             <Card key={s.orgId}>
               <CardContent className="pt-4 flex items-center gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
@@ -141,7 +149,7 @@ export default function AdminBilling() {
                 {s.addons.length > 0 && (
                   <div className="flex gap-1">{s.addons.map(a => <Badge key={a} variant="secondary" className="text-xs">{a}</Badge>)}</div>
                 )}
-                <Badge variant={getStatusBadgeVariant(s.status)}>{s.status}</Badge>
+                <Badge variant={getStatusBadgeVariant(s.status)}>{s.status === 'active' ? 'Activa' : s.status === 'trial' ? 'Trial' : s.status === 'suspended' ? 'Suspendida' : 'Vencida'}</Badge>
                 {s.pendingBalance > 0 && <span className="text-xs text-destructive font-semibold">${s.pendingBalance} pendiente</span>}
                 <Button variant="ghost" size="sm">Gestionar</Button>
               </CardContent>
@@ -157,40 +165,44 @@ export default function AdminBilling() {
           </div>
           <Card>
             <CardContent className="pt-4">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-muted-foreground">
-                      <th className="pb-2 font-medium">Número</th>
-                      <th className="pb-2 font-medium">Organización</th>
-                      <th className="pb-2 font-medium">Período</th>
-                      <th className="pb-2 font-medium">Monto</th>
-                      <th className="pb-2 font-medium">Estado</th>
-                      <th className="pb-2 font-medium">Emisión</th>
-                      <th className="pb-2 font-medium">Vencimiento</th>
-                      <th className="pb-2 font-medium text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {filteredInvoices.map(inv => (
-                      <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="py-3 font-mono text-xs text-foreground">{inv.number}</td>
-                        <td className="py-3 text-foreground">{inv.orgName}</td>
-                        <td className="py-3 text-muted-foreground">{inv.period}</td>
-                        <td className="py-3 font-semibold text-foreground">${inv.amount}</td>
-                        <td className="py-3"><Badge variant={getInvoiceStatusVariant(inv.status)} className="capitalize">{inv.status === 'paid' ? 'Pagada' : inv.status === 'overdue' ? 'Vencida' : inv.status === 'pending' ? 'Pendiente' : 'Cancelada'}</Badge></td>
-                        <td className="py-3 text-muted-foreground text-xs">{inv.issuedAt}</td>
-                        <td className="py-3 text-muted-foreground text-xs">{inv.dueAt}</td>
-                        <td className="py-3 text-right">
-                          <Button variant="ghost" size="sm" className="h-7 text-xs">
-                            {inv.status === 'overdue' ? 'Marcar pagada' : 'Ver'}
-                          </Button>
-                        </td>
+              {filteredInvoices.length === 0 ? (
+                <EmptyState title="No hay datos disponibles" description="No se encontraron facturas." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-muted-foreground">
+                        <th className="pb-2 font-medium">Numero</th>
+                        <th className="pb-2 font-medium">Organización</th>
+                        <th className="pb-2 font-medium">Periodo</th>
+                        <th className="pb-2 font-medium">Monto</th>
+                        <th className="pb-2 font-medium">Estado</th>
+                        <th className="pb-2 font-medium">Emisión</th>
+                        <th className="pb-2 font-medium">Vencimiento</th>
+                        <th className="pb-2 font-medium text-right">Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filteredInvoices.map(inv => (
+                        <tr key={inv.id} className={`hover:bg-muted/30 transition-colors ${inv.status === 'overdue' ? 'bg-destructive/5' : ''}`}>
+                          <td className="py-3 font-mono text-xs text-foreground">{inv.number}</td>
+                          <td className="py-3 text-foreground">{inv.orgName}</td>
+                          <td className="py-3 text-muted-foreground">{inv.period}</td>
+                          <td className="py-3 font-semibold text-foreground">${inv.amount}</td>
+                          <td className="py-3"><Badge variant={getInvoiceStatusVariant(inv.status)} className="capitalize">{inv.status === 'paid' ? 'Pagada' : inv.status === 'overdue' ? 'Vencida' : inv.status === 'pending' ? 'Pendiente' : 'Cancelada'}</Badge></td>
+                          <td className="py-3 text-muted-foreground text-xs">{inv.issuedAt}</td>
+                          <td className="py-3 text-muted-foreground text-xs">{inv.dueAt}</td>
+                          <td className="py-3 text-right">
+                            <Button variant="ghost" size="sm" className="h-7 text-xs">
+                              {inv.status === 'overdue' ? 'Marcar pagada' : 'Ver'}
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -203,32 +215,36 @@ export default function AdminBilling() {
           </div>
           <Card>
             <CardContent className="pt-4">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-muted-foreground">
-                      <th className="pb-2 font-medium">Organización</th>
-                      <th className="pb-2 font-medium">Monto</th>
-                      <th className="pb-2 font-medium">Fecha</th>
-                      <th className="pb-2 font-medium">Método</th>
-                      <th className="pb-2 font-medium">Referencia</th>
-                      <th className="pb-2 font-medium">Registrado por</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {filteredPayments.map(pay => (
-                      <tr key={pay.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="py-3 text-foreground">{pay.orgName}</td>
-                        <td className="py-3 font-semibold text-foreground">${pay.amount}</td>
-                        <td className="py-3 text-muted-foreground text-xs">{pay.date}</td>
-                        <td className="py-3"><Badge variant="outline" className="capitalize">{pay.method}</Badge></td>
-                        <td className="py-3 font-mono text-xs text-muted-foreground">{pay.reference}</td>
-                        <td className="py-3 text-muted-foreground">{pay.registeredBy}</td>
+              {filteredPayments.length === 0 ? (
+                <EmptyState title="No hay datos disponibles" description="No se encontraron pagos registrados." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-muted-foreground">
+                        <th className="pb-2 font-medium">Organización</th>
+                        <th className="pb-2 font-medium">Monto</th>
+                        <th className="pb-2 font-medium">Fecha</th>
+                        <th className="pb-2 font-medium">Método</th>
+                        <th className="pb-2 font-medium">Referencia</th>
+                        <th className="pb-2 font-medium">Registrado por</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filteredPayments.map(pay => (
+                        <tr key={pay.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="py-3 text-foreground">{pay.orgName}</td>
+                          <td className="py-3 font-semibold text-foreground">${pay.amount}</td>
+                          <td className="py-3 text-muted-foreground text-xs">{pay.date}</td>
+                          <td className="py-3"><Badge variant="outline" className="capitalize">{pay.method}</Badge></td>
+                          <td className="py-3 font-mono text-xs text-muted-foreground">{pay.reference}</td>
+                          <td className="py-3 text-muted-foreground">{pay.registeredBy}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -30,12 +30,14 @@ export function StatusBadge({ status, label }: { status: 'ok' | 'warning' | 'err
 
 // ── MetricCard ──
 
-export function MetricCard({ label, value, icon: Icon, sublabel, trend, loading, className }: {
+export function MetricCard({ label, value, icon: Icon, sublabel, trend, loading, className, source, error }: {
   label: string; value: string | number; icon: React.ElementType; sublabel?: string;
   trend?: 'up' | 'down' | 'neutral'; loading?: boolean; className?: string;
+  source?: 'real' | 'mock' | 'partial'; error?: boolean;
 }) {
+  const isEmpty = !loading && !error && (value === '' || value === 0 || value === '0' || value === null || value === undefined);
   return (
-    <Card className={className}>
+    <Card className={cn(className, error && 'border-destructive/30')}>
       <CardContent className="pt-4 pb-3 px-4">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
@@ -45,8 +47,17 @@ export function MetricCard({ label, value, icon: Icon, sublabel, trend, loading,
           {trend === 'up' && <TrendingUp className="h-3.5 w-3.5 text-success" />}
           {trend === 'down' && <TrendingDown className="h-3.5 w-3.5 text-destructive" />}
         </div>
-        {loading ? <Skeleton className="h-8 w-20" /> : <p className="text-2xl font-bold text-foreground">{value}</p>}
+        {loading ? (
+          <Skeleton className="h-8 w-20" />
+        ) : error ? (
+          <p className="text-sm text-destructive">Error</p>
+        ) : isEmpty ? (
+          <p className="text-sm text-muted-foreground">Sin datos</p>
+        ) : (
+          <p className="text-2xl font-bold text-foreground">{value}</p>
+        )}
         {sublabel && <p className="text-xs text-muted-foreground mt-0.5">{sublabel}</p>}
+        {source === 'mock' && <p className="text-[10px] text-muted-foreground/60 mt-1 italic">Pendiente de integración</p>}
       </CardContent>
     </Card>
   );

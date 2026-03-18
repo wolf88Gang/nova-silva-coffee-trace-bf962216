@@ -14,7 +14,10 @@ import {
   Cpu, Wifi, AlertTriangle, Activity, Wrench, Terminal, Copy, Check,
 } from 'lucide-react';
 import { useSystemHealth, type SystemHealthCheck } from '@/hooks/useAdminData';
-import { MetricCard, SectionHeader, StatusBadge, HealthIndicator } from '@/components/admin/shared/AdminComponents';
+import {
+  MetricCard, SectionHeader, StatusBadge, ErrorState, EmptyState,
+  DataSourceBadge, PendingIntegration, LimitedDataNotice,
+} from '@/components/admin/shared/AdminComponents';
 import {
   MOCK_INFRA, MOCK_MODULE_HEALTH, MOCK_HEALTH_TIMELINE,
   SERVICE_REMEDIATIONS,
@@ -47,7 +50,12 @@ function CodeBlock({ code }: { code: string }) {
 
 // ── Service Status with remediation ──
 
-function ServiceStatus({ checks, isLoading }: { checks: ReturnType<typeof useSystemHealth>['data']; isLoading: boolean }) {
+function ServiceStatus({ checks, isLoading, isError, onRetry }: {
+  checks: ReturnType<typeof useSystemHealth>['data'];
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+}) {
   const [selectedCheck, setSelectedCheck] = useState<SystemHealthCheck | null>(null);
 
   const statusIcon = (status: string) => {
@@ -62,13 +70,22 @@ function ServiceStatus({ checks, isLoading }: { checks: ReturnType<typeof useSys
   return (
     <>
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Server className="h-4 w-4" /> Estado de servicios</CardTitle></CardHeader>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2"><Server className="h-4 w-4" /> Estado de servicios</CardTitle>
+            <DataSourceBadge source="real" label="Health checks reales" />
+          </div>
+        </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">{[1,2,3,4].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
+          ) : isError ? (
+            <ErrorState message="No se pudieron ejecutar los health checks." onRetry={onRetry} />
+          ) : !checks || checks.length === 0 ? (
+            <EmptyState title="No hay datos disponibles" description="No se encontraron servicios para verificar." />
           ) : (
             <div className="space-y-2">
-              {(checks ?? []).map(c => (
+              {checks.map(c => (
                 <div
                   key={c.service}
                   className="flex items-center gap-4 p-4 rounded-lg bg-muted/40 border border-border/50 cursor-pointer hover:bg-muted/60 transition-colors"
@@ -105,7 +122,7 @@ function ServiceStatus({ checks, isLoading }: { checks: ReturnType<typeof useSys
             </DialogTitle>
             <DialogDescription>
               Estado: {selectedCheck?.status === 'ok' ? 'Operativo' : 'Con errores'}
-              {selectedCheck?.latencyMs !== undefined && ` · Latencia: ${selectedCheck.latencyMs}ms`}
+              {selectedCheck?.latencyMs !== undefined && ` . Latencia: ${selectedCheck.latencyMs}ms`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -159,7 +176,7 @@ function ModuleHealthCard({ mod, onClick }: { mod: MockModuleHealth; onClick: ()
       </div>
       {mod.lastIncident && (
         <div className="text-right shrink-0">
-          <p className="text-xs text-muted-foreground">Último incidente</p>
+          <p className="text-xs text-muted-foreground">Ultimo incidente</p>
           <p className="text-xs text-foreground">{mod.lastIncident}</p>
         </div>
       )}
@@ -181,8 +198,8 @@ function ModuleDetailDialog({ mod, open, onClose }: { mod: MockModuleHealth | nu
             {mod.name}
           </DialogTitle>
           <DialogDescription>
-            Estado: {statusLabels[mod.status]} · Uptime: {mod.uptime}%
-            {mod.lastIncident && ` · Último incidente: ${mod.lastIncident}`}
+            Estado: {statusLabels[mod.status]} . Uptime: {mod.uptime}%
+            {mod.lastIncident && ` . Ultimo incidente: ${mod.lastIncident}`}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -220,7 +237,7 @@ function TimelineDetailDialog({ event, open, onClose }: { event: MockHealthEvent
             Incidente {event.date}
           </DialogTitle>
           <DialogDescription>
-            {event.module && `Módulo: ${event.module} · `}{event.event}
+            {event.module && `Módulo: ${event.module} . `}{event.event}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -248,40 +265,51 @@ function TimelineDetailDialog({ event, open, onClose }: { event: MockHealthEvent
 // ── Main ──
 
 export default function AdminSystem() {
-  const { data: checks, isLoading, refetch, dataUpdatedAt } = useSystemHealth();
+  const { data: checks, isLoading, isError, refetch, dataUpdatedAt } = useSystemHealth();
   const [selectedModule, setSelectedModule] = useState<MockModuleHealth | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<MockHealthEvent | null>(null);
 
   return (
     <div className="space-y-6 animate-fade-in">
       <SectionHeader
-        title="Plataforma & Infraestructura"
+        title="Plataforma e Infraestructura"
         subtitle="Centro de observabilidad interna"
         actions={
           <div className="flex items-center gap-2">
-            {dataUpdatedAt > 0 && <span className="text-xs text-muted-foreground">Último check: {new Date(dataUpdatedAt).toLocaleTimeString('es')}</span>}
+            {dataUpdatedAt > 0 && <span className="text-xs text-muted-foreground">Ultimo check: {new Date(dataUpdatedAt).toLocaleTimeString('es')}</span>}
             <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5"><RefreshCw className="h-3.5 w-3.5" /> Actualizar</Button>
           </div>
         }
       />
 
       {/* Technical metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        <MetricCard label="Latencia media" value={`${MOCK_INFRA.avgLatency}ms`} icon={Activity} />
-        <MetricCard label="Errores (24h)" value={MOCK_INFRA.errorsLast24h} icon={AlertTriangle} />
-        <MetricCard label="Storage" value={`${MOCK_INFRA.storage.used}/${MOCK_INFRA.storage.total} ${MOCK_INFRA.storage.unit}`} icon={HardDrive} sublabel={`+${MOCK_INFRA.storage.growthPerMonth} GB/mes`} />
-        <MetricCard label="Colas pendientes" value={MOCK_INFRA.pendingQueues} icon={Clock} />
-        <MetricCard label="Syncs fallidos" value={MOCK_INFRA.failedSyncs} icon={Wifi} />
-        <MetricCard label="Edge Functions" value={MOCK_INFRA.edgeFunctions} icon={Cpu} />
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Métricas técnicas</span>
+          <DataSourceBadge source="mock" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <MetricCard label="Latencia media" value={`${MOCK_INFRA.avgLatency}ms`} icon={Activity} source="mock" />
+          <MetricCard label="Errores (24h)" value={MOCK_INFRA.errorsLast24h} icon={AlertTriangle} source="mock" />
+          <MetricCard label="Storage" value={`${MOCK_INFRA.storage.used}/${MOCK_INFRA.storage.total} ${MOCK_INFRA.storage.unit}`} icon={HardDrive} sublabel={`+${MOCK_INFRA.storage.growthPerMonth} GB/mes`} source="mock" />
+          <MetricCard label="Colas pendientes" value={MOCK_INFRA.pendingQueues} icon={Clock} source="mock" />
+          <MetricCard label="Syncs fallidos" value={MOCK_INFRA.failedSyncs} icon={Wifi} source="mock" />
+          <MetricCard label="Edge Functions" value={MOCK_INFRA.edgeFunctions} icon={Cpu} source="mock" />
+        </div>
       </div>
 
       {/* Service status */}
-      <ServiceStatus checks={checks} isLoading={isLoading} />
+      <ServiceStatus checks={checks} isLoading={isLoading} isError={isError} onRetry={() => refetch()} />
 
       {/* AI metrics + Storage */}
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Cpu className="h-4 w-4" /> Módulos AI / Inferencia</CardTitle></CardHeader>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2"><Cpu className="h-4 w-4" /> Módulos AI / Inferencia</CardTitle>
+              <DataSourceBadge source="mock" />
+            </div>
+          </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between p-2.5 rounded-md bg-muted/40">
               <span className="text-sm">Nova Yield inferencias/día</span>
@@ -299,7 +327,12 @@ export default function AdminSystem() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><HardDrive className="h-4 w-4" /> Storage</CardTitle></CardHeader>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2"><HardDrive className="h-4 w-4" /> Storage</CardTitle>
+              <DataSourceBadge source="mock" />
+            </div>
+          </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
@@ -317,7 +350,12 @@ export default function AdminSystem() {
 
       {/* Module status */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Activity className="h-4 w-4" /> Estado de módulos</CardTitle></CardHeader>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2"><Activity className="h-4 w-4" /> Estado de módulos</CardTitle>
+            <DataSourceBadge source="mock" />
+          </div>
+        </CardHeader>
         <CardContent className="space-y-2">
           {MOCK_MODULE_HEALTH.map(mod => (
             <ModuleHealthCard key={mod.code} mod={mod} onClick={() => setSelectedModule(mod)} />
@@ -329,23 +367,32 @@ export default function AdminSystem() {
 
       {/* Health timeline */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Timeline de incidentes</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {MOCK_HEALTH_TIMELINE.map((event, i) => (
-              <div
-                key={i}
-                className={`flex items-start gap-3 p-3 rounded-lg border-l-4 cursor-pointer hover:opacity-80 transition-opacity ${
-                  event.severity === 'warning' ? 'border-l-warning bg-warning/5' : 'border-l-primary bg-primary/5'
-                }`}
-                onClick={() => setSelectedEvent(event)}
-              >
-                <span className="text-xs text-muted-foreground shrink-0 pt-0.5 tabular-nums">{event.date}</span>
-                <p className="text-sm text-foreground flex-1">{event.event}</p>
-                <Badge variant="outline" className="text-xs shrink-0">Ver detalle</Badge>
-              </div>
-            ))}
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Timeline de incidentes</CardTitle>
+            <DataSourceBadge source="mock" />
           </div>
+        </CardHeader>
+        <CardContent>
+          {MOCK_HEALTH_TIMELINE.length === 0 ? (
+            <EmptyState title="No hay datos disponibles" description="Sin incidentes registrados." />
+          ) : (
+            <div className="space-y-3">
+              {MOCK_HEALTH_TIMELINE.map((event, i) => (
+                <div
+                  key={i}
+                  className={`flex items-start gap-3 p-3 rounded-lg border-l-4 cursor-pointer hover:opacity-80 transition-opacity ${
+                    event.severity === 'warning' ? 'border-l-warning bg-warning/5' : 'border-l-primary bg-primary/5'
+                  }`}
+                  onClick={() => setSelectedEvent(event)}
+                >
+                  <span className="text-xs text-muted-foreground shrink-0 pt-0.5 tabular-nums">{event.date}</span>
+                  <p className="text-sm text-foreground flex-1">{event.event}</p>
+                  <Badge variant="outline" className="text-xs shrink-0">Ver detalle</Badge>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

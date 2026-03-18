@@ -10,7 +10,9 @@ import {
   RefreshCw, Users, Shield, UserX, UserPlus,
   ChevronRight, Mail, Calendar, Building2, Eye, X,
 } from 'lucide-react';
-import { SearchInput, SectionHeader, EmptyState, StatusBadge } from '@/components/admin/shared/AdminComponents';
+import {
+  SearchInput, SectionHeader, EmptyState, StatusBadge, ErrorState, DataSourceBadge,
+} from '@/components/admin/shared/AdminComponents';
 import { useAdminUserList, type AdminUserRow } from '@/hooks/useAdminDataAdapters';
 
 function UserDetailPanel({ user, onClose }: { user: AdminUserRow; onClose: () => void }) {
@@ -25,18 +27,18 @@ function UserDetailPanel({ user, onClose }: { user: AdminUserRow; onClose: () =>
           <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3">
             <Users className="h-7 w-7 text-primary" />
           </div>
-          <p className="text-lg font-bold text-foreground">{user.name ?? '—'}</p>
+          <p className="text-lg font-bold text-foreground">{user.name ?? 'Sin nombre'}</p>
           <p className="text-sm text-muted-foreground">{user.email ?? 'Sin email'}</p>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
             <span className="text-sm text-muted-foreground flex items-center gap-2"><Building2 className="h-3.5 w-3.5" /> Organización</span>
-            <span className="text-sm font-medium text-foreground">{user.org_nombre ?? '—'}</span>
+            <span className="text-sm font-medium text-foreground">{user.org_nombre ?? 'Sin organización'}</span>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
             <span className="text-sm text-muted-foreground flex items-center gap-2"><Shield className="h-3.5 w-3.5" /> Rol global</span>
-            <Badge variant="secondary" className="capitalize">{user.role_global ?? '—'}</Badge>
+            <Badge variant="secondary" className="capitalize">{user.role_global ?? 'Sin rol'}</Badge>
           </div>
           {user.rol_interno && (
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
@@ -50,7 +52,7 @@ function UserDetailPanel({ user, onClose }: { user: AdminUserRow; onClose: () =>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
             <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> User ID</span>
-            <span className="text-xs text-foreground font-mono">{user.user_id.slice(0, 16)}…</span>
+            <span className="text-xs text-foreground font-mono">{user.user_id.slice(0, 16)}...</span>
           </div>
         </div>
 
@@ -58,7 +60,7 @@ function UserDetailPanel({ user, onClose }: { user: AdminUserRow; onClose: () =>
           <Button variant="outline" size="sm" className="w-full gap-1.5"><Shield className="h-3.5 w-3.5" /> Cambiar rol</Button>
           <Button variant="outline" size="sm" className="w-full gap-1.5"><Mail className="h-3.5 w-3.5" /> Resetear acceso</Button>
           <Button variant="outline" size="sm" className="w-full gap-1.5"><Building2 className="h-3.5 w-3.5" /> Mover a otra organización</Button>
-          <Button variant="outline" size="sm" className="w-full gap-1.5 text-destructive hover:text-destructive"><UserX className="h-3.5 w-3.5" /> Desactivar usuario</Button>
+          <Button variant="outline" size="sm" className="w-full gap-1.5 text-destructive hover:text-destructive border-destructive/30"><UserX className="h-3.5 w-3.5" /> Desactivar usuario</Button>
         </div>
       </div>
     </div>
@@ -66,7 +68,7 @@ function UserDetailPanel({ user, onClose }: { user: AdminUserRow; onClose: () =>
 }
 
 export default function AdminUsers() {
-  const { data: users, isLoading, refetch } = useAdminUserList();
+  const { data: users, isLoading, isError, error, refetch } = useAdminUserList();
   const [search, setSearch] = useState('');
   const [filterOrg, setFilterOrg] = useState('all');
   const [filterRole, setFilterRole] = useState('all');
@@ -99,7 +101,8 @@ export default function AdminUsers() {
         title="Usuarios"
         subtitle={`${filtered.length} usuarios en la plataforma`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <DataSourceBadge source="real" />
             <Button variant="outline" size="sm" className="gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Invitar usuario</Button>
             <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
           </div>
@@ -127,8 +130,10 @@ export default function AdminUsers() {
         <CardContent className="pt-4">
           {isLoading ? (
             <div className="space-y-3">{[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-14 w-full" />)}</div>
+          ) : isError ? (
+            <ErrorState message={error?.message ?? 'Verificar conexión o permisos.'} onRetry={() => refetch()} />
           ) : filtered.length === 0 ? (
-            <EmptyState title="Sin resultados" description="Ajusta los filtros para ver usuarios." />
+            <EmptyState title="No hay datos disponibles" description="Ajusta los filtros para ver usuarios." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -146,11 +151,11 @@ export default function AdminUsers() {
                 <tbody className="divide-y divide-border">
                   {filtered.map(u => (
                     <tr key={u.user_id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => setSelectedUser(u)}>
-                      <td className="py-3 font-medium text-foreground">{u.name ?? '—'}</td>
-                      <td className="py-3 text-muted-foreground text-xs">{u.email ?? '—'}</td>
-                      <td className="py-3 text-muted-foreground">{u.org_nombre ?? '—'}</td>
-                      <td className="py-3"><Badge variant={roleBadge(u.role_global)} className="capitalize">{u.role_global ?? '—'}</Badge></td>
-                      <td className="py-3">{u.rol_interno ? <Badge variant="outline" className="capitalize">{u.rol_interno.replace('_', ' ')}</Badge> : '—'}</td>
+                      <td className="py-3 font-medium text-foreground">{u.name ?? 'Sin nombre'}</td>
+                      <td className="py-3 text-muted-foreground text-xs">{u.email ?? 'Sin email'}</td>
+                      <td className="py-3 text-muted-foreground">{u.org_nombre ?? 'Sin organización'}</td>
+                      <td className="py-3"><Badge variant={roleBadge(u.role_global)} className="capitalize">{u.role_global ?? 'Sin rol'}</Badge></td>
+                      <td className="py-3">{u.rol_interno ? <Badge variant="outline" className="capitalize">{u.rol_interno.replace('_', ' ')}</Badge> : <span className="text-xs text-muted-foreground">Sin rol interno</span>}</td>
                       <td className="py-3">
                         <StatusBadge status={u.activo ? 'ok' : 'error'} label={u.activo ? 'Activo' : 'Inactivo'} />
                       </td>
