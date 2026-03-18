@@ -1,11 +1,12 @@
 /**
  * DemoConversionCTA — Reusable commercial conversion block for demo flow.
- * Shows role-adapted microcopy and placeholder CTA buttons.
+ * Shows role-adapted microcopy and CTA buttons that open the lead capture modal.
  */
 import { useState } from 'react';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { ArrowRight, Calendar, MessageCircle, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DemoLeadCaptureModal } from './DemoLeadCaptureModal';
 
 const ROLE_COPY: Record<string, string> = {
   cooperativa: 'Podemos mostrarte cómo centralizar productores, parcelas y cumplimiento.',
@@ -22,15 +23,18 @@ interface DemoConversionCTAProps {
 }
 
 export function DemoConversionCTA({ variant = 'inline', onClose, className }: DemoConversionCTAProps) {
-  const [ctaFired, setCtaFired] = useState<string | null>(null);
+  const [leadModalOpen, setLeadModalOpen] = useState(false);
+  const [ctaSource, setCtaSource] = useState('');
   const config = getDemoConfig();
   const orgType = config?.orgType || '';
   const roleCopy = ROLE_COPY[orgType] || 'Nova Silva puede adaptarse a cooperativas, exportadores, certificadoras y fincas empresariales.';
 
-  const handleCTA = (action: string) => {
-    setCtaFired(action);
-    setTimeout(() => setCtaFired(null), 3000);
+  const openLead = (source: string) => {
+    setCtaSource(source);
+    setLeadModalOpen(true);
   };
+
+  const modal = <DemoLeadCaptureModal open={leadModalOpen} onOpenChange={setLeadModalOpen} ctaSource={ctaSource} />;
 
   if (variant === 'landing') {
     return (
@@ -41,22 +45,22 @@ export function DemoConversionCTA({ variant = 'inline', onClose, className }: De
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
-              onClick={() => handleCTA('demo-real')}
+              onClick={() => openLead('landing-demo-real')}
               className="inline-flex items-center gap-2 text-sm font-semibold py-2.5 px-6 rounded-xl bg-white/[0.1] hover:bg-white/[0.18] text-white border border-white/15 hover:border-white/30 transition-all active:scale-[0.97]"
             >
               <Calendar className="h-3.5 w-3.5" />
               Solicitar demo real
             </button>
             <button
-              onClick={() => handleCTA('hablar')}
+              onClick={() => openLead('landing-hablar')}
               className="inline-flex items-center gap-2 text-sm py-2.5 px-6 rounded-xl text-white/50 hover:text-white hover:bg-white/[0.06] transition-all"
             >
               <MessageCircle className="h-3.5 w-3.5" />
               Hablar con el equipo
             </button>
           </div>
-          {ctaFired && <CTAConfirmation />}
         </div>
+        {modal}
       </div>
     );
   }
@@ -69,7 +73,7 @@ export function DemoConversionCTA({ variant = 'inline', onClose, className }: De
         </p>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleCTA('demo-real')}
+            onClick={() => openLead('welcome-modal')}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-muted/60 hover:bg-muted text-foreground font-medium text-xs transition-colors"
           >
             <Calendar className="h-3.5 w-3.5 text-primary" />
@@ -84,7 +88,7 @@ export function DemoConversionCTA({ variant = 'inline', onClose, className }: De
             </button>
           )}
         </div>
-        {ctaFired && <CTAConfirmation variant="light" />}
+        {modal}
       </div>
     );
   }
@@ -119,21 +123,21 @@ export function DemoConversionCTA({ variant = 'inline', onClose, className }: De
         </div>
         <div className="flex flex-wrap gap-2 pt-1">
           <button
-            onClick={() => handleCTA('demo-real')}
+            onClick={() => openLead('end-of-tour-demo')}
             className="inline-flex items-center gap-2 text-xs font-semibold py-2 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             <Calendar className="h-3.5 w-3.5" />
             Solicitar demo real
           </button>
           <button
-            onClick={() => handleCTA('implementacion')}
+            onClick={() => openLead('end-of-tour-implementacion')}
             className="inline-flex items-center gap-2 text-xs py-2 px-4 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
           >
             <ArrowRight className="h-3.5 w-3.5" />
             Conocer implementación
           </button>
         </div>
-        {ctaFired && <CTAConfirmation variant="light" />}
+        {modal}
       </div>
     );
   }
@@ -151,29 +155,12 @@ export function DemoConversionCTA({ variant = 'inline', onClose, className }: De
         {roleCopy}
       </p>
       <button
-        onClick={() => handleCTA('demo-real')}
+        onClick={() => openLead('inline')}
         className="shrink-0 text-xs font-medium text-primary hover:underline"
       >
         Solicitar demo
       </button>
-      {ctaFired && <CTAConfirmation variant="light" />}
-    </div>
-  );
-}
-
-function CTAConfirmation({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
-  return (
-    <div className={cn(
-      'flex items-center justify-center gap-2 text-xs py-2 px-3 rounded-lg animate-fade-in',
-      variant === 'dark'
-        ? 'bg-white/10 text-white/70'
-        : 'bg-primary/5 text-primary border border-primary/10'
-    )}>
-      <span className="relative flex h-1.5 w-1.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-      </span>
-      Listo para conectar con formulario o Calendly
+      {modal}
     </div>
   );
 }
