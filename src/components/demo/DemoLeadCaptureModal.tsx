@@ -167,7 +167,7 @@ export function DemoLeadCaptureModal({ open, onOpenChange, ctaSource = '' }: Dem
               </p>
             </div>
             <p className="text-[10px] text-muted-foreground/60 pt-2">
-              Pendiente de conexión a backend. Lead registrado en consola.
+              Pendiente de conexión a backend.
             </p>
             <button
               onClick={handleClose}
