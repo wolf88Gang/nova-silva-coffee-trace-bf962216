@@ -5,6 +5,7 @@
  * Adapter-ready: swap submitLead() for real backend when available.
  */
 import { useState } from 'react';
+import { z } from 'zod';
 import { getDemoConfig } from '@/hooks/useDemoConfig';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
