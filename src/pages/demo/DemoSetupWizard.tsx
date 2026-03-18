@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { ensureDemoUser } from '@/lib/ensureDemoUser';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';

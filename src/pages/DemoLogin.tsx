@@ -10,6 +10,7 @@ import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgHillside from '@/assets/bg-hillside-farm.jpg';
 import { cn } from '@/lib/utils';
+import { ensureDemoUser } from '@/lib/ensureDemoUser';
 
 // ── FALLBACK DATA (used when views don't exist) ──
 
