@@ -12,6 +12,7 @@ import {
   SectionHeader, EmptyState, PendingIntegration,
 } from '@/components/admin/shared/AdminComponents';
 import { useState } from 'react';
+import LeadsPipelineTable from '@/components/admin/LeadsPipelineTable';
 
 const MEL_EMPTY = "Pendiente de integración con backend de analítica.";
 
