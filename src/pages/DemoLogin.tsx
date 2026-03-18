@@ -43,61 +43,61 @@ const FALLBACK_ORGS: DemoOrganization[] = [
   {
     id: 'coop_demo', name: 'Cooperativa Regional', orgType: 'cooperativa',
     operatingModel: 'aggregator', typeLabel: 'Cooperativa', country: 'Costa Rica',
-    description: 'Agrupa productores socios, coordina trazabilidad, soporte técnico, cumplimiento EUDR y resiliencia climática.',
-    stats: ['420 socios', '860 parcelas', '12 técnicos'],
-    modules: ['Producción', 'Agronomía', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'],
+    description: 'Gestiona productores, trazabilidad, cumplimiento EUDR y soporte tecnico de campo.',
+    stats: ['420 socios', '860 parcelas', '12 tecnicos'],
+    modules: ['Produccion', 'Agronomia', 'VITAL', 'EUDR', 'Finanzas', 'Nova Cup'],
     icon: Building2, redirectPath: '/produccion',
     profiles: [
-      { id: 'coop-gerencia', label: 'Gerencia cooperativa', description: 'Vista estratégica de producción, cumplimiento, finanzas y calidad.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Producción', 'Agronomía', 'Resiliencia', 'Cumplimiento', 'Calidad', 'Finanzas'] },
-      { id: 'coop-tecnico', label: 'Técnico de campo', description: 'Registra visitas, diagnósticos, nutrición y captura evidencia en parcelas.', email: 'demo.tecnico@novasilva.com', role: 'tecnico', accessAreas: ['Producción', 'Agronomía', 'Resiliencia'] },
-      { id: 'coop-cumplimiento', label: 'Oficial de cumplimiento', description: 'Gestión de parcelas, evidencia documental y dossiers EUDR.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'] },
+      { id: 'coop-gerencia', label: 'Gerencia cooperativa', description: 'Vista estrategica: produccion, cumplimiento, finanzas y calidad.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Produccion', 'Agronomia', 'Resiliencia', 'Cumplimiento', 'Calidad', 'Finanzas'] },
+      { id: 'coop-tecnico', label: 'Tecnico de campo', description: 'Registra visitas, diagnosticos y captura evidencia en parcelas.', email: 'demo.tecnico@novasilva.com', role: 'tecnico', accessAreas: ['Produccion', 'Agronomia', 'Resiliencia'] },
+      { id: 'coop-cumplimiento', label: 'Oficial de cumplimiento', description: 'Gestion de evidencia documental y dossiers EUDR.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'] },
     ],
   },
   {
     id: 'estate_demo', name: 'Finca Empresarial', orgType: 'finca_empresarial',
     operatingModel: 'estate_hybrid', typeLabel: 'Finca empresarial', country: 'Costa Rica',
-    description: 'Opera parcelas propias con manejo agronómico intensivo y también compra café a productores externos.',
+    description: 'Opera parcelas propias con agronomia intensiva y compra cafe a proveedores externos.',
     stats: ['74 ha propias', '82 proveedores', '6 cuadrillas'],
-    modules: ['Producción', 'Abastecimiento', 'Jornales', 'Agronomía', 'VITAL', 'EUDR', 'Nova Cup', 'Finanzas'],
+    modules: ['Produccion', 'Abastecimiento', 'Jornales', 'Agronomia', 'VITAL', 'EUDR', 'Nova Cup', 'Finanzas'],
     icon: Sprout, redirectPath: '/produccion',
     profiles: [
-      { id: 'estate-gerente', label: 'Gerente de operaciones', description: 'Vista integral: producción propia, abastecimiento externo, agronomía y finanzas.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Producción', 'Abastecimiento', 'Agronomía', 'Jornales', 'Finanzas'] },
-      { id: 'estate-abastecimiento', label: 'Jefe de abastecimiento', description: 'Gestión de proveedores externos, recepción de café y riesgo de origen.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Abastecimiento', 'Calidad', 'Cumplimiento'] },
-      { id: 'estate-agronomo', label: 'Agrónomo', description: 'Nutrición, Guard, Yield y diagnóstico en parcelas propias.', email: 'demo.tecnico@novasilva.com', role: 'tecnico', accessAreas: ['Producción', 'Agronomía', 'Resiliencia'] },
+      { id: 'estate-gerente', label: 'Gerente de operaciones', description: 'Produccion propia, abastecimiento externo, agronomia y finanzas.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Produccion', 'Abastecimiento', 'Agronomia', 'Jornales', 'Finanzas'] },
+      { id: 'estate-abastecimiento', label: 'Jefe de abastecimiento', description: 'Proveedores externos, recepcion de cafe y riesgo de origen.', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', accessAreas: ['Abastecimiento', 'Calidad', 'Cumplimiento'] },
+      { id: 'estate-agronomo', label: 'Agronomo', description: 'Nutricion, Guard, Yield y diagnostico en parcelas propias.', email: 'demo.tecnico@novasilva.com', role: 'tecnico', accessAreas: ['Produccion', 'Agronomia', 'Resiliencia'] },
     ],
   },
   {
     id: 'exporter_demo', name: 'Exportador de Origen', orgType: 'exportador',
-    operatingModel: 'trader', typeLabel: 'Exportador', country: 'Centroamérica',
-    description: 'Gestiona miles de proveedores con foco en cumplimiento EUDR, lotes, calidad y analítica de origen.',
+    operatingModel: 'trader', typeLabel: 'Exportador', country: 'Centroamerica',
+    description: 'Controla riesgos, cumplimiento EUDR, lotes comerciales y supply chain de cafe.',
     stats: ['4,200 proveedores', '12 regiones', '38 contratos'],
-    modules: ['Orígenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analítica', 'Nova Cup', 'Finanzas'],
+    modules: ['Origenes', 'Cumplimiento', 'EUDR', 'Lotes', 'Analitica', 'Nova Cup', 'Finanzas'],
     icon: Truck, redirectPath: '/origenes',
     profiles: [
-      { id: 'exp-gerente', label: 'Gerente de origen', description: 'Gestión de proveedores, compras, cumplimiento y oferta de café.', email: 'demo.exportador@novasilva.com', role: 'exportador', accessAreas: ['Orígenes', 'Cumplimiento', 'Calidad', 'Comercial', 'Finanzas'] },
-      { id: 'exp-eudr', label: 'Analista EUDR', description: 'Revisión de polígonos, riesgos de deforestación y dossiers por proveedor.', email: 'demo.exportador@novasilva.com', role: 'exportador', accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'] },
+      { id: 'exp-gerente', label: 'Gerente de origen', description: 'Proveedores, compras, cumplimiento y oferta de cafe.', email: 'demo.exportador@novasilva.com', role: 'exportador', accessAreas: ['Origenes', 'Cumplimiento', 'Calidad', 'Comercial', 'Finanzas'] },
+      { id: 'exp-eudr', label: 'Analista EUDR', description: 'Poligonos, riesgos de deforestacion y dossiers por proveedor.', email: 'demo.exportador@novasilva.com', role: 'exportador', accessAreas: ['Cumplimiento', 'EUDR', 'Data Room'] },
     ],
   },
   {
     id: 'farm_demo', name: 'Finca Privada', orgType: 'productor_privado',
     operatingModel: 'single_farm', typeLabel: 'Productor privado', country: 'Costa Rica',
-    description: 'Finca tecnificada con foco agronómico intensivo: nutrición, guard, yield y jornales.',
+    description: 'Finca tecnificada con agronomia intensiva, jornales y control de calidad.',
     stats: ['48 ha', '14 parcelas', '3 variedades'],
-    modules: ['Producción', 'Jornales', 'Agronomía', 'VITAL', 'Finanzas', 'Nova Cup'],
+    modules: ['Produccion', 'Jornales', 'Agronomia', 'VITAL', 'Finanzas', 'Nova Cup'],
     icon: Leaf, redirectPath: '/produccion',
     profiles: [
-      { id: 'farm-propietario', label: 'Propietario', description: 'Gestión integral de la finca: agronomía, jornales, calidad y resultados.', email: 'demo.productor@novasilva.com', role: 'productor', accessAreas: ['Producción', 'Agronomía', 'Jornales', 'Resiliencia', 'Calidad', 'Finanzas'] },
+      { id: 'farm-propietario', label: 'Propietario', description: 'Gestion integral: agronomia, jornales, calidad y resultados.', email: 'demo.productor@novasilva.com', role: 'productor', accessAreas: ['Produccion', 'Agronomia', 'Jornales', 'Resiliencia', 'Calidad', 'Finanzas'] },
     ],
   },
   {
     id: 'cert_demo', name: 'Certificadora', orgType: 'certificadora',
     operatingModel: 'auditor', typeLabel: 'Certificadora', country: 'Regional',
-    description: 'Entidad de auditoría y verificación. Acceso read-only a evidencia, dossiers y sesiones.',
+    description: 'Acceso read-only para auditoria, verificacion de evidencia y dossiers.',
     stats: ['24 organizaciones auditadas'],
-    modules: ['Auditorías', 'Data Room', 'Dossiers'],
+    modules: ['Auditorias', 'Data Room', 'Dossiers'],
     icon: ShieldCheck, redirectPath: '/cumplimiento',
     profiles: [
-      { id: 'cert-auditor', label: 'Auditor líder', description: 'Revisa evidencia, verifica cumplimiento y genera reportes de auditoría.', email: 'demo.certificadora@novasilva.com', role: 'certificadora', accessAreas: ['Auditorías', 'Data Room', 'Dossiers'] },
+      { id: 'cert-auditor', label: 'Auditor lider', description: 'Revisa evidencia, verifica cumplimiento y genera reportes.', email: 'demo.certificadora@novasilva.com', role: 'certificadora', accessAreas: ['Auditorias', 'Data Room', 'Dossiers'] },
     ],
   },
 ];
@@ -459,28 +459,53 @@ const DemoLogin = () => {
 
             {/* Step 0: Landing */}
             {step === 0 && (
-              <div className="text-center space-y-8 animate-fade-in">
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Explora Nova Silva</h2>
-                  <p className="text-white/50 text-sm leading-relaxed max-w-md mx-auto">
-                    Configura un demo adaptado a tu tipo de organización, modelo operativo y módulos de interés.
+              <div className="text-center space-y-10 animate-fade-in">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/10 text-white/50 text-xs mb-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--accent-orange))]" />
+                    </span>
+                    Entorno interactivo
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                    Explora Nova Silva<br />
+                    <span className="text-[hsl(var(--accent-orange))]">en modo demo</span>
+                  </h2>
+                  <p className="text-white/45 text-sm leading-relaxed max-w-lg mx-auto">
+                    Simula la experiencia como cooperativa, exportador, finca empresarial o certificadora. Sin registro, sin compromiso.
                   </p>
                 </div>
+
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link
-                    to="/demo/setup"
-                    className="inline-flex items-center gap-2.5 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-8 rounded-xl transition-all text-sm shadow-lg shadow-[hsl(var(--accent-orange))]/20 active:scale-[0.97]"
-                  >
-                    Iniciar demo personalizado
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
                   <button
                     onClick={() => setStep(1)}
-                    className="inline-flex items-center gap-2 text-white/50 hover:text-white text-sm py-3 px-6 rounded-xl border border-white/15 hover:border-white/30 hover:bg-white/5 transition-all active:scale-[0.97]"
+                    className="inline-flex items-center gap-2.5 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-10 rounded-xl transition-all text-sm shadow-lg shadow-[hsl(var(--accent-orange))]/20 active:scale-[0.97]"
                   >
-                    Arquetipos preconfigurados
-                    <ChevronRight className="h-4 w-4" />
+                    Iniciar demo
+                    <ArrowRight className="h-4 w-4" />
                   </button>
+                  <Link
+                    to="/demo/setup"
+                    className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm py-3 px-6 rounded-xl border border-white/15 hover:border-white/30 hover:bg-white/5 transition-all active:scale-[0.97]"
+                  >
+                    Configurar demo personalizado
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+
+                <div className="flex items-center justify-center gap-6 pt-2">
+                  {[
+                    { icon: Building2, label: 'Cooperativas' },
+                    { icon: Truck, label: 'Exportadores' },
+                    { icon: Sprout, label: 'Fincas' },
+                    { icon: ShieldCheck, label: 'Certificadoras' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center gap-1.5 text-white/25 text-xs">
+                      <item.icon className="h-3.5 w-3.5" />
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -493,8 +518,8 @@ const DemoLogin = () => {
                     <button onClick={handleBack} className="flex items-center gap-1 text-white/40 hover:text-white text-xs mb-2 transition-colors">
                       <ChevronLeft className="h-3.5 w-3.5" /> Volver
                     </button>
-                    <h2 className="text-xl md:text-2xl font-bold text-white">Elige tu organización</h2>
-                    <p className="text-white/40 text-xs mt-1">Selecciona el tipo de organización que quieres explorar</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-white">Elige tu tipo de organizacion</h2>
+                    <p className="text-white/40 text-xs mt-1">Selecciona la operacion que quieres explorar</p>
                   </div>
                   <StepIndicator current={0} total={3} />
                 </div>

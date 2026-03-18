@@ -10,6 +10,8 @@ import { ContextualBreadcrumb } from './ContextualBreadcrumb';
 import { OfflineSyncBar } from './OfflineSyncBar';
 import { DemoBanner } from '@/components/demo/DemoBanner';
 import { DemoModeBanner } from '@/components/demo/DemoModeBanner';
+import { DemoWelcomeModal } from '@/components/demo/DemoWelcomeModal';
+import { DemoTourHint } from '@/components/demo/DemoTourHint';
 import { UserRole } from '@/types';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,7 +88,9 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
           <main className="p-4 md:p-6 lg:p-8 animate-fade-in">
             <DemoModeBanner />
             <DemoBanner />
+            <DemoTourHint />
             {children}
+            <DemoWelcomeModal />
           </main>
         </div>
         <OfflineSyncBar />
