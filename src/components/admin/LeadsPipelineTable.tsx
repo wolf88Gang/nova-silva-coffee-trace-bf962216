@@ -74,7 +74,7 @@ function useDemoLeads() {
     queryFn: async (): Promise<DemoLead[]> => {
       const { data, error } = await supabase
         .from('demo_leads' as any)
-        .select('id, nombre, email, organizacion, cta_source, estado, created_at')
+        .select('id, nombre, email, organizacion, cta_source, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -85,7 +85,7 @@ function useDemoLeads() {
         email: row.email ?? '',
         organizacion: row.organizacion,
         cta_source: row.cta_source,
-        estado: (['new', 'contacted', 'qualified', 'closed'].includes(row.estado) ? row.estado : 'new') as LeadStatus,
+        estado: 'new' as LeadStatus,
         created_at: row.created_at,
       }));
     },
