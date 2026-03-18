@@ -3,6 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { pingEdgeFunction } from '@/lib/ensureDemoUser';
 
 export interface AdminOrg {
   id: string;
@@ -143,21 +144,13 @@ export function useSystemHealth() {
       }
 
       // 4. Edge Functions (ping ensure-demo-user)
-      const efStart = performance.now();
-      try {
-        const res = await fetch('https://qbwmsarqewxjuwgkdfmg.supabase.co/functions/v1/ensure-demo-user', {
-          method: 'OPTIONS',
-        });
-        const latency = Math.round(performance.now() - efStart);
-        checks.push({
-          service: 'Edge Functions',
-          status: res.ok || res.status === 204 ? 'ok' : 'error',
-          latencyMs: latency,
-          detail: `${latency}ms (HTTP ${res.status})`,
-        });
-      } catch (e: any) {
-        checks.push({ service: 'Edge Functions', status: 'error', detail: e.message });
-      }
+      const efResult = await pingEdgeFunction();
+      checks.push({
+        service: 'Edge Functions',
+        status: efResult.status,
+        latencyMs: efResult.latencyMs,
+        detail: efResult.detail,
+      });
 
       return checks;
     },

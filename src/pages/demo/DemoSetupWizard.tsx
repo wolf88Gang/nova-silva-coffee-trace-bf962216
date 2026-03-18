@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { ensureDemoUser } from '@/lib/ensureDemoUser';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -205,16 +206,12 @@ export default function DemoSetupWizard() {
     }));
 
     try {
-      const SUPABASE_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
-
-      try {
-        await fetch(`${SUPABASE_URL}/functions/v1/ensure-demo-user`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
-          body: JSON.stringify({ role: arch.role }),
-        });
-      } catch { /* non-blocking */ }
+      const result = await ensureDemoUser(arch.role);
+      if (!result.ok) {
+        console.error('ensure-demo-user failed:', result.error, result.status);
+        setEntering(false);
+        return;
+      }
 
       pendingRedirect.current = arch.redirectPath;
       const { error } = await supabase.auth.signInWithPassword({ email: arch.email, password: 'demo123456' });

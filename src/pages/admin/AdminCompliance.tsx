@@ -57,7 +57,7 @@ export default function AdminCompliance() {
         }
       />
 
-      <PendingIntegration feature="Eventos de auditoría reales (ag_nut_plan_audit_events, ag_support_tickets)" />
+      <PendingIntegration feature="Eventos de auditoría reales pendientes de integración con backend. Datos no verificables." />
 
       <Tabs defaultValue="integridad">
         <TabsList className="grid grid-cols-5 max-w-2xl">
