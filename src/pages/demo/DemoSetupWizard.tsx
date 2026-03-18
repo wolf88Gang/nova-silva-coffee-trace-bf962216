@@ -9,6 +9,7 @@ import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { ensureDemoUser } from '@/lib/ensureDemoUser';
+import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -167,6 +168,7 @@ export default function DemoSetupWizard() {
   const [step, setStep] = useState<Step>(0);
   const [state, setState] = useState<SetupState>(INITIAL);
   const [entering, setEntering] = useState(false);
+  const [enterError, setEnterError] = useState<{ title: string; description: string } | null>(null);
   const pendingRedirect = useRef<string | null>(null);
 
   const update = (partial: Partial<SetupState>) => setState(prev => ({ ...prev, ...partial }));
@@ -184,7 +186,9 @@ export default function DemoSetupWizard() {
   }, [isAuthenticated, user, navigate]);
 
   const handleEnterDemo = async () => {
+    if (entering) return;
     setEntering(true);
+    setEnterError(null);
     const arch = archetype;
 
     // Deduplicate modules
@@ -210,14 +214,23 @@ export default function DemoSetupWizard() {
     try {
       const result = await ensureDemoUser(arch.role);
       if (!result.ok) {
+        const errInfo = interpretDemoError(result);
         console.error('ensure-demo-user failed:', result.error, result.status);
+        setEnterError({ title: errInfo.title, description: errInfo.description });
         toast({
-          title: 'Error preparando demo',
-          description: result.error || 'No se pudo preparar el usuario demo',
+          title: errInfo.title,
+          description: errInfo.description,
           variant: 'destructive',
         });
         setEntering(false);
         return;
+      }
+
+      if (isNoOrgResult(result)) {
+        toast({
+          title: 'Demo sin organización',
+          description: 'Algunas funciones pueden estar limitadas.',
+        });
       }
 
       pendingRedirect.current = arch.redirectPath;
@@ -225,11 +238,16 @@ export default function DemoSetupWizard() {
 
       if (error) {
         pendingRedirect.current = null;
+        setEnterError({ title: 'Error de autenticación', description: error.message });
         setEntering(false);
         console.error('Demo auth error:', error.message);
       }
-    } catch {
+    } catch (err: any) {
       pendingRedirect.current = null;
+      setEnterError({
+        title: 'Sin conexión',
+        description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+      });
       setEntering(false);
     }
   };
@@ -273,7 +291,7 @@ export default function DemoSetupWizard() {
             {step === 2 && <StepOperations state={state} update={update} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
             {step === 3 && <StepInterests state={state} update={update} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
             {step === 4 && <StepScale state={state} update={update} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
-            {step === 5 && <StepSummary state={state} model={model} archetype={archetype} narrative={getNarrative(state)} onEnter={handleEnterDemo} onBack={() => setStep(4)} entering={entering} />}
+            {step === 5 && <StepSummary state={state} model={model} archetype={archetype} narrative={getNarrative(state)} onEnter={handleEnterDemo} onBack={() => setStep(4)} entering={entering} enterError={enterError} />}
           </div>
         </main>
       </div>
@@ -555,9 +573,10 @@ function StepScale({ state, update, onNext, onBack }: { state: SetupState; updat
 
 // ── Step 5: Summary ──
 
-function StepSummary({ state, model, archetype, narrative, onEnter, onBack, entering }: {
+function StepSummary({ state, model, archetype, narrative, onEnter, onBack, entering, enterError }: {
   state: SetupState; model: string; archetype: ReturnType<typeof mapToArchetype>; narrative: string;
   onEnter: () => void; onBack: () => void; entering: boolean;
+  enterError: { title: string; description: string } | null;
 }) {
   const orgLabel = ORG_TYPES.find(o => o.value === state.orgType)?.label || state.orgType;
   const uniqueModules = [...new Set(archetype.modules)];
@@ -766,8 +785,16 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         </div>
       </div>
 
+      {/* Error display */}
+      {enterError && (
+        <div className="mt-4 p-4 rounded-xl border border-destructive/40 bg-destructive/10 space-y-2">
+          <p className="text-sm font-semibold text-destructive">{enterError.title}</p>
+          <p className="text-xs text-white/60">{enterError.description}</p>
+        </div>
+      )}
+
       {/* CTA */}
-      <div className="mt-6">
+      <div className="mt-4">
         <button
           onClick={onEnter}
           disabled={entering}
@@ -780,6 +807,8 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         >
           {entering ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Preparando tu demo…</>
+          ) : enterError ? (
+            <><Play className="h-4 w-4" /> Reintentar</>
           ) : (
             <><Play className="h-4 w-4" /> Entrar al demo</>
           )}

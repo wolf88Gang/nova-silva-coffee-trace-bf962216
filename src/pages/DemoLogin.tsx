@@ -11,6 +11,7 @@ import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgHillside from '@/assets/bg-hillside-farm.jpg';
 import { cn } from '@/lib/utils';
 import { ensureDemoUser } from '@/lib/ensureDemoUser';
+import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
 
 // ── FALLBACK DATA (used when views don't exist) ──
 
@@ -367,7 +368,7 @@ const DemoLogin = () => {
   };
 
   const handleEnter = async () => {
-    if (!selectedProfile || !selectedOrg) return;
+    if (!selectedProfile || !selectedOrg || loadingRole) return;
     setLoadingRole(selectedProfile.role);
 
     setDemoConfig({
@@ -383,14 +384,23 @@ const DemoLogin = () => {
       if (selectedProfile.role !== 'admin') {
         const result = await ensureDemoUser(selectedProfile.role);
         if (!result.ok) {
+          const errInfo = interpretDemoError(result);
           console.error('ensure-demo-user failed:', result.error, result.status);
           toast({
-            title: 'Error preparando demo',
-            description: result.error || 'No se pudo preparar el usuario demo',
+            title: errInfo.title,
+            description: errInfo.description,
             variant: 'destructive',
           });
           setLoadingRole(null);
           return;
+        }
+
+        // Check for no-org warning
+        if (isNoOrgResult(result)) {
+          toast({
+            title: 'Demo sin organización',
+            description: 'Estás en modo demo sin organización. Algunas funciones pueden estar limitadas.',
+          });
         }
       }
 
@@ -406,10 +416,14 @@ const DemoLogin = () => {
         toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
         setLoadingRole(null);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Demo login error:', err);
       pendingRedirect.current = null;
-      toast({ title: 'Error', description: 'Error de conexión. Intenta de nuevo.', variant: 'destructive' });
+      toast({
+        title: 'Sin conexión',
+        description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+        variant: 'destructive',
+      });
       setLoadingRole(null);
     }
   };
@@ -600,7 +614,14 @@ const DemoLogin = () => {
                     disabled={!!loadingRole}
                     className="w-full flex items-center justify-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3.5 px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[hsl(var(--accent-orange))]/20 active:scale-[0.97]"
                   >
-                    {loadingRole ? (<><Loader2 className="h-4 w-4 animate-spin" /><span>Ingresando…</span></>) : (<span>Entrar al entorno demo</span>)}
+                    {loadingRole ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Preparando entorno…</span>
+                      </>
+                    ) : (
+                      <span>Entrar al entorno demo</span>
+                    )}
                   </button>
                 </div>
                 <button onClick={handleBack} className="flex items-center justify-center gap-1.5 text-white/40 hover:text-white text-xs mt-4 mx-auto transition-colors">
