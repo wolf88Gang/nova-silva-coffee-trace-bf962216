@@ -1,8 +1,7 @@
 /**
  * Reusable admin panel components.
- * StatusBadge, MetricCard, AlertList, HealthIndicator, UsageProgressCard,
- * EmptyState, QuickActionButton, PendingIntegration
  */
+import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -74,6 +73,7 @@ export function HealthIndicator({ status, label }: { status: 'ok' | 'error' | 'c
 // ── AlertList ──
 
 export function AlertList({ alerts, maxItems }: { alerts: MockAlert[]; maxItems?: number }) {
+  const [selectedAlert, setSelectedAlert] = React.useState<MockAlert | null>(null);
   const items = maxItems ? alerts.slice(0, maxItems) : alerts;
   const colorMap: Record<AlertLevel, string> = {
     critical: 'border-l-destructive bg-destructive/5',
@@ -85,20 +85,138 @@ export function AlertList({ alerts, maxItems }: { alerts: MockAlert[]; maxItems?
     warning: 'text-warning',
     info: 'text-primary',
   };
+  const estadoConfig: Record<string, { label: string; className: string }> = {
+    enviado: { label: 'Enviado', className: 'bg-success/15 text-success border-success/30' },
+    pendiente: { label: 'Pendiente', className: 'bg-warning/15 text-warning border-warning/30' },
+    resuelto: { label: 'Resuelto', className: 'bg-muted text-muted-foreground border-muted' },
+    en_progreso: { label: 'En progreso', className: 'bg-primary/15 text-primary border-primary/30' },
+  };
+
   return (
-    <div className="space-y-2">
-      {items.map(a => (
-        <div key={a.id} className={cn('flex items-center gap-3 p-3 rounded-lg border-l-4', colorMap[a.level])}>
-          <AlertTriangle className={cn('h-4 w-4 shrink-0', iconColorMap[a.level])} />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-foreground">{a.message}</p>
+    <>
+      <div className="space-y-2">
+        {items.map(a => (
+          <div
+            key={a.id}
+            className={cn('flex items-center gap-3 p-3 rounded-lg border-l-4 cursor-pointer hover:opacity-80 transition-opacity', colorMap[a.level])}
+            onClick={() => setSelectedAlert(a)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setSelectedAlert(a)}
+          >
+            <AlertTriangle className={cn('h-4 w-4 shrink-0', iconColorMap[a.level])} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-foreground">{a.message}</p>
+            </div>
+            <span className="text-xs text-muted-foreground shrink-0">{a.time}</span>
+            {a.detail && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0">
+                Ver detalles <ArrowRight className="h-3 w-3" />
+              </Button>
+            )}
           </div>
-          <span className="text-xs text-muted-foreground shrink-0">{a.time}</span>
-          {a.actionLabel && (
-            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0">{a.actionLabel} <ArrowRight className="h-3 w-3" /></Button>
+        ))}
+      </div>
+
+      {/* Alert Detail Dialog */}
+      {selectedAlert && (
+        <AlertDetailDialog
+          alert={selectedAlert}
+          open={!!selectedAlert}
+          onClose={() => setSelectedAlert(null)}
+          estadoConfig={estadoConfig}
+          iconColorMap={iconColorMap}
+        />
+      )}
+    </>
+  );
+}
+
+function AlertDetailDialog({ alert, open, onClose, estadoConfig, iconColorMap }: {
+  alert: MockAlert;
+  open: boolean;
+  onClose: () => void;
+  estadoConfig: Record<string, { label: string; className: string }>;
+  iconColorMap: Record<AlertLevel, string>;
+}) {
+  const detail = alert.detail;
+  const levelLabel = { critical: 'Crítica', warning: 'Advertencia', info: 'Informativa' }[alert.level];
+
+  return (
+    <div className={cn('fixed inset-0 z-50 flex items-center justify-center', open ? '' : 'hidden')}>
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative z-10 bg-background border rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto">
+        <div className="p-5 space-y-4">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className={cn('h-5 w-5', iconColorMap[alert.level])} />
+              <Badge variant="outline" className={cn('text-xs', 
+                alert.level === 'critical' ? 'border-destructive/40 text-destructive' :
+                alert.level === 'warning' ? 'border-warning/40 text-warning' : 'border-primary/40 text-primary'
+              )}>
+                {levelLabel}
+              </Badge>
+              <span className="text-xs text-muted-foreground">{alert.time}</span>
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onClose}>
+              <XCircle className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Message */}
+          <p className="text-sm font-medium text-foreground">{alert.message}</p>
+
+          {detail ? (
+            <div className="space-y-3">
+              {/* Description */}
+              <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Descripción</p>
+                <p className="text-sm text-foreground">{detail.descripcion}</p>
+              </div>
+
+              {/* Action taken */}
+              <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Acción tomada</p>
+                <p className="text-sm text-foreground">{detail.accionTomada}</p>
+              </div>
+
+              {/* Metadata grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Estado</p>
+                  <Badge variant="outline" className={cn('text-xs', estadoConfig[detail.estado]?.className)}>
+                    {estadoConfig[detail.estado]?.label ?? detail.estado}
+                  </Badge>
+                </div>
+                {detail.canal && (
+                  <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Canal</p>
+                    <p className="text-sm text-foreground">{detail.canal}</p>
+                  </div>
+                )}
+                {detail.destinatario && (
+                  <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Destinatario</p>
+                    <p className="text-sm text-foreground">{detail.destinatario}</p>
+                  </div>
+                )}
+                {detail.fechaAccion && (
+                  <div className="p-3 rounded-lg bg-muted/50 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha de acción</p>
+                    <p className="text-sm text-foreground">{detail.fechaAccion}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-lg border border-dashed border-muted-foreground/30 text-center">
+              <Info className="h-5 w-5 text-muted-foreground/50 mx-auto mb-1" />
+              <p className="text-xs text-muted-foreground">No hay detalles adicionales para esta alerta.</p>
+            </div>
           )}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

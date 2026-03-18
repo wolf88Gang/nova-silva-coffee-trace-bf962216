@@ -77,6 +77,15 @@ export interface MockAlert {
   time: string;
   actionLabel?: string;
   actionUrl?: string;
+  /** Detail fields for expanded view */
+  detail?: {
+    descripcion: string;
+    accionTomada: string;
+    estado: 'enviado' | 'pendiente' | 'resuelto' | 'en_progreso';
+    fechaAccion?: string;
+    destinatario?: string;
+    canal?: string;
+  };
 }
 
 export interface MockFeedback {
@@ -251,13 +260,97 @@ export const MOCK_PAYMENTS: MockPayment[] = [
 // ── Mock Alerts ──
 
 export const MOCK_ALERTS: MockAlert[] = [
-  { id: 1, level: 'critical', message: '1 organización con cuenta suspendida por mora. Notificación enviada al admin de la org.', time: 'Hace 1h', actionLabel: 'Ver estado notificación' },
-  { id: 2, level: 'critical', message: '1 organización con factura vencida. Se envió recordatorio automático.', time: 'Hace 2h', actionLabel: 'Verificar envío' },
-  { id: 3, level: 'warning', message: '1 trial próximo a vencer (14 días). El admin de la org aún no ha recibido la guía de conversión.', time: 'Hace 6h', actionLabel: 'Reenviar guía' },
-  { id: 4, level: 'warning', message: 'Módulo Nova Yield: tasa de error superior al 3%. Equipo técnico notificado.', time: 'Hace 8h', actionLabel: 'Ver plataforma' },
-  { id: 5, level: 'warning', message: 'Incidente de integridad detectado (2 registros). Auditoría interna iniciada automáticamente.', time: 'Hace 12h', actionLabel: 'Ver auditoría' },
-  { id: 6, level: 'info', message: '1 organización superó el 75% de su límite de productores. Notificación de upgrade enviada.', time: 'Hace 1d' },
-  { id: 7, level: 'info', message: 'Nuevo trial registrado. Secuencia de onboarding activada automáticamente.', time: 'Hace 16d' },
+  {
+    id: 1, level: 'critical',
+    message: '1 organización con cuenta suspendida por mora. Notificación enviada al admin de la org.',
+    time: 'Hace 1h', actionLabel: 'Ver detalles',
+    detail: {
+      descripcion: 'La organización tiene un saldo pendiente mayor a 30 días. Se suspendió el acceso a módulos premium.',
+      accionTomada: 'Notificación automática enviada al administrador de la organización vía correo electrónico.',
+      estado: 'enviado',
+      fechaAccion: '2026-03-18 09:14',
+      destinatario: 'Admin de la organización',
+      canal: 'Email (Resend)',
+    },
+  },
+  {
+    id: 2, level: 'critical',
+    message: '1 organización con factura vencida. Se envió recordatorio automático.',
+    time: 'Hace 2h', actionLabel: 'Ver detalles',
+    detail: {
+      descripcion: 'Factura #INV-2026-0047 venció hace 15 días sin confirmación de pago.',
+      accionTomada: 'Recordatorio automático de pago enviado. Segundo aviso programado en 48h.',
+      estado: 'enviado',
+      fechaAccion: '2026-03-18 08:02',
+      destinatario: 'Contacto de facturación',
+      canal: 'Email (Resend)',
+    },
+  },
+  {
+    id: 3, level: 'warning',
+    message: '1 trial próximo a vencer (14 días). El admin de la org aún no ha recibido la guía de conversión.',
+    time: 'Hace 6h', actionLabel: 'Ver detalles',
+    detail: {
+      descripcion: 'El periodo de trial finaliza el 2026-04-01. No se ha detectado actividad en los últimos 5 días.',
+      accionTomada: 'Guía de conversión pendiente de envío. Se intentó enviar pero el email rebotó.',
+      estado: 'pendiente',
+      fechaAccion: '2026-03-18 04:30',
+      destinatario: 'Admin del trial',
+      canal: 'Email (rebotado)',
+    },
+  },
+  {
+    id: 4, level: 'warning',
+    message: 'Módulo Nova Yield: tasa de error superior al 3%. Equipo técnico notificado.',
+    time: 'Hace 8h', actionLabel: 'Ver detalles',
+    detail: {
+      descripcion: 'El endpoint de estimación de rendimiento registró 47 errores en las últimas 2 horas (tasa: 3.2%).',
+      accionTomada: 'Alerta enviada al equipo de ingeniería vía Slack. Investigación en curso.',
+      estado: 'en_progreso',
+      fechaAccion: '2026-03-18 02:15',
+      destinatario: 'Equipo de ingeniería',
+      canal: 'Slack #platform-alerts',
+    },
+  },
+  {
+    id: 5, level: 'warning',
+    message: 'Incidente de integridad detectado (2 registros). Auditoría interna iniciada automáticamente.',
+    time: 'Hace 12h', actionLabel: 'Ver detalles',
+    detail: {
+      descripcion: 'Se detectaron 2 registros con inconsistencia en timestamps de creación vs. modificación.',
+      accionTomada: 'Auditoría automática iniciada. Registros marcados para revisión manual.',
+      estado: 'en_progreso',
+      fechaAccion: '2026-03-17 22:00',
+      destinatario: 'Equipo de compliance',
+      canal: 'Sistema interno',
+    },
+  },
+  {
+    id: 6, level: 'info',
+    message: '1 organización superó el 75% de su límite de productores. Notificación de upgrade enviada.',
+    time: 'Hace 1d',
+    detail: {
+      descripcion: 'La organización usa 382 de 500 productores permitidos en su plan actual.',
+      accionTomada: 'Email de sugerencia de upgrade enviado con comparativa de planes.',
+      estado: 'enviado',
+      fechaAccion: '2026-03-17 10:00',
+      destinatario: 'Admin de la organización',
+      canal: 'Email (Resend)',
+    },
+  },
+  {
+    id: 7, level: 'info',
+    message: 'Nuevo trial registrado. Secuencia de onboarding activada automáticamente.',
+    time: 'Hace 16d',
+    detail: {
+      descripcion: 'Nueva organización registrada en modo trial. Plan: Smart, duración: 30 días.',
+      accionTomada: 'Secuencia de onboarding de 5 emails activada. Primer email enviado.',
+      estado: 'enviado',
+      fechaAccion: '2026-03-02 14:22',
+      destinatario: 'Nuevo usuario registrado',
+      canal: 'Email (Resend)',
+    },
+  },
 ];
 
 // ── Mock Feedback ──
