@@ -163,6 +163,7 @@ function getNarrative(state: SetupState): string {
 export default function DemoSetupWizard() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState<Step>(0);
   const [state, setState] = useState<SetupState>(INITIAL);
   const [entering, setEntering] = useState(false);
