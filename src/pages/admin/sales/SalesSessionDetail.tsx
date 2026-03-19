@@ -1,123 +1,35 @@
-/**
- * Sales Intelligence — Session Detail + Outcome Capture
- * REAL SCHEMA: sales_sessions, sales_session_objections, sales_session_recommendations, sales_session_outcomes
- */
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, AlertCircle, Target, TrendingUp, TrendingDown, Minus,
-  Save, Edit2, ShieldAlert, ArrowRight as ArrowRightIcon,
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight as ArrowRightIcon,
+  Edit2,
+  Minus,
+  Save,
+  ShieldAlert,
+  Target,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-interface SessionData {
-  id: string;
-  lead_name: string | null;
-  lead_company: string | null;
-  lead_type: string | null;
-  commercial_stage: string | null;
-  status: string | null;
-  score_total: number | null;
-  score_pain: number | null;
-  score_maturity: number | null;
-  score_objection: number | null;
-  score_urgency: number | null;
-  score_fit: number | null;
-  score_budget_readiness: number | null;
-  created_at: string;
-}
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { SalesSessionService, type SalesSessionSummary } from '@/lib/salesSessionService';
+import { cn } from '@/lib/utils';
 
-interface OutcomeData {
-  id: string;
-  outcome: string;
-  deal_value: number | null;
-  close_date: string | null;
-  reason_lost: string | null;
-}
-
-interface Objection {
-  id: string;
-  objection_type: string;
-  confidence: number | null;
-  detail: string | null;
-}
-
-interface Recommendation {
-  id: string;
-  recommendation_type: string;
-  priority: number | null;
-  detail: string | null;
-}
-
-type BackendStatus = 'available' | 'unavailable';
-
-function useSessionDetail(sessionId: string) {
+function useSessionSummary(sessionId: string) {
   return useQuery({
-    queryKey: ['sales-session', sessionId],
-    queryFn: async (): Promise<{
-      session: SessionData | null;
-      outcome: OutcomeData | null;
-      objections: Objection[];
-      recommendations: Recommendation[];
-      status: BackendStatus;
-    }> => {
-      const { data, error } = await supabase
-        .from('sales_sessions' as any)
-        .select('id, lead_name, lead_company, lead_type, commercial_stage, status, score_total, score_pain, score_maturity, score_objection, score_urgency, score_fit, score_budget_readiness, created_at')
-        .eq('id', sessionId)
-        .single();
-
-      if (error) {
-        if (error.code === '42P01' || error.code === 'PGRST205' || error.message?.includes('does not exist')) {
-          return { session: null, outcome: null, objections: [], recommendations: [], status: 'unavailable' };
-        }
-        if (error.code === 'PGRST116') {
-          return { session: null, outcome: null, objections: [], recommendations: [], status: 'available' };
-        }
-        throw error;
-      }
-
-      // Fetch outcome from sales_session_outcomes
-      const { data: outData } = await supabase
-        .from('sales_session_outcomes' as any)
-        .select('id, outcome, deal_value, close_date, reason_lost')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      // Fetch objections from sales_session_objections
-      const { data: objData } = await supabase
-        .from('sales_session_objections' as any)
-        .select('id, objection_type, confidence, detail')
-        .eq('session_id', sessionId)
-        .order('confidence', { ascending: false });
-
-      // Fetch recommendations from sales_session_recommendations
-      const { data: recData } = await supabase
-        .from('sales_session_recommendations' as any)
-        .select('id, recommendation_type, priority, detail')
-        .eq('session_id', sessionId)
-        .order('priority', { ascending: true });
-
-      return {
-        session: data as SessionData,
-        outcome: (outData as OutcomeData[] | null)?.[0] ?? null,
-        objections: (objData as Objection[]) ?? [],
-        recommendations: (recData as Recommendation[]) ?? [],
-        status: 'available',
-      };
-    },
+    queryKey: ['sales-session-summary', sessionId],
+    queryFn: () => SalesSessionService.getSessionSummary(sessionId),
     staleTime: 1000 * 60 * 2,
   });
 }
@@ -131,10 +43,10 @@ const SCORE_KEYS = [
   { key: 'score_objection', label: 'Objection' },
 ] as const;
 
-function scoreColor(v: number | null): string {
-  if (v == null) return 'text-muted-foreground';
-  if (v >= 7) return 'text-emerald-600 dark:text-emerald-400';
-  if (v >= 4) return 'text-amber-600 dark:text-amber-400';
+function scoreColor(value: number | null): string {
+  if (value == null) return 'text-muted-foreground';
+  if (value >= 7) return 'text-primary';
+  if (value >= 4) return 'text-foreground';
   return 'text-destructive';
 }
 
@@ -142,7 +54,7 @@ export default function SalesSessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: result, isLoading, isError } = useSessionDetail(sessionId!);
+  const { data, isLoading, isError, error } = useSessionSummary(sessionId!);
 
   const [editing, setEditing] = useState(false);
   const [outcome, setOutcome] = useState('');
@@ -150,54 +62,34 @@ export default function SalesSessionDetail() {
   const [closeDate, setCloseDate] = useState('');
   const [reasonLost, setReasonLost] = useState('');
 
-  const session = result?.session;
-  const existingOutcome = result?.outcome;
+  const session = data?.session ?? null;
+  const existingOutcome = data?.outcome ?? null;
 
   useEffect(() => {
-    if (existingOutcome) {
-      setOutcome(existingOutcome.outcome ?? '');
-      setDealValue(existingOutcome.deal_value?.toString() ?? '');
-      setCloseDate(existingOutcome.close_date ?? '');
-      setReasonLost(existingOutcome.reason_lost ?? '');
-    }
+    setOutcome(existingOutcome?.outcome ?? '');
+    setDealValue(existingOutcome?.deal_value?.toString() ?? '');
+    setCloseDate(existingOutcome?.close_date ?? '');
+    setReasonLost(existingOutcome?.reason_lost ?? '');
   }, [existingOutcome]);
 
-  const saveMutation = useMutation({
+  const saveOutcomeMutation = useMutation({
     mutationFn: async () => {
-      const payload: Record<string, any> = {
-        session_id: sessionId!,
-        outcome: outcome || null,
-      };
-      if (outcome === 'won') {
-        payload.deal_value = dealValue ? parseFloat(dealValue) : null;
-        payload.close_date = closeDate || null;
-      }
-      if (outcome === 'lost') {
-        payload.reason_lost = reasonLost.trim() || null;
-      }
-
-      if (existingOutcome?.id) {
-        // Update existing outcome
-        const { error } = await supabase
-          .from('sales_session_outcomes' as any)
-          .update(payload as any)
-          .eq('id', existingOutcome.id);
-        if (error) throw error;
-      } else {
-        // Insert new outcome
-        const { error } = await supabase
-          .from('sales_session_outcomes' as any)
-          .insert(payload as any);
-        if (error) throw error;
-      }
+      if (!sessionId || !outcome) throw new Error('Selecciona un outcome');
+      await SalesSessionService.saveOutcome({
+        sessionId,
+        outcome,
+        dealValue: outcome === 'won' && dealValue ? Number(dealValue) : null,
+        closeDate: outcome === 'won' ? closeDate || null : null,
+        reasonLost: outcome === 'lost' ? reasonLost : null,
+      });
     },
     onSuccess: () => {
       toast.success('Resultado guardado');
       setEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['sales-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] });
     },
-    onError: (err: any) => {
-      toast.error(err.message || 'Error al guardar');
+    onError: (mutationError: any) => {
+      toast.error(mutationError?.message || 'No se pudo guardar el resultado');
     },
   });
 
@@ -211,14 +103,14 @@ export default function SalesSessionDetail() {
     );
   }
 
-  if (isError || result?.status === 'unavailable') {
+  if (isError) {
     return (
       <div className="max-w-3xl mx-auto">
         <Card className="border-dashed">
           <CardContent className="py-10 text-center">
-            <Target className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm font-medium text-foreground">Backend no disponible</p>
-            <p className="text-xs text-muted-foreground mt-1">La tabla <code className="bg-muted px-1 rounded text-[11px]">sales_sessions</code> no existe</p>
+            <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+            <p className="text-sm font-medium text-foreground">No se pudo cargar la sesión</p>
+            <p className="text-xs text-muted-foreground mt-1">{(error as Error)?.message || 'Error desconocido'}</p>
           </CardContent>
         </Card>
       </div>
@@ -230,7 +122,7 @@ export default function SalesSessionDetail() {
       <div className="max-w-3xl mx-auto">
         <Card className="border-dashed">
           <CardContent className="py-10 text-center">
-            <AlertCircle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+            <Target className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-sm font-medium text-foreground">Sesión no encontrada</p>
             <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate('/admin/sales')}>
               Volver a sesiones
@@ -241,44 +133,39 @@ export default function SalesSessionDetail() {
     );
   }
 
-  const hasOutcome = !!existingOutcome;
-  const showForm = editing || !hasOutcome;
+  const hasOutcome = Boolean(existingOutcome);
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/admin/sales')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-foreground">{session.lead_company || session.lead_name || 'Sin nombre'}</h1>
+          <h1 className="text-xl font-bold text-foreground">{session.lead_company || session.lead_name || 'Sesión comercial'}</h1>
           <p className="text-xs text-muted-foreground">
-            {session.lead_type} · {new Date(session.created_at).toLocaleDateString('es')}
-            {session.lead_name && ` · ${session.lead_name}`}
-            {session.commercial_stage && ` · ${session.commercial_stage}`}
+            {session.lead_type || 'Sin tipo'} · {new Date(session.created_at).toLocaleDateString('es')}
+            {session.lead_name ? ` · ${session.lead_name}` : ''}
+            {session.commercial_stage ? ` · ${session.commercial_stage}` : ''}
           </p>
         </div>
       </div>
 
-      {/* Scores */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Scores</CardTitle>
-            <span className={cn('text-2xl font-bold font-mono', scoreColor(session.score_total))}>
-              {session.score_total ?? '—'}
-            </span>
+            <CardTitle className="text-sm">Score total</CardTitle>
+            <span className={cn('text-2xl font-bold font-mono', scoreColor(session.score_total))}>{session.score_total ?? '—'}</span>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+          <div className="grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
             {SCORE_KEYS.map(({ key, label }) => {
-              const val = session[key as keyof SessionData] as number | null;
+              const value = session[key as keyof typeof session] as number | null;
               return (
-                <div key={key} className="bg-muted/50 rounded-md py-2.5">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
-                  <p className={cn('text-lg font-mono font-bold', scoreColor(val))}>{val ?? '—'}</p>
+                <div key={key} className="rounded-md bg-muted/50 py-2.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+                  <p className={cn('text-lg font-bold font-mono', scoreColor(value))}>{value ?? '—'}</p>
                 </div>
               );
             })}
@@ -286,55 +173,52 @@ export default function SalesSessionDetail() {
         </CardContent>
       </Card>
 
-      {/* Bloqueadores (Objections) */}
-      {result!.objections.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1.5">
-              <ShieldAlert className="h-3.5 w-3.5 text-destructive" /> Bloqueadores
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-1.5">
+            <ShieldAlert className="h-3.5 w-3.5 text-primary" /> Bloqueadores
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {data?.objections.length ? (
             <div className="space-y-2">
-              {result!.objections.map(o => (
-                <div key={o.id} className="flex items-start gap-2 text-sm">
-                  <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">{o.objection_type}</Badge>
-                  <span className="text-muted-foreground flex-1">{o.detail || '—'}</span>
-                  {o.confidence != null && (
-                    <span className="text-[10px] text-muted-foreground font-mono shrink-0">{Math.round(o.confidence * 100)}%</span>
-                  )}
+              {data.objections.map((item) => (
+                <div key={item.id} className="flex items-start gap-2 text-sm">
+                  <Badge variant="outline" className="mt-0.5 shrink-0 text-[10px]">{item.objection_type}</Badge>
+                  <span className="flex-1 text-muted-foreground">{item.detail || '—'}</span>
+                  {item.confidence != null && <span className="shrink-0 text-[10px] font-mono text-muted-foreground">{Math.round(item.confidence * 100)}%</span>}
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin bloqueadores registrados.</p>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Próximos pasos (Recommendations) */}
-      {result!.recommendations.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1.5">
-              <ArrowRightIcon className="h-3.5 w-3.5 text-primary" /> Próximos pasos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-1.5">
+            <ArrowRightIcon className="h-3.5 w-3.5 text-primary" /> Próximos pasos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {data?.recommendations.length ? (
             <div className="space-y-2">
-              {result!.recommendations.map(r => (
-                <div key={r.id} className="flex items-start gap-2 text-sm">
-                  <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">{r.recommendation_type}</Badge>
-                  <span className="text-muted-foreground flex-1">{r.detail || '—'}</span>
-                  {r.priority != null && (
-                    <span className="text-[10px] text-muted-foreground font-mono shrink-0">P{r.priority}</span>
-                  )}
+              {data.recommendations.map((item) => (
+                <div key={item.id} className="flex items-start gap-2 text-sm">
+                  <Badge variant="outline" className="mt-0.5 shrink-0 text-[10px]">{item.recommendation_type}</Badge>
+                  <span className="flex-1 text-muted-foreground">{item.detail || '—'}</span>
+                  {item.priority != null && <span className="shrink-0 text-[10px] font-mono text-muted-foreground">P{item.priority}</span>}
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin recomendaciones registradas.</p>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Outcome Capture — uses sales_session_outcomes table */}
       <Card className={cn(hasOutcome && !editing ? 'border-primary/20' : '')}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -350,19 +234,15 @@ export default function SalesSessionDetail() {
           {hasOutcome && !editing ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                {existingOutcome!.outcome === 'won' && <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30"><TrendingUp className="h-3 w-3 mr-1" /> Won</Badge>}
-                {existingOutcome!.outcome === 'lost' && <Badge variant="destructive" className="gap-1"><TrendingDown className="h-3 w-3" /> Lost</Badge>}
-                {existingOutcome!.outcome === 'no_decision' && <Badge variant="secondary" className="gap-1"><Minus className="h-3 w-3" /> No decision</Badge>}
+                {existingOutcome?.outcome === 'won' && <Badge className="border-primary/30 bg-primary/10 text-primary"><TrendingUp className="mr-1 h-3 w-3" /> Won</Badge>}
+                {existingOutcome?.outcome === 'lost' && <Badge variant="destructive" className="gap-1"><TrendingDown className="h-3 w-3" /> Lost</Badge>}
+                {existingOutcome?.outcome === 'no_decision' && <Badge variant="secondary" className="gap-1"><Minus className="h-3 w-3" /> No decision</Badge>}
               </div>
-              {existingOutcome!.deal_value != null && existingOutcome!.deal_value > 0 && (
-                <p className="text-sm text-muted-foreground">Deal value: <span className="font-mono font-medium text-foreground">${existingOutcome!.deal_value.toLocaleString()}</span></p>
+              {existingOutcome?.deal_value != null && existingOutcome.deal_value > 0 && (
+                <p className="text-sm text-muted-foreground">Deal value: <span className="font-medium font-mono text-foreground">${existingOutcome.deal_value.toLocaleString()}</span></p>
               )}
-              {existingOutcome!.close_date && (
-                <p className="text-sm text-muted-foreground">Close date: <span className="font-medium text-foreground">{existingOutcome!.close_date}</span></p>
-              )}
-              {existingOutcome!.reason_lost && (
-                <p className="text-sm text-muted-foreground">Razón: <span className="text-foreground">{existingOutcome!.reason_lost}</span></p>
-              )}
+              {existingOutcome?.close_date && <p className="text-sm text-muted-foreground">Close date: <span className="font-medium text-foreground">{existingOutcome.close_date}</span></p>}
+              {existingOutcome?.reason_lost && <p className="text-sm text-muted-foreground">Razón: <span className="text-foreground">{existingOutcome.reason_lost}</span></p>}
             </div>
           ) : (
             <div className="space-y-3">
@@ -382,11 +262,11 @@ export default function SalesSessionDetail() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Deal value ($)</Label>
-                    <Input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)} placeholder="0" />
+                    <Input type="number" value={dealValue} onChange={(event) => setDealValue(event.target.value)} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Close date</Label>
-                    <Input type="date" value={closeDate} onChange={e => setCloseDate(e.target.value)} />
+                    <Input type="date" value={closeDate} onChange={(event) => setCloseDate(event.target.value)} />
                   </div>
                 </div>
               )}
@@ -394,21 +274,19 @@ export default function SalesSessionDetail() {
               {outcome === 'lost' && (
                 <div className="space-y-1.5">
                   <Label className="text-xs">Razón de pérdida *</Label>
-                  <Textarea value={reasonLost} onChange={e => setReasonLost(e.target.value)} placeholder="¿Por qué se perdió?" rows={2} />
+                  <Textarea value={reasonLost} onChange={(event) => setReasonLost(event.target.value)} placeholder="¿Por qué se perdió?" rows={2} />
                 </div>
               )}
 
               <div className="flex justify-end gap-2 pt-1">
-                {editing && (
-                  <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>
-                )}
+                {editing && <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>}
                 <Button
                   size="sm"
-                  disabled={!outcome || (outcome === 'lost' && !reasonLost.trim()) || saveMutation.isPending}
-                  onClick={() => saveMutation.mutate()}
+                  disabled={!outcome || (outcome === 'lost' && !reasonLost.trim()) || saveOutcomeMutation.isPending}
+                  onClick={() => saveOutcomeMutation.mutate()}
                   className="gap-1.5"
                 >
-                  <Save className="h-3.5 w-3.5" /> {saveMutation.isPending ? 'Guardando…' : 'Guardar'}
+                  <Save className="h-3.5 w-3.5" /> {saveOutcomeMutation.isPending ? 'Guardando…' : 'Guardar'}
                 </Button>
               </div>
             </div>

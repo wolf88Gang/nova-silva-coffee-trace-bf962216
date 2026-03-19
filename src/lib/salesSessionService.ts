@@ -288,14 +288,19 @@ function getSessionIdFromCreateResponse(data: any): string | null {
 
 function isCompleteStep(data: any, question: SalesQuestion | null): boolean {
   if (!data) return false;
+
+  const explicitFlag = [data.is_complete, data.completed, data.finalized, data.done].find(
+    (value) => typeof value === 'boolean'
+  );
+
+  if (typeof explicitFlag === 'boolean') {
+    return explicitFlag;
+  }
+
   return Boolean(
-    data.is_complete
-      ?? data.completed
-      ?? data.finalized
-      ?? data.done
-      ?? data.status === 'completed'
-      ?? data.status === 'finalized'
-      ?? (question === null && (data.next_step === null || data.remaining_questions === 0))
+    data.status === 'completed' ||
+    data.status === 'finalized' ||
+    (question === null && (data.next_step === null || data.remaining_questions === 0))
   );
 }
 
