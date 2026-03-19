@@ -18,6 +18,7 @@ const Login = () => {
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [adminDemoLoading, setAdminDemoLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,6 +32,28 @@ const Login = () => {
       navigate('/');
     } else {
       toast({ title: 'Error al iniciar sesión', description: result.error, variant: 'destructive' });
+    }
+  };
+
+  const handleAdminDemo = async () => {
+    setAdminDemoLoading(true);
+    try {
+      const { error: ensureErr } = await supabase.functions.invoke('ensure-demo-user', { body: { role: 'admin' } });
+      if (ensureErr) {
+        toast({ title: 'Error', description: ensureErr.message, variant: 'destructive' });
+        setAdminDemoLoading(false);
+        return;
+      }
+      const result = await login('demo.admin@novasilva.com', 'demo123456');
+      if (result.success) {
+        navigate('/admin/sales/new');
+      } else {
+        toast({ title: 'Error al iniciar sesión', description: result.error, variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error de conexión', variant: 'destructive' });
+    } finally {
+      setAdminDemoLoading(false);
     }
   };
 
@@ -140,6 +163,16 @@ const Login = () => {
                 <Link to="/demo" className="text-white/40 hover:text-white/70 text-xs transition-colors">
                   Probar en modo demo →
                 </Link>
+              </p>
+              <p>
+                <button
+                  type="button"
+                  onClick={handleAdminDemo}
+                  disabled={adminDemoLoading}
+                  className="text-white/40 hover:text-white/70 text-xs transition-colors disabled:opacity-50"
+                >
+                  {adminDemoLoading ? 'Preparando…' : 'Probar como admin (Sales Intelligence)'}
+                </button>
               </p>
             </div>
           </>

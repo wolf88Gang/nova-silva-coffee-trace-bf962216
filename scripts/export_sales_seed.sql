@@ -1,5 +1,5 @@
 -- Run in Supabase SQL Editor against LIVE DB to export seed data.
--- Copy output into 20250322000009_sales_seed_v1_full.sql or use for verification.
+-- Use output to build 20250323000001_sales_seed_v1_live.sql (see docs/SALES_INTELLIGENCE_LIVE_PARITY_PLAN.md).
 -- Questionnaire: nova_sales_intel, version 1
 
 -- 1. sales_questions (filter by questionnaire)

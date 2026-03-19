@@ -13,7 +13,7 @@
 | `fn_sales_recalculate_scores` | NO |
 | `fn_sales_detect_objections` | NO |
 | `_ensure_internal` | NO |
-| `admin_panel_roles` table | NO |
+| Auth: `is_admin()` / `user_roles` (no admin_panel_roles) | Sí (20250322000004) |
 | RLS policies `sales_*` | NO |
 | `20260318000001_sales_objection_recalibration.sql` | `.claude/worktrees/focused-hugle/supabase/migrations/` |
 | `20260318000002_sales_recommendations_redesign.sql` | `.claude/worktrees/focused-hugle/supabase/migrations/` |
@@ -32,7 +32,7 @@
 | `supabase/migrations/20250322000001_sales_schema_base.sql` | CREATE TYPE sales_*, CREATE TABLE sales_* (13 tablas), constraints, indexes base |
 | `supabase/migrations/20250322000002_sales_seed_v1.sql` | INSERT questionnaires, sections, questions, options, scoring_rules, objection_rules |
 | `supabase/migrations/20250322000003_sales_rpc_core.sql` | fn_sales_create_session, fn_sales_save_answer, fn_sales_recalculate_scores, fn_sales_detect_objections |
-| `supabase/migrations/20250322000004_sales_auth_helper.sql` | _ensure_internal() que usa is_admin() — NO crear admin_panel_roles |
+| `supabase/migrations/20250322000004_sales_auth_helper.sql` | _ensure_internal() → is_admin() → user_roles |
 | `supabase/migrations/20250322000005_sales_rls.sql` | RLS policies para sales_sessions, sales_session_*, sales_questions, etc. |
 
 ### Copiar (desde worktree)
@@ -70,7 +70,7 @@
 | Riesgo | Acción |
 |--------|--------|
 | `_ensure_internal` en migraciones 006–008 llama a función inexistente | Crear en 20250322000004 antes de 006 |
-| Migraciones 006–008 usan `perform public._ensure_internal()` | 20250322000004 define `_ensure_internal()` como wrapper de `is_admin()` — no crear admin_panel_roles |
+| Migraciones 006–008 usan `perform public._ensure_internal()` | 20250322000004 define `_ensure_internal()` → `is_admin()` (user_roles) |
 | `sales_objection_type` enum | Definir en 20250322000001_sales_schema_base |
 | `sales_session_question_snapshots` ON CONFLICT | La tabla debe tener UNIQUE(session_id, question_id, answer_option_id) en schema base |
 | `sales_session_recommendations` ON CONFLICT | La tabla debe tener UNIQUE(session_id, recommendation_type, title) en schema base |
@@ -182,4 +182,4 @@ Tablas a crear en 20250322000001:
 
 Enums: `sales_session_status`, `sales_objection_type`, `sales_question_type`
 
-FK: `platform_organizations`, `profiles` (auth.users vía profiles.user_id)
+FK: `platform_organizations` (tenant), `profiles` (auth.users vía profiles.user_id). Auth: `is_admin()` / `user_roles`.

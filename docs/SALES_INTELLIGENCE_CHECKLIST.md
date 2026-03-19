@@ -37,6 +37,15 @@
 
 ---
 
+## Source of truth (actual)
+
+| Área | Fuente |
+|------|--------|
+| **Auth** | `is_admin()` → `user_roles` (role IN 'admin','superadmin'). RPCs usan `_ensure_internal()`. |
+| **Tenant** | `platform_organizations`. `sales_sessions.organization_id` FK a `platform_organizations(id)`. |
+
+---
+
 ## Pendiente manual
 
 1. **Seed completo**: 20250322000002 tiene solo questionnaire + 8 sections. Extraer de BD existente o completar:

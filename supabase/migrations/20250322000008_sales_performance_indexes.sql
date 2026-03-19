@@ -33,7 +33,7 @@
 --
 -- NOT changed:
 --   - sales_session_scores dual-write — table kept for external audit consumers
---   - admin_panel_roles — already has (user_id, is_active) index, sufficient
+--   - user_roles (auth via is_admin()) — no index needed for Sales; RPCs use _ensure_internal
 --   - uq_answer_per_question — already covers rule inner EXISTS correctly
 -- =============================================================================
 

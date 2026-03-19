@@ -77,10 +77,23 @@ export interface RecommendationRow {
   priority: number;
 }
 
+export type SalesOutcome = 'won' | 'lost' | 'no_decision';
+
+export interface SessionOutcome {
+  outcome: SalesOutcome;
+  reason_lost: string | null;
+  deal_value: number | null;
+  close_date: string | null; // YYYY-MM-DD
+}
+
 export interface SessionSummaryResponse {
   session_id: string;
   status: string;
   commercial_stage: string;
+  lead_name?: string | null;
+  lead_company?: string | null;
+  lead_type?: string | null;
+  outcome: SessionOutcome | null;
   scores: {
     score_total: number;
     score_pain: number;
@@ -106,7 +119,11 @@ export class SalesSessionService {
    * Latency: 1 RPC round trip.
    */
   static async createSession(req: CreateSessionRequest): Promise<CreateSessionResponse> {
-    const { data, error } = await supabase.rpc('fn_sales_create_session', {
+    // DEBUG: instrumentación temporal — eliminar cuando termine el debug
+    const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL ?? 'https://qbwmsarqewxjuwgkdfmg.supabase.co';
+    const { data: session } = await supabase.auth.getSession();
+    const { data: debugAuth, error: debugError } = await supabase.rpc('fn_debug_sales_auth');
+    const payload = {
       p_organization_id:       req.organization_id,
       p_questionnaire_code:    req.questionnaire_code,
       p_questionnaire_version: req.questionnaire_version,
@@ -116,9 +133,20 @@ export class SalesSessionService {
       p_commercial_stage:      req.commercial_stage      ?? 'lead',
       p_owner_user_id:         req.owner_user_id         ?? null,
       p_metadata:              req.metadata              ?? null,
+    };
+    console.log('[Sales DEBUG]', {
+      VITE_SUPABASE_URL: supabaseUrl,
+      session_user_id: session?.session?.user?.id ?? null,
+      fn_debug_sales_auth: { data: debugAuth, error: debugError },
+      fn_sales_create_session_payload: payload,
     });
 
-    if (error) throw new Error(`createSession failed: ${error.message}`);
+    const { data, error } = await supabase.rpc('fn_sales_create_session', payload);
+
+    if (error) {
+      console.error('[Sales DEBUG] fn_sales_create_session error:', { message: error.message, code: error.code, details: error.details });
+      throw new Error(`createSession failed: ${error.message}`);
+    }
     if (!data)  throw new Error('createSession returned no session_id');
 
     return { session_id: data as string };
@@ -211,14 +239,14 @@ export class SalesSessionService {
    * Fetches the full output of a completed session in one call.
    * Used by the results page / Admin Panel session detail view.
    *
-   * Latency: 3 parallel Supabase queries.
+   * Latency: 4 parallel Supabase queries.
    */
   static async getSessionSummary(sessionId: string): Promise<SessionSummaryResponse> {
-    const [sessionResult, objectionsResult, recommendationsResult] = await Promise.all([
+    const [sessionResult, objectionsResult, recommendationsResult, outcomeResult] = await Promise.all([
       supabase
         .from('sales_sessions')
         .select(
-          `id, status, commercial_stage,
+          `id, status, commercial_stage, lead_name, lead_company, lead_type,
            score_total, score_pain, score_maturity, score_objection,
            score_urgency, score_fit, score_budget_readiness`,
         )
@@ -233,6 +261,12 @@ export class SalesSessionService {
         .select('id, recommendation_type, title, description, payload, priority')
         .eq('session_id', sessionId)
         .order('priority'),
+
+      supabase
+        .from('sales_session_outcomes')
+        .select('outcome, reason_lost, deal_value, close_date')
+        .eq('session_id', sessionId)
+        .maybeSingle(),
     ]);
 
     if (sessionResult.error || !sessionResult.data) {
@@ -246,11 +280,21 @@ export class SalesSessionService {
     }
 
     const s = sessionResult.data;
+    const o = outcomeResult.error ? null : (outcomeResult.data as { outcome: string; reason_lost: string | null; deal_value: number | null; close_date: string | null } | null);
 
     return {
       session_id: s.id,
       status:     s.status,
       commercial_stage: s.commercial_stage,
+      lead_name:  s.lead_name ?? null,
+      lead_company: s.lead_company ?? null,
+      lead_type:  s.lead_type ?? null,
+      outcome: o ? {
+        outcome: o.outcome as SalesOutcome,
+        reason_lost: o.reason_lost ?? null,
+        deal_value: o.deal_value ?? null,
+        close_date: o.close_date ?? null,
+      } : null,
       scores: {
         score_total:            s.score_total            ?? 0,
         score_pain:             s.score_pain             ?? 0,
@@ -263,5 +307,28 @@ export class SalesSessionService {
       objections:      (objectionsResult.data ?? []) as ObjectionSummaryRow[],
       recommendations: (recommendationsResult.data ?? []) as RecommendationRow[],
     };
+  }
+
+  /**
+   * UPSERT OUTCOME
+   *
+   * Records or updates the commercial outcome for a session.
+   * Admin only (RLS on sales_session_outcomes).
+   */
+  static async upsertOutcome(
+    sessionId: string,
+    payload: { outcome: SalesOutcome; reason_lost?: string | null; deal_value?: number | null; close_date?: string | null }
+  ): Promise<void> {
+    const { error } = await supabase.from('sales_session_outcomes').upsert(
+      {
+        session_id: sessionId,
+        outcome: payload.outcome,
+        reason_lost: payload.reason_lost ?? null,
+        deal_value: payload.deal_value ?? null,
+        close_date: payload.close_date || null,
+      },
+      { onConflict: 'session_id' }
+    );
+    if (error) throw new Error(`upsertOutcome failed: ${error.message}`);
   }
 }

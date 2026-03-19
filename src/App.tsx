@@ -90,6 +90,9 @@ import AdminGrowthPage from "./pages/admin/AdminGrowthPage";
 import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
 import AdminModuleDetail from "./pages/admin/AdminModuleDetail";
 import AdminComponentPlayground from "./pages/admin/AdminComponentPlayground";
+import SalesWizardPage from "./pages/admin/SalesWizardPage";
+import SalesSessionResultsPage from "./pages/admin/SalesSessionResultsPage";
+import CalibrationReviewPage from "./pages/admin/CalibrationReviewPage";
 
 // Domain-based (new architecture)
 import DashboardIndex from "./pages/domain/DashboardIndex";
@@ -261,6 +264,10 @@ const App = () => (
               <Route path="/admin/platform" element={<RequireAdmin><AdminLayout><AdminPlatformPage /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/compliance" element={<RequireAdmin><AdminLayout><AdminCompliancePage /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/growth" element={<RequireAdmin><AdminLayout><AdminGrowthPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/sales" element={<RequireAdmin><AdminLayout><Navigate to="/admin/sales/new" replace /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/sales/new" element={<RequireAdmin><AdminLayout><SalesWizardPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/sales/sessions/:sessionId" element={<RequireAdmin><AdminLayout><SalesSessionResultsPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/sales/calibration" element={<RequireAdmin><AdminLayout><CalibrationReviewPage /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><AdminLayout><AdminModuleExplorer /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/modules/:moduleId" element={<RequireAdmin><AdminLayout><AdminModuleDetail /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/components" element={<RequireAdmin><AdminLayout><AdminComponentPlayground /></AdminLayout></RequireAdmin>} />

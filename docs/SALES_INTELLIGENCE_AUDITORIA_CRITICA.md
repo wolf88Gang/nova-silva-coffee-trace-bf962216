@@ -13,9 +13,9 @@
 - Tablas: `sales_sessions`, `sales_session_scores`, `sales_questions`, `sales_answer_options`, `sales_scoring_rules`, `sales_objection_rules`, `sales_session_objections`, `sales_session_events`, `sales_session_recommendations`, `sales_session_question_snapshots`, `sales_session_answers`, `sales_questionnaires`, `sales_question_sections`
 - Funciones: `fn_sales_detect_objections`, `fn_sales_recalculate_scores`, `fn_sales_create_session`, `fn_sales_save_answer`, `fn_sales_finalize_session`
 - Helpers: `_ensure_internal`
-- Tabla: `admin_panel_roles`
+- Auth: `is_admin()` / `user_roles` (no admin_panel_roles)
 
-**Ninguna de estas definiciones está en el repositorio.** El schema base, el seed y `fn_sales_detect_objections` no existen en el código. O están en otro branch, en otro repo, o en migraciones aplicadas directamente en Supabase sin versionar.
+**Ninguna de estas definiciones estaba en el repositorio.** (Ahora sí: ver supabase/migrations/20250322*.) El schema base, el seed y `fn_sales_detect_objections` no existen en el código. O están en otro branch, en otro repo, o en migraciones aplicadas directamente en Supabase sin versionar.
 
 ### Contradicciones en el relato de implementación
 
@@ -106,11 +106,11 @@
 1. **Políticas**: `SELECT * FROM pg_policies WHERE tablename LIKE 'sales_%'` — confirmar que existen.
 2. **RLS activo**: `SELECT relname, relrowsecurity FROM pg_class WHERE relname LIKE 'sales_%'` — `relrowsecurity = true`.
 3. **Bypass**: Las funciones `fn_sales_*` son `SECURITY DEFINER`; ejecutan con privilegios del owner. Si no validan `_ensure_internal` correctamente, cualquier usuario autenticado podría llamarlas.
-4. **`_ensure_internal`**: Debe comprobar que `auth.uid()` está en `admin_panel_roles` con `is_active = true`. Si `admin_panel_roles` no existe o está vacía, la comprobación falla.
+4. **`_ensure_internal`**: Comprueba `is_admin()` → `user_roles` donde `role IN ('admin','superadmin')`. No usa admin_panel_roles.
 
 ### Error típico
 
-**Políticas que permiten SELECT a `authenticated` sin filtrar por `organization_id`.** Si `sales_sessions` tiene `organization_id`, la política debe ser `WHERE organization_id IN (SELECT ... FROM admin_panel_roles ...)` o similar. Una política `USING (true)` para `authenticated` sería una fuga.
+**Políticas que permiten SELECT a `authenticated` sin filtrar por `organization_id`.** Si `sales_sessions` tiene `organization_id` (FK a platform_organizations), la política debe filtrar por tenant o permitir solo admins vía `is_admin()`.
 
 ---
 
@@ -294,7 +294,7 @@ ORDER BY created_at;
 1. **Migraciones en el repo**: Mover las migraciones `20260318*` de `.claude/worktrees/focused-hugle/` a `supabase/migrations/` del proyecto principal, o documentar explícitamente que están en otro flujo.
 2. **Schema y seed versionados**: Incluir en el repo el schema base de `sales_*` y el seed (secciones, preguntas, opciones, reglas). Sin esto, no hay reproducibilidad.
 3. **RLS**: Añadir políticas RLS para `sales_*` y versionarlas en migraciones. Verificar que existan con Q3.
-4. **`_ensure_internal` y `admin_panel_roles`**: Asegurar que existen y que `admin_panel_roles` está poblado. Si no, los RPC fallarán para usuarios reales.
+4. **`_ensure_internal` y `user_roles`**: Asegurar que `is_admin()` existe y que `user_roles` tiene al menos un usuario con `role IN ('admin','superadmin')`. Si no, los RPC fallarán para usuarios reales.
 
 ### DEUDA ACEPTABLE POR AHORA
 

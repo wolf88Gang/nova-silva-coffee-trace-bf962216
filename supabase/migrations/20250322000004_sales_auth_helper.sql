@@ -1,5 +1,5 @@
 -- Sales Intelligence — Auth helper
--- _ensure_internal: usa is_admin() existente. No crea admin_panel_roles.
+-- _ensure_internal: usa is_admin() (user_roles.role IN ('admin','superadmin')).
 
 CREATE OR REPLACE FUNCTION public._ensure_internal()
 RETURNS void

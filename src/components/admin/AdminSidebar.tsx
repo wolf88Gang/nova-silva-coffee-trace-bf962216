@@ -11,12 +11,16 @@ import {
   Menu,
   ChevronRight,
   X,
+  MessageSquareText,
+  BarChart3,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ADMIN_NAV = [
   { title: 'Overview', url: '/admin/overview', icon: LayoutDashboard },
   { title: 'Organizaciones', url: '/admin/organizations', icon: Building2 },
+  { title: 'Sales Intelligence', url: '/admin/sales', icon: MessageSquareText },
+  { title: 'Calibration Review', url: '/admin/sales/calibration', icon: BarChart3 },
   { title: 'Usuarios', url: '/admin/users', icon: Users },
   { title: 'Facturación', url: '/admin/billing', icon: CreditCard },
   { title: 'Plataforma', url: '/admin/platform', icon: Server },

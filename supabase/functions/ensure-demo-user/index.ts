@@ -28,7 +28,7 @@ serve(async (req) => {
       return jsonResponse({ ok: false, error: 'Invalid JSON body', details: 'Parse error' }, 400)
     }
 
-    const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico']
+    const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico', 'admin']
     if (!role || !validRoles.includes(role)) {
       return jsonResponse({
         ok: false,
@@ -43,7 +43,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const email = `demo.${role}@novasilva.com`
+    const email = role === 'admin' ? 'demo.admin@novasilva.com' : `demo.${role}@novasilva.com`
     const password = 'demo123456'
 
     const names: Record<string, string> = {
@@ -52,6 +52,7 @@ serve(async (req) => {
       certificadora: 'Ana Certificadora',
       productor: 'Juan Pérez',
       tecnico: 'Pedro Técnico',
+      admin: 'Admin Nova Silva',
     }
     const fullName = names[role]
 
@@ -158,8 +159,10 @@ serve(async (req) => {
     }
 
     // user_roles: no upsert with onConflict. Check if role exists; if not, insert.
+    // Admin gets role without org; others need resolvedOrgId.
     let roleAssigned: string | null = null
-    if (resolvedOrgId) {
+    const shouldAssignRole = role === 'admin' || resolvedOrgId
+    if (shouldAssignRole) {
       const { data: existingRoles } = await supabaseAdmin
         .from('user_roles')
         .select('id')
@@ -170,7 +173,7 @@ serve(async (req) => {
         const rolePayload: Record<string, unknown> = {
           user_id: userId,
           role,
-          organization_id: resolvedOrgId,
+          ...(resolvedOrgId ? { organization_id: resolvedOrgId } : {}),
         }
         const { error: roleErr } = await supabaseAdmin
           .from('user_roles')
