@@ -5,12 +5,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DemoProvider } from "@/contexts/DemoContext";
+import { DemoSetupProvider } from "@/contexts/DemoSetupContext";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { DomainLayout } from "@/components/layout/DomainLayout";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DemoLogin from "./pages/DemoLogin";
+import DemoLoginLayered from "./pages/DemoLoginLayered";
+import DemoSetupWizard from "./pages/demo/DemoSetupWizard";
+import DemoCreateAccount from "./pages/demo/DemoCreateAccount";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import NotFound from "./pages/NotFound";
 import PlaceholderPage from "./pages/PlaceholderPage";
@@ -71,7 +77,41 @@ import CertificadoraVerificar from "./pages/certificadora/CertificadoraVerificar
 import CertificadoraReportes from "./pages/certificadora/CertificadoraReportes";
 
 // Admin
+import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminPanel from "./pages/admin/AdminPanel";
+import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
+import AdminOrganizationsPage from "./pages/admin/AdminOrganizationsPage";
+import AdminOrganizationDetailPage from "./pages/admin/AdminOrganizationDetailPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminBillingPage from "./pages/admin/AdminBillingPage";
+import AdminPlatformPage from "./pages/admin/AdminPlatformPage";
+import AdminCompliancePage from "./pages/admin/AdminCompliancePage";
+import AdminGrowthPage from "./pages/admin/AdminGrowthPage";
+import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
+import AdminModuleDetail from "./pages/admin/AdminModuleDetail";
+import AdminComponentPlayground from "./pages/admin/AdminComponentPlayground";
+
+// Domain-based (new architecture)
+import DashboardIndex from "./pages/domain/DashboardIndex";
+import ParcelDetailPage from "./pages/domain/ParcelDetailPage";
+import ProduccionIndex from "./pages/domain/ProduccionIndex";
+import AgronomiaIndex from "./pages/domain/AgronomiaIndex";
+import ResilienciaIndex from "./pages/domain/ResilienciaIndex";
+import CumplimientoIndex from "./pages/domain/CumplimientoIndex";
+import CalidadIndex from "./pages/domain/CalidadIndex";
+import FinanzasIndex from "./pages/domain/FinanzasIndex";
+import AbastecimientoIndex from "./pages/domain/AbastecimientoIndex";
+import ParcelasListPage from "./pages/domain/ParcelasListPage";
+import NutritionOverviewPage from "./pages/domain/NutritionOverviewPage";
+import GuardOverviewPage from "./pages/domain/GuardOverviewPage";
+import YieldOverviewPage from "./pages/domain/YieldOverviewPage";
+import VitalOverviewPage from "./pages/domain/VitalOverviewPage";
+import NovaCupOverviewPage from "./pages/domain/NovaCupOverviewPage";
+import ComplianceHubPage from "./pages/domain/ComplianceHubPage";
+import FinanceOverviewPage from "./pages/domain/FinanceOverviewPage";
+import PayPalSandboxPage from "./pages/paypal/PayPalSandboxPage";
+import PayPalSandboxReturnPage from "./pages/paypal/PayPalSandboxReturnPage";
+import PayPalInvoicePaymentPage from "./pages/paypal/PayPalInvoicePaymentPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
@@ -92,6 +132,8 @@ const RP = ({ role, title }: { role?: any; title?: string }) => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <DemoProvider>
+      <DemoSetupProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -111,8 +153,34 @@ const App = () => (
               {/* Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/demo" element={<DemoLogin />} />
+              <Route path="/demo/setup" element={<DemoSetupWizard />} />
+              <Route path="/demo/create-account" element={<DemoCreateAccount />} />
+              <Route path="/demo-v2" element={<DemoLoginLayered />} />
               <Route path="/registro" element={<Register />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
+
+              {/* ── DOMINIOS (nueva arquitectura) ── */}
+              <Route path="/dashboard" element={<DomainLayout><DashboardIndex /></DomainLayout>} />
+              <Route path="/produccion" element={<DomainLayout><ProduccionIndex /></DomainLayout>} />
+              <Route path="/produccion/parcelas" element={<DomainLayout><ParcelasListPage /></DomainLayout>} />
+              <Route path="/produccion/parcelas/:id" element={<DomainLayout><ParcelDetailPage /></DomainLayout>} />
+              <Route path="/abastecimiento" element={<DomainLayout><AbastecimientoIndex /></DomainLayout>} />
+              <Route path="/agronomia" element={<DomainLayout><AgronomiaIndex /></DomainLayout>} />
+              <Route path="/agronomia/nutricion" element={<DomainLayout><NutritionOverviewPage /></DomainLayout>} />
+              <Route path="/agronomia/guard" element={<DomainLayout><GuardOverviewPage /></DomainLayout>} />
+              <Route path="/agronomia/yield" element={<DomainLayout><YieldOverviewPage /></DomainLayout>} />
+              <Route path="/resiliencia" element={<DomainLayout><ResilienciaIndex /></DomainLayout>} />
+              <Route path="/resiliencia/vital" element={<DomainLayout><VitalOverviewPage /></DomainLayout>} />
+              <Route path="/cumplimiento" element={<DomainLayout><ComplianceHubPage /></DomainLayout>} />
+              <Route path="/calidad" element={<DomainLayout><CalidadIndex /></DomainLayout>} />
+              <Route path="/calidad/nova-cup" element={<DomainLayout><NovaCupOverviewPage /></DomainLayout>} />
+              <Route path="/finanzas" element={<DomainLayout><FinanceOverviewPage /></DomainLayout>} />
+              <Route path="/produccion/jornales" element={<DomainLayout><PlaceholderPage title="Jornales" /></DomainLayout>} />
+              <Route path="/administracion" element={<DomainLayout><PlaceholderPage title="Administración" /></DomainLayout>} />
+              <Route path="/ayuda" element={<DomainLayout><PlaceholderPage title="Ayuda" /></DomainLayout>} />
+              <Route path="/paypal-sandbox" element={<DomainLayout><PayPalSandboxPage /></DomainLayout>} />
+              <Route path="/paypal-sandbox/return" element={<DomainLayout><PayPalSandboxReturnPage /></DomainLayout>} />
+              <Route path="/paypal-invoice" element={<DomainLayout><PayPalInvoicePaymentPage /></DomainLayout>} />
 
               {/* Shared */}
               <Route path="/mi-perfil" element={<DashboardLayout><PlaceholderPage title="Mi Perfil" /></DashboardLayout>} />
@@ -184,14 +252,27 @@ const App = () => (
               <Route path="/certificadora/reportes" element={<DashboardLayout requiredRole="certificadora"><CertificadoraReportes /></DashboardLayout>} />
 
               {/* ── ADMIN ── */}
-              <Route path="/admin" element={<RequireAdmin><DashboardLayout requiredRole="admin"><AdminPanel /></DashboardLayout></RequireAdmin>} />
-              <Route path="/admin/directorio" element={<RequireAdmin><DashboardLayout requiredRole="admin"><PlaceholderPage title="Directorio de Clientes" /></DashboardLayout></RequireAdmin>} />
+              <Route path="/admin" element={<RequireAdmin><AdminLayout><Navigate to="/admin/overview" replace /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/overview" element={<RequireAdmin><AdminLayout><AdminOverviewPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/organizations" element={<RequireAdmin><AdminLayout><AdminOrganizationsPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/organizations/:id" element={<RequireAdmin><AdminLayout><AdminOrganizationDetailPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/users" element={<RequireAdmin><AdminLayout><AdminUsersPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/billing" element={<RequireAdmin><AdminLayout><AdminBillingPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/platform" element={<RequireAdmin><AdminLayout><AdminPlatformPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/compliance" element={<RequireAdmin><AdminLayout><AdminCompliancePage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/growth" element={<RequireAdmin><AdminLayout><AdminGrowthPage /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/modules" element={<RequireAdmin><AdminLayout><AdminModuleExplorer /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/modules/:moduleId" element={<RequireAdmin><AdminLayout><AdminModuleDetail /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/components" element={<RequireAdmin><AdminLayout><AdminComponentPlayground /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/directorio" element={<RequireAdmin><AdminLayout><PlaceholderPage title="Directorio de Clientes" /></AdminLayout></RequireAdmin>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </BrowserRouter>
       </TooltipProvider>
+      </DemoSetupProvider>
+      </DemoProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

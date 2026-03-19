@@ -30,3 +30,7 @@ verify_jwt = true
 # quote-nutrition-inputs-v1: requiere JWT, sugiere proveedores o genera cotización
 [functions.quote-nutrition-inputs-v1]
 verify_jwt = true
+
+# paypal-proxy: requiere usuario autenticado (session.access_token). No acepta anon key.
+[functions.paypal-proxy]
+verify_jwt = true

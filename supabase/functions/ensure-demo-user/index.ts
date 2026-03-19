@@ -1,56 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
+const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Type': 'application/json',
+}
+
+function jsonResponse(body: object, status: number) {
+  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders } })
 }
 
 serve(async (req) => {
-  console.log('=== ENSURE-DEMO-USER START ===')
-  console.log('Method:', req.method)
-
   if (req.method === 'OPTIONS') {
-    console.log('OPTIONS request')
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const rawBody = await req.text()
-    console.log('Raw body received:', rawBody)
-
     let role: string | undefined
+    let organizationId: string | undefined
     try {
-      const parsed = JSON.parse(rawBody)
+      const parsed = rawBody ? JSON.parse(rawBody) : {}
       role = parsed.role
-      console.log('Parsed role:', role, 'Type:', typeof role)
-    } catch (parseErr) {
-      console.error('JSON parse error:', parseErr)
-      return new Response(
-        JSON.stringify({ error: 'Invalid JSON body', details: (parseErr as Error).message }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      organizationId = parsed.organization_id ?? parsed.organizationId
+    } catch {
+      return jsonResponse({ ok: false, error: 'Invalid JSON body', details: 'Parse error' }, 400)
     }
 
     const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico']
-
-    if (!role) {
-      console.error('Role is missing')
-      return new Response(
-        JSON.stringify({ error: 'Role is required', received: role }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    if (!role || !validRoles.includes(role)) {
+      return jsonResponse({
+        ok: false,
+        error: 'Role is required',
+        details: `Valid: ${validRoles.join(', ')}`,
+        received: role,
+      }, 400)
     }
-
-    if (!validRoles.includes(role)) {
-      console.error('Invalid role:', role)
-      return new Response(
-        JSON.stringify({ error: 'Invalid role', received: role, valid: validRoles }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    console.log('Role validation passed:', role)
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -60,14 +46,6 @@ serve(async (req) => {
     const email = `demo.${role}@novasilva.com`
     const password = 'demo123456'
 
-    const orgNames: Record<string, string> = {
-      cooperativa: 'Cooperativa Café de la Selva',
-      exportador: 'Exportadora Sol de América',
-      certificadora: 'CertifiCafé Internacional',
-      productor: 'Finca El Mirador',
-      tecnico: 'Cooperativa Café de la Selva',
-    }
-
     const names: Record<string, string> = {
       cooperativa: 'María García',
       exportador: 'Carlos Mendoza',
@@ -75,72 +53,158 @@ serve(async (req) => {
       productor: 'Juan Pérez',
       tecnico: 'Pedro Técnico',
     }
+    const fullName = names[role]
 
-    console.log('Attempting to create/update user:', email)
+    // Validate body.organization_id exists in platform_organizations if provided
+    let resolvedOrgId: string | null = null
+    if (organizationId) {
+      const { data: orgRow, error: orgErr } = await supabaseAdmin
+        .from('platform_organizations')
+        .select('id')
+        .eq('id', organizationId)
+        .maybeSingle()
+      if (orgErr || !orgRow?.id) {
+        return jsonResponse({
+          ok: false,
+          error: 'organization_id invalid',
+          details: 'Provided organization_id does not exist in platform_organizations',
+        }, 400)
+      }
+      resolvedOrgId = orgRow.id
+    }
 
-    // Intentar crear usuario
+    // Create or get user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: {
-        name: names[role],
-        role,
-        organization_name: orgNames[role],
-      }
+      user_metadata: { name: fullName, role },
     })
 
     let userId: string | undefined
 
     if (authError) {
-      console.log('Auth error (might be expected if user exists):', authError.message)
-
-      // Si el usuario ya existe, obtener su ID mediante signIn (listUsers está paginado y puede no encontrarlo)
       if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
-        console.log('User already exists, signing in to get ID...')
         const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({ email, password })
         if (signInError) {
-          console.error('SignIn error:', signInError.message)
-          throw signInError
+          return jsonResponse({
+            ok: false,
+            error: 'auth_error',
+            details: signInError.message,
+          }, 500)
         }
         userId = signInData?.user?.id
-        console.log('Found existing user ID:', userId)
       } else {
-        throw authError
+        return jsonResponse({
+          ok: false,
+          error: 'auth_error',
+          details: authError.message,
+        }, 500)
       }
     } else {
       userId = authData?.user?.id
-      console.log('Created new user ID:', userId)
     }
 
     if (!userId) {
-      throw new Error('Could not get user ID')
+      return jsonResponse({ ok: false, error: 'internal_error', details: 'Could not get user ID' }, 500)
     }
 
-    console.log('Upserting profile for user:', userId)
-    await supabaseAdmin.from('profiles').upsert({
-      user_id: userId,
-      name: names[role],
-      organization_name: orgNames[role],
-    }, { onConflict: 'user_id' })
+    // Resolve organization_id: body > existing profile > DEMO_ORG_ID env > null
+    let usedDemoOrg = false
+    if (!resolvedOrgId) {
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('organization_id')
+        .eq('user_id', userId)
+        .maybeSingle()
+      resolvedOrgId = existingProfile?.organization_id ?? null
+    }
+    if (!resolvedOrgId) {
+      const demoOrgId = Deno.env.get('DEMO_ORG_ID')
+      if (demoOrgId) {
+        const { data: orgRow } = await supabaseAdmin
+          .from('platform_organizations')
+          .select('id')
+          .eq('id', demoOrgId)
+          .maybeSingle()
+        if (orgRow?.id) {
+          resolvedOrgId = orgRow.id
+          usedDemoOrg = true
+        }
+      }
+    }
 
-    console.log('Upserting role for user:', userId)
-    await supabaseAdmin.from('user_roles').upsert({
+    // Upsert profile: full_name, email, organization_id, is_active (no name, no organization_name)
+    const profilePayload: Record<string, unknown> = {
       user_id: userId,
+      full_name: fullName,
+      email,
+      is_active: true,
+    }
+    if (resolvedOrgId) {
+      profilePayload.organization_id = resolvedOrgId
+    }
+
+    const { error: profileErr } = await supabaseAdmin
+      .from('profiles')
+      .upsert(profilePayload, { onConflict: 'user_id' })
+
+    if (profileErr) {
+      return jsonResponse({
+        ok: false,
+        error: 'profile_upsert_failed',
+        details: profileErr.message,
+      }, 500)
+    }
+
+    // user_roles: no upsert with onConflict. Check if role exists; if not, insert.
+    let roleAssigned: string | null = null
+    if (resolvedOrgId) {
+      const { data: existingRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+
+      if (!existingRoles || existingRoles.length === 0) {
+        const rolePayload: Record<string, unknown> = {
+          user_id: userId,
+          role,
+          organization_id: resolvedOrgId,
+        }
+        const { error: roleErr } = await supabaseAdmin
+          .from('user_roles')
+          .insert(rolePayload)
+
+        if (roleErr) {
+          return jsonResponse({
+            ok: false,
+            error: 'role_insert_failed',
+            details: roleErr.message,
+          }, 500)
+        }
+        roleAssigned = role
+      }
+    }
+
+    const hasOrg = !!resolvedOrgId
+    return jsonResponse({
+      ok: true,
+      email,
       role,
-    }, { onConflict: 'user_id' })
-
-    console.log('SUCCESS - Demo user ready:', email)
-
-    return new Response(
-      JSON.stringify({ ok: true, email, role }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  } catch (error) {
-    console.error('FATAL ERROR:', error)
-    return new Response(
-      JSON.stringify({ error: (error as Error).message, stack: (error as Error).stack }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+      user_id: userId,
+      organization_id: resolvedOrgId ?? undefined,
+      ...(hasOrg ? {} : { message: 'Usuario demo creado sin organización asociada' }),
+      debug: {
+        used_demo_org: usedDemoOrg,
+        role_assigned: roleAssigned,
+      },
+    }, 200)
+  } catch (err) {
+    return jsonResponse({
+      ok: false,
+      error: 'internal_error',
+      details: (err as Error).message,
+    }, 500)
   }
 })

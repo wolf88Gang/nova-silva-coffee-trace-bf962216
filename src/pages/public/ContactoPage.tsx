@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { submitLead } from '@/services/demoLeadsService';
 
 const contactSchema = z.object({
   nombre: z.string().trim().min(2, 'El nombre es obligatorio').max(100),
@@ -65,8 +66,28 @@ export default function ContactoPage() {
       return;
     }
 
-    // For now, just simulate submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const mensajeCompleto = [
+      result.data.pais && `País: ${result.data.pais}`,
+      result.data.telefono && `Tel: ${result.data.telefono}`,
+      result.data.mensaje,
+    ].filter(Boolean).join('\n\n');
+
+    const leadResult = await submitLead({
+      nombre: result.data.nombre,
+      email: result.data.correo,
+      organizacion: result.data.organizacion || null,
+      tipo_organizacion: result.data.interes || null,
+      mensaje: mensajeCompleto || null,
+      cta_source: 'contacto_page',
+      demo_route: '/contacto',
+    });
+
+    if (!leadResult.ok) {
+      toast.error(leadResult.error ?? 'Error al enviar. Intenta de nuevo.');
+      setLoading(false);
+      return;
+    }
+
     setSubmitted(true);
     setLoading(false);
     toast.success('Mensaje enviado correctamente');

@@ -3,7 +3,9 @@ import { Shield, Clock, Boxes, Leaf, Lightbulb, ShieldCheck } from 'lucide-react
 import NovaGuardTab from '@/components/cooperativa/operaciones/NovaGuardTab';
 import JornalesTab from '@/components/cooperativa/operaciones/JornalesTab';
 import InventarioTab from '@/components/cooperativa/operaciones/InventarioTab';
+import PlanesTab from '@/components/nutricion/PlanesTab';
 import DemandaTab from '@/components/nutricion/DemandaTab';
+import EjecucionTab from '@/components/nutricion/EjecucionTab';
 import InsightsTab from '@/components/cooperativa/operaciones/InsightsTab';
 import CumplimientoTab from '@/components/cooperativa/operaciones/CumplimientoTab';
 
@@ -32,7 +34,16 @@ export default function OperacionesHub() {
           <InventarioTab />
         </TabsContent>
         <TabsContent value="nutricion" className="mt-4">
-          <DemandaTab />
+          <Tabs defaultValue="planes">
+            <TabsList>
+              <TabsTrigger value="planes">Planes</TabsTrigger>
+              <TabsTrigger value="demanda">Demanda</TabsTrigger>
+              <TabsTrigger value="ejecucion">Ejecución</TabsTrigger>
+            </TabsList>
+            <TabsContent value="planes" className="mt-4"><PlanesTab /></TabsContent>
+            <TabsContent value="demanda" className="mt-4"><DemandaTab /></TabsContent>
+            <TabsContent value="ejecucion" className="mt-4"><EjecucionTab /></TabsContent>
+          </Tabs>
         </TabsContent>
         <TabsContent value="insights" className="mt-4">
           <InsightsTab />

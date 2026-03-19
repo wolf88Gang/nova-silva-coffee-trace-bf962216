@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Loader2, Sprout, Wrench, Building2, Truck, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types';
@@ -54,19 +53,27 @@ const DemoLogin = () => {
   const handleDemoLogin = async (demoRole: DemoRole) => {
     setLoadingRole(demoRole.role);
     try {
-      console.log('Calling ensure-demo-user with role:', demoRole.role);
       const { data, error: ensureError } = await supabase.functions.invoke('ensure-demo-user', {
         body: { role: demoRole.role },
       });
 
-      console.log('Response data:', data);
-      console.log('Response error:', ensureError);
-
       if (ensureError) {
-        console.warn('ensure-demo-user warning (will try login anyway):', ensureError);
+        const msg = (data as { details?: string })?.details ?? ensureError.message ?? 'Error al preparar usuario demo';
+        toast({ title: 'Error', description: msg, variant: 'destructive' });
+        setLoadingRole(null);
+        return;
       }
 
-      // Set pending redirect BEFORE signing in so useEffect catches the auth change
+      if (data && typeof data === 'object' && (data as { ok?: boolean }).ok === false) {
+        const err = data as { error?: string; details?: string };
+        toast({ title: 'Error', description: err.details ?? err.error ?? 'No se pudo preparar el usuario demo.', variant: 'destructive' });
+        setLoadingRole(null);
+        return;
+      }
+
+      const msg = (data as { message?: string })?.message;
+      if (msg) toast({ title: 'Aviso', description: msg, variant: 'default' });
+
       pendingRedirect.current = ROLE_REDIRECTS[demoRole.role] || '/';
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -76,16 +83,14 @@ const DemoLogin = () => {
 
       if (error) {
         pendingRedirect.current = null;
-        toast({ title: 'Error de autenticación', description: `${error.message}. Verifica que la edge function ensure-demo-user esté desplegada correctamente.`, variant: 'destructive' });
+        toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
         setLoadingRole(null);
         return;
       }
-
-      // Navigation will happen via useEffect when isAuthenticated becomes true
     } catch (err) {
-      console.error('Demo login error:', err);
+      const msg = err instanceof Error ? err.message : 'Error de conexión. Intenta de nuevo.';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
       pendingRedirect.current = null;
-      toast({ title: 'Error', description: 'Error de conexión. Intenta de nuevo.', variant: 'destructive' });
       setLoadingRole(null);
     }
   };
@@ -104,9 +109,17 @@ const DemoLogin = () => {
           <img src={logoNovasilva} alt="Nova Silva" className="h-10 w-10 object-contain" />
           <span className="text-white font-bold text-lg">Nova Silva</span>
         </div>
-        <Link to="/login" className="text-white/60 hover:text-white text-sm transition-colors">
-          Ir al login →
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/demo/setup" className="text-[hsl(var(--accent-orange))] hover:text-[hsl(var(--accent-orange))]/80 text-sm font-medium">
+            Configurar demo
+          </Link>
+          <Link to="/demo-v2" className="text-white/60 hover:text-white text-sm transition-colors">
+            Acceso por capas
+          </Link>
+          <Link to="/login" className="text-white/60 hover:text-white text-sm transition-colors">
+            Ir al login →
+          </Link>
+        </div>
       </header>
 
       {/* Content */}

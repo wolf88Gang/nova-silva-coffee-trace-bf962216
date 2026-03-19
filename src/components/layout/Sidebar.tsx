@@ -2,6 +2,7 @@ import { useState } from 'react';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDemoContext } from '@/contexts/DemoContext';
 import { useOrgContext } from '@/hooks/useOrgContext';
 import { getSociosLabel } from '@/lib/org-terminology';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
@@ -117,6 +118,7 @@ interface SidebarProps { isOpen: boolean; onClose: () => void; }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { clearDemoSession } = useDemoContext();
   const { orgTipo } = useOrgContext();
   const navigate = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
@@ -126,8 +128,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navItems = getNavByRole(orgTipo)[user.role] ?? [];
 
   const handleLogout = async () => {
+    clearDemoSession();
     await logout();
-    if (user.id.startsWith('demo-')) {
+    if (user.id.startsWith('demo-') || user.email?.includes('@novasilva.com')) {
       navigate('/demo');
     } else {
       navigate('/login');

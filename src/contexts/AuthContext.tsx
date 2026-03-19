@@ -38,9 +38,23 @@ export { DEMO_USERS };
 export type { User as AppUser, UserRole as AppRole };
 
 async function getUserProfile(userId: string) {
-  const { data, error } = await supabase.from('profiles').select('name, organization_name, organization_id, productor_id').eq('user_id', userId).maybeSingle();
+  const { data, error } = await supabase.from('profiles').select('full_name, organization_id, productor_id').eq('user_id', userId).maybeSingle();
   if (error) { console.error('Error fetching profile:', error); return null; }
-  return data ? { name: data.name, organizationName: data.organization_name, organizationId: data.organization_id, productorId: data.productor_id } : null;
+  if (!data) return null;
+
+  let organizationName: string | undefined;
+  if (data.organization_id) {
+    const { data: org } = await supabase.from('platform_organizations').select('name, display_name').eq('id', data.organization_id).maybeSingle();
+    const o = org as { name?: string; display_name?: string } | null;
+    organizationName = o?.name ?? o?.display_name ?? undefined;
+  }
+
+  return {
+    name: data.full_name ?? undefined,
+    organizationName,
+    organizationId: data.organization_id ?? undefined,
+    productorId: data.productor_id ?? undefined,
+  };
 }
 
 async function getUserRole(userId: string): Promise<UserRole | null> {

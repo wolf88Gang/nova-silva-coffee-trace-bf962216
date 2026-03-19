@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Shield, Users, Database, Activity, Settings } from 'lucide-react';
+import { Building2, Shield, Users, Database, Activity, Settings, Layers, Box } from 'lucide-react';
 
 export default function AdminPanel() {
   const kpis = [
@@ -47,6 +48,25 @@ export default function AdminPanel() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="flex gap-2">
+        <Link to="/admin/modules">
+          <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+            <CardContent className="pt-4 pb-3 px-4 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-primary" />
+              <span className="font-medium">Module Explorer</span>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/admin/components">
+          <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+            <CardContent className="pt-4 pb-3 px-4 flex items-center gap-2">
+              <Box className="h-4 w-4 text-primary" />
+              <span className="font-medium">Component Playground</span>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 }

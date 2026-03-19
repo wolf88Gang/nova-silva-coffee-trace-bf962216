@@ -1,7 +1,21 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Bug, CloudRain, MapPin, AlertTriangle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Bug, CloudRain, MapPin, AlertTriangle, Database, Eye, Plus } from 'lucide-react';
+import { useOrgContext } from '@/hooks/useOrgContext';
+import { useFieldObservations, useRiskAssessments } from '@/hooks/useNovaGuard';
+import ObservacionForm from './ObservacionForm';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const alertasActivas = [
   { id: 1, titulo: 'Brote de Broca en Sector Norte', zona: 'Zona Norte — Veredas El Progreso, La Unión', fecha: '2026-02-24', severity: 'destructive' as const },
@@ -16,8 +30,97 @@ const severityBadge = (s: string) => {
 };
 
 export default function NovaGuardTab() {
+  const { organizationId } = useOrgContext();
+  const { data: observaciones = [], isLoading: loadingObs } = useFieldObservations(organizationId ?? undefined);
+  const { data: riskAssessments = [] } = useRiskAssessments(organizationId ?? undefined);
+  const [obsDialogOpen, setObsDialogOpen] = useState(false);
+
   return (
     <div className="space-y-4">
+      {/* ── Sección de datos reales ── */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Database className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Observaciones de campo</span>
+            {observaciones.length > 0 && (
+              <Badge variant="secondary">{observaciones.length}</Badge>
+            )}
+          </div>
+          <Dialog open={obsDialogOpen} onOpenChange={setObsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <Plus className="h-3.5 w-3.5" />
+                Nueva observación
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Registrar observación de campo</DialogTitle>
+              </DialogHeader>
+              <ObservacionForm onSuccess={() => setObsDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {loadingObs ? (
+          <div className="h-16 rounded-lg bg-muted animate-pulse" />
+        ) : observaciones.length === 0 ? (
+          <Card>
+            <CardContent className="py-6 text-center">
+              <Eye className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">No hay observaciones registradas aún.</p>
+              <p className="text-xs text-muted-foreground mt-1">Los datos de demostración se muestran abajo.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {observaciones.slice(0, 5).map((obs) => {
+              const threats = Object.keys(obs.metrics_json ?? {});
+              const maxRisk = riskAssessments
+                .filter((r) => r.observation_id === obs.id)
+                .sort((a, b) => b.risk_score - a.risk_score)[0];
+              const riskColor = maxRisk?.risk_level === 'red' ? 'border-destructive/50' :
+                                maxRisk?.risk_level === 'amber' ? 'border-yellow-400/50' : 'border-green-400/30';
+              return (
+                <Card key={obs.id} className={`border ${riskColor}`}>
+                  <CardContent className="py-3 px-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {format(new Date(obs.obs_date), "d 'de' MMMM yyyy", { locale: es })}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {threats.length > 0 ? `Evaluado: ${threats.join(', ')}` : 'Sin métricas'}
+                          {obs.n_trees ? ` · ${obs.n_trees} árboles` : ''}
+                        </p>
+                      </div>
+                      {maxRisk && (
+                        <div className="text-right">
+                          <p className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            maxRisk.risk_level === 'red' ? 'bg-destructive/10 text-destructive' :
+                            maxRisk.risk_level === 'amber' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {maxRisk.risk_level === 'red' ? 'Brote' : maxRisk.risk_level === 'amber' ? 'Alerta' : 'Verde'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Riesgo: {(maxRisk.risk_score * 100).toFixed(0)}%
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <Separator className="my-2" />
+      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Datos de demostración</p>
+
       <p className="text-sm text-muted-foreground">Monitoreo fitosanitario y alertas de campo</p>
 
       {/* Incidence cards */}
