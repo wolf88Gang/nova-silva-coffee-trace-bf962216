@@ -1,5 +1,6 @@
 /**
  * Sales Intelligence — Session Detail + Outcome Capture
+ * REAL SCHEMA: sales_sessions, sales_session_objections, sales_session_recommendations, sales_session_outcomes
  */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -22,21 +23,27 @@ import { toast } from 'sonner';
 
 interface SessionData {
   id: string;
-  org_name: string | null;
-  org_type: string | null;
-  contact_name: string | null;
-  pain_score: number | null;
-  maturity_score: number | null;
-  urgency_score: number | null;
-  fit_score: number | null;
-  budget_readiness_score: number | null;
-  total_score: number | null;
-  outcome: string | null;
+  lead_name: string | null;
+  lead_company: string | null;
+  lead_type: string | null;
+  commercial_stage: string | null;
+  status: string | null;
+  score_total: number | null;
+  score_pain: number | null;
+  score_maturity: number | null;
+  score_objection: number | null;
+  score_urgency: number | null;
+  score_fit: number | null;
+  score_budget_readiness: number | null;
+  created_at: string;
+}
+
+interface OutcomeData {
+  id: string;
+  outcome: string;
   deal_value: number | null;
   close_date: string | null;
   reason_lost: string | null;
-  outcome_notes: string | null;
-  created_at: string;
 }
 
 interface Objection {
@@ -58,39 +65,54 @@ type BackendStatus = 'available' | 'unavailable';
 function useSessionDetail(sessionId: string) {
   return useQuery({
     queryKey: ['sales-session', sessionId],
-    queryFn: async (): Promise<{ session: SessionData | null; objections: Objection[]; recommendations: Recommendation[]; status: BackendStatus }> => {
+    queryFn: async (): Promise<{
+      session: SessionData | null;
+      outcome: OutcomeData | null;
+      objections: Objection[];
+      recommendations: Recommendation[];
+      status: BackendStatus;
+    }> => {
       const { data, error } = await supabase
         .from('sales_sessions' as any)
-        .select('*')
+        .select('id, lead_name, lead_company, lead_type, commercial_stage, status, score_total, score_pain, score_maturity, score_objection, score_urgency, score_fit, score_budget_readiness, created_at')
         .eq('id', sessionId)
         .single();
 
       if (error) {
-        if (error.code === '42P01' || error.message?.includes('does not exist')) {
-          return { session: null, objections: [], recommendations: [], status: 'unavailable' };
+        if (error.code === '42P01' || error.code === 'PGRST205' || error.message?.includes('does not exist')) {
+          return { session: null, outcome: null, objections: [], recommendations: [], status: 'unavailable' };
         }
         if (error.code === 'PGRST116') {
-          return { session: null, objections: [], recommendations: [], status: 'available' };
+          return { session: null, outcome: null, objections: [], recommendations: [], status: 'available' };
         }
         throw error;
       }
 
-      // Fetch objections
+      // Fetch outcome from sales_session_outcomes
+      const { data: outData } = await supabase
+        .from('sales_session_outcomes' as any)
+        .select('id, outcome, deal_value, close_date, reason_lost')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      // Fetch objections from sales_session_objections
       const { data: objData } = await supabase
-        .from('sales_objections' as any)
+        .from('sales_session_objections' as any)
         .select('id, objection_type, confidence, detail')
         .eq('session_id', sessionId)
         .order('confidence', { ascending: false });
 
-      // Fetch recommendations
+      // Fetch recommendations from sales_session_recommendations
       const { data: recData } = await supabase
-        .from('sales_recommendations' as any)
+        .from('sales_session_recommendations' as any)
         .select('id, recommendation_type, priority, detail')
         .eq('session_id', sessionId)
         .order('priority', { ascending: true });
 
       return {
         session: data as SessionData,
+        outcome: (outData as OutcomeData[] | null)?.[0] ?? null,
         objections: (objData as Objection[]) ?? [],
         recommendations: (recData as Recommendation[]) ?? [],
         status: 'available',
@@ -101,11 +123,12 @@ function useSessionDetail(sessionId: string) {
 }
 
 const SCORE_KEYS = [
-  { key: 'pain_score', label: 'Pain' },
-  { key: 'maturity_score', label: 'Maturity' },
-  { key: 'urgency_score', label: 'Urgency' },
-  { key: 'fit_score', label: 'Fit' },
-  { key: 'budget_readiness_score', label: 'Budget' },
+  { key: 'score_pain', label: 'Pain' },
+  { key: 'score_maturity', label: 'Maturity' },
+  { key: 'score_urgency', label: 'Urgency' },
+  { key: 'score_fit', label: 'Fit' },
+  { key: 'score_budget_readiness', label: 'Budget' },
+  { key: 'score_objection', label: 'Objection' },
 ] as const;
 
 function scoreColor(v: number | null): string {
@@ -126,25 +149,24 @@ export default function SalesSessionDetail() {
   const [dealValue, setDealValue] = useState('');
   const [closeDate, setCloseDate] = useState('');
   const [reasonLost, setReasonLost] = useState('');
-  const [outcomeNotes, setOutcomeNotes] = useState('');
 
   const session = result?.session;
+  const existingOutcome = result?.outcome;
 
   useEffect(() => {
-    if (session) {
-      setOutcome(session.outcome ?? '');
-      setDealValue(session.deal_value?.toString() ?? '');
-      setCloseDate(session.close_date ?? '');
-      setReasonLost(session.reason_lost ?? '');
-      setOutcomeNotes(session.outcome_notes ?? '');
+    if (existingOutcome) {
+      setOutcome(existingOutcome.outcome ?? '');
+      setDealValue(existingOutcome.deal_value?.toString() ?? '');
+      setCloseDate(existingOutcome.close_date ?? '');
+      setReasonLost(existingOutcome.reason_lost ?? '');
     }
-  }, [session]);
+  }, [existingOutcome]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       const payload: Record<string, any> = {
+        session_id: sessionId!,
         outcome: outcome || null,
-        outcome_notes: outcomeNotes.trim() || null,
       };
       if (outcome === 'won') {
         payload.deal_value = dealValue ? parseFloat(dealValue) : null;
@@ -154,12 +176,20 @@ export default function SalesSessionDetail() {
         payload.reason_lost = reasonLost.trim() || null;
       }
 
-      const { error } = await supabase
-        .from('sales_sessions' as any)
-        .update(payload as any)
-        .eq('id', sessionId!);
-
-      if (error) throw error;
+      if (existingOutcome?.id) {
+        // Update existing outcome
+        const { error } = await supabase
+          .from('sales_session_outcomes' as any)
+          .update(payload as any)
+          .eq('id', existingOutcome.id);
+        if (error) throw error;
+      } else {
+        // Insert new outcome
+        const { error } = await supabase
+          .from('sales_session_outcomes' as any)
+          .insert(payload as any);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success('Resultado guardado');
@@ -211,7 +241,7 @@ export default function SalesSessionDetail() {
     );
   }
 
-  const hasOutcome = !!session.outcome;
+  const hasOutcome = !!existingOutcome;
   const showForm = editing || !hasOutcome;
 
   return (
@@ -222,10 +252,11 @@ export default function SalesSessionDetail() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-foreground">{session.org_name || 'Sin nombre'}</h1>
+          <h1 className="text-xl font-bold text-foreground">{session.lead_company || session.lead_name || 'Sin nombre'}</h1>
           <p className="text-xs text-muted-foreground">
-            {session.org_type} · {new Date(session.created_at).toLocaleDateString('es')}
-            {session.contact_name && ` · ${session.contact_name}`}
+            {session.lead_type} · {new Date(session.created_at).toLocaleDateString('es')}
+            {session.lead_name && ` · ${session.lead_name}`}
+            {session.commercial_stage && ` · ${session.commercial_stage}`}
           </p>
         </div>
       </div>
@@ -235,13 +266,13 @@ export default function SalesSessionDetail() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Scores</CardTitle>
-            <span className={cn('text-2xl font-bold font-mono', scoreColor(session.total_score))}>
-              {session.total_score ?? '—'}
+            <span className={cn('text-2xl font-bold font-mono', scoreColor(session.score_total))}>
+              {session.score_total ?? '—'}
             </span>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-5 gap-2 text-center">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
             {SCORE_KEYS.map(({ key, label }) => {
               const val = session[key as keyof SessionData] as number | null;
               return (
@@ -303,7 +334,7 @@ export default function SalesSessionDetail() {
         </Card>
       )}
 
-      {/* Outcome Capture */}
+      {/* Outcome Capture — uses sales_session_outcomes table */}
       <Card className={cn(hasOutcome && !editing ? 'border-primary/20' : '')}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -319,21 +350,18 @@ export default function SalesSessionDetail() {
           {hasOutcome && !editing ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                {session.outcome === 'won' && <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30"><TrendingUp className="h-3 w-3 mr-1" /> Won</Badge>}
-                {session.outcome === 'lost' && <Badge variant="destructive" className="gap-1"><TrendingDown className="h-3 w-3" /> Lost</Badge>}
-                {session.outcome === 'no_decision' && <Badge variant="secondary" className="gap-1"><Minus className="h-3 w-3" /> No decision</Badge>}
+                {existingOutcome!.outcome === 'won' && <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30"><TrendingUp className="h-3 w-3 mr-1" /> Won</Badge>}
+                {existingOutcome!.outcome === 'lost' && <Badge variant="destructive" className="gap-1"><TrendingDown className="h-3 w-3" /> Lost</Badge>}
+                {existingOutcome!.outcome === 'no_decision' && <Badge variant="secondary" className="gap-1"><Minus className="h-3 w-3" /> No decision</Badge>}
               </div>
-              {session.deal_value != null && session.deal_value > 0 && (
-                <p className="text-sm text-muted-foreground">Deal value: <span className="font-mono font-medium text-foreground">${session.deal_value.toLocaleString()}</span></p>
+              {existingOutcome!.deal_value != null && existingOutcome!.deal_value > 0 && (
+                <p className="text-sm text-muted-foreground">Deal value: <span className="font-mono font-medium text-foreground">${existingOutcome!.deal_value.toLocaleString()}</span></p>
               )}
-              {session.close_date && (
-                <p className="text-sm text-muted-foreground">Close date: <span className="font-medium text-foreground">{session.close_date}</span></p>
+              {existingOutcome!.close_date && (
+                <p className="text-sm text-muted-foreground">Close date: <span className="font-medium text-foreground">{existingOutcome!.close_date}</span></p>
               )}
-              {session.reason_lost && (
-                <p className="text-sm text-muted-foreground">Razón: <span className="text-foreground">{session.reason_lost}</span></p>
-              )}
-              {session.outcome_notes && (
-                <p className="text-sm text-muted-foreground">{session.outcome_notes}</p>
+              {existingOutcome!.reason_lost && (
+                <p className="text-sm text-muted-foreground">Razón: <span className="text-foreground">{existingOutcome!.reason_lost}</span></p>
               )}
             </div>
           ) : (
@@ -369,11 +397,6 @@ export default function SalesSessionDetail() {
                   <Textarea value={reasonLost} onChange={e => setReasonLost(e.target.value)} placeholder="¿Por qué se perdió?" rows={2} />
                 </div>
               )}
-
-              <div className="space-y-1.5">
-                <Label className="text-xs">Notas</Label>
-                <Textarea value={outcomeNotes} onChange={e => setOutcomeNotes(e.target.value)} placeholder="Notas adicionales (opcional)" rows={2} />
-              </div>
 
               <div className="flex justify-end gap-2 pt-1">
                 {editing && (

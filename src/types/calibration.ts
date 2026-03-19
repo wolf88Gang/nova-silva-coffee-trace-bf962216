@@ -3,24 +3,42 @@
  * Single source of truth for all calibration data contracts.
  *
  * Backend canonical tables:
- *   - sales_sessions          (or v_sales_calibration_dataset)
- *   - sales_objections        (or sales_session_objections)
- *   - sales_recommendations   (or sales_session_recommendations)
+ *   - sales_sessions
+ *   - sales_session_objections
+ *   - sales_session_recommendations
+ *   - sales_session_outcomes
  *   - sales_rule_versions
- *
- * If the backend renames tables, update TABLE_NAMES in
- * salesCalibrationService.ts — types stay the same.
  */
 
-// ── Row-level types (match DB columns) ──
+// ── Row-level types (match REAL DB columns) ──
 
 export interface CalibrationSession {
   id: string;
   organization_id: string | null;
-  outcome: 'won' | 'lost' | 'no_decision' | null;
-  scores: Record<string, number> | null;
+  lead_name: string | null;
+  lead_company: string | null;
+  lead_type: string | null;
+  commercial_stage: string | null;
+  status: string | null;
+  score_total: number | null;
+  score_pain: number | null;
+  score_maturity: number | null;
+  score_objection: number | null;
+  score_urgency: number | null;
+  score_fit: number | null;
+  score_budget_readiness: number | null;
   created_at: string;
-  rule_version_id: string | null;
+  updated_at: string | null;
+}
+
+export interface SessionOutcome {
+  id: string;
+  session_id: string;
+  outcome: 'won' | 'lost' | 'no_decision';
+  deal_value: number | null;
+  close_date: string | null;
+  reason_lost: string | null;
+  created_at: string;
 }
 
 export interface CalibrationObjection {
@@ -28,6 +46,7 @@ export interface CalibrationObjection {
   session_id: string;
   objection_type: string;
   confidence: number;
+  detail: string | null;
   created_at: string;
 }
 
@@ -35,15 +54,16 @@ export interface CalibrationRecommendation {
   id: string;
   session_id: string;
   recommendation_type: string;
+  priority: number | null;
+  detail: string | null;
   signal: string | null;
   created_at: string;
 }
 
 export interface RuleVersion {
   id: string;
-  version: string;
   parent_version_id: string | null;
-  deployed_at: string;
+  deployed_at: string | null;
   description: string | null;
   changes_applied: Record<string, unknown> | null;
   is_active: boolean;
@@ -63,7 +83,7 @@ export interface OutcomeDistribution {
   noDecisionRate: number;
 }
 
-export type ScoreKey = 'pain' | 'maturity' | 'urgency' | 'fit' | 'budget_readiness';
+export type ScoreKey = 'pain' | 'maturity' | 'urgency' | 'fit' | 'budget_readiness' | 'objection';
 
 export interface BucketCounts {
   won: number;
