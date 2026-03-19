@@ -85,6 +85,9 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import AdminDirectorio from "./pages/admin/AdminDirectorio";
 import AdminCatalogos from "./pages/admin/AdminCatalogos";
 import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
+import SalesIntelligenceIndex from "./pages/admin/sales/SalesIntelligenceIndex";
+import SalesNewSession from "./pages/admin/sales/SalesNewSession";
+import SalesSessionDetail from "./pages/admin/sales/SalesSessionDetail";
 import CalibrationOverview from "./pages/admin/calibration/CalibrationOverview";
 import CalibrationScores from "./pages/admin/calibration/CalibrationScores";
 import CalibrationObjections from "./pages/admin/calibration/CalibrationObjections";
@@ -313,6 +316,9 @@ const App = () => (
               <Route path="/admin/catalogos" element={<RequireAdmin><DL><AdminCatalogos /></DL></RequireAdmin>} />
               <Route path="/admin/modulos" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
+              <Route path="/admin/sales" element={<RequireAdmin><DL><SalesIntelligenceIndex /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/new" element={<RequireAdmin><DL><SalesNewSession /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/sessions/:sessionId" element={<RequireAdmin><DL><SalesSessionDetail /></DL></RequireAdmin>} />
               <Route path="/admin/sales/calibration" element={<RequireAdmin><DL><CalibrationOverview /></DL></RequireAdmin>} />
               <Route path="/admin/sales/calibration/scores" element={<RequireAdmin><DL><CalibrationScores /></DL></RequireAdmin>} />
               <Route path="/admin/sales/calibration/objections" element={<RequireAdmin><DL><CalibrationObjections /></DL></RequireAdmin>} />

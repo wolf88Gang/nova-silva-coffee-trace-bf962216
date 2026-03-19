@@ -32,6 +32,10 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
       { label: 'Overview', icon: LayoutDashboard, standalone: true, url: '/admin', items: [] },
       { label: 'Organizaciones', icon: Building2, standalone: true, url: '/admin/organizaciones', items: [] },
       { label: 'Usuarios', icon: Users, standalone: true, url: '/admin/usuarios', items: [] },
+      { label: 'Sales Intelligence', icon: TrendingUp, items: [
+        { title: 'Sesiones', url: '/admin/sales', icon: TrendingUp },
+        { title: 'Calibration Review', url: '/admin/sales/calibration', icon: Database },
+      ]},
       { label: 'Billing', icon: CreditCard, standalone: true, url: '/admin/billing', items: [] },
       { label: 'Plataforma', icon: Cloud, standalone: true, url: '/admin/sistema', items: [] },
       { label: 'Cumplimiento', icon: Shield, standalone: true, url: '/admin/cumplimiento', items: [] },
