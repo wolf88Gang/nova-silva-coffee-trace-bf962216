@@ -41,7 +41,7 @@ function isActiveRow(row: any): boolean {
   return true;
 }
 
-async function loadOrganizationsFrom(source: 'v_admin_organizations_summary' | 'platform_organizations') {
+async function loadOrganizationsFrom(source: 'v_admin_organizations_summary' | 'platform_organizations' | 'organizaciones') {
   const { data, error } = await supabase
     .from(source as any)
     .select('*')
