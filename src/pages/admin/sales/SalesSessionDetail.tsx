@@ -22,7 +22,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
 import { SalesSessionService, type SalesSessionSummary } from '@/lib/salesSessionService';
 import { cn } from '@/lib/utils';
 
@@ -59,8 +58,6 @@ export default function SalesSessionDetail() {
   const [editing, setEditing] = useState(false);
   const [outcome, setOutcome] = useState('');
   const [dealValue, setDealValue] = useState('');
-  const [closeDate, setCloseDate] = useState('');
-  const [reasonLost, setReasonLost] = useState('');
 
   const session = data?.session ?? null;
   const existingOutcome = data?.outcome ?? null;
@@ -68,8 +65,6 @@ export default function SalesSessionDetail() {
   useEffect(() => {
     setOutcome(existingOutcome?.outcome ?? '');
     setDealValue(existingOutcome?.deal_value?.toString() ?? '');
-    setCloseDate(existingOutcome?.close_date ?? '');
-    setReasonLost(existingOutcome?.reason_lost ?? '');
   }, [existingOutcome]);
 
   const saveOutcomeMutation = useMutation({
@@ -79,8 +74,6 @@ export default function SalesSessionDetail() {
         sessionId,
         outcome,
         dealValue: outcome === 'won' && dealValue ? Number(dealValue) : null,
-        closeDate: outcome === 'won' ? closeDate || null : null,
-        reasonLost: outcome === 'lost' ? reasonLost : null,
       });
     },
     onSuccess: () => {
@@ -185,7 +178,6 @@ export default function SalesSessionDetail() {
               {data.objections.map((item) => (
                 <div key={item.id} className="flex items-start gap-2 text-sm">
                   <Badge variant="outline" className="mt-0.5 shrink-0 text-[10px]">{item.objection_type}</Badge>
-                  <span className="flex-1 text-muted-foreground">{item.detail || '—'}</span>
                   {item.confidence != null && <span className="shrink-0 text-[10px] font-mono text-muted-foreground">{Math.round(item.confidence * 100)}%</span>}
                 </div>
               ))}
@@ -208,7 +200,6 @@ export default function SalesSessionDetail() {
               {data.recommendations.map((item) => (
                 <div key={item.id} className="flex items-start gap-2 text-sm">
                   <Badge variant="outline" className="mt-0.5 shrink-0 text-[10px]">{item.recommendation_type}</Badge>
-                  <span className="flex-1 text-muted-foreground">{item.detail || '—'}</span>
                   {item.priority != null && <span className="shrink-0 text-[10px] font-mono text-muted-foreground">P{item.priority}</span>}
                 </div>
               ))}
@@ -241,8 +232,6 @@ export default function SalesSessionDetail() {
               {existingOutcome?.deal_value != null && existingOutcome.deal_value > 0 && (
                 <p className="text-sm text-muted-foreground">Deal value: <span className="font-medium font-mono text-foreground">${existingOutcome.deal_value.toLocaleString()}</span></p>
               )}
-              {existingOutcome?.close_date && <p className="text-sm text-muted-foreground">Close date: <span className="font-medium text-foreground">{existingOutcome.close_date}</span></p>}
-              {existingOutcome?.reason_lost && <p className="text-sm text-muted-foreground">Razón: <span className="text-foreground">{existingOutcome.reason_lost}</span></p>}
             </div>
           ) : (
             <div className="space-y-3">
@@ -259,22 +248,9 @@ export default function SalesSessionDetail() {
               </div>
 
               {outcome === 'won' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Deal value ($)</Label>
-                    <Input type="number" value={dealValue} onChange={(event) => setDealValue(event.target.value)} placeholder="0" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Close date</Label>
-                    <Input type="date" value={closeDate} onChange={(event) => setCloseDate(event.target.value)} />
-                  </div>
-                </div>
-              )}
-
-              {outcome === 'lost' && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Razón de pérdida *</Label>
-                  <Textarea value={reasonLost} onChange={(event) => setReasonLost(event.target.value)} placeholder="¿Por qué se perdió?" rows={2} />
+                  <Label className="text-xs">Deal value ($)</Label>
+                  <Input type="number" value={dealValue} onChange={(event) => setDealValue(event.target.value)} placeholder="0" />
                 </div>
               )}
 
@@ -282,7 +258,7 @@ export default function SalesSessionDetail() {
                 {editing && <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>}
                 <Button
                   size="sm"
-                  disabled={!outcome || (outcome === 'lost' && !reasonLost.trim()) || saveOutcomeMutation.isPending}
+                  disabled={!outcome || saveOutcomeMutation.isPending}
                   onClick={() => saveOutcomeMutation.mutate()}
                   className="gap-1.5"
                 >

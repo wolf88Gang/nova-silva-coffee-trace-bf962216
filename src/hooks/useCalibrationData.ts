@@ -41,10 +41,10 @@ const TABLE = {
 
 const SELECT = {
   sessions: 'id, organization_id, lead_name, lead_company, lead_type, commercial_stage, status, score_total, score_pain, score_maturity, score_objection, score_urgency, score_fit, score_budget_readiness, created_at, updated_at',
-  outcomes: 'id, session_id, outcome, deal_value, close_date, reason_lost, created_at',
-  objections: 'id, session_id, objection_type, confidence, detail, created_at',
-  recommendations: 'id, session_id, recommendation_type, priority, detail, signal, created_at',
-  ruleVersions: 'id, parent_version_id, deployed_at, description, changes_applied, is_active, snapshot_before, snapshot_after',
+  outcomes: 'id, session_id, outcome, deal_value, created_at',
+  objections: 'id, session_id, objection_type, confidence, created_at',
+  recommendations: 'id, session_id, recommendation_type, priority, created_at',
+  ruleVersions: 'id, deployed_at, description, changes_applied, is_active',
 } as const;
 
 // ── Query result shape ──

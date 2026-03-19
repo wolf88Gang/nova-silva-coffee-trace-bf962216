@@ -35,22 +35,18 @@ export interface SalesSessionOutcome {
   id: string;
   outcome: string;
   deal_value: number | null;
-  close_date: string | null;
-  reason_lost: string | null;
 }
 
 export interface SalesSessionObjection {
   id: string;
   objection_type: string;
   confidence: number | null;
-  detail: string | null;
 }
 
 export interface SalesSessionRecommendation {
   id: string;
   recommendation_type: string;
   priority: number | null;
-  detail: string | null;
 }
 
 export interface SalesQuestionOption {
@@ -97,8 +93,6 @@ interface SaveOutcomeInput {
   sessionId: string;
   outcome: string;
   dealValue?: number | null;
-  closeDate?: string | null;
-  reasonLost?: string | null;
 }
 
 interface RpcAttemptResult<T> {
@@ -234,8 +228,6 @@ function normalizeOutcome(raw: any): SalesSessionOutcome | null {
     id: String(id ?? raw.outcome),
     outcome: String(raw.outcome ?? ''),
     deal_value: toNullableNumber(raw.deal_value),
-    close_date: raw.close_date ?? null,
-    reason_lost: raw.reason_lost ?? null,
   };
 }
 
@@ -245,7 +237,6 @@ function normalizeObjection(raw: any): SalesSessionObjection | null {
     id: String(raw.id),
     objection_type: String(raw.objection_type ?? raw.type ?? 'objection'),
     confidence: toNullableNumber(raw.confidence),
-    detail: raw.detail ?? null,
   };
 }
 
@@ -255,7 +246,6 @@ function normalizeRecommendation(raw: any): SalesSessionRecommendation | null {
     id: String(raw.id),
     recommendation_type: String(raw.recommendation_type ?? raw.type ?? 'recommendation'),
     priority: toNullableNumber(raw.priority),
-    detail: raw.detail ?? null,
   };
 }
 
@@ -440,18 +430,18 @@ export const SalesSessionService = {
         .maybeSingle(),
       supabase
         .from('sales_session_outcomes' as any)
-        .select('id, outcome, deal_value, close_date, reason_lost')
+        .select('id, outcome, deal_value')
         .eq('session_id', sessionId)
         .order('created_at', { ascending: false })
         .limit(1),
       supabase
         .from('sales_session_objections' as any)
-        .select('id, objection_type, confidence, detail')
+        .select('id, objection_type, confidence')
         .eq('session_id', sessionId)
         .order('confidence', { ascending: false }),
       supabase
         .from('sales_session_recommendations' as any)
-        .select('id, recommendation_type, priority, detail')
+        .select('id, recommendation_type, priority')
         .eq('session_id', sessionId)
         .order('priority', { ascending: true }),
     ]);
@@ -482,8 +472,6 @@ export const SalesSessionService = {
       session_id: input.sessionId,
       outcome: input.outcome,
       deal_value: input.outcome === 'won' ? input.dealValue ?? null : null,
-      close_date: input.outcome === 'won' ? input.closeDate ?? null : null,
-      reason_lost: input.outcome === 'lost' ? input.reasonLost?.trim() || null : null,
     };
 
     const { data: existingRows, error: existingError } = await supabase

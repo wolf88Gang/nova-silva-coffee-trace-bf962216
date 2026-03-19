@@ -41,7 +41,7 @@ function isActiveRow(row: any): boolean {
   return true;
 }
 
-async function loadOrganizationsFrom(source: 'v_admin_organizations_summary' | 'platform_organizations') {
+async function loadOrganizationsFrom(source: 'v_admin_organizations_summary' | 'platform_organizations' | 'organizaciones') {
   const { data, error } = await supabase
     .from(source as any)
     .select('*')
@@ -76,8 +76,19 @@ export function useAdminSalesOrganizations() {
         const tableItems = await loadOrganizationsFrom('platform_organizations');
         return {
           items: tableItems,
-          source: 'platform_organizations',
+          source: 'platform_organizations' as any,
           status: tableItems.length > 0 ? 'available' : 'empty',
+        };
+      } catch (error) {
+        if (!isMissingRelationError(error)) throw error;
+      }
+
+      try {
+        const orgItems = await loadOrganizationsFrom('organizaciones');
+        return {
+          items: orgItems,
+          source: 'organizaciones' as any,
+          status: orgItems.length > 0 ? 'available' : 'empty',
         };
       } catch (error) {
         if (!isMissingRelationError(error)) throw error;

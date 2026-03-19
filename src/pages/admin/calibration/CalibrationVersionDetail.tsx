@@ -68,7 +68,7 @@ export default function CalibrationVersionDetail() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <MetaBlock label="Desplegada" value={version.deployed_at ? fmtDateTime(version.deployed_at) : '—'} icon={Clock} />
           <MetaBlock label="ID" value={version.id.slice(0, 12) + '...'} icon={GitBranch} mono />
-          <MetaBlock label="Parent" value={version.parent_version_id ? version.parent_version_id.slice(0, 12) + '...' : 'Ninguno'} icon={GitBranch} mono />
+          <MetaBlock label="Parent" value="—" icon={GitBranch} mono />
           <MetaBlock label="Estado" value={version.is_active ? 'Activa' : 'Inactiva'} icon={Shield} />
         </div>
 
@@ -91,11 +91,7 @@ export default function CalibrationVersionDetail() {
           </CardContent>
         </Card>
 
-        {/* Snapshots */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <SnapshotCard title="Snapshot antes" data={version.snapshot_before} />
-          <SnapshotCard title="Snapshot después" data={version.snapshot_after} />
-        </div>
+        {/* Snapshots removed — columns not in current schema */}
       </div>
     </CalibrationShell>
   );

@@ -36,8 +36,6 @@ export interface SessionOutcome {
   session_id: string;
   outcome: 'won' | 'lost' | 'no_decision';
   deal_value: number | null;
-  close_date: string | null;
-  reason_lost: string | null;
   created_at: string;
 }
 
@@ -46,7 +44,6 @@ export interface CalibrationObjection {
   session_id: string;
   objection_type: string;
   confidence: number;
-  detail: string | null;
   created_at: string;
 }
 
@@ -55,20 +52,15 @@ export interface CalibrationRecommendation {
   session_id: string;
   recommendation_type: string;
   priority: number | null;
-  detail: string | null;
-  signal: string | null;
   created_at: string;
 }
 
 export interface RuleVersion {
   id: string;
-  parent_version_id: string | null;
   deployed_at: string | null;
   description: string | null;
   changes_applied: Record<string, unknown> | null;
   is_active: boolean;
-  snapshot_before: Record<string, unknown> | null;
-  snapshot_after: Record<string, unknown> | null;
 }
 
 // ── Computed analytics types ──
