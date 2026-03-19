@@ -237,7 +237,6 @@ function normalizeObjection(raw: any): SalesSessionObjection | null {
     id: String(raw.id),
     objection_type: String(raw.objection_type ?? raw.type ?? 'objection'),
     confidence: toNullableNumber(raw.confidence),
-    detail: raw.detail ?? null,
   };
 }
 
@@ -247,7 +246,6 @@ function normalizeRecommendation(raw: any): SalesSessionRecommendation | null {
     id: String(raw.id),
     recommendation_type: String(raw.recommendation_type ?? raw.type ?? 'recommendation'),
     priority: toNullableNumber(raw.priority),
-    detail: raw.detail ?? null,
   };
 }
 
