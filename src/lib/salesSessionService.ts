@@ -228,8 +228,6 @@ function normalizeOutcome(raw: any): SalesSessionOutcome | null {
     id: String(id ?? raw.outcome),
     outcome: String(raw.outcome ?? ''),
     deal_value: toNullableNumber(raw.deal_value),
-    close_date: raw.close_date ?? null,
-    reason_lost: raw.reason_lost ?? null,
   };
 }
 
