@@ -95,6 +95,16 @@ export interface SessionSummaryResponse {
   recommendations: RecommendationRow[];
 }
 
+// ─── Debug helper ─────────────────────────────────────────────────────────────
+
+function salesDebug(label: string, data?: unknown) {
+  if (data !== undefined) {
+    console.log(`[Sales DEBUG] ${label}:`, data);
+  } else {
+    console.log(`[Sales DEBUG] ${label}`);
+  }
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export class SalesSessionService {
@@ -105,9 +115,36 @@ export class SalesSessionService {
    * Returns session_id used for all subsequent calls.
    *
    * Latency: 1 RPC round trip.
+   * Emits [Sales DEBUG] logs for diagnosing auth/payload/seed issues.
    */
   static async createSession(req: CreateSessionRequest): Promise<CreateSessionResponse> {
-    const { data, error } = await supabase.rpc('fn_sales_create_session', {
+    // ── Debug: Supabase URL ──
+    salesDebug('VITE_SUPABASE_URL', (supabase as any).supabaseUrl ?? (supabase as any).restUrl ?? 'unknown');
+
+    // ── Debug: auth session ──
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      salesDebug('session_user_id', session?.user?.id ?? null);
+      salesDebug('supabase_auth_session', {
+        access_token_exists: !!session?.access_token,
+        user_id: session?.user?.id ?? null,
+        email: session?.user?.email ?? null,
+        expires_at: session?.expires_at ?? null,
+      });
+    } catch (e) {
+      salesDebug('supabase_auth_session error', (e as Error).message);
+    }
+
+    // ── Debug: fn_debug_sales_auth ──
+    try {
+      const { data: authDebug, error: authErr } = await supabase.rpc('fn_debug_sales_auth' as any);
+      salesDebug('fn_debug_sales_auth', { data: authDebug, error: authErr?.message ?? null });
+    } catch (e) {
+      salesDebug('fn_debug_sales_auth error', (e as Error).message);
+    }
+
+    // ── Debug: payload ──
+    const rpcPayload = {
       p_organization_id:       req.organization_id,
       p_questionnaire_code:    req.questionnaire_code,
       p_questionnaire_version: req.questionnaire_version,
@@ -117,11 +154,21 @@ export class SalesSessionService {
       p_commercial_stage:      req.commercial_stage      ?? 'lead',
       p_owner_user_id:         req.owner_user_id         ?? null,
       p_metadata:              req.metadata              ?? null,
-    });
+    };
+    salesDebug('fn_sales_create_session_payload', rpcPayload);
 
-    if (error) throw new Error(`createSession failed: ${error.message}`);
-    if (!data)  throw new Error('createSession returned no session_id');
+    const { data, error } = await supabase.rpc('fn_sales_create_session', rpcPayload);
 
+    if (error) {
+      salesDebug('fn_sales_create_session error', error.message);
+      throw new Error(`createSession failed: ${error.message}`);
+    }
+    if (!data) {
+      salesDebug('fn_sales_create_session error', 'returned no session_id');
+      throw new Error('createSession returned no session_id');
+    }
+
+    salesDebug('fn_sales_create_session result', { session_id: data });
     return { session_id: data as string };
   }
 

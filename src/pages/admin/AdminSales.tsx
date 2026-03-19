@@ -43,7 +43,7 @@ function salesDebug(label: string, data?: unknown) {
 
 type WizardStep = 'list' | 'setup' | 'diagnostic' | 'results';
 
-interface OrgRow { id: string; name: string; }
+interface OrgRow { id: string; nombre: string; }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
@@ -156,14 +156,15 @@ function SessionSetup({ onCreated, onBack }: { onCreated: (id: string) => void; 
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load organizations
+  // Load organizations from organizaciones (admin-facing table)
+  // IDs are synced to organizations table for FK compatibility
   const { data: orgs, isLoading: orgsLoading } = useQuery({
     queryKey: ['admin', 'orgs-for-sales'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('organizations')
-        .select('id, name')
-        .order('name');
+        .from('organizaciones')
+        .select('id, nombre')
+        .order('nombre');
       if (error) throw error;
       return (data ?? []) as OrgRow[];
     },
@@ -232,7 +233,7 @@ function SessionSetup({ onCreated, onBack }: { onCreated: (id: string) => void; 
         <ArrowLeft className="h-4 w-4" /> Volver
       </Button>
 
-      <Card className="max-w-lg">
+      <Card className="max-w-lg relative z-10">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Building2 className="h-4 w-4 text-primary" /> Datos de la sesión
@@ -253,7 +254,7 @@ function SessionSetup({ onCreated, onBack }: { onCreated: (id: string) => void; 
               >
                 <option value="">Seleccionar organización...</option>
                 {orgs?.map(o => (
-                  <option key={o.id} value={o.id}>{o.name}</option>
+                  <option key={o.id} value={o.id}>{o.nombre}</option>
                 ))}
               </select>
             )}
