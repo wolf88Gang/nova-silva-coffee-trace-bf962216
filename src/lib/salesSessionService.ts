@@ -35,22 +35,18 @@ export interface SalesSessionOutcome {
   id: string;
   outcome: string;
   deal_value: number | null;
-  close_date: string | null;
-  reason_lost: string | null;
 }
 
 export interface SalesSessionObjection {
   id: string;
   objection_type: string;
   confidence: number | null;
-  detail: string | null;
 }
 
 export interface SalesSessionRecommendation {
   id: string;
   recommendation_type: string;
   priority: number | null;
-  detail: string | null;
 }
 
 export interface SalesQuestionOption {
