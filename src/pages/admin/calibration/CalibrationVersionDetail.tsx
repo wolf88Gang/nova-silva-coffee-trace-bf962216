@@ -51,7 +51,7 @@ export default function CalibrationVersionDetail() {
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-foreground font-mono">{version.version}</h2>
+              <h2 className="text-base font-semibold text-foreground font-mono">{version.id.slice(0, 8)}</h2>
               {version.is_active && (
                 <Badge variant="outline" className="text-[10px] border-primary/40 text-primary gap-1">
                   <Shield className="h-2.5 w-2.5" /> Activa
