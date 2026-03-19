@@ -6,23 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalibrationShell } from '@/components/calibration/CalibrationShell';
 import { BackendUnavailable } from '@/components/calibration/BackendUnavailable';
-import { KPISkeleton, TableSkeleton } from '@/components/calibration/CalibrationLoadingSkeleton';
+import { KPISkeleton } from '@/components/calibration/CalibrationLoadingSkeleton';
 import { MetricCard } from '@/components/admin/shared/AdminComponents';
 import {
   useCalibrationSessions,
   useCalibrationObjections,
   useCalibrationRecommendations,
   useRuleVersions,
-  computeOutcomes,
-  computeObjectionAnalysis,
-  computeRecommendationAnalysis,
 } from '@/hooks/useCalibrationData';
-import { fmtPct, fmtDate, OUTCOME_COLORS } from '@/lib/calibrationLabels';
+import { computeOutcomes, computeObjectionAnalysis, computeRecommendationAnalysis } from '@/lib/calibrationAnalytics';
+import { fmtPct, fmtDate } from '@/lib/calibrationLabels';
 import {
-  Target, TrendingUp, TrendingDown, MinusCircle, Shield, AlertTriangle,
-  CheckCircle2, XCircle, Clock,
+  Target, TrendingUp, TrendingDown, MinusCircle, Shield,
+  CheckCircle2, XCircle, Clock, AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { BackendStatus } from '@/types/calibration';
 
 export default function CalibrationOverview() {
   const sessions = useCalibrationSessions();
@@ -89,33 +88,18 @@ export default function CalibrationOverview() {
               <CardContent>
                 <div className="flex items-center gap-1 h-6 rounded-md overflow-hidden">
                   {outcomes.won > 0 && (
-                    <div
-                      className="h-full bg-success/80 flex items-center justify-center"
-                      style={{ width: `${outcomes.winRate}%` }}
-                    >
-                      <span className="text-[10px] font-semibold text-success-foreground px-1">
-                        {fmtPct(outcomes.winRate, 0)}
-                      </span>
+                    <div className="h-full bg-success/80 flex items-center justify-center" style={{ width: `${outcomes.winRate}%` }}>
+                      <span className="text-[10px] font-semibold text-success-foreground px-1">{fmtPct(outcomes.winRate, 0)}</span>
                     </div>
                   )}
                   {outcomes.lost > 0 && (
-                    <div
-                      className="h-full bg-destructive/70 flex items-center justify-center"
-                      style={{ width: `${outcomes.lossRate}%` }}
-                    >
-                      <span className="text-[10px] font-semibold text-destructive-foreground px-1">
-                        {fmtPct(outcomes.lossRate, 0)}
-                      </span>
+                    <div className="h-full bg-destructive/70 flex items-center justify-center" style={{ width: `${outcomes.lossRate}%` }}>
+                      <span className="text-[10px] font-semibold text-destructive-foreground px-1">{fmtPct(outcomes.lossRate, 0)}</span>
                     </div>
                   )}
                   {outcomes.no_decision > 0 && (
-                    <div
-                      className="h-full bg-muted flex items-center justify-center"
-                      style={{ width: `${outcomes.noDecisionRate}%` }}
-                    >
-                      <span className="text-[10px] font-medium text-muted-foreground px-1">
-                        {fmtPct(outcomes.noDecisionRate, 0)}
-                      </span>
+                    <div className="h-full bg-muted flex items-center justify-center" style={{ width: `${outcomes.noDecisionRate}%` }}>
+                      <span className="text-[10px] font-medium text-muted-foreground px-1">{fmtPct(outcomes.noDecisionRate, 0)}</span>
                     </div>
                   )}
                 </div>
@@ -130,7 +114,6 @@ export default function CalibrationOverview() {
 
           {/* Two-column: top objections + top recs */}
           <div className="grid md:grid-cols-2 gap-4">
-            {/* Top objections by loss rate */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -163,7 +146,6 @@ export default function CalibrationOverview() {
               </CardContent>
             </Card>
 
-            {/* Top recommendations by win rate */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -197,7 +179,7 @@ export default function CalibrationOverview() {
             </Card>
           </div>
 
-          {/* System health mini */}
+          {/* System health */}
           <Card className="border-muted-foreground/10">
             <CardContent className="py-3 px-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Salud del sistema de calibración</p>
@@ -215,7 +197,7 @@ export default function CalibrationOverview() {
   );
 }
 
-function StatusPill({ label, status }: { label: string; status: string }) {
+function StatusPill({ label, status }: { label: string; status: BackendStatus }) {
   const icon = status === 'available'
     ? <CheckCircle2 className="h-3 w-3 text-success" />
     : status === 'error'
