@@ -316,6 +316,9 @@ const App = () => (
               <Route path="/admin/catalogos" element={<RequireAdmin><DL><AdminCatalogos /></DL></RequireAdmin>} />
               <Route path="/admin/modulos" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
+              <Route path="/admin/sales" element={<RequireAdmin><DL><SalesIntelligenceIndex /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/new" element={<RequireAdmin><DL><SalesNewSession /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/sessions/:sessionId" element={<RequireAdmin><DL><SalesSessionDetail /></DL></RequireAdmin>} />
               <Route path="/admin/sales/calibration" element={<RequireAdmin><DL><CalibrationOverview /></DL></RequireAdmin>} />
               <Route path="/admin/sales/calibration/scores" element={<RequireAdmin><DL><CalibrationScores /></DL></RequireAdmin>} />
               <Route path="/admin/sales/calibration/objections" element={<RequireAdmin><DL><CalibrationObjections /></DL></RequireAdmin>} />
