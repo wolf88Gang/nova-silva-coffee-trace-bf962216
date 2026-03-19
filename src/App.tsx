@@ -313,6 +313,13 @@ const App = () => (
               <Route path="/admin/catalogos" element={<RequireAdmin><DL><AdminCatalogos /></DL></RequireAdmin>} />
               <Route path="/admin/modulos" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration" element={<RequireAdmin><DL><CalibrationOverview /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/scores" element={<RequireAdmin><DL><CalibrationScores /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/objections" element={<RequireAdmin><DL><CalibrationObjections /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/recommendations" element={<RequireAdmin><DL><CalibrationRecommendations /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/versions" element={<RequireAdmin><DL><CalibrationVersions /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/versions/:versionId" element={<RequireAdmin><DL><CalibrationVersionDetail /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/signals" element={<RequireAdmin><DL><CalibrationSignals /></DL></RequireAdmin>} />
               <Route path="/admin/organizacion" element={<Navigate to="/admin/organizaciones" replace />} />
               <Route path="/admin/directorio" element={<Navigate to="/admin/organizaciones" replace />} />
 
