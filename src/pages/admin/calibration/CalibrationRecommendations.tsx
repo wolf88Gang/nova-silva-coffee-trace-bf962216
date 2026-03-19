@@ -9,10 +9,8 @@ import {
 import { CalibrationShell } from '@/components/calibration/CalibrationShell';
 import { BackendUnavailable } from '@/components/calibration/BackendUnavailable';
 import { FullPageSkeleton } from '@/components/calibration/CalibrationLoadingSkeleton';
-import {
-  useCalibrationSessions, useCalibrationRecommendations,
-  computeRecommendationAnalysis,
-} from '@/hooks/useCalibrationData';
+import { useCalibrationSessions, useCalibrationRecommendations } from '@/hooks/useCalibrationData';
+import { computeRecommendationAnalysis } from '@/lib/calibrationAnalytics';
 import { fmtPct } from '@/lib/calibrationLabels';
 import { Lightbulb, AlertTriangle, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
