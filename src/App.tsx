@@ -85,6 +85,7 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import AdminDirectorio from "./pages/admin/AdminDirectorio";
 import AdminCatalogos from "./pages/admin/AdminCatalogos";
 import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
+import AdminSales from "./pages/admin/AdminSales";
 import MiPerfil from "./pages/perfil/MiPerfil";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
@@ -306,6 +307,8 @@ const App = () => (
               <Route path="/admin/catalogos" element={<RequireAdmin><DL><AdminCatalogos /></DL></RequireAdmin>} />
               <Route path="/admin/modulos" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
+              <Route path="/admin/sales" element={<RequireAdmin><DL><AdminSales /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/new" element={<RequireAdmin><DL><AdminSales /></DL></RequireAdmin>} />
               <Route path="/admin/organizacion" element={<Navigate to="/admin/organizaciones" replace />} />
               <Route path="/admin/directorio" element={<Navigate to="/admin/organizaciones" replace />} />
 

@@ -13,7 +13,7 @@ import {
   DollarSign, Bug, AlertTriangle, ChevronDown, TrendingUp, Database, Cloud,
   Wallet, Eye, FolderOpen, CreditCard,
   Award, Briefcase, Coffee, BarChart3, Truck,
-  Boxes, ShoppingCart,
+  Boxes, ShoppingCart, Target,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { useState, useRef } from 'react';
@@ -36,6 +36,7 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
       { label: 'Plataforma', icon: Cloud, standalone: true, url: '/admin/sistema', items: [] },
       { label: 'Cumplimiento', icon: Shield, standalone: true, url: '/admin/cumplimiento', items: [] },
       { label: 'Growth', icon: TrendingUp, standalone: true, url: '/admin/growth', items: [] },
+      { label: 'Sales Intel', icon: Target, standalone: true, url: '/admin/sales', items: [] },
     ];
   }
 
