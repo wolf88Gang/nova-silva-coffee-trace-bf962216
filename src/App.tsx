@@ -85,6 +85,13 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import AdminDirectorio from "./pages/admin/AdminDirectorio";
 import AdminCatalogos from "./pages/admin/AdminCatalogos";
 import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
+import CalibrationOverview from "./pages/admin/calibration/CalibrationOverview";
+import CalibrationScores from "./pages/admin/calibration/CalibrationScores";
+import CalibrationObjections from "./pages/admin/calibration/CalibrationObjections";
+import CalibrationRecommendations from "./pages/admin/calibration/CalibrationRecommendations";
+import CalibrationVersions from "./pages/admin/calibration/CalibrationVersions";
+import CalibrationVersionDetail from "./pages/admin/calibration/CalibrationVersionDetail";
+import CalibrationSignals from "./pages/admin/calibration/CalibrationSignals";
 import MiPerfil from "./pages/perfil/MiPerfil";
 import OnboardingOrganization from "./pages/onboarding/OnboardingOrganization";
 import BillingReadOnly from "./pages/billing/BillingReadOnly";
@@ -306,6 +313,13 @@ const App = () => (
               <Route path="/admin/catalogos" element={<RequireAdmin><DL><AdminCatalogos /></DL></RequireAdmin>} />
               <Route path="/admin/modulos" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
               <Route path="/admin/modules" element={<RequireAdmin><DL><AdminModuleExplorer /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration" element={<RequireAdmin><DL><CalibrationOverview /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/scores" element={<RequireAdmin><DL><CalibrationScores /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/objections" element={<RequireAdmin><DL><CalibrationObjections /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/recommendations" element={<RequireAdmin><DL><CalibrationRecommendations /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/versions" element={<RequireAdmin><DL><CalibrationVersions /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/versions/:versionId" element={<RequireAdmin><DL><CalibrationVersionDetail /></DL></RequireAdmin>} />
+              <Route path="/admin/sales/calibration/signals" element={<RequireAdmin><DL><CalibrationSignals /></DL></RequireAdmin>} />
               <Route path="/admin/organizacion" element={<Navigate to="/admin/organizaciones" replace />} />
               <Route path="/admin/directorio" element={<Navigate to="/admin/organizaciones" replace />} />
 
