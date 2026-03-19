@@ -9,25 +9,25 @@ import {
 import { CalibrationShell } from '@/components/calibration/CalibrationShell';
 import { BackendUnavailable } from '@/components/calibration/BackendUnavailable';
 import { FullPageSkeleton } from '@/components/calibration/CalibrationLoadingSkeleton';
-import { useCalibrationSessions, useCalibrationObjections } from '@/hooks/useCalibrationData';
+import { useCalibrationOutcomes, useCalibrationObjections } from '@/hooks/useCalibrationData';
 import { computeObjectionAnalysis } from '@/lib/calibrationAnalytics';
 import { fmtPct } from '@/lib/calibrationLabels';
 import { ShieldAlert, AlertTriangle, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function CalibrationObjections() {
-  const sessions = useCalibrationSessions();
+  const outcomesQ = useCalibrationOutcomes();
   const objections = useCalibrationObjections();
 
   if (objections.backendStatus === 'unavailable') {
-    return <CalibrationShell><BackendUnavailable status="unavailable" table="sales_objections" /></CalibrationShell>;
+    return <CalibrationShell><BackendUnavailable status="unavailable" table="sales_session_objections" /></CalibrationShell>;
   }
 
-  if (objections.isLoading || sessions.isLoading) {
+  if (objections.isLoading || outcomesQ.isLoading) {
     return <CalibrationShell><FullPageSkeleton /></CalibrationShell>;
   }
 
-  const analysis = computeObjectionAnalysis(objections.data, sessions.data);
+  const analysis = computeObjectionAnalysis(objections.data, outcomesQ.data);
   const overDetected = analysis.filter(a => a.count > 10 && a.lossRate < 30);
   const underDetected = analysis.filter(a => a.count < 3 && a.lossRate > 70);
 
@@ -48,7 +48,6 @@ export default function CalibrationObjections() {
           </Card>
         ) : (
           <>
-            {/* Main table */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold">Bloqueadores detectados</CardTitle>
@@ -92,7 +91,6 @@ export default function CalibrationObjections() {
               </CardContent>
             </Card>
 
-            {/* Signals */}
             <div className="grid md:grid-cols-2 gap-4">
               <Card className={overDetected.length > 0 ? 'border-warning/20' : ''}>
                 <CardHeader className="pb-2">

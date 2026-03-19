@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CalibrationShell } from '@/components/calibration/CalibrationShell';
 import { BackendUnavailable } from '@/components/calibration/BackendUnavailable';
 import { FullPageSkeleton } from '@/components/calibration/CalibrationLoadingSkeleton';
-import { useCalibrationSessions } from '@/hooks/useCalibrationData';
+import { useCalibrationSessions, useCalibrationOutcomes } from '@/hooks/useCalibrationData';
 import { computeScoreBuckets } from '@/lib/calibrationAnalytics';
 import { SCORE_LABELS, BUCKET_LABELS, fmtPct } from '@/lib/calibrationLabels';
 import { BarChart3, TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -15,16 +15,17 @@ import { cn } from '@/lib/utils';
 
 export default function CalibrationScores() {
   const sessions = useCalibrationSessions();
+  const outcomesQ = useCalibrationOutcomes();
 
   if (sessions.backendStatus === 'unavailable') {
     return <CalibrationShell><BackendUnavailable status="unavailable" table="sales_sessions" /></CalibrationShell>;
   }
 
-  if (sessions.isLoading) {
+  if (sessions.isLoading || outcomesQ.isLoading) {
     return <CalibrationShell><FullPageSkeleton /></CalibrationShell>;
   }
 
-  const buckets = computeScoreBuckets(sessions.data);
+  const buckets = computeScoreBuckets(sessions.data, outcomesQ.data);
   const hasData = buckets.some(b => b.low.total + b.mid.total + b.high.total > 0);
 
   return (

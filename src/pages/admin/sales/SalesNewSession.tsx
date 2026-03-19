@@ -1,6 +1,6 @@
 /**
  * Sales Intelligence — New Session Wizard
- * Collects org info + diagnostic answers, creates a session via sales_sessions insert.
+ * REAL SCHEMA: score_pain, score_maturity, score_urgency, score_fit, score_budget_readiness
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,20 +14,21 @@ import { Slider } from '@/components/ui/slider';
 import { ArrowLeft, ArrowRight, Send, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-const ORG_TYPES = ['cooperativa', 'exportador', 'beneficio_privado', 'productor_empresarial', 'aggregator'];
+const LEAD_TYPES = ['cooperativa', 'exportador', 'beneficio_privado', 'productor_empresarial', 'aggregator'];
 
 interface ScoreInput {
   label: string;
   key: string;
+  column: string;
   description: string;
 }
 
 const SCORES: ScoreInput[] = [
-  { key: 'pain', label: 'Pain', description: '¿Qué tan agudo es el problema que buscan resolver?' },
-  { key: 'maturity', label: 'Maturity', description: '¿Qué tan maduro es el prospecto digitalmente?' },
-  { key: 'urgency', label: 'Urgency', description: '¿Qué tan urgente es la necesidad?' },
-  { key: 'fit', label: 'Fit', description: '¿Qué tan bien encaja con la oferta de Nova Silva?' },
-  { key: 'budget_readiness', label: 'Budget Readiness', description: '¿Hay presupuesto disponible?' },
+  { key: 'pain', column: 'score_pain', label: 'Pain', description: '¿Qué tan agudo es el problema que buscan resolver?' },
+  { key: 'maturity', column: 'score_maturity', label: 'Maturity', description: '¿Qué tan maduro es el prospecto digitalmente?' },
+  { key: 'urgency', column: 'score_urgency', label: 'Urgency', description: '¿Qué tan urgente es la necesidad?' },
+  { key: 'fit', column: 'score_fit', label: 'Fit', description: '¿Qué tan bien encaja con la oferta de Nova Silva?' },
+  { key: 'budget_readiness', column: 'score_budget_readiness', label: 'Budget Readiness', description: '¿Hay presupuesto disponible?' },
 ];
 
 type Step = 'org' | 'scores' | 'confirm';
@@ -38,9 +39,9 @@ export default function SalesNewSession() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [orgName, setOrgName] = useState('');
-  const [orgType, setOrgType] = useState('');
-  const [contactName, setContactName] = useState('');
+  const [leadName, setLeadName] = useState('');
+  const [leadCompany, setLeadCompany] = useState('');
+  const [leadType, setLeadType] = useState('');
   const [scores, setScores] = useState<Record<string, number>>(
     Object.fromEntries(SCORES.map(s => [s.key, 5]))
   );
@@ -49,30 +50,32 @@ export default function SalesNewSession() {
     Object.values(scores).reduce((sum, v) => sum + v, 0) / SCORES.length * 10
   ) / 10;
 
-  const canAdvance = step === 'org' ? orgName.trim().length > 0 && orgType.length > 0 : true;
+  const canAdvance = step === 'org' ? leadCompany.trim().length > 0 && leadType.length > 0 : true;
 
   async function handleSubmit() {
     setSubmitting(true);
     setError(null);
     try {
+      const payload: Record<string, any> = {
+        lead_name: leadName.trim() || null,
+        lead_company: leadCompany.trim(),
+        lead_type: leadType,
+        score_pain: scores.pain,
+        score_maturity: scores.maturity,
+        score_urgency: scores.urgency,
+        score_fit: scores.fit,
+        score_budget_readiness: scores.budget_readiness,
+        score_total: totalScore,
+      };
+
       const { data, error: insertError } = await supabase
         .from('sales_sessions' as any)
-        .insert({
-          org_name: orgName.trim(),
-          org_type: orgType,
-          contact_name: contactName.trim() || null,
-          pain_score: scores.pain,
-          maturity_score: scores.maturity,
-          urgency_score: scores.urgency,
-          fit_score: scores.fit,
-          budget_readiness_score: scores.budget_readiness,
-          total_score: totalScore,
-        } as any)
+        .insert(payload as any)
         .select('id')
         .single();
 
       if (insertError) {
-        if (insertError.code === '42P01' || insertError.message?.includes('does not exist')) {
+        if (insertError.code === '42P01' || insertError.code === 'PGRST205' || insertError.message?.includes('does not exist')) {
           setError('La tabla sales_sessions no existe. Ejecuta las migraciones de Sales Intelligence primero.');
           return;
         }
@@ -106,7 +109,7 @@ export default function SalesNewSession() {
           <div key={s} className="flex items-center gap-2">
             {i > 0 && <div className="w-6 h-px bg-border" />}
             <span className={step === s ? 'text-foreground font-medium' : ''}>
-              {i + 1}. {s === 'org' ? 'Organización' : s === 'scores' ? 'Scoring' : 'Confirmar'}
+              {i + 1}. {s === 'org' ? 'Lead' : s === 'scores' ? 'Scoring' : 'Confirmar'}
             </span>
           </div>
         ))}
@@ -115,25 +118,25 @@ export default function SalesNewSession() {
       {step === 'org' && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Datos de la organización</CardTitle>
+            <CardTitle className="text-base">Datos del lead</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Nombre de la organización *</Label>
-              <Input value={orgName} onChange={e => setOrgName(e.target.value)} placeholder="Ej: Cooperativa El Roble" />
+              <Label className="text-xs">Empresa / Organización *</Label>
+              <Input value={leadCompany} onChange={e => setLeadCompany(e.target.value)} placeholder="Ej: Cooperativa El Roble" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Tipo de organización *</Label>
-              <Select value={orgType} onValueChange={setOrgType}>
+              <Label className="text-xs">Tipo *</Label>
+              <Select value={leadType} onValueChange={setLeadType}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
                 <SelectContent>
-                  {ORG_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  {LEAD_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Nombre del contacto</Label>
-              <Input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Opcional" />
+              <Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Opcional" />
             </div>
             <div className="flex justify-end">
               <Button size="sm" disabled={!canAdvance} onClick={() => setStep('scores')} className="gap-1.5">
@@ -187,9 +190,9 @@ export default function SalesNewSession() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-muted-foreground text-xs">Organización</span><p className="font-medium">{orgName}</p></div>
-              <div><span className="text-muted-foreground text-xs">Tipo</span><p className="font-medium">{orgType}</p></div>
-              {contactName && <div><span className="text-muted-foreground text-xs">Contacto</span><p className="font-medium">{contactName}</p></div>}
+              <div><span className="text-muted-foreground text-xs">Empresa</span><p className="font-medium">{leadCompany}</p></div>
+              <div><span className="text-muted-foreground text-xs">Tipo</span><p className="font-medium">{leadType}</p></div>
+              {leadName && <div><span className="text-muted-foreground text-xs">Contacto</span><p className="font-medium">{leadName}</p></div>}
               <div><span className="text-muted-foreground text-xs">Score total</span><p className="font-bold font-mono text-lg">{totalScore}</p></div>
             </div>
             <div className="grid grid-cols-5 gap-2 text-center">

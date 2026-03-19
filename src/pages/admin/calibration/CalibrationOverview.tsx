@@ -10,6 +10,7 @@ import { KPISkeleton } from '@/components/calibration/CalibrationLoadingSkeleton
 import { MetricCard } from '@/components/admin/shared/AdminComponents';
 import {
   useCalibrationSessions,
+  useCalibrationOutcomes,
   useCalibrationObjections,
   useCalibrationRecommendations,
   useRuleVersions,
@@ -25,19 +26,21 @@ import type { BackendStatus } from '@/types/calibration';
 
 export default function CalibrationOverview() {
   const sessions = useCalibrationSessions();
+  const outcomesQ = useCalibrationOutcomes();
   const objections = useCalibrationObjections();
   const recommendations = useCalibrationRecommendations();
   const versions = useRuleVersions();
 
   const allUnavailable = sessions.backendStatus === 'unavailable'
+    && outcomesQ.backendStatus === 'unavailable'
     && objections.backendStatus === 'unavailable'
     && versions.backendStatus === 'unavailable';
 
-  const anyLoading = sessions.isLoading || objections.isLoading || recommendations.isLoading || versions.isLoading;
+  const anyLoading = sessions.isLoading || outcomesQ.isLoading || objections.isLoading || recommendations.isLoading || versions.isLoading;
 
-  const outcomes = computeOutcomes(sessions.data);
-  const topObjections = computeObjectionAnalysis(objections.data, sessions.data).slice(0, 5);
-  const topRecs = computeRecommendationAnalysis(recommendations.data, sessions.data).slice(0, 5);
+  const outcomes = computeOutcomes(outcomesQ.data);
+  const topObjections = computeObjectionAnalysis(objections.data, outcomesQ.data).slice(0, 5);
+  const topRecs = computeRecommendationAnalysis(recommendations.data, outcomesQ.data).slice(0, 5);
   const activeVersion = versions.data?.find(v => v.is_active) ?? null;
 
   return (
@@ -53,7 +56,7 @@ export default function CalibrationOverview() {
               <MetricCard label="Win rate" value={outcomes.total > 0 ? fmtPct(outcomes.winRate) : '—'} icon={TrendingUp} />
               <MetricCard label="Loss rate" value={outcomes.total > 0 ? fmtPct(outcomes.lossRate) : '—'} icon={TrendingDown} />
               <MetricCard label="No decision" value={outcomes.total > 0 ? fmtPct(outcomes.noDecisionRate) : '—'} icon={MinusCircle} />
-              <MetricCard label="Versión activa" value={activeVersion?.version ?? '—'} icon={Shield} />
+              <MetricCard label="Versión activa" value={activeVersion ? activeVersion.id.slice(0, 8) : '—'} icon={Shield} />
             </div>
           )}
 
@@ -64,7 +67,7 @@ export default function CalibrationOverview() {
                 <div className="flex items-center gap-3">
                   <Shield className="h-4 w-4 text-primary shrink-0" />
                   <div>
-                    <span className="text-sm font-medium text-foreground">Versión activa: {activeVersion.version}</span>
+                    <span className="text-sm font-medium text-foreground">Versión activa: {activeVersion.id.slice(0, 8)}</span>
                     {activeVersion.deployed_at && (
                       <span className="text-xs text-muted-foreground ml-2">
                         Desplegada {fmtDate(activeVersion.deployed_at)}
@@ -123,7 +126,7 @@ export default function CalibrationOverview() {
               </CardHeader>
               <CardContent>
                 {objections.backendStatus === 'unavailable' ? (
-                  <BackendUnavailable status="unavailable" table="sales_objections" />
+                  <BackendUnavailable status="unavailable" table="sales_session_objections" />
                 ) : topObjections.length === 0 ? (
                   <p className="text-xs text-muted-foreground py-4 text-center">Sin datos de bloqueadores</p>
                 ) : (
@@ -155,7 +158,7 @@ export default function CalibrationOverview() {
               </CardHeader>
               <CardContent>
                 {recommendations.backendStatus === 'unavailable' ? (
-                  <BackendUnavailable status="unavailable" table="sales_recommendations" />
+                  <BackendUnavailable status="unavailable" table="sales_session_recommendations" />
                 ) : topRecs.length === 0 ? (
                   <p className="text-xs text-muted-foreground py-4 text-center">Sin datos de recomendaciones</p>
                 ) : (
@@ -185,6 +188,7 @@ export default function CalibrationOverview() {
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Salud del sistema de calibración</p>
               <div className="flex flex-wrap gap-3 text-xs">
                 <StatusPill label="Sesiones" status={sessions.backendStatus} />
+                <StatusPill label="Outcomes" status={outcomesQ.backendStatus} />
                 <StatusPill label="Bloqueadores" status={objections.backendStatus} />
                 <StatusPill label="Próximos pasos" status={recommendations.backendStatus} />
                 <StatusPill label="Versiones" status={versions.backendStatus} />

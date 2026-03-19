@@ -1,6 +1,5 @@
 /**
  * Calibration Review — Signals & Alerts
- * Identifies patterns that need review.
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +7,7 @@ import { CalibrationShell } from '@/components/calibration/CalibrationShell';
 import { BackendUnavailable } from '@/components/calibration/BackendUnavailable';
 import { FullPageSkeleton } from '@/components/calibration/CalibrationLoadingSkeleton';
 import {
-  useCalibrationSessions, useCalibrationObjections, useCalibrationRecommendations,
+  useCalibrationSessions, useCalibrationOutcomes, useCalibrationObjections, useCalibrationRecommendations,
 } from '@/hooks/useCalibrationData';
 import { computeSignals } from '@/lib/calibrationAnalytics';
 import type { CalibrationSignal } from '@/types/calibration';
@@ -36,6 +35,7 @@ const SEV_BADGE: Record<CalibrationSignal['severity'], { label: string; classNam
 
 export default function CalibrationSignals() {
   const sessions = useCalibrationSessions();
+  const outcomesQ = useCalibrationOutcomes();
   const objections = useCalibrationObjections();
   const recs = useCalibrationRecommendations();
 
@@ -46,12 +46,12 @@ export default function CalibrationSignals() {
     return <CalibrationShell><BackendUnavailable status="unavailable" table="sales_sessions" /></CalibrationShell>;
   }
 
-  const anyLoading = sessions.isLoading || objections.isLoading || recs.isLoading;
+  const anyLoading = sessions.isLoading || outcomesQ.isLoading || objections.isLoading || recs.isLoading;
   if (anyLoading) {
     return <CalibrationShell><FullPageSkeleton /></CalibrationShell>;
   }
 
-  const signals = computeSignals(sessions.data, objections.data, recs.data);
+  const signals = computeSignals(sessions.data, outcomesQ.data, objections.data, recs.data);
 
   return (
     <CalibrationShell>

@@ -1,6 +1,6 @@
 /**
  * Sales Intelligence — Sessions list
- * Reads from sales_sessions table via safeQuery pattern.
+ * REAL SCHEMA: sales_sessions with score_* columns
  */
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -14,12 +14,19 @@ import { cn } from '@/lib/utils';
 
 interface SalesSession {
   id: string;
-  org_name: string | null;
-  org_type: string | null;
-  total_score: number | null;
-  outcome: string | null;
-  deal_value: number | null;
+  lead_name: string | null;
+  lead_company: string | null;
+  lead_type: string | null;
+  commercial_stage: string | null;
+  status: string | null;
+  score_total: number | null;
   created_at: string;
+}
+
+interface SessionOutcome {
+  session_id: string;
+  outcome: string;
+  deal_value: number | null;
 }
 
 type BackendStatus = 'available' | 'unavailable';
@@ -27,20 +34,36 @@ type BackendStatus = 'available' | 'unavailable';
 function useSalesSessions() {
   return useQuery({
     queryKey: ['sales-sessions-list'],
-    queryFn: async (): Promise<{ data: SalesSession[]; status: BackendStatus }> => {
+    queryFn: async (): Promise<{ sessions: SalesSession[]; outcomes: Map<string, SessionOutcome>; status: BackendStatus }> => {
       const { data, error } = await supabase
         .from('sales_sessions' as any)
-        .select('id, org_name, org_type, total_score, outcome, deal_value, created_at')
+        .select('id, lead_name, lead_company, lead_type, commercial_stage, status, score_total, created_at')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) {
-        if (error.code === '42P01' || error.message?.includes('does not exist')) {
-          return { data: [], status: 'unavailable' };
+        if (error.code === '42P01' || error.code === 'PGRST205' || error.message?.includes('does not exist')) {
+          return { sessions: [], outcomes: new Map(), status: 'unavailable' };
         }
         throw error;
       }
-      return { data: (data as SalesSession[]) ?? [], status: 'available' };
+
+      const sessions = (data as SalesSession[]) ?? [];
+      const outcomeMap = new Map<string, SessionOutcome>();
+
+      if (sessions.length > 0) {
+        const { data: outData } = await supabase
+          .from('sales_session_outcomes' as any)
+          .select('session_id, outcome, deal_value');
+
+        if (outData) {
+          for (const o of outData as SessionOutcome[]) {
+            outcomeMap.set(o.session_id, o);
+          }
+        }
+      }
+
+      return { sessions, outcomes: outcomeMap, status: 'available' };
     },
     staleTime: 1000 * 60 * 3,
   });
@@ -95,7 +118,7 @@ export default function SalesIntelligenceIndex() {
         </Card>
       )}
 
-      {!isLoading && !isError && result?.status === 'available' && result.data.length === 0 && (
+      {!isLoading && !isError && result?.status === 'available' && result.sessions.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="py-10 text-center">
             <Inbox className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
@@ -105,10 +128,11 @@ export default function SalesIntelligenceIndex() {
         </Card>
       )}
 
-      {!isLoading && !isError && result?.status === 'available' && result.data.length > 0 && (
+      {!isLoading && !isError && result?.status === 'available' && result.sessions.length > 0 && (
         <div className="space-y-2">
-          {result.data.map((s) => {
-            const ob = s.outcome ? outcomeBadge[s.outcome] : null;
+          {result.sessions.map((s) => {
+            const outcomeData = result.outcomes.get(s.id);
+            const ob = outcomeData ? outcomeBadge[outcomeData.outcome] : null;
             return (
               <Card
                 key={s.id}
@@ -120,21 +144,26 @@ export default function SalesIntelligenceIndex() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-foreground truncate">
-                          {s.org_name || 'Sin nombre'}
+                          {s.lead_company || s.lead_name || 'Sin nombre'}
                         </span>
-                        {s.org_type && (
+                        {s.lead_type && (
                           <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                            {s.org_type}
+                            {s.lead_type}
+                          </span>
+                        )}
+                        {s.commercial_stage && (
+                          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                            {s.commercial_stage}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        {s.total_score != null && (
-                          <span className="font-mono">Score: {s.total_score}</span>
+                        {s.score_total != null && (
+                          <span className="font-mono">Score: {s.score_total}</span>
                         )}
                         <span>{new Date(s.created_at).toLocaleDateString('es')}</span>
-                        {s.deal_value != null && s.deal_value > 0 && (
-                          <span className="font-mono">${s.deal_value.toLocaleString()}</span>
+                        {outcomeData?.deal_value != null && outcomeData.deal_value > 0 && (
+                          <span className="font-mono">${outcomeData.deal_value.toLocaleString()}</span>
                         )}
                       </div>
                     </div>

@@ -2,19 +2,20 @@
  * Calibration Review — data hooks.
  *
  * Single access layer for all Calibration Review data.
- * Attempts to read from Sales Intelligence tables in Supabase.
- * Gracefully degrades if tables don't exist or return errors.
+ * Aligned to REAL backend schema.
  *
- * TABLE MAPPING (update here if backend renames):
+ * TABLE MAPPING:
  *   sessions        → sales_sessions
- *   objections      → sales_objections
- *   recommendations → sales_recommendations
+ *   outcomes        → sales_session_outcomes
+ *   objections      → sales_session_objections
+ *   recommendations → sales_session_recommendations
  *   rule_versions   → sales_rule_versions
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type {
   CalibrationSession,
+  SessionOutcome,
   CalibrationObjection,
   CalibrationRecommendation,
   RuleVersion,
@@ -22,7 +23,7 @@ import type {
 } from '@/types/calibration';
 
 // Re-export types and analytics for backward compat
-export type { CalibrationSession, CalibrationObjection, CalibrationRecommendation, RuleVersion, BackendStatus };
+export type { CalibrationSession, SessionOutcome, CalibrationObjection, CalibrationRecommendation, RuleVersion, BackendStatus };
 export type { OutcomeDistribution, ScoreBucket, ScoreKey, ObjectionAnalysis, RecommendationAnalysis } from '@/types/calibration';
 export { computeOutcomes, computeScoreBuckets, computeObjectionAnalysis, computeRecommendationAnalysis, SCORE_KEYS } from '@/lib/calibrationAnalytics';
 
@@ -30,18 +31,20 @@ export { computeOutcomes, computeScoreBuckets, computeObjectionAnalysis, compute
 
 const TABLE = {
   sessions: 'sales_sessions',
-  objections: 'sales_objections',
-  recommendations: 'sales_recommendations',
+  outcomes: 'sales_session_outcomes',
+  objections: 'sales_session_objections',
+  recommendations: 'sales_session_recommendations',
   ruleVersions: 'sales_rule_versions',
 } as const;
 
-// ── Column selects ──
+// ── Column selects (REAL schema) ──
 
 const SELECT = {
-  sessions: 'id, organization_id, outcome, scores, created_at, rule_version_id',
-  objections: 'id, session_id, objection_type, confidence, created_at',
-  recommendations: 'id, session_id, recommendation_type, signal, created_at',
-  ruleVersions: 'id, version, parent_version_id, deployed_at, description, changes_applied, is_active, snapshot_before, snapshot_after',
+  sessions: 'id, organization_id, lead_name, lead_company, lead_type, commercial_stage, status, score_total, score_pain, score_maturity, score_objection, score_urgency, score_fit, score_budget_readiness, created_at, updated_at',
+  outcomes: 'id, session_id, outcome, deal_value, close_date, reason_lost, created_at',
+  objections: 'id, session_id, objection_type, confidence, detail, created_at',
+  recommendations: 'id, session_id, recommendation_type, priority, detail, signal, created_at',
+  ruleVersions: 'id, parent_version_id, deployed_at, description, changes_applied, is_active, snapshot_before, snapshot_after',
 } as const;
 
 // ── Query result shape ──
@@ -77,6 +80,8 @@ async function safeQuery<T>(
       if (
         error.code === '42P01' ||
         error.code === '42501' ||
+        error.code === 'PGRST205' ||
+        error.code === 'PGRST204' ||
         error.message?.includes('does not exist')
       ) {
         return { data: [], status: 'unavailable' };
@@ -108,6 +113,18 @@ export function useCalibrationSessions(): QueryResult<CalibrationSession> {
   const query = useQuery({
     queryKey: ['calibration', 'sessions'],
     queryFn: () => safeQuery<CalibrationSession>(TABLE.sessions, SELECT.sessions, { order: 'created_at' }),
+    staleTime: STALE_3MIN,
+    retry: 1,
+  });
+  return wrapQuery(query);
+}
+
+// ── Outcomes ──
+
+export function useCalibrationOutcomes(): QueryResult<SessionOutcome> {
+  const query = useQuery({
+    queryKey: ['calibration', 'outcomes'],
+    queryFn: () => safeQuery<SessionOutcome>(TABLE.outcomes, SELECT.outcomes, { order: 'created_at' }),
     staleTime: STALE_3MIN,
     retry: 1,
   });
@@ -164,7 +181,7 @@ export function useRuleVersionDetail(versionId: string | undefined) {
           .eq('id', versionId)
           .single();
         if (error) {
-          if (error.code === '42P01' || error.message?.includes('does not exist')) {
+          if (error.code === '42P01' || error.code === 'PGRST205' || error.message?.includes('does not exist')) {
             return { data: [], status: 'unavailable' };
           }
           return { data: [], status: 'error' };

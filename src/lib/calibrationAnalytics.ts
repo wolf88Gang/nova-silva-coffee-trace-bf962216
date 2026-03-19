@@ -3,13 +3,16 @@
  *
  * ⚠️  FRONTEND DRIFT NOTICE:
  * These computations duplicate analytics that SHOULD live as SQL views
- * or RPCs in the backend (e.g. v_calibration_outcomes, v_score_buckets).
- * They exist here as a stopgap until backend views are deployed.
- * When backend provides pre-computed analytics, replace these functions
- * with direct data fetches.
+ * or RPCs in the backend. They exist as a stopgap until backend views
+ * are deployed. When backend provides pre-computed analytics, replace
+ * these functions with direct data fetches.
+ *
+ * REAL SCHEMA: scores are individual columns (score_pain, score_maturity, etc.)
+ * NOT a JSON object. Outcomes are in sales_session_outcomes, not on the session row.
  */
 import type {
   CalibrationSession,
+  SessionOutcome,
   CalibrationObjection,
   CalibrationRecommendation,
   OutcomeDistribution,
@@ -22,21 +25,35 @@ import type {
 } from '@/types/calibration';
 import { SCORE_LABELS } from '@/lib/calibrationLabels';
 
-export const SCORE_KEYS: ScoreKey[] = ['pain', 'maturity', 'urgency', 'fit', 'budget_readiness'];
+export const SCORE_KEYS: ScoreKey[] = ['pain', 'maturity', 'urgency', 'fit', 'budget_readiness', 'objection'];
+
+/** Map ScoreKey to the real column name on CalibrationSession */
+const SCORE_COLUMN_MAP: Record<ScoreKey, keyof CalibrationSession> = {
+  pain: 'score_pain',
+  maturity: 'score_maturity',
+  urgency: 'score_urgency',
+  fit: 'score_fit',
+  budget_readiness: 'score_budget_readiness',
+  objection: 'score_objection',
+};
+
+function getScoreValue(session: CalibrationSession, key: ScoreKey): number | null {
+  const col = SCORE_COLUMN_MAP[key];
+  return (session[col] as number | null) ?? null;
+}
 
 const EMPTY_BUCKET: BucketCounts = { won: 0, lost: 0, noDecision: 0, total: 0 };
 
 // ── Outcomes ──
 
-export function computeOutcomes(sessions: CalibrationSession[] | null): OutcomeDistribution {
+export function computeOutcomes(outcomes: SessionOutcome[] | null): OutcomeDistribution {
   const empty: OutcomeDistribution = { won: 0, lost: 0, no_decision: 0, total: 0, winRate: 0, lossRate: 0, noDecisionRate: 0 };
-  if (!sessions || sessions.length === 0) return empty;
+  if (!outcomes || outcomes.length === 0) return empty;
 
-  const withOutcome = sessions.filter(s => s.outcome != null);
-  const won = withOutcome.filter(s => s.outcome === 'won').length;
-  const lost = withOutcome.filter(s => s.outcome === 'lost').length;
-  const no_decision = withOutcome.filter(s => s.outcome === 'no_decision').length;
-  const total = withOutcome.length;
+  const won = outcomes.filter(o => o.outcome === 'won').length;
+  const lost = outcomes.filter(o => o.outcome === 'lost').length;
+  const no_decision = outcomes.filter(o => o.outcome === 'no_decision').length;
+  const total = outcomes.length;
 
   return {
     won, lost, no_decision, total,
@@ -47,9 +64,20 @@ export function computeOutcomes(sessions: CalibrationSession[] | null): OutcomeD
 }
 
 // ── Score Buckets ──
+// Requires joining sessions with outcomes to know win/loss per session
 
-export function computeScoreBuckets(sessions: CalibrationSession[] | null): ScoreBucket[] {
+export function computeScoreBuckets(
+  sessions: CalibrationSession[] | null,
+  outcomes: SessionOutcome[] | null
+): ScoreBucket[] {
   if (!sessions) return [];
+  const outcomeMap = new Map<string, string>();
+  if (outcomes) {
+    for (const o of outcomes) {
+      outcomeMap.set(o.session_id, o.outcome);
+    }
+  }
+
   return SCORE_KEYS.map(key => {
     const bucket: ScoreBucket = {
       scoreKey: key,
@@ -58,13 +86,14 @@ export function computeScoreBuckets(sessions: CalibrationSession[] | null): Scor
       high: { ...EMPTY_BUCKET },
     };
     for (const s of sessions) {
-      if (!s.scores || s.outcome == null) continue;
-      const val = s.scores[key];
+      const outcome = outcomeMap.get(s.id);
+      if (!outcome) continue;
+      const val = getScoreValue(s, key);
       if (val == null) continue;
       const tier: 'low' | 'mid' | 'high' = val <= 3 ? 'low' : val <= 7 ? 'mid' : 'high';
       bucket[tier].total++;
-      if (s.outcome === 'won') bucket[tier].won++;
-      else if (s.outcome === 'lost') bucket[tier].lost++;
+      if (outcome === 'won') bucket[tier].won++;
+      else if (outcome === 'lost') bucket[tier].lost++;
       else bucket[tier].noDecision++;
     }
     return bucket;
@@ -75,19 +104,24 @@ export function computeScoreBuckets(sessions: CalibrationSession[] | null): Scor
 
 export function computeObjectionAnalysis(
   objections: CalibrationObjection[] | null,
-  sessions: CalibrationSession[] | null
+  outcomes: SessionOutcome[] | null
 ): ObjectionAnalysis[] {
-  if (!objections || !sessions) return [];
-  const sessionMap = new Map(sessions.map(s => [s.id, s]));
+  if (!objections) return [];
+  const outcomeMap = new Map<string, string>();
+  if (outcomes) {
+    for (const o of outcomes) {
+      outcomeMap.set(o.session_id, o.outcome);
+    }
+  }
   const byType = new Map<string, { count: number; totalConf: number; won: number; lost: number }>();
 
   for (const o of objections) {
-    const session = sessionMap.get(o.session_id);
+    const outcome = outcomeMap.get(o.session_id);
     const entry = byType.get(o.objection_type) ?? { count: 0, totalConf: 0, won: 0, lost: 0 };
     entry.count++;
-    entry.totalConf += o.confidence;
-    if (session?.outcome === 'won') entry.won++;
-    if (session?.outcome === 'lost') entry.lost++;
+    entry.totalConf += o.confidence ?? 0;
+    if (outcome === 'won') entry.won++;
+    if (outcome === 'lost') entry.lost++;
     byType.set(o.objection_type, entry);
   }
 
@@ -107,18 +141,23 @@ export function computeObjectionAnalysis(
 
 export function computeRecommendationAnalysis(
   recs: CalibrationRecommendation[] | null,
-  sessions: CalibrationSession[] | null
+  outcomes: SessionOutcome[] | null
 ): RecommendationAnalysis[] {
-  if (!recs || !sessions) return [];
-  const sessionMap = new Map(sessions.map(s => [s.id, s]));
+  if (!recs) return [];
+  const outcomeMap = new Map<string, string>();
+  if (outcomes) {
+    for (const o of outcomes) {
+      outcomeMap.set(o.session_id, o.outcome);
+    }
+  }
   const byType = new Map<string, { count: number; won: number; lost: number }>();
 
   for (const r of recs) {
-    const session = sessionMap.get(r.session_id);
+    const outcome = outcomeMap.get(r.session_id);
     const entry = byType.get(r.recommendation_type) ?? { count: 0, won: 0, lost: 0 };
     entry.count++;
-    if (session?.outcome === 'won') entry.won++;
-    if (session?.outcome === 'lost') entry.lost++;
+    if (outcome === 'won') entry.won++;
+    if (outcome === 'lost') entry.lost++;
     byType.set(r.recommendation_type, entry);
   }
 
@@ -148,6 +187,7 @@ const LOW_TOTAL_SAMPLE = 20;
 
 export function computeSignals(
   sessions: CalibrationSession[] | null,
+  outcomes: SessionOutcome[] | null,
   objections: CalibrationObjection[] | null,
   recs: CalibrationRecommendation[] | null
 ): CalibrationSignal[] {
@@ -155,7 +195,7 @@ export function computeSignals(
   if (!sessions || sessions.length === 0) return signals;
 
   // Score signals
-  const buckets = computeScoreBuckets(sessions);
+  const buckets = computeScoreBuckets(sessions, outcomes);
   for (const b of buckets) {
     const total = b.low.total + b.mid.total + b.high.total;
     if (total > 0 && total < MIN_SAMPLE_SCORE) {
@@ -184,7 +224,7 @@ export function computeSignals(
 
   // Objection signals
   if (objections) {
-    const objAnalysis = computeObjectionAnalysis(objections, sessions);
+    const objAnalysis = computeObjectionAnalysis(objections, outcomes);
     for (const o of objAnalysis) {
       if (o.count >= OVER_DETECT_COUNT && o.lossRate < OVER_DETECT_LOSS) {
         signals.push({
@@ -209,7 +249,7 @@ export function computeSignals(
 
   // Recommendation signals
   if (recs) {
-    const recAnalysis = computeRecommendationAnalysis(recs, sessions);
+    const recAnalysis = computeRecommendationAnalysis(recs, outcomes);
     const avg = recAnalysis.length > 0 ? recAnalysis.reduce((s, a) => s + a.count, 0) / recAnalysis.length : 0;
     for (const r of recAnalysis) {
       if (r.count > avg * OVERUSE_MULTIPLIER && r.winRate < OVERUSE_WIN_CEILING) {

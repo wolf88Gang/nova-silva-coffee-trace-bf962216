@@ -9,25 +9,25 @@ import {
 import { CalibrationShell } from '@/components/calibration/CalibrationShell';
 import { BackendUnavailable } from '@/components/calibration/BackendUnavailable';
 import { FullPageSkeleton } from '@/components/calibration/CalibrationLoadingSkeleton';
-import { useCalibrationSessions, useCalibrationRecommendations } from '@/hooks/useCalibrationData';
+import { useCalibrationOutcomes, useCalibrationRecommendations } from '@/hooks/useCalibrationData';
 import { computeRecommendationAnalysis } from '@/lib/calibrationAnalytics';
 import { fmtPct } from '@/lib/calibrationLabels';
 import { Lightbulb, AlertTriangle, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function CalibrationRecommendations() {
-  const sessions = useCalibrationSessions();
+  const outcomesQ = useCalibrationOutcomes();
   const recs = useCalibrationRecommendations();
 
   if (recs.backendStatus === 'unavailable') {
-    return <CalibrationShell><BackendUnavailable status="unavailable" table="sales_recommendations" /></CalibrationShell>;
+    return <CalibrationShell><BackendUnavailable status="unavailable" table="sales_session_recommendations" /></CalibrationShell>;
   }
 
-  if (recs.isLoading || sessions.isLoading) {
+  if (recs.isLoading || outcomesQ.isLoading) {
     return <CalibrationShell><FullPageSkeleton /></CalibrationShell>;
   }
 
-  const analysis = computeRecommendationAnalysis(recs.data, sessions.data);
+  const analysis = computeRecommendationAnalysis(recs.data, outcomesQ.data);
   const avgCount = analysis.length > 0 ? analysis.reduce((s, a) => s + a.count, 0) / analysis.length : 0;
   const overused = analysis.filter(a => a.count > avgCount * 2 && a.winRate < 40);
 
@@ -89,7 +89,6 @@ export default function CalibrationRecommendations() {
               </CardContent>
             </Card>
 
-            {/* Overused signal */}
             {overused.length > 0 && (
               <Card className="border-warning/20">
                 <CardHeader className="pb-2">
@@ -114,7 +113,6 @@ export default function CalibrationRecommendations() {
               </Card>
             )}
 
-            {/* Top performing */}
             {analysis.filter(a => a.winRate > 60 && a.count >= 3).length > 0 && (
               <Card className="border-success/20">
                 <CardHeader className="pb-2">
