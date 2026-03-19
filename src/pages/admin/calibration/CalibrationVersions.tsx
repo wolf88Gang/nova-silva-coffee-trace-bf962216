@@ -73,11 +73,7 @@ export default function CalibrationVersions() {
                             <Shield className="h-2.5 w-2.5" /> Activa
                           </Badge>
                         )}
-                        {v.parent_version_id && (
-                          <span className="text-[10px] text-muted-foreground font-mono">
-                            parent: {v.parent_version_id.slice(0, 8)}
-                          </span>
-                        )}
+                        
                       </div>
                       {v.description && (
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">{v.description}</p>

@@ -91,11 +91,7 @@ export default function CalibrationVersionDetail() {
           </CardContent>
         </Card>
 
-        {/* Snapshots */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <SnapshotCard title="Snapshot antes" data={version.snapshot_before} />
-          <SnapshotCard title="Snapshot después" data={version.snapshot_after} />
-        </div>
+        {/* Snapshots removed — columns not in current schema */}
       </div>
     </CalibrationShell>
   );

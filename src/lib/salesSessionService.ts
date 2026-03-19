@@ -472,8 +472,6 @@ export const SalesSessionService = {
       session_id: input.sessionId,
       outcome: input.outcome,
       deal_value: input.outcome === 'won' ? input.dealValue ?? null : null,
-      close_date: input.outcome === 'won' ? input.closeDate ?? null : null,
-      reason_lost: input.outcome === 'lost' ? input.reasonLost?.trim() || null : null,
     };
 
     const { data: existingRows, error: existingError } = await supabase
