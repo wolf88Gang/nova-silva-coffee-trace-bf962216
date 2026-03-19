@@ -51,6 +51,10 @@ export default function AdminSales() {
   const [step, setStep] = useState<WizardStep>('list');
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  useEffect(() => {
+    salesDebug('AdminSales mounted — this is the REAL component from claude/focused-hugle');
+  }, []);
+
   return (
     <div className="space-y-6 animate-fade-in">
       {step === 'list' && <SessionList onNewSession={() => setStep('setup')} />}
