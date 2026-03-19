@@ -430,18 +430,18 @@ export const SalesSessionService = {
         .maybeSingle(),
       supabase
         .from('sales_session_outcomes' as any)
-        .select('id, outcome, deal_value, close_date, reason_lost')
+        .select('id, outcome, deal_value')
         .eq('session_id', sessionId)
         .order('created_at', { ascending: false })
         .limit(1),
       supabase
         .from('sales_session_objections' as any)
-        .select('id, objection_type, confidence, detail')
+        .select('id, objection_type, confidence')
         .eq('session_id', sessionId)
         .order('confidence', { ascending: false }),
       supabase
         .from('sales_session_recommendations' as any)
-        .select('id, recommendation_type, priority, detail')
+        .select('id, recommendation_type, priority')
         .eq('session_id', sessionId)
         .order('priority', { ascending: true }),
     ]);
