@@ -93,8 +93,6 @@ interface SaveOutcomeInput {
   sessionId: string;
   outcome: string;
   dealValue?: number | null;
-  closeDate?: string | null;
-  reasonLost?: string | null;
 }
 
 interface RpcAttemptResult<T> {
