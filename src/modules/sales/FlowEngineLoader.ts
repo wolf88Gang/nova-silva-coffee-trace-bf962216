@@ -1,14 +1,18 @@
 /**
- * FlowEngineLoader — Supabase data fetching layer for the flow engine.
+ * FlowEngineLoader — Supabase data fetching for sales diagnostic.
  *
- * Handles all I/O. Shapes raw DB rows into FlowEngineInput.
- * Then calls the pure computeFlowState() engine.
- *
- * Callers (hooks, pages) only import loadFlowState().
+ * ACTIVE FLOW: Commercial Copilot → SalesSessionService.getDiagnosticBundle / getNextStep
+ * SINGLE ENGINE: priorityEngine.mergePriorityIntoFlowState (no parallel wizard selector)
+ * BACKEND CONTRACT: sales_sessions, sales_questions, sales_session_answers, sales_session_objections
  */
 
 import { supabase } from '@/integrations/supabase/client';
 import { computeFlowState } from './FlowEngine';
+import {
+  buildProfileFromAnswers,
+  getSignalsFromAnswers,
+  getNextPriorityQuestion,
+} from './priorityEngine';
 import type {
   FlowState,
   FlowEngineInput,
@@ -19,15 +23,68 @@ import type {
   ScoreState,
 } from './FlowEngine.types';
 
-// ─── Main loader ──────────────────────────────────────────────────────────────
+/** Full snapshot for Copilot interpretation (same fetch as getNextStep, no duplicate queries). */
+export interface SalesDiagnosticBundle {
+  flowState: FlowState;
+  questions: LoadedQuestion[];
+  answers: LoadedAnswer[];
+}
 
-export async function loadFlowState(sessionId: string): Promise<FlowState> {
-  // All queries run in parallel — no sequential round trips needed.
+function mergePriorityIntoFlowState(
+  baseState: FlowState,
+  questions: LoadedQuestion[],
+  answers: LoadedAnswer[],
+  sessionMetadata: unknown
+): FlowState {
+  const profile = buildProfileFromAnswers(answers, questions);
+  const signals = getSignalsFromAnswers(answers, questions);
+  const answeredIds = new Set(answers.map((a) => a.question_id));
+  const skippedIds = new Set<string>(
+    (sessionMetadata as { skipped_question_ids?: string[] } | null)?.skipped_question_ids ?? []
+  );
+  const priorityResult = getNextPriorityQuestion(
+    profile,
+    answeredIds,
+    signals,
+    questions,
+    skippedIds
+  );
+
+  if (priorityResult.is_complete) {
+    return {
+      ...baseState,
+      next_question_id: null,
+      next_question: null,
+      next_question_reason: null,
+      is_complete: true,
+    };
+  }
+
+  if (priorityResult.next_question) {
+    return {
+      ...baseState,
+      next_question_id: priorityResult.next_question_id,
+      next_question: priorityResult.next_question,
+      next_question_reason: priorityResult.reason
+        ? {
+            gap_fills: priorityResult.reason.gap_fills,
+            signal_triggers: priorityResult.reason.signal_triggers,
+            score_breakdown: priorityResult.reason.score_breakdown,
+          }
+        : null,
+      is_complete: false,
+    };
+  }
+
+  return baseState;
+}
+
+async function loadAndComputeFlow(sessionId: string): Promise<SalesDiagnosticBundle> {
   const [sessionResult, questionsResult, answersResult, objectionsResult] = await Promise.all([
     supabase
       .from('sales_sessions')
       .select(
-        `id, questionnaire_id, questionnaire_version, status,
+        `id, questionnaire_id, questionnaire_version, status, metadata,
          score_total, score_pain, score_maturity, score_objection,
          score_urgency, score_fit, score_budget_readiness`,
       )
@@ -57,8 +114,6 @@ export async function loadFlowState(sessionId: string): Promise<FlowState> {
       .eq('session_id', sessionId),
   ]);
 
-  // ─── Error gates ────────────────────────────────────────────────────────────
-
   if (sessionResult.error || !sessionResult.data) {
     throw new Error(`Session not found: ${sessionId}`);
   }
@@ -78,16 +133,11 @@ export async function loadFlowState(sessionId: string): Promise<FlowState> {
     throw new Error(`Session is archived: ${sessionId}`);
   }
 
-  // ─── Shape questions ─────────────────────────────────────────────────────────
-  // Filter to the correct questionnaire_id, then sort by section.position → question.position.
-
   const codeById = new Map<string, string>();
 
   const questions: LoadedQuestion[] = (questionsResult.data ?? [])
     .filter((q) => q.questionnaire_id === session.questionnaire_id)
     .map((q) => {
-      // Supabase returns one-to-one joins as an object, not an array.
-      // Normalise defensively.
       const sectionRaw = Array.isArray(q.sales_question_sections)
         ? q.sales_question_sections[0]
         : q.sales_question_sections;
@@ -118,8 +168,6 @@ export async function loadFlowState(sessionId: string): Promise<FlowState> {
       return a.position - b.position;
     });
 
-  // ─── Shape answers ────────────────────────────────────────────────────────────
-
   const answers: LoadedAnswer[] = (answersResult.data ?? []).map((a) => ({
     question_id: a.question_id,
     question_code: codeById.get(a.question_id) ?? '',
@@ -129,9 +177,6 @@ export async function loadFlowState(sessionId: string): Promise<FlowState> {
     answer_option_ids: a.answer_option_ids,
     answer_json: a.answer_json,
   }));
-
-  // ─── Shape scores ─────────────────────────────────────────────────────────────
-  // Nulls are coerced to 0 — matches the DB DEFAULT 0 intent.
 
   const scores: ScoreState = {
     score_total: session.score_total ?? 0,
@@ -143,16 +188,26 @@ export async function loadFlowState(sessionId: string): Promise<FlowState> {
     score_budget_readiness: session.score_budget_readiness ?? 0,
   };
 
-  // ─── Shape objections ─────────────────────────────────────────────────────────
-
   const objections: LoadedObjection[] = (objectionsResult.data ?? []).map((o) => ({
     objection_type: o.objection_type,
     confidence: o.confidence,
     source_rule: o.source_rule,
   }));
 
-  // ─── Run the pure engine ──────────────────────────────────────────────────────
-
   const engineInput: FlowEngineInput = { questions, answers, scores, objections };
-  return computeFlowState(engineInput);
+  const baseState = computeFlowState(engineInput);
+  const flowState = mergePriorityIntoFlowState(baseState, questions, answers, session.metadata);
+
+  return { flowState, questions, answers };
+}
+
+/** Used by SalesSessionService.getNextStep — flow only. */
+export async function loadFlowState(sessionId: string): Promise<FlowState> {
+  const { flowState } = await loadAndComputeFlow(sessionId);
+  return flowState;
+}
+
+/** Used by Commercial Copilot for InterpretationEngine (questions + answers + flow). */
+export async function loadSalesDiagnosticBundle(sessionId: string): Promise<SalesDiagnosticBundle> {
+  return loadAndComputeFlow(sessionId);
 }

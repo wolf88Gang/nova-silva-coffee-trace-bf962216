@@ -1,71 +1,34 @@
 /**
- * useSalesWizard — LEGACY hook for SalesWizardPage only.
- *
-<<<<<<< Current (Your changes)
- * ACTIVE FLOW: createSession → loop (getNextStep → saveAnswer/skipQuestion) until is_complete → finalizeSession
- * LEGACY REMOVED: useAdaptiveDiagnostic
- * BACKEND CONTRACT: SalesSessionService (createSession, saveAnswer, skipQuestion, getNextStep, finalizeSession)
-=======
- * // LEGACY FLOW — to be removed after copilot stabilization
- * PRIMARY: useCopilotDiagnostic (recalculateScores + getDiagnosticBundle)
->>>>>>> Incoming (Background Agent changes)
+ * useCopilotDiagnostic — PRIMARY sales diagnostic hook for Commercial Copilot.
+ * BACKEND: SalesSessionService only (no supabase in UI).
+ * ENGINE: loadSalesDiagnosticBundle → same priority merge as getNextStep.
  */
 
 import { useState, useCallback } from 'react';
 import { SalesSessionService } from '@/modules/sales/SalesSessionService';
-import type {
-  CreateSessionRequest,
-  GetNextStepResponse,
-  SaveAnswerRequest,
-} from '@/modules/sales/SalesSessionService';
+import type { CreateSessionRequest } from '@/modules/sales/SalesSessionService';
+import type { FlowState } from '@/modules/sales/FlowEngine.types';
+import type { LoadedQuestion, LoadedAnswer } from '@/modules/sales/FlowEngine.types';
+import type { SalesDiagnosticBundle } from '@/modules/sales/FlowEngineLoader';
 
-export interface UseSalesWizardState {
-  sessionId: string | null;
-  flowState: GetNextStepResponse | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-export type SaveAnswerPayload =
+export type CopilotSavePayload =
   | { answer_option_ids: string[] }
   | { answer_text: string }
   | { answer_number: number }
   | { answer_boolean: boolean };
 
-export interface UseSalesWizardActions {
-  createSession: (req: Omit<CreateSessionRequest, 'questionnaire_code' | 'questionnaire_version'>) => Promise<string | null>;
-  saveAnswer: (questionId: string, payload: SaveAnswerPayload) => Promise<void>;
-  skipQuestion: (questionId: string) => Promise<void>;
-  loadNextStep: () => Promise<void>;
-  finalizeAndComplete: () => Promise<void>;
-  reset: () => void;
-}
-
 const DEFAULT_QUESTIONNAIRE = { code: 'nova_sales_intel', version: 1 } as const;
 
-export function useSalesWizard(): UseSalesWizardState & UseSalesWizardActions {
+export function useCopilotDiagnostic() {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [flowState, setFlowState] = useState<GetNextStepResponse | null>(null);
+  const [bundle, setBundle] = useState<SalesDiagnosticBundle | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadNextStepForSession = useCallback(async (sid: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const state = await SalesSessionService.getNextStep(sid);
-      setFlowState(state);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cargar siguiente paso');
-    } finally {
-      setIsLoading(false);
-    }
+  const refreshBundle = useCallback(async (sid: string) => {
+    const b = await SalesSessionService.getDiagnosticBundle(sid);
+    setBundle(b);
   }, []);
-
-  const loadNextStep = useCallback(async () => {
-    if (!sessionId) return;
-    await loadNextStepForSession(sessionId);
-  }, [sessionId, loadNextStepForSession]);
 
   const createSession = useCallback(
     async (
@@ -80,7 +43,7 @@ export function useSalesWizard(): UseSalesWizardState & UseSalesWizardActions {
           questionnaire_version: DEFAULT_QUESTIONNAIRE.version,
         });
         setSessionId(res.session_id);
-        await loadNextStepForSession(res.session_id);
+        await refreshBundle(res.session_id);
         return res.session_id;
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Error al crear sesión');
@@ -89,11 +52,11 @@ export function useSalesWizard(): UseSalesWizardState & UseSalesWizardActions {
         setIsLoading(false);
       }
     },
-    [loadNextStepForSession]
+    [refreshBundle]
   );
 
   const saveAnswer = useCallback(
-    async (questionId: string, payload: SaveAnswerPayload) => {
+    async (questionId: string, payload: CopilotSavePayload) => {
       if (!sessionId) return;
       setIsLoading(true);
       setError(null);
@@ -103,7 +66,8 @@ export function useSalesWizard(): UseSalesWizardState & UseSalesWizardActions {
           question_id: questionId,
           ...payload,
         });
-        await loadNextStepForSession(sessionId);
+        await SalesSessionService.recalculateScores(sessionId);
+        await refreshBundle(sessionId);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Error al guardar respuesta');
         throw e;
@@ -111,7 +75,7 @@ export function useSalesWizard(): UseSalesWizardState & UseSalesWizardActions {
         setIsLoading(false);
       }
     },
-    [sessionId, loadNextStepForSession]
+    [sessionId, refreshBundle]
   );
 
   const skipQuestion = useCallback(
@@ -121,7 +85,7 @@ export function useSalesWizard(): UseSalesWizardState & UseSalesWizardActions {
       setError(null);
       try {
         await SalesSessionService.skipQuestion(sessionId, questionId);
-        await loadNextStepForSession(sessionId);
+        await refreshBundle(sessionId);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Error al omitir pregunta');
         throw e;
@@ -129,39 +93,47 @@ export function useSalesWizard(): UseSalesWizardState & UseSalesWizardActions {
         setIsLoading(false);
       }
     },
-    [sessionId, loadNextStepForSession]
+    [sessionId, refreshBundle]
   );
 
-  const finalizeAndComplete = useCallback(async () => {
+  const finalizeSession = useCallback(async () => {
     if (!sessionId) return;
     setIsLoading(true);
     setError(null);
     try {
       await SalesSessionService.finalizeSession(sessionId);
+      await refreshBundle(sessionId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al finalizar sesión');
+      setError(e instanceof Error ? e.message : 'Error al finalizar');
       throw e;
     } finally {
       setIsLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, refreshBundle]);
 
   const reset = useCallback(() => {
     setSessionId(null);
-    setFlowState(null);
+    setBundle(null);
     setError(null);
   }, []);
+
+  const flowState: FlowState | null = bundle?.flowState ?? null;
+  const questions: LoadedQuestion[] = bundle?.questions ?? [];
+  const answers: LoadedAnswer[] = bundle?.answers ?? [];
 
   return {
     sessionId,
     flowState,
+    questions,
+    answers,
+    bundle,
     isLoading,
     error,
     createSession,
     saveAnswer,
     skipQuestion,
-    loadNextStep,
-    finalizeAndComplete,
+    finalizeSession,
     reset,
+    refreshBundle,
   };
 }

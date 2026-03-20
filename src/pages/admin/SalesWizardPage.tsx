@@ -1,6 +1,18 @@
 /**
+<<<<<<< Current (Your changes)
  * SalesWizardPage — deal desk / operator console for Sales Intelligence.
  * Internal commercial tooling, not a survey.
+ *
+ * ACTIVE FLOW: session setup → QuestionRenderer + SalesInsightPanel → priority engine → finalize → results
+ * LEGACY REMOVED: SalesDiagnosticPage, useAdaptiveDiagnostic, DiagnosticConversationPanel
+ * BACKEND CONTRACT: SalesSessionService (fn_sales_create_session, fn_sales_save_answer, fn_sales_finalize_session)
+=======
+ * SalesWizardPage — LEGACY fallback UI (route /admin/sales/legacy-wizard).
+ *
+ * // LEGACY FLOW — to be removed after copilot stabilization
+ * PRIMARY: SalesCopilotPage + CopilotLayout + useCopilotDiagnostic
+ * BACKEND CONTRACT: SalesSessionService (unchanged)
+>>>>>>> Incoming (Background Agent changes)
  */
 
 import { useState } from 'react';
@@ -22,6 +34,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSalesWizard } from '@/hooks/useSalesWizard';
 import { useAdminOrganizations } from '@/hooks/admin/useAdminOrganizations';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, AlertCircle, Play, ArrowRight } from 'lucide-react';
 import type { SaveAnswerPayload } from '@/hooks/useSalesWizard';
 
@@ -29,6 +42,7 @@ export default function SalesWizardPage() {
   const navigate = useNavigate();
   const orgsQuery = useAdminOrganizations();
   const orgs = orgsQuery.data?.data ?? [];
+  const isFallbackOrgs = orgsQuery.data?.isFallback ?? false;
   const {
     sessionId,
     flowState,
@@ -36,6 +50,7 @@ export default function SalesWizardPage() {
     error,
     createSession,
     saveAnswer,
+    skipQuestion,
     finalizeAndComplete,
   } = useSalesWizard();
 
@@ -51,9 +66,17 @@ export default function SalesWizardPage() {
   const [answerValue, setAnswerValue] = useState<QuestionValue>(null);
 
   const orgName = sessionContext?.orgName ?? orgs.find((o) => o.id === organizationId)?.name;
+  const { toast } = useToast();
 
   const handleStart = async () => {
-    if (!organizationId) return;
+    if (!organizationId) {
+      toast({ title: 'Selecciona una organización', description: 'Debes elegir una cuenta antes de evaluar.', variant: 'destructive' });
+      return;
+    }
+    if (isFallbackOrgs) {
+      toast({ title: 'Backend no disponible', description: 'Las organizaciones no cargaron desde el backend. No se puede crear sesión con datos mock.', variant: 'destructive' });
+      return;
+    }
     const org = orgs.find((o) => o.id === organizationId);
     const sid = await createSession({
       organization_id: organizationId,
@@ -116,6 +139,15 @@ export default function SalesWizardPage() {
         description="Diagnóstico comercial"
       />
 
+      {isFallbackOrgs && orgs.length > 0 && (
+        <Alert variant="destructive" className="py-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Organizaciones en modo mock. El backend no respondió. Ejecuta insert_demo_orgs.sql y verifica v_admin_organizations_summary.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {error && (
         <Alert variant="destructive" className="py-2">
           <AlertCircle className="h-4 w-4" />
@@ -124,7 +156,7 @@ export default function SalesWizardPage() {
       )}
 
       {!sessionId ? (
-        <Card>
+        <Card className="relative z-10">
           <CardContent className="pt-6">
             <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-end">
               <div className="space-y-1.5">
@@ -183,7 +215,7 @@ export default function SalesWizardPage() {
               </div>
               <Button
                 onClick={handleStart}
-                disabled={!organizationId || isLoading || orgsQuery.isLoading || orgs.length === 0}
+                disabled={!organizationId || isLoading || orgsQuery.isLoading || orgs.length === 0 || isFallbackOrgs}
                 size="sm"
                 className="h-9"
               >
@@ -232,8 +264,18 @@ export default function SalesWizardPage() {
                     value={answerValue}
                     onChange={setAnswerValue}
                     disabled={isLoading}
+                    questionReason={flowState?.next_question_reason ?? null}
                   />
-                  <div className="flex justify-end pt-1">
+                  <div className="flex justify-end items-center gap-2 pt-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => question && skipQuestion(question.id)}
+                      disabled={isLoading}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Omitir
+                    </Button>
                     <Button
                       onClick={handleSubmitAnswer}
                       disabled={!canSubmit || isLoading}

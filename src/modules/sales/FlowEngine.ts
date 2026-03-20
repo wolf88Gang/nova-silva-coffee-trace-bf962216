@@ -190,6 +190,7 @@ export function computeFlowState(input: FlowEngineInput): FlowState {
     return {
       next_question_id: null,
       next_question: null,
+      next_question_reason: null,
       is_complete: true,
       context: scores,
       detected_objections: objections,
@@ -218,6 +219,7 @@ export function computeFlowState(input: FlowEngineInput): FlowState {
   return {
     next_question_id: next.id,
     next_question: next,
+    next_question_reason: null,
     is_complete: false,
     context: scores,
     detected_objections: objections,

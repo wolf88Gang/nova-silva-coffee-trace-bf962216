@@ -19,7 +19,7 @@ const RoleBasedRedirect: React.FC = () => {
   React.useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated || !user) {
-      navigate("/demo");
+      navigate("/login");
       return;
     }
     navigate(ROLE_REDIRECTS[user.role] ?? "/login");

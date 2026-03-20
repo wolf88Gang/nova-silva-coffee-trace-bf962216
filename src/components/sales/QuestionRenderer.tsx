@@ -1,6 +1,13 @@
 /**
+<<<<<<< Current (Your changes)
  * QuestionRenderer — deal desk question input.
  * Dense, operator-friendly. No survey fluff.
+ * Includes "Why this question?" tooltip when reason is provided.
+=======
+ * QuestionRenderer — shared question control chrome (used by Copilot Zone A + legacy wizard).
+ *
+ * // LEGACY FLOW — to be removed after copilot stabilization (extract ZoneA-only renderer if needed)
+>>>>>>> Incoming (Background Agent changes)
  */
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -8,8 +15,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import type { LoadedQuestion, SalesQuestionType } from '@/modules/sales/FlowEngine.types';
+import { HelpCircle } from 'lucide-react';
+import type {
+  LoadedQuestion,
+  SalesQuestionType,
+  NextQuestionReason,
+} from '@/modules/sales/FlowEngine.types';
 
 export type QuestionValue = string[] | string | number | boolean | null;
 
@@ -19,6 +37,8 @@ interface QuestionRendererProps {
   onChange: (value: QuestionValue) => void;
   disabled?: boolean;
   className?: string;
+  /** Why this question? — gap + signal for trust */
+  questionReason?: NextQuestionReason | null;
 }
 
 const OPTION_ROW =
@@ -156,19 +176,94 @@ function hasValidAnswer(question: LoadedQuestion, value: QuestionValue): boolean
   return false;
 }
 
+const GAP_LABELS: Record<string, string> = {
+  organization_type: 'Tipo de organización',
+  scale: 'Escala',
+  commercialization_model: 'Modelo comercial',
+  pricing_power: 'Poder de precios',
+  buyer_type: 'Tipo de comprador',
+  logistics_model: 'Modelo logístico',
+  certification_status: 'Estado de certificación',
+  pain_severity: 'Severidad del dolor',
+  maturity_level: 'Nivel de madurez',
+  urgency_timeline: 'Urgencia',
+  budget_readiness: 'Disposición presupuestaria',
+  objection_profile: 'Perfil de objeciones',
+};
+
+function WhyThisQuestionTooltip({ reason }: { reason: NextQuestionReason }) {
+  const gapLabels = reason.gap_fills.map((g) => GAP_LABELS[g] ?? g);
+  const hasGap = gapLabels.length > 0;
+  const hasSignal = reason.signal_triggers.length > 0;
+
+  return (
+    <div className="space-y-2 text-xs max-w-[280px]">
+      {hasGap && (
+        <div>
+          <span className="font-medium text-muted-foreground">Gaps que cubre:</span>
+          <ul className="mt-0.5 list-disc list-inside">
+            {gapLabels.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {hasSignal && (
+        <div>
+          <span className="font-medium text-muted-foreground">Señales activas:</span>
+          <ul className="mt-0.5 list-disc list-inside">
+            {reason.signal_triggers.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {!hasGap && !hasSignal && (
+        <p className="text-muted-foreground">Prioridad por relevancia.</p>
+      )}
+      {reason.score_breakdown && (
+        <p className="text-[10px] text-muted-foreground pt-1 border-t">
+          Score: {reason.score_breakdown.total} (peso {reason.score_breakdown.weight} + gap {reason.score_breakdown.gap_relevance} + señal {reason.score_breakdown.signal_relevance})
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function QuestionRenderer({
   question,
   value,
   onChange,
   disabled,
   className,
+  questionReason,
 }: QuestionRendererProps) {
   const type: SalesQuestionType = question.question_type;
 
   return (
     <div className={cn('space-y-3', className)}>
       <div>
-        <p className="text-sm font-medium leading-snug">{question.text}</p>
+        <div className="flex items-start gap-1.5">
+          <p className="text-sm font-medium leading-snug flex-1">{question.text}</p>
+          {questionReason && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="shrink-0 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded"
+                    aria-label="¿Por qué esta pregunta?"
+                  >
+                    <HelpCircle className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="font-normal">
+                  <WhyThisQuestionTooltip reason={questionReason} />
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         {question.help && (
           <p className="mt-1 text-xs text-muted-foreground">{question.help}</p>
         )}

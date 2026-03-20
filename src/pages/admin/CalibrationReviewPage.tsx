@@ -28,6 +28,14 @@ export default function CalibrationReviewPage() {
     queryFn: () => CalibrationService.getCalibrationSummary(),
   });
 
+  const ruleCandidates = useMemo(
+    () => {
+      if (!data) return [];
+      return computeRuleCandidates(data.score_bucket_analysis, data.objection_analysis, data.rows_for_rec);
+    },
+    [data]
+  );
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -41,17 +49,17 @@ export default function CalibrationReviewPage() {
   }
 
   if (error) {
+    const errMsg = error instanceof Error ? error.message : 'Backend no disponible';
     return (
       <div className="space-y-4">
         <AdminPageHeader title="Calibration Review" />
         <Alert variant="destructive" className="py-2">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error instanceof Error ? error.message : 'Backend no disponible'}
-          </AlertDescription>
+          <AlertDescription>{errMsg}</AlertDescription>
         </Alert>
         <p className="text-xs text-muted-foreground">
-          Verifica que las migraciones 20250323000001, 20250323000002, 20250324000001 y 20250324000002 estén aplicadas.
+          Dependencias: fn_cal_validation_summary, fn_cal_score_bucket_analysis, fn_cal_objection_analysis, v_sales_calibration_dataset.
+          Migraciones: 20250323000001, 20250323000002, 20250324000001, 20250324000002.
         </p>
         <Button asChild variant="outline" size="sm">
           <Link to="/admin/sales"><ArrowLeft className="h-3.5 w-3.5 mr-1.5" />Volver</Link>
@@ -73,11 +81,6 @@ export default function CalibrationReviewPage() {
   }
 
   const { validation, outcome_distribution, score_bucket_analysis, objection_analysis, sample, rows_for_rec } = data;
-
-  const ruleCandidates = useMemo(
-    () => computeRuleCandidates(score_bucket_analysis, objection_analysis, rows_for_rec),
-    [score_bucket_analysis, objection_analysis, rows_for_rec]
-  );
 
   const withOutcome = validation.with_outcome;
 

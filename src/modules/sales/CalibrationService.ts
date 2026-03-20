@@ -82,16 +82,24 @@ export class CalibrationService {
     ]);
 
     if (validationRes.error) {
-      throw new Error(`Calibration validation unavailable: ${validationRes.error.message}`);
+      throw new Error(
+        `fn_cal_validation_summary no disponible. Verifica migraciones 20250323*, 20250324*. ${validationRes.error.message}`
+      );
     }
     if (scoreRes.error) {
-      throw new Error(`Calibration score analysis unavailable: ${scoreRes.error.message}`);
+      throw new Error(
+        `fn_cal_score_bucket_analysis no disponible. Verifica migraciones 20250323*, 20250324*. ${scoreRes.error.message}`
+      );
     }
     if (objectionRes.error) {
-      throw new Error(`Calibration objection analysis unavailable: ${objectionRes.error.message}`);
+      throw new Error(
+        `fn_cal_objection_analysis no disponible. Verifica migraciones 20250323*, 20250324*. ${objectionRes.error.message}`
+      );
     }
     if (viewRes.error) {
-      throw new Error(`Calibration dataset unavailable: ${viewRes.error.message}`);
+      throw new Error(
+        `v_sales_calibration_dataset no disponible (depende de sales_sessions, sales_session_objections, sales_session_recommendations, sales_session_outcomes). ${viewRes.error.message}`
+      );
     }
 
     const v = (validationRes.data as Record<string, unknown>[])?.[0];

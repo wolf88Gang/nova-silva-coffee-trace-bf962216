@@ -15,7 +15,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { loadFlowState } from './FlowEngineLoader';
+import { loadFlowState, loadSalesDiagnosticBundle, type SalesDiagnosticBundle } from './FlowEngineLoader';
 import type { FlowState } from './FlowEngine.types';
 
 // ─── Request / Response contracts ────────────────────────────────────────────
@@ -119,10 +119,11 @@ export class SalesSessionService {
    * Latency: 1 RPC round trip.
    */
   static async createSession(req: CreateSessionRequest): Promise<CreateSessionResponse> {
-    // DEBUG: instrumentación temporal — eliminar cuando termine el debug
-    const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL ?? 'https://qbwmsarqewxjuwgkdfmg.supabase.co';
-    const { data: session } = await supabase.auth.getSession();
-    const { data: debugAuth, error: debugError } = await supabase.rpc('fn_debug_sales_auth');
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!req.organization_id || typeof req.organization_id !== 'string' || !UUID_REGEX.test(req.organization_id)) {
+      throw new Error('organization_id is required and must be a valid UUID from platform_organizations');
+    }
+
     const payload = {
       p_organization_id:       req.organization_id,
       p_questionnaire_code:    req.questionnaire_code,
@@ -134,22 +135,44 @@ export class SalesSessionService {
       p_owner_user_id:         req.owner_user_id         ?? null,
       p_metadata:              req.metadata              ?? null,
     };
-    console.log('[Sales DEBUG]', {
-      VITE_SUPABASE_URL: supabaseUrl,
-      session_user_id: session?.session?.user?.id ?? null,
-      fn_debug_sales_auth: { data: debugAuth, error: debugError },
-      fn_sales_create_session_payload: payload,
-    });
-
     const { data, error } = await supabase.rpc('fn_sales_create_session', payload);
-
-    if (error) {
-      console.error('[Sales DEBUG] fn_sales_create_session error:', { message: error.message, code: error.code, details: error.details });
-      throw new Error(`createSession failed: ${error.message}`);
-    }
-    if (!data)  throw new Error('createSession returned no session_id');
-
+    if (error) throw new Error(`createSession failed: ${error.message}`);
+    if (!data) throw new Error('createSession returned no session_id');
     return { session_id: data as string };
+  }
+
+  /**
+   * SKIP QUESTION
+   *
+   * Permanently skips a question for this session. Stored in session.metadata.skipped_question_ids.
+   * Used by the signal-driven priority engine to avoid irrelevant questions.
+   *
+   * Latency: 2 round trips (fetch metadata, then update).
+   */
+  static async skipQuestion(sessionId: string, questionId: string): Promise<void> {
+    const { data: session, error: fetchError } = await supabase
+      .from('sales_sessions')
+      .select('metadata')
+      .eq('id', sessionId)
+      .is('deleted_at', null)
+      .single();
+
+    if (fetchError || !session) {
+      throw new Error(`Session not found: ${sessionId}`);
+    }
+
+    const meta = (session.metadata as { skipped_question_ids?: string[] } | null) ?? {};
+    const skipped = new Set(meta.skipped_question_ids ?? []);
+    skipped.add(questionId);
+
+    const { error: updateError } = await supabase
+      .from('sales_sessions')
+      .update({
+        metadata: { ...meta, skipped_question_ids: [...skipped] },
+      })
+      .eq('id', sessionId);
+
+    if (updateError) throw new Error(`skipQuestion failed: ${updateError.message}`);
   }
 
   /**
@@ -198,6 +221,14 @@ export class SalesSessionService {
   }
 
   /**
+   * DIAGNOSTIC BUNDLE — flow + questions + answers for Commercial Copilot interpretation.
+   * Same engine as getNextStep; no duplicate question-selection logic.
+   */
+  static async getDiagnosticBundle(sessionId: string): Promise<SalesDiagnosticBundle> {
+    return loadSalesDiagnosticBundle(sessionId);
+  }
+
+  /**
    * RECALCULATE SCORES (mid-session)
    *
    * Optional: call after every N answers to get live score-driven deepening.
@@ -242,6 +273,10 @@ export class SalesSessionService {
    * Latency: 4 parallel Supabase queries.
    */
   static async getSessionSummary(sessionId: string): Promise<SessionSummaryResponse> {
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!sessionId || !UUID_REGEX.test(sessionId)) {
+      throw new Error(`Invalid session_id format: ${sessionId}`);
+    }
     const [sessionResult, objectionsResult, recommendationsResult, outcomeResult] = await Promise.all([
       supabase
         .from('sales_sessions')

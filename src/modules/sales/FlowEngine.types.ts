@@ -144,9 +144,25 @@ export interface FlowEngineInput {
   objections: LoadedObjection[]; // Currently detected objections
 }
 
+/** Reason for showing this question (signal-driven engine) */
+export interface NextQuestionReason {
+  gap_fills: string[];
+  signal_triggers: string[];
+  score_breakdown?: {
+    weight: number;
+    gap_relevance: number;
+    signal_relevance: number;
+    contradiction_priority: number;
+    redundancy_penalty: number;
+    total: number;
+  };
+}
+
 export interface FlowState {
   next_question_id: string | null;
   next_question: LoadedQuestion | null;
+  /** Why this question? (gap + signal) — for "Why this question?" tooltip */
+  next_question_reason: NextQuestionReason | null;
   is_complete: boolean;
   context: ScoreState;
   detected_objections: LoadedObjection[];
