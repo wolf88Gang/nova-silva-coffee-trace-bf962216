@@ -57,6 +57,7 @@ import {
   type FrictionCluster,
   type MeetingObjective,
 } from '@/lib/commercialBriefEngine';
+import ScoreRadarChart from '@/components/calibration/ScoreRadarChart';
 import { cn } from '@/lib/utils';
 
 /* ══════════════════════════════════════════════════
