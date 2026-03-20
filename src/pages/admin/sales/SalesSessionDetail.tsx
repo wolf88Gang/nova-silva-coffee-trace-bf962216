@@ -641,7 +641,7 @@ export default function SalesSessionDetail() {
         </div>
       )}
 
-      {/* ═══ SCORES — collapsible, low weight ═══ */}
+      {/* ═══ SCORES — collapsible with radar ═══ */}
       <div className="space-y-1">
         <button
           onClick={() => setShowScores(!showScores)}
@@ -653,16 +653,33 @@ export default function SalesSessionDetail() {
         {showScores && (
           <Card className="animate-in fade-in-50 slide-in-from-top-1">
             <CardContent className="py-3 px-5">
-              <div className="grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
-                {SCORE_KEYS.map(({ key, short }) => {
-                  const value = session[key as keyof typeof session] as number | null;
-                  return (
-                    <div key={key} className="rounded-md bg-muted/50 py-2">
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{SCORE_COMMERCIAL_LABELS[key] ?? short}</p>
-                      <p className={cn('text-lg font-bold font-mono', scoreColor(value))}>{value ?? '—'}</p>
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <ScoreRadarChart
+                  scores={{
+                    pain: session.score_pain as number | null,
+                    maturity: session.score_maturity as number | null,
+                    urgency: session.score_urgency as number | null,
+                    fit: session.score_fit as number | null,
+                    budget_readiness: session.score_budget_readiness as number | null,
+                    objection: session.score_objection as number | null,
+                  }}
+                  height={220}
+                />
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {SCORE_KEYS.map(({ key, short }) => {
+                    const value = session[key as keyof typeof session] as number | null;
+                    const isStrong = value != null && value >= 7;
+                    const isWeak = value != null && value < 4 && value > 0;
+                    return (
+                      <div key={key} className="rounded-md bg-muted/50 py-2">
+                        <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{SCORE_COMMERCIAL_LABELS[key] ?? short}</p>
+                        <p className={cn('text-lg font-bold font-mono', scoreColor(value))}>{value ?? '—'}</p>
+                        {isStrong && <p className="text-[9px] text-primary">Fuerte</p>}
+                        {isWeak && <p className="text-[9px] text-destructive">Débil</p>}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </CardContent>
           </Card>

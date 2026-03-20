@@ -45,6 +45,24 @@ export default function CalibrationOverview() {
   const topRecs = computeRecommendationAnalysis(recommendations.data, outcomesQ.data).slice(0, 5);
   const activeVersion = versions.data?.find(v => v.is_active) ?? null;
 
+  // Aggregate average scores across all sessions for radar
+  const avgScores = useMemo(() => {
+    const s = sessions.data;
+    if (!s || s.length === 0) return null;
+    const avg = (key: string) => {
+      const vals = s.map(r => (r as any)[key]).filter((v: any) => v != null && v > 0) as number[];
+      return vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+    };
+    return {
+      pain: avg('score_pain'),
+      maturity: avg('score_maturity'),
+      urgency: avg('score_urgency'),
+      fit: avg('score_fit'),
+      budget_readiness: avg('score_budget_readiness'),
+      objection: avg('score_objection'),
+    };
+  }, [sessions.data]);
+
   return (
     <CalibrationShell>
       {allUnavailable ? (
