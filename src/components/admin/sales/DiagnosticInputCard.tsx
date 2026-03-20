@@ -3,7 +3,7 @@
  * Shows context helpers: "Por qué preguntamos" + "Qué cambia con esta respuesta"
  */
 import { useState } from 'react';
-import { Check, ChevronDown, ChevronUp, MessageSquarePlus, SkipForward } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, MessageSquarePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
