@@ -9,8 +9,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, ArrowRight, AlertCircle, Inbox, Target, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Plus, ArrowRight, AlertCircle, Inbox, Target, TrendingUp, TrendingDown, Minus, FileText, Clock, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CLIENT_TYPE_LABELS } from '@/lib/commercialBriefEngine';
 
 interface SalesSession {
   id: string;
@@ -69,10 +70,16 @@ function useSalesSessions() {
   });
 }
 
+const STATUS_LABELS: Record<string, { label: string; className: string; icon: typeof Clock }> = {
+  draft: { label: 'Borrador', className: 'border-muted-foreground/30 text-muted-foreground', icon: FileText },
+  in_progress: { label: 'En progreso', className: 'border-amber-500/30 text-amber-600 dark:text-amber-400', icon: Clock },
+  completed: { label: 'Diagnóstico completado', className: 'border-primary/30 text-primary', icon: CheckCircle2 },
+};
+
 const outcomeBadge: Record<string, { label: string; className: string; icon: typeof TrendingUp }> = {
-  won: { label: 'Won', className: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400', icon: TrendingUp },
-  lost: { label: 'Lost', className: 'border-destructive/30 text-destructive', icon: TrendingDown },
-  no_decision: { label: 'No decision', className: 'border-muted-foreground/30 text-muted-foreground', icon: Minus },
+  won: { label: 'Ganado', className: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400', icon: TrendingUp },
+  lost: { label: 'Perdido', className: 'border-destructive/30 text-destructive', icon: TrendingDown },
+  no_decision: { label: 'Sin decisión', className: 'border-muted-foreground/30 text-muted-foreground', icon: Minus },
 };
 
 export default function SalesIntelligenceIndex() {
