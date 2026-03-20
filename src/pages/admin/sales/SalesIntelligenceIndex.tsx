@@ -86,9 +86,14 @@ export default function SalesIntelligenceIndex() {
           <h1 className="text-xl font-bold text-foreground">Sales Intelligence</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Sesiones de diagnóstico comercial</p>
         </div>
-        <Button size="sm" onClick={() => navigate('/admin/sales/new')} className="gap-1.5">
-          <Plus className="h-3.5 w-3.5" /> Nueva sesión
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => navigate('/admin/sales/new')} className="gap-1.5">
+            <Plus className="h-3.5 w-3.5" /> Sesión rápida
+          </Button>
+          <Button size="sm" onClick={() => navigate('/admin/sales/diagnostic')} className="gap-1.5">
+            <Plus className="h-3.5 w-3.5" /> Diagnóstico adaptativo
+          </Button>
+        </div>
       </div>
 
       {isLoading && (
