@@ -9,8 +9,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, ArrowRight, AlertCircle, Inbox, Target, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Plus, ArrowRight, AlertCircle, Inbox, Target, TrendingUp, TrendingDown, Minus, FileText, Clock, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CLIENT_TYPE_LABELS } from '@/lib/commercialBriefEngine';
 
 interface SalesSession {
   id: string;
@@ -69,10 +70,16 @@ function useSalesSessions() {
   });
 }
 
+const STATUS_LABELS: Record<string, { label: string; className: string; icon: typeof Clock }> = {
+  draft: { label: 'Borrador', className: 'border-muted-foreground/30 text-muted-foreground', icon: FileText },
+  in_progress: { label: 'En progreso', className: 'border-amber-500/30 text-amber-600 dark:text-amber-400', icon: Clock },
+  completed: { label: 'Diagnóstico completado', className: 'border-primary/30 text-primary', icon: CheckCircle2 },
+};
+
 const outcomeBadge: Record<string, { label: string; className: string; icon: typeof TrendingUp }> = {
-  won: { label: 'Won', className: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400', icon: TrendingUp },
-  lost: { label: 'Lost', className: 'border-destructive/30 text-destructive', icon: TrendingDown },
-  no_decision: { label: 'No decision', className: 'border-muted-foreground/30 text-muted-foreground', icon: Minus },
+  won: { label: 'Ganado', className: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400', icon: TrendingUp },
+  lost: { label: 'Perdido', className: 'border-destructive/30 text-destructive', icon: TrendingDown },
+  no_decision: { label: 'Sin decisión', className: 'border-muted-foreground/30 text-muted-foreground', icon: Minus },
 };
 
 export default function SalesIntelligenceIndex() {
@@ -138,6 +145,8 @@ export default function SalesIntelligenceIndex() {
           {result.sessions.map((s) => {
             const outcomeData = result.outcomes.get(s.id);
             const ob = outcomeData ? outcomeBadge[outcomeData.outcome] : null;
+            const statusInfo = s.status ? STATUS_LABELS[s.status] : null;
+            const typeLabel = s.lead_type ? (CLIENT_TYPE_LABELS[s.lead_type] ?? s.lead_type) : null;
             return (
               <Card
                 key={s.id}
@@ -151,22 +160,18 @@ export default function SalesIntelligenceIndex() {
                         <span className="text-sm font-semibold text-foreground truncate">
                           {s.lead_company || s.lead_name || 'Sin nombre'}
                         </span>
-                        {s.lead_type && (
+                        {typeLabel && (
                           <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                            {s.lead_type}
-                          </span>
-                        )}
-                        {s.commercial_stage && (
-                          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                            {s.commercial_stage}
+                            {typeLabel}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        {s.score_total != null && (
+                        {s.lead_name && s.lead_company && <span>{s.lead_name}</span>}
+                        <span>{new Date(s.created_at).toLocaleDateString('es')}</span>
+                        {s.score_total != null && s.score_total > 0 && (
                           <span className="font-mono">Score: {s.score_total}</span>
                         )}
-                        <span>{new Date(s.created_at).toLocaleDateString('es')}</span>
                         {outcomeData?.deal_value != null && outcomeData.deal_value > 0 && (
                           <span className="font-mono">${outcomeData.deal_value.toLocaleString()}</span>
                         )}
@@ -176,6 +181,10 @@ export default function SalesIntelligenceIndex() {
                       {ob ? (
                         <Badge variant="outline" className={cn('text-[10px] gap-1', ob.className)}>
                           <ob.icon className="h-2.5 w-2.5" /> {ob.label}
+                        </Badge>
+                      ) : statusInfo ? (
+                        <Badge variant="outline" className={cn('text-[10px] gap-1', statusInfo.className)}>
+                          <statusInfo.icon className="h-2.5 w-2.5" /> {statusInfo.label}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="text-[10px] text-muted-foreground">Pendiente</Badge>

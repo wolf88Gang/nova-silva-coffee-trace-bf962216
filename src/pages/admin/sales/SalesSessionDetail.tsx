@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -139,7 +140,7 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm overflow-y-auto">
       <div className="max-w-3xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -254,7 +255,7 @@ function MeetingMode({
   const fallback = topCards.length === 0 ? cards.slice(0, 2) : topCards;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+    <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
       <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -421,8 +422,8 @@ export default function SalesSessionDetail() {
   }
 
   /* ── Overlay modes ── */
-  if (battleCard) return <FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />;
-  if (meetingMode && hypothesis && playbook) return <MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />;
+  if (battleCard) return createPortal(<FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />, document.body);
+  if (meetingMode && hypothesis && playbook) return createPortal(<MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />, document.body);
 
   const hasOutcome = Boolean(existingOutcome);
   const clientType = session.lead_type ? (CLIENT_TYPE_LABELS[session.lead_type] ?? session.lead_type) : null;
