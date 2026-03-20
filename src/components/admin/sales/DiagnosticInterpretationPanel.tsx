@@ -23,7 +23,7 @@ function ConfidenceBadge({ value }: { value: number }) {
     <span className={cn(
       'text-[10px] font-mono px-1.5 py-0.5 rounded',
       pct >= 80 ? 'bg-destructive/10 text-destructive' :
-        pct >= 50 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+        pct >= 50 ? 'bg-accent text-accent-foreground' :
           'bg-muted text-muted-foreground',
     )}>
       {pct}%
