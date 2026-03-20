@@ -1,10 +1,9 @@
 /**
- * Adaptive input card for a single diagnostic question.
- * Supports structured answers + optional free text notes.
+ * Seller-facing adaptive input card for a single diagnostic question.
+ * Shows context helpers: "Por qué preguntamos" + "Qué cambia con esta respuesta"
  */
 import { useState } from 'react';
-import { Check, MessageSquarePlus } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Check, ChevronDown, ChevronUp, MessageSquarePlus, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -12,23 +11,30 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import type { DiagnosticQuestion } from '@/lib/diagnosticEngine';
+import { QUESTION_IMPACT, QUESTION_WHY } from '@/lib/diagnosticLabels';
+import { cn } from '@/lib/utils';
 
 interface DiagnosticInputCardProps {
   question: DiagnosticQuestion;
   onSubmit: (value: unknown, note?: string) => void;
   disabled?: boolean;
+  isFirst?: boolean;
 }
 
-export function DiagnosticInputCard({ question, onSubmit, disabled = false }: DiagnosticInputCardProps) {
+export function DiagnosticInputCard({ question, onSubmit, disabled = false, isFirst = false }: DiagnosticInputCardProps) {
   const [value, setValue] = useState<unknown>(question.inputType === 'multi_select' ? [] : null);
   const [freeText, setFreeText] = useState('');
   const [showNote, setShowNote] = useState(false);
   const [note, setNote] = useState('');
+  const [showHelpers, setShowHelpers] = useState(false);
+
+  const why = QUESTION_WHY[question.id];
+  const impact = QUESTION_IMPACT[question.id];
+  const hasHelpers = Boolean(why || impact);
 
   const handleSubmit = () => {
     let finalValue = value;
-    // Append free text as custom option for multi/single select
-    if (freeText.trim() && (question.inputType === 'multi_select')) {
+    if (freeText.trim() && question.inputType === 'multi_select') {
       finalValue = [...(Array.isArray(value) ? value : []), freeText.trim()];
     } else if (freeText.trim() && question.inputType === 'text') {
       finalValue = freeText.trim();
@@ -46,17 +52,49 @@ export function DiagnosticInputCard({ question, onSubmit, disabled = false }: Di
   };
 
   return (
-    <Card className="border-primary/20 bg-card animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+    <Card className={cn(
+      'border-primary/20 bg-card transition-all duration-300',
+      isFirst && 'ring-1 ring-primary/10 shadow-sm',
+    )}>
       <CardContent className="pt-5 pb-4 space-y-4">
+        {/* Question */}
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{question.title}</h3>
+          <h3 className="text-sm font-semibold text-foreground leading-snug">{question.title}</h3>
           {question.description && (
-            <p className="text-xs text-muted-foreground mt-1">{question.description}</p>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{question.description}</p>
           )}
-          <Badge variant="outline" className="mt-2 text-[10px] text-muted-foreground">
-            {question.category}
-          </Badge>
+          {question.inputType === 'multi_select' && (
+            <p className="text-[10px] text-muted-foreground mt-1.5 italic">Puedes seleccionar varias opciones</p>
+          )}
         </div>
+
+        {/* Helpers toggle */}
+        {hasHelpers && (
+          <button
+            type="button"
+            onClick={() => setShowHelpers(!showHelpers)}
+            className="flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary transition-colors"
+          >
+            {showHelpers ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            {showHelpers ? 'Ocultar contexto' : 'Ver contexto de esta pregunta'}
+          </button>
+        )}
+        {showHelpers && (
+          <div className="rounded-md bg-muted/50 px-3 py-2.5 space-y-2 text-[11px] leading-relaxed animate-in fade-in-50 duration-200">
+            {why && (
+              <div>
+                <span className="font-medium text-foreground">Por qué preguntamos esto:</span>
+                <p className="text-muted-foreground mt-0.5">{why}</p>
+              </div>
+            )}
+            {impact && (
+              <div>
+                <span className="font-medium text-foreground">Qué cambia con esta respuesta:</span>
+                <p className="text-muted-foreground mt-0.5">{impact}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* SINGLE SELECT */}
         {question.inputType === 'single_select' && (
@@ -69,7 +107,12 @@ export function DiagnosticInputCard({ question, onSubmit, disabled = false }: Di
             {question.options.map((opt) => (
               <label
                 key={opt.value}
-                className="flex items-start gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm transition-colors hover:bg-muted/40 cursor-pointer"
+                className={cn(
+                  'flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm transition-all cursor-pointer',
+                  value === opt.value
+                    ? 'border-primary/40 bg-primary/5'
+                    : 'border-border bg-background hover:bg-muted/40',
+                )}
               >
                 <RadioGroupItem value={opt.value} className="mt-0.5" />
                 <div>
@@ -89,7 +132,12 @@ export function DiagnosticInputCard({ question, onSubmit, disabled = false }: Di
               return (
                 <label
                   key={opt.value}
-                  className="flex items-start gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm transition-colors hover:bg-muted/40 cursor-pointer"
+                  className={cn(
+                    'flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm transition-all cursor-pointer',
+                    selected
+                      ? 'border-primary/40 bg-primary/5'
+                      : 'border-border bg-background hover:bg-muted/40',
+                  )}
                 >
                   <Checkbox
                     checked={selected}
@@ -114,11 +162,11 @@ export function DiagnosticInputCard({ question, onSubmit, disabled = false }: Di
             className="grid gap-2 sm:grid-cols-2"
             disabled={disabled}
           >
-            <label className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm hover:bg-muted/40 cursor-pointer">
+            <label className={cn('flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm cursor-pointer transition-all', value === true ? 'border-primary/40 bg-primary/5' : 'border-border bg-background hover:bg-muted/40')}>
               <RadioGroupItem value="true" />
               <span className="text-foreground">Sí</span>
             </label>
-            <label className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm hover:bg-muted/40 cursor-pointer">
+            <label className={cn('flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm cursor-pointer transition-all', value === false ? 'border-primary/40 bg-primary/5' : 'border-border bg-background hover:bg-muted/40')}>
               <RadioGroupItem value="false" />
               <span className="text-foreground">No</span>
             </label>
@@ -147,48 +195,49 @@ export function DiagnosticInputCard({ question, onSubmit, disabled = false }: Di
           />
         )}
 
-        {/* Free text option for structured inputs */}
+        {/* Free text for structured inputs */}
         {question.allowFreeText && question.inputType !== 'text' && (
           <Input
             disabled={disabled}
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
-            placeholder="O escribe tu propia respuesta…"
+            placeholder="O escribe algo adicional…"
             className="text-xs"
           />
         )}
 
-        {/* Optional note toggle */}
+        {/* Seller note */}
         <div className="flex items-center gap-2">
           {!showNote && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-[11px] text-muted-foreground gap-1"
+              className="h-7 text-[11px] text-muted-foreground gap-1 hover:text-foreground"
               onClick={() => setShowNote(true)}
             >
-              <MessageSquarePlus className="h-3 w-3" /> Agregar nota
+              <MessageSquarePlus className="h-3 w-3" /> Nota del vendedor
             </Button>
           )}
           {showNote && (
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Nota interna (no visible para el lead)"
+              placeholder="Observación interna (no visible para el lead)"
               className="text-xs"
               disabled={disabled}
             />
           )}
         </div>
 
-        <div className="flex justify-end pt-1">
+        {/* Actions */}
+        <div className="flex justify-end gap-2 pt-1">
           <Button
             size="sm"
             disabled={disabled || !isReady()}
             onClick={handleSubmit}
             className="gap-1.5"
           >
-            <Check className="h-3.5 w-3.5" /> Confirmar
+            <Check className="h-3.5 w-3.5" /> Continuar
           </Button>
         </div>
       </CardContent>
