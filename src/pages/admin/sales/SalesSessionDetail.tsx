@@ -255,7 +255,7 @@ function MeetingMode({
   const fallback = topCards.length === 0 ? cards.slice(0, 2) : topCards;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+    <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
       <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
