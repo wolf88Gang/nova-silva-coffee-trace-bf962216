@@ -197,7 +197,7 @@ function NavGroup({ group, onClick, isOpen, onToggle }: { group: NavGroupDef; on
 
   return (
     <div className="space-y-0.5">
-      <button onClick={onToggle}
+      <button onClick={(e) => { e.stopPropagation(); onToggle(); }}
         className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/70 transition-colors">
         <div className="flex items-center gap-2"><group.icon className="h-3.5 w-3.5" /><span>{group.label}</span></div>
         <ChevronDown className={cn('h-3 w-3 transition-transform', isOpen ? '' : '-rotate-90')} />
