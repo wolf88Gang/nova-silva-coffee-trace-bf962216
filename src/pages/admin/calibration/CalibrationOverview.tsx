@@ -1,7 +1,8 @@
 /**
  * Calibration Review — Overview
- * Executive summary: outcomes, active version, top signals.
+ * Executive summary: outcomes, active version, top signals, aggregate score radar.
  */
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalibrationShell } from '@/components/calibration/CalibrationShell';
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BackendStatus } from '@/types/calibration';
+import ScoreRadarChart from '@/components/calibration/ScoreRadarChart';
 
 export default function CalibrationOverview() {
   const sessions = useCalibrationSessions();
