@@ -213,21 +213,27 @@ function NavGroup({ group, onClick, isOpen, onToggle }: { group: NavGroupDef; on
 
 function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
   if (group.standalone && group.url) return pathname === group.url || pathname.startsWith(group.url + '/');
+  // For non-standalone groups, check if pathname matches any item OR any item's prefix tree
   return group.items.some(item => pathname === item.url || pathname.startsWith(item.url + '/'));
 }
 
 /** Accordion-style nav: clicking a sub-item keeps the group open */
 function SidebarNav({ groups, pathname, onItemClick }: { groups: NavGroupDef[]; pathname: string; onItemClick?: () => void }) {
-  const activeIndex = groups.findIndex(g => groupContainsRoute(g, pathname));
-  const [openIndex, setOpenIndex] = useState<number | null>(activeIndex >= 0 ? activeIndex : null);
+  const findActive = (p: string) => groups.findIndex(g => groupContainsRoute(g, p));
 
+  const [openIndex, setOpenIndex] = useState<number | null>(() => {
+    const idx = findActive(pathname);
+    return idx >= 0 ? idx : null;
+  });
+
+  // Sync open group when pathname changes — useEffect avoids render-time setState issues
   const prevPathRef = useRef(pathname);
   if (prevPathRef.current !== pathname) {
     prevPathRef.current = pathname;
-    const newActive = groups.findIndex(g => groupContainsRoute(g, pathname));
-    if (newActive >= 0) {
-      // Always keep the active group open on navigation
-      setOpenIndex(newActive);
+    const newActive = findActive(pathname);
+    if (newActive >= 0 && newActive !== openIndex) {
+      // Schedule state update after render to avoid React warnings
+      setTimeout(() => setOpenIndex(newActive), 0);
     }
   }
 

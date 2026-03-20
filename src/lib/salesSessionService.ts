@@ -4,7 +4,7 @@ export type SalesQuestionType = 'single_select' | 'multi_select' | 'boolean' | '
 export type SalesQuestionAnswer = string | number | boolean | string[] | null;
 
 export interface SalesCreateSessionInput {
-  organization_id: string;
+  organization_id: string | null;
   lead_name?: string | null;
   lead_company?: string | null;
   lead_type?: string | null;
