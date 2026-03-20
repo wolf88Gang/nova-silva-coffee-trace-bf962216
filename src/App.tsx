@@ -88,6 +88,7 @@ import AdminModuleExplorer from "./pages/admin/AdminModuleExplorer";
 import SalesIntelligenceIndex from "./pages/admin/sales/SalesIntelligenceIndex";
 import SalesNewSession from "./pages/admin/sales/SalesNewSession";
 import SalesSessionDetail from "./pages/admin/sales/SalesSessionDetail";
+import SalesDiagnostic from "./pages/admin/sales/SalesDiagnostic";
 import CalibrationOverview from "./pages/admin/calibration/CalibrationOverview";
 import CalibrationScores from "./pages/admin/calibration/CalibrationScores";
 import CalibrationObjections from "./pages/admin/calibration/CalibrationObjections";
