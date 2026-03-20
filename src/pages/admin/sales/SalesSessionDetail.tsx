@@ -422,8 +422,8 @@ export default function SalesSessionDetail() {
   }
 
   /* ── Overlay modes ── */
-  if (battleCard) return <FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />;
-  if (meetingMode && hypothesis && playbook) return <MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />;
+  if (battleCard) return createPortal(<FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />, document.body);
+  if (meetingMode && hypothesis && playbook) return createPortal(<MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />, document.body);
 
   const hasOutcome = Boolean(existingOutcome);
   const clientType = session.lead_type ? (CLIENT_TYPE_LABELS[session.lead_type] ?? session.lead_type) : null;
