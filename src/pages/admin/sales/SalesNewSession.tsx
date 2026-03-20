@@ -19,7 +19,14 @@ import {
   type SalesQuestionAnswer,
 } from '@/lib/salesSessionService';
 
-const LEAD_TYPES = ['cooperativa', 'exportador', 'beneficio_privado', 'productor_empresarial', 'aggregator'];
+const LEAD_TYPES: { value: string; label: string }[] = [
+  { value: 'cooperativa', label: 'Cooperativa / Asociación' },
+  { value: 'exportador', label: 'Exportador' },
+  { value: 'exportador_red', label: 'Exportador con red de productores' },
+  { value: 'beneficio_privado', label: 'Beneficio (compra + procesa)' },
+  { value: 'finca_privada', label: 'Finca privada' },
+  { value: 'trader', label: 'Comercializador / Trader' },
+];
 
 type Step = 'org' | 'question' | 'ready';
 
