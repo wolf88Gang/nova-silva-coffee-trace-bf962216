@@ -34,6 +34,7 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
       { label: 'Usuarios', icon: Users, standalone: true, url: '/admin/usuarios', items: [] },
       { label: 'Sales Intelligence', icon: TrendingUp, items: [
         { title: 'Sesiones', url: '/admin/sales', icon: TrendingUp },
+        { title: 'Diagnóstico', url: '/admin/sales/diagnostic', icon: TrendingUp },
         { title: 'Calibration Review', url: '/admin/sales/calibration', icon: Database },
       ]},
       { label: 'Billing', icon: CreditCard, standalone: true, url: '/admin/billing', items: [] },
