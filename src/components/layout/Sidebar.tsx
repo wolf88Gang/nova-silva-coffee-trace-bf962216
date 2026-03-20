@@ -197,7 +197,7 @@ function NavGroup({ group, onClick, isOpen, onToggle }: { group: NavGroupDef; on
 
   return (
     <div className="space-y-0.5">
-      <button onClick={onToggle}
+      <button onClick={(e) => { e.stopPropagation(); onToggle(); }}
         className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/70 transition-colors">
         <div className="flex items-center gap-2"><group.icon className="h-3.5 w-3.5" /><span>{group.label}</span></div>
         <ChevronDown className={cn('h-3 w-3 transition-transform', isOpen ? '' : '-rotate-90')} />
@@ -216,18 +216,17 @@ function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
   return group.items.some(item => pathname === item.url || pathname.startsWith(item.url + '/'));
 }
 
-/** Accordion-style nav: only one group open at a time */
+/** Accordion-style nav: clicking a sub-item keeps the group open */
 function SidebarNav({ groups, pathname, onItemClick }: { groups: NavGroupDef[]; pathname: string; onItemClick?: () => void }) {
-  // Find which group contains the active route
   const activeIndex = groups.findIndex(g => groupContainsRoute(g, pathname));
   const [openIndex, setOpenIndex] = useState<number | null>(activeIndex >= 0 ? activeIndex : null);
 
-  // Update open group when route changes
   const prevPathRef = useRef(pathname);
   if (prevPathRef.current !== pathname) {
     prevPathRef.current = pathname;
     const newActive = groups.findIndex(g => groupContainsRoute(g, pathname));
-    if (newActive >= 0 && newActive !== openIndex) {
+    if (newActive >= 0) {
+      // Always keep the active group open on navigation
       setOpenIndex(newActive);
     }
   }
