@@ -1,14 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
   ArrowRight as ArrowRightIcon,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Compass,
   Edit2,
+  Eye,
+  Loader2,
+  MessageSquare,
   Minus,
   Save,
   ShieldAlert,
+  Sparkles,
   Target,
   TrendingDown,
   TrendingUp,
@@ -21,8 +29,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SalesSessionService, type SalesSessionSummary } from '@/lib/salesSessionService';
+import {
+  classifyObjections,
+  classifyRecommendations,
+  COMMERCIAL_PHASES,
+  generateCommercialReading,
+  generateNextAction,
+  generateSuggestedPitch,
+  READINESS_LABELS,
+  SCORE_COMMERCIAL_LABELS,
+  type ClassifiedObjection,
+} from '@/lib/commercialBriefEngine';
 import { cn } from '@/lib/utils';
 
 function useSessionSummary(sessionId: string) {
@@ -34,12 +54,12 @@ function useSessionSummary(sessionId: string) {
 }
 
 const SCORE_KEYS = [
-  { key: 'score_pain', label: 'Pain' },
-  { key: 'score_maturity', label: 'Maturity' },
-  { key: 'score_urgency', label: 'Urgency' },
-  { key: 'score_fit', label: 'Fit' },
-  { key: 'score_budget_readiness', label: 'Budget' },
-  { key: 'score_objection', label: 'Objection' },
+  { key: 'score_pain', short: 'Pain' },
+  { key: 'score_maturity', short: 'Madurez' },
+  { key: 'score_urgency', short: 'Urgencia' },
+  { key: 'score_fit', short: 'Fit' },
+  { key: 'score_budget_readiness', short: 'Budget' },
+  { key: 'score_objection', short: 'Objeción' },
 ] as const;
 
 function scoreColor(value: number | null): string {
@@ -47,6 +67,49 @@ function scoreColor(value: number | null): string {
   if (value >= 7) return 'text-primary';
   if (value >= 4) return 'text-foreground';
   return 'text-destructive';
+}
+
+function ObjectionCard({ obj }: { obj: ClassifiedObjection }) {
+  const [expanded, setExpanded] = useState(false);
+  const badgeClass =
+    obj.classification === 'confirmed' ? 'border-destructive/30 text-destructive' :
+    obj.classification === 'declared' ? 'border-amber-500/30 text-amber-600 dark:text-amber-400' :
+    'border-border text-muted-foreground';
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground">{obj.label}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{obj.why}</p>
+        </div>
+        <Badge variant="outline" className={cn('text-[10px] shrink-0', badgeClass)}>
+          {obj.classificationLabel}
+        </Badge>
+      </div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="text-[11px] text-primary flex items-center gap-1 hover:underline"
+      >
+        {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        {expanded ? 'Ocultar guía' : 'Ver guía para el vendedor'}
+      </button>
+      {expanded && (
+        <div className="space-y-2 pt-1 animate-in fade-in-50 slide-in-from-top-1">
+          <div className="rounded bg-primary/5 px-3 py-2">
+            <p className="text-[10px] font-medium text-primary mb-0.5 flex items-center gap-1">
+              <Compass className="h-3 w-3" /> Cómo manejarla
+            </p>
+            <p className="text-[11px] text-foreground leading-relaxed">{obj.handling}</p>
+          </div>
+          <div className="rounded bg-destructive/5 px-3 py-2">
+            <p className="text-[10px] font-medium text-destructive mb-0.5">No hacer</p>
+            <p className="text-[11px] text-foreground leading-relaxed">{obj.doNot}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function SalesSessionDetail() {
@@ -58,9 +121,18 @@ export default function SalesSessionDetail() {
   const [editing, setEditing] = useState(false);
   const [outcome, setOutcome] = useState('');
   const [dealValue, setDealValue] = useState('');
+  const [showScores, setShowScores] = useState(false);
 
   const session = data?.session ?? null;
   const existingOutcome = data?.outcome ?? null;
+
+  // Commercial brief computations
+  const reading = useMemo(() => data ? generateCommercialReading(data) : null, [data]);
+  const nextAction = useMemo(() => (data && reading) ? generateNextAction(data, reading) : null, [data, reading]);
+  const pitch = useMemo(() => data ? generateSuggestedPitch(data) : null, [data]);
+  const classifiedObjections = useMemo(() => data ? classifyObjections(data) : [], [data]);
+  const classifiedRecs = useMemo(() => data ? classifyRecommendations(data) : [], [data]);
+  const readinessInfo = reading ? READINESS_LABELS[reading.readinessLevel] : null;
 
   useEffect(() => {
     setOutcome(existingOutcome?.outcome ?? '');
@@ -88,9 +160,10 @@ export default function SalesSessionDetail() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto space-y-4">
+      <div className="max-w-4xl mx-auto space-y-4 p-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-40 w-full rounded-lg" />
+        <Skeleton className="h-32 w-full rounded-lg" />
         <Skeleton className="h-32 w-full rounded-lg" />
       </div>
     );
@@ -98,7 +171,7 @@ export default function SalesSessionDetail() {
 
   if (isError) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto p-4">
         <Card className="border-dashed">
           <CardContent className="py-10 text-center">
             <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
@@ -112,7 +185,7 @@ export default function SalesSessionDetail() {
 
   if (!session) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto p-4">
         <Card className="border-dashed">
           <CardContent className="py-10 text-center">
             <Target className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
@@ -129,146 +202,272 @@ export default function SalesSessionDetail() {
   const hasOutcome = Boolean(existingOutcome);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-4 p-4">
+      {/* HEADER */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/admin/sales')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold text-foreground">{session.lead_company || session.lead_name || 'Sesión comercial'}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-bold text-foreground truncate">
+            {session.lead_company || session.lead_name || 'Sesión comercial'}
+          </h1>
           <p className="text-xs text-muted-foreground">
-            {session.lead_type || 'Sin tipo'} · {new Date(session.created_at).toLocaleDateString('es')}
+            {session.lead_type ? `${session.lead_type} · ` : ''}
+            {new Date(session.created_at).toLocaleDateString('es')}
             {session.lead_name ? ` · ${session.lead_name}` : ''}
-            {session.commercial_stage ? ` · ${session.commercial_stage}` : ''}
           </p>
         </div>
+        {readinessInfo && (
+          <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>
+            {readinessInfo.label}
+          </Badge>
+        )}
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Score total</CardTitle>
-            <span className={cn('text-2xl font-bold font-mono', scoreColor(session.score_total))}>{session.score_total ?? '—'}</span>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
-            {SCORE_KEYS.map(({ key, label }) => {
-              const value = session[key as keyof typeof session] as number | null;
-              return (
-                <div key={key} className="rounded-md bg-muted/50 py-2.5">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-                  <p className={cn('text-lg font-bold font-mono', scoreColor(value))}>{value ?? '—'}</p>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* A. LECTURA NOVA SILVA */}
+      {reading && (
+        <Card className="bg-primary/5 border-primary/15">
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-sm flex items-center gap-1.5 text-primary">
+              <Sparkles className="h-4 w-4" /> Lectura Nova Silva
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4 space-y-2">
+            {reading.bullets.map((b, i) => (
+              <p key={i} className="text-[13px] text-foreground leading-relaxed flex items-start gap-2">
+                <span className="text-primary mt-0.5 shrink-0">→</span>
+                <span>{b}</span>
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-1.5">
-            <ShieldAlert className="h-3.5 w-3.5 text-primary" /> Bloqueadores
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {data?.objections.length ? (
+      {/* TWO COLUMN LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        {/* B. QUÉ HACER AHORA */}
+        {nextAction && (
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <ArrowRightIcon className="h-4 w-4 text-primary" /> Qué hacer ahora
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4 space-y-3">
+              <p className="text-sm font-semibold text-foreground">{nextAction.action}</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{nextAction.why}</p>
+              {nextAction.validate.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Validar en próxima reunión</p>
+                  {nextAction.validate.map((v, i) => (
+                    <p key={i} className="text-[11px] text-foreground flex items-start gap-1.5">
+                      <Eye className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" /> {v}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {nextAction.materials.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Material recomendado</p>
+                  {nextAction.materials.map((m, i) => (
+                    <p key={i} className="text-[11px] text-foreground">• {m}</p>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* C. PITCH SUGERIDO */}
+        {pitch && (
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <MessageSquare className="h-4 w-4 text-primary" /> Enfoque de conversación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4 space-y-2">
+              <p className="text-sm font-semibold text-foreground">{pitch.angle}</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{pitch.reasoning}</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* D. OBJECIONES / RIESGOS */}
+      {classifiedObjections.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5 px-1">
+            <ShieldAlert className="h-4 w-4 text-destructive" /> Riesgos y bloqueadores
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {classifiedObjections.map((obj, i) => (
+              <ObjectionCard key={i} obj={obj} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {classifiedObjections.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="py-4 text-center">
+            <p className="text-xs text-muted-foreground">Sin objeciones detectadas en esta sesión.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* E. RECOMENDACIONES */}
+      {classifiedRecs.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-sm flex items-center gap-1.5">
+              <Check className="h-4 w-4 text-primary" /> Próximos pasos sugeridos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4">
             <div className="space-y-2">
-              {data.objections.map((item) => (
-                <div key={item.id} className="flex items-start gap-2 text-sm">
-                  <Badge variant="outline" className="mt-0.5 shrink-0 text-[10px]">{item.objection_type}</Badge>
-                  {item.confidence != null && <span className="shrink-0 text-[10px] font-mono text-muted-foreground">{Math.round(item.confidence * 100)}%</span>}
+              {classifiedRecs.map((rec, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className="text-primary font-bold text-xs">
+                    {rec.priority != null ? `${i + 1}.` : '•'}
+                  </span>
+                  <span className="font-medium text-foreground">{rec.label}</span>
                 </div>
               ))}
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Sin bloqueadores registrados.</p>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-1.5">
-            <ArrowRightIcon className="h-3.5 w-3.5 text-primary" /> Próximos pasos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {data?.recommendations.length ? (
-            <div className="space-y-2">
-              {data.recommendations.map((item) => (
-                <div key={item.id} className="flex items-start gap-2 text-sm">
-                  <Badge variant="outline" className="mt-0.5 shrink-0 text-[10px]">{item.recommendation_type}</Badge>
-                  {item.priority != null && <span className="shrink-0 text-[10px] font-mono text-muted-foreground">P{item.priority}</span>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Sin recomendaciones registradas.</p>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className={cn(hasOutcome && !editing ? 'border-primary/20' : '')}>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Resultado comercial</CardTitle>
-            {hasOutcome && !editing && (
-              <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setEditing(true)}>
-                <Edit2 className="h-3 w-3" /> Editar
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {hasOutcome && !editing ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {existingOutcome?.outcome === 'won' && <Badge className="border-primary/30 bg-primary/10 text-primary"><TrendingUp className="mr-1 h-3 w-3" /> Won</Badge>}
-                {existingOutcome?.outcome === 'lost' && <Badge variant="destructive" className="gap-1"><TrendingDown className="h-3 w-3" /> Lost</Badge>}
-                {existingOutcome?.outcome === 'no_decision' && <Badge variant="secondary" className="gap-1"><Minus className="h-3 w-3" /> No decision</Badge>}
+      {/* SCORES — collapsible, de-emphasized */}
+      <div className="space-y-1">
+        <button
+          onClick={() => setShowScores(!showScores)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
+        >
+          {showScores ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          Scores de diagnóstico ({session.score_total ?? '—'} total)
+        </button>
+        {showScores && (
+          <Card className="animate-in fade-in-50 slide-in-from-top-1">
+            <CardContent className="py-3 px-5">
+              <div className="grid grid-cols-3 gap-2 text-center sm:grid-cols-6">
+                {SCORE_KEYS.map(({ key, short }) => {
+                  const value = session[key as keyof typeof session] as number | null;
+                  return (
+                    <div key={key} className="rounded-md bg-muted/50 py-2">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{SCORE_COMMERCIAL_LABELS[key] ?? short}</p>
+                      <p className={cn('text-lg font-bold font-mono', scoreColor(value))}>{value ?? '—'}</p>
+                    </div>
+                  );
+                })}
               </div>
-              {existingOutcome?.deal_value != null && existingOutcome.deal_value > 0 && (
-                <p className="text-sm text-muted-foreground">Deal value: <span className="font-medium font-mono text-foreground">${existingOutcome.deal_value.toLocaleString()}</span></p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Outcome *</Label>
-                <Select value={outcome} onValueChange={setOutcome}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar resultado" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="won">Won</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
-                    <SelectItem value="no_decision">No decision</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-              {outcome === 'won' && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Deal value ($)</Label>
-                  <Input type="number" value={dealValue} onChange={(event) => setDealValue(event.target.value)} placeholder="0" />
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-1">
-                {editing && <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>}
-                <Button
-                  size="sm"
-                  disabled={!outcome || saveOutcomeMutation.isPending}
-                  onClick={() => saveOutcomeMutation.mutate()}
-                  className="gap-1.5"
-                >
-                  <Save className="h-3.5 w-3.5" /> {saveOutcomeMutation.isPending ? 'Guardando…' : 'Guardar'}
+      {/* SIGUIENTE FASE + OUTCOME */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Outcome */}
+        <Card className={cn(hasOutcome && !editing ? 'border-primary/20' : '')}>
+          <CardHeader className="pb-2 pt-4 px-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">Resultado comercial</CardTitle>
+              {hasOutcome && !editing && (
+                <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setEditing(true)}>
+                  <Edit2 className="h-3 w-3" /> Editar
                 </Button>
-              </div>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="px-5 pb-4">
+            {hasOutcome && !editing ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {existingOutcome?.outcome === 'won' && <Badge className="border-primary/30 bg-primary/10 text-primary"><TrendingUp className="mr-1 h-3 w-3" /> Ganado</Badge>}
+                  {existingOutcome?.outcome === 'lost' && <Badge variant="destructive" className="gap-1"><TrendingDown className="h-3 w-3" /> Perdido</Badge>}
+                  {existingOutcome?.outcome === 'no_decision' && <Badge variant="secondary" className="gap-1"><Minus className="h-3 w-3" /> Sin decisión</Badge>}
+                </div>
+                {existingOutcome?.deal_value != null && existingOutcome.deal_value > 0 && (
+                  <p className="text-sm text-muted-foreground">Valor: <span className="font-medium font-mono text-foreground">${existingOutcome.deal_value.toLocaleString()}</span></p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Resultado *</Label>
+                  <Select value={outcome} onValueChange={setOutcome}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar resultado" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="won">Ganado</SelectItem>
+                      <SelectItem value="lost">Perdido</SelectItem>
+                      <SelectItem value="no_decision">Sin decisión</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {outcome === 'won' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Valor del deal ($)</Label>
+                    <Input type="number" value={dealValue} onChange={(e) => setDealValue(e.target.value)} placeholder="0" />
+                  </div>
+                )}
+                <div className="flex justify-end gap-2 pt-1">
+                  {editing && <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>}
+                  <Button
+                    size="sm"
+                    disabled={!outcome || saveOutcomeMutation.isPending}
+                    onClick={() => saveOutcomeMutation.mutate()}
+                    className="gap-1.5"
+                  >
+                    <Save className="h-3.5 w-3.5" /> {saveOutcomeMutation.isPending ? 'Guardando…' : 'Guardar'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Siguiente fase */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-sm">Siguiente fase comercial</CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4">
+            <p className="text-[11px] text-muted-foreground mb-3">
+              {readinessInfo
+                ? `Basado en el diagnóstico, este lead está: ${readinessInfo.label}.`
+                : 'Completa el diagnóstico para obtener una recomendación.'}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+              {COMMERCIAL_PHASES.map(phase => {
+                const isRecommended =
+                  (reading?.readinessLevel === 'ready_proposal' && phase.value === 'proposal') ||
+                  (reading?.readinessLevel === 'ready_demo' && phase.value === 'demo') ||
+                  (reading?.readinessLevel === 'ready_pilot' && phase.value === 'pilot') ||
+                  (reading?.readinessLevel === 'nurture' && phase.value === 'follow_up') ||
+                  (reading?.readinessLevel === 'immature' && phase.value === 'hold');
+                return (
+                  <div
+                    key={phase.value}
+                    className={cn(
+                      'rounded-md border px-3 py-2 text-xs text-center transition-colors',
+                      isRecommended
+                        ? 'border-primary bg-primary/10 text-primary font-semibold'
+                        : 'border-border text-muted-foreground',
+                    )}
+                  >
+                    {phase.label}
+                    {isRecommended && <Check className="h-3 w-3 mx-auto mt-0.5" />}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
