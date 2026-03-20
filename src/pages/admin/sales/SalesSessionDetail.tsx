@@ -432,30 +432,48 @@ export default function SalesSessionDetail() {
   return (
     <div className="max-w-5xl mx-auto space-y-5 p-4">
 
-      {/* ═══ HEADER ═══ */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/admin/sales')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-bold text-foreground truncate">
-            {session.lead_company || session.lead_name || 'Sesión comercial'}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {clientType ? `${clientType} · ` : ''}
-            {new Date(session.created_at).toLocaleDateString('es')}
-            {session.lead_name && session.lead_company ? ` · ${session.lead_name}` : ''}
-          </p>
+      {/* ═══ HEADER — work unit strip ═══ */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/admin/sales')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold text-foreground truncate">
+              {session.lead_company || session.lead_name || 'Sesión comercial'}
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              {clientType ? `${clientType} · ` : ''}
+              {new Date(session.created_at).toLocaleDateString('es')}
+              {session.lead_name && session.lead_company ? ` · ${session.lead_name}` : ''}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {battleCards.length > 0 && (
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
+                <Phone className="h-3.5 w-3.5" /> Modo reunión
+              </Button>
+            )}
+            {readinessInfo && (
+              <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>{readinessInfo.label}</Badge>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {battleCards.length > 0 && (
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
-              <Phone className="h-3.5 w-3.5" /> Modo reunión
-            </Button>
+        {/* Work unit metadata strip */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground px-1 flex-wrap">
+          <span className="flex items-center gap-1">
+            <Eye className="h-3 w-3" /> Estado: <span className="font-medium text-foreground">{session.status === 'completed' ? 'Diagnóstico completado' : session.status === 'in_progress' ? 'En progreso' : session.status === 'draft' ? 'Borrador' : session.status ?? 'Pendiente'}</span>
+          </span>
+          {session.commercial_stage && (
+            <span>Fase: <span className="font-medium text-foreground capitalize">{session.commercial_stage}</span></span>
           )}
-          {readinessInfo && (
-            <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>{readinessInfo.label}</Badge>
+          {session.updated_at && (
+            <span>Última actividad: <span className="font-medium text-foreground">{new Date(session.updated_at).toLocaleDateString('es')}</span></span>
           )}
+          {/* Persistence-ready: owner would come from sales_sessions.owner_user_id */}
+          <span className="text-[10px] text-muted-foreground/60">
+            ID: {session.id.slice(0, 8)}
+          </span>
         </div>
       </div>
 
