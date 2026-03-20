@@ -6,6 +6,10 @@
 
 import type { SalesSessionSummary } from '@/lib/salesSessionService';
 
+/* ══════════════════════════════════════════════════
+   TYPES
+   ══════════════════════════════════════════════════ */
+
 export interface CommercialReading {
   bullets: string[];
   readiness: string;
@@ -33,24 +37,20 @@ export interface BattleCard {
   classification: ObjectionClassification;
   classificationLabel: string;
   confidence: number;
-  // What it really means
   realMeaning: string;
-  // Evidence
   evidence: string;
-  // Commercial impact
   impact: ObjectionImpact;
   impactLabel: string;
-  // Attack plan
   responseScript: string;
   strongArgument: string;
   proofToUse: string;
   validateNext: string;
   doNot: string;
-  // Priority
   priority: ObjectionPriority;
   priorityLabel: string;
-  // State
   status: 'pending' | 'in_progress' | 'resolved';
+  /** Which friction cluster this belongs to */
+  cluster: FrictionClusterKey;
 }
 
 export interface ClassifiedRecommendation {
@@ -63,6 +63,49 @@ export interface CommercialPhase {
   label: string;
   value: string;
 }
+
+/* ── Friction Clusters ── */
+export type FrictionClusterKey =
+  | 'budget_value'
+  | 'trust_credibility'
+  | 'complexity_adoption'
+  | 'timing_approval'
+  | 'competition'
+  | 'compliance_risk';
+
+export interface FrictionCluster {
+  key: FrictionClusterKey;
+  label: string;
+  active: boolean;
+  severity: 'alto' | 'medio' | 'bajo';
+  meaning: string;
+  sellerStance: string;
+  cards: BattleCard[];
+}
+
+/* ── Account Playbook ── */
+export interface AccountPlaybook {
+  openingRecommendation: string;
+  centralThesis: string;
+  sequence: string[];
+  biggestRisk: string;
+  riskMitigation: string[];
+  bestNextQuestion: string;
+}
+
+/* ── Commercial Hypothesis ── */
+export interface CommercialHypothesis {
+  paragraph: string;
+}
+
+/* ── Meeting Objective ── */
+export interface MeetingObjective {
+  objective: string;
+}
+
+/* ══════════════════════════════════════════════════
+   CONSTANTS
+   ══════════════════════════════════════════════════ */
 
 export const COMMERCIAL_PHASES: CommercialPhase[] = [
   { label: 'Discovery adicional', value: 'discovery' },
@@ -79,7 +122,6 @@ export const CLIENT_TYPE_LABELS: Record<string, string> = {
   exportador_red: 'Exportador con red de productores',
   cooperativa: 'Cooperativa / Asociación',
   trader: 'Comercializador / Trader',
-  // legacy fallbacks
   productor_empresarial: 'Finca privada',
   aggregator: 'Comercializador / Trader',
   beneficio_privado: 'Beneficio (compra + procesa)',
@@ -98,6 +140,57 @@ const PRIORITY_LABELS: Record<ObjectionPriority, string> = {
   low: 'Baja',
 };
 
+/* ── Cluster mapping: which objection types belong to which cluster ── */
+const OBJECTION_TO_CLUSTER: Record<string, FrictionClusterKey> = {
+  budget: 'budget_value',
+  price: 'budget_value',
+  price_sensitivity: 'budget_value',
+  trust: 'trust_credibility',
+  complexity: 'complexity_adoption',
+  adoption_risk: 'complexity_adoption',
+  implementation: 'complexity_adoption',
+  timing: 'timing_approval',
+  authority: 'timing_approval',
+  internal_approval: 'timing_approval',
+  no_urgency: 'timing_approval',
+  competition: 'competition',
+  compliance_fear: 'compliance_risk',
+};
+
+const CLUSTER_META: Record<FrictionClusterKey, { label: string; meaning: string; stance: string }> = {
+  budget_value: {
+    label: 'Presupuesto / valor',
+    meaning: 'El cliente no percibe suficiente valor para justificar la inversión, o no tiene presupuesto confirmado.',
+    stance: 'No vender precio. Vender costo de no actuar y ROI medible. Proponer alcance mínimo viable.',
+  },
+  trust_credibility: {
+    label: 'Confianza / credibilidad',
+    meaning: 'El lead no confía en la empresa, el producto o en agtech en general. Posiblemente tuvo malas experiencias.',
+    stance: 'No presionar. Construir credibilidad con hechos, referencias verificables y transparencia total.',
+  },
+  complexity_adoption: {
+    label: 'Complejidad / adopción',
+    meaning: 'El cliente teme esfuerzo, cambio interno y dificultad de implementación.',
+    stance: 'No vender amplitud. Vender acompañamiento, arranque acotado y control operativo.',
+  },
+  timing_approval: {
+    label: 'Timing / aprobación interna',
+    meaning: 'No hay evento gatillo, o la decisión depende de terceros internos. La venta se alarga.',
+    stance: 'No forzar cierre. Identificar sponsor, preparar material para decisores y nutrir la relación.',
+  },
+  competition: {
+    label: 'Competencia / alternativa',
+    meaning: 'El lead tiene alternativa activa o el status quo es "suficiente". Riesgo real de perder.',
+    stance: 'No competir en features. Competir en visión, acompañamiento y diseño para café.',
+  },
+  compliance_risk: {
+    label: 'Cumplimiento / riesgo regulatorio',
+    meaning: 'El lead está asustado por regulación pero paralizado. No sabe qué hacer primero.',
+    stance: 'Posicionar como solución, no como alarma. Mostrar flujo EUDR paso a paso y cuantificar riesgo.',
+  },
+};
+
+/* ── Playbooks ── */
 interface ObjectionPlaybook {
   realMeaning: string;
   impact: ObjectionImpact;
@@ -257,6 +350,10 @@ const REC_LABELS: Record<string, string> = {
   material: 'Material recomendado',
 };
 
+/* ══════════════════════════════════════════════════
+   GENERATORS
+   ══════════════════════════════════════════════════ */
+
 export function generateCommercialReading(summary: SalesSessionSummary): CommercialReading {
   const s = summary.session;
   if (!s) return { bullets: ['Sin datos de sesión disponibles.'], readiness: 'Sin información suficiente', readinessLevel: 'unknown' };
@@ -270,8 +367,7 @@ export function generateCommercialReading(summary: SalesSessionSummary): Commerc
   const maturity = s.score_maturity ?? 0;
 
   if (s.lead_type) {
-    const typeLabel = CLIENT_TYPE_LABELS[s.lead_type] ?? s.lead_type;
-    bullets.push(`Tipo de cliente: ${typeLabel}.`);
+    bullets.push(`Tipo de cliente: ${CLIENT_TYPE_LABELS[s.lead_type] ?? s.lead_type}.`);
   }
 
   if (fit >= 7) bullets.push('Fit fuerte con la propuesta de valor de Nova Silva.');
@@ -325,9 +421,7 @@ export function generateNextAction(summary: SalesSessionSummary, reading: Commer
       return { action: 'Enviar propuesta comercial', why: 'Scores, presupuesto y urgencia son favorables. El lead está listo para recibir una propuesta concreta.', validate, materials: ['Propuesta personalizada', 'Caso de negocio cuantificado'] };
     case 'ready_discovery':
       materials.push('Caso de éxito relevante al segmento');
-      if (summary.objections.some(r => r.objection_type?.includes('compliance'))) {
-        materials.push('Caso EUDR');
-      }
+      if (summary.objections.some(r => r.objection_type?.includes('compliance'))) materials.push('Caso EUDR');
       return { action: 'Profundizar discovery con foco en dolor principal', why: 'Buen fit pero falta aterrizar urgencia o presupuesto. Tu objetivo es construir caso de negocio, no vender todavía.', validate, materials };
     case 'ready_negotiation':
       return { action: 'Estructurar propuesta escalonada', why: 'Interés claro pero sin condiciones para propuesta full. Proponer alcance mínimo que demuestre valor.', validate, materials: ['Propuesta modular', 'ROI estimado por módulo'] };
@@ -358,6 +452,7 @@ export function generateSuggestedPitch(summary: SalesSessionSummary): SuggestedP
   return { angle: 'Abrir por caso de éxito similar', reasoning: 'Perfil aún en exploración — usar evidencia de clientes similares para construir credibilidad.' };
 }
 
+/* ── Objection classification with cluster assignment ── */
 export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
   return summary.objections.map(o => {
     const raw = o.objection_type ?? 'unknown';
@@ -366,18 +461,12 @@ export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
 
     let classification: ObjectionClassification = 'inferred';
     let classificationLabel = 'Inferida';
-    if (conf >= 0.85) {
-      classification = 'confirmed';
-      classificationLabel = 'Confirmada';
-    } else if (conf >= 0.6) {
-      classification = 'declared';
-      classificationLabel = 'Declarada';
-    }
+    if (conf >= 0.85) { classification = 'confirmed'; classificationLabel = 'Confirmada'; }
+    else if (conf >= 0.6) { classification = 'declared'; classificationLabel = 'Declarada'; }
 
-    const playbook = OBJECTION_PLAYBOOKS[raw];
-    const defaults: ObjectionPlaybook = {
+    const pb = OBJECTION_PLAYBOOKS[raw] ?? {
       realMeaning: 'Fricción detectada por el sistema. Validar directamente con el lead.',
-      impact: 'delays_decision',
+      impact: 'delays_decision' as ObjectionImpact,
       responseScript: '"¿Puedes contarme más sobre qué les preocupa en este tema?"',
       strongArgument: 'Validar con el lead antes de construir argumento específico.',
       proofToUse: 'Caso de cliente similar al segmento del lead.',
@@ -385,9 +474,6 @@ export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
       doNot: 'No asumir sin confirmar. No responder defensivamente.',
     };
 
-    const pb = playbook ?? defaults;
-
-    // Priority based on confidence + impact
     let priority: ObjectionPriority = 'low';
     if (conf >= 0.7 || pb.impact === 'blocks_decision') priority = 'critical';
     else if (conf >= 0.5) priority = 'medium';
@@ -409,11 +495,153 @@ export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
       priority,
       priorityLabel: PRIORITY_LABELS[priority],
       status: 'pending' as const,
+      cluster: OBJECTION_TO_CLUSTER[raw] ?? 'complexity_adoption',
     };
   }).sort((a, b) => {
     const pOrder = { critical: 0, medium: 1, low: 2 };
     return pOrder[a.priority] - pOrder[b.priority];
   });
+}
+
+/* ── Build friction clusters from battle cards ── */
+export function buildFrictionClusters(cards: BattleCard[]): FrictionCluster[] {
+  const clusterKeys = Object.keys(CLUSTER_META) as FrictionClusterKey[];
+  return clusterKeys
+    .map(key => {
+      const meta = CLUSTER_META[key];
+      const clusterCards = cards.filter(c => c.cluster === key);
+      const active = clusterCards.length > 0;
+      const hasCritical = clusterCards.some(c => c.priority === 'critical');
+      const severity: FrictionCluster['severity'] = !active ? 'bajo' : hasCritical ? 'alto' : clusterCards.some(c => c.priority === 'medium') ? 'medio' : 'bajo';
+      return {
+        key,
+        label: meta.label,
+        active,
+        severity,
+        meaning: meta.meaning,
+        sellerStance: meta.stance,
+        cards: clusterCards,
+      };
+    })
+    .filter(c => c.active)
+    .sort((a, b) => {
+      const sOrder = { alto: 0, medio: 1, bajo: 2 };
+      return sOrder[a.severity] - sOrder[b.severity];
+    });
+}
+
+/* ── Commercial hypothesis ── */
+export function generateHypothesis(summary: SalesSessionSummary, reading: CommercialReading, clusters: FrictionCluster[]): CommercialHypothesis {
+  const s = summary.session;
+  if (!s) return { paragraph: 'Sin datos suficientes para generar hipótesis comercial.' };
+
+  const pain = s.score_pain ?? 0;
+  const urgency = s.score_urgency ?? 0;
+  const budget = s.score_budget_readiness ?? 0;
+  const fit = s.score_fit ?? 0;
+
+  const parts: string[] = [];
+
+  // Opening: what the lead recognizes
+  if (pain >= 6) parts.push('El lead reconoce dolor operativo o comercial significativo');
+  else if (pain >= 3) parts.push('El lead identifica problemas pero no los percibe como urgentes');
+  else parts.push('El lead aún no articula un dolor claro');
+
+  // Urgency
+  if (urgency >= 6) parts.push('y tiene ventana de decisión activa');
+  else parts.push('pero no hay urgencia definida');
+
+  // What's blocking
+  const topCluster = clusters[0];
+  if (topCluster) {
+    parts.push(`. La fricción principal es ${topCluster.label.toLowerCase()}`);
+  }
+
+  // Recommendation
+  if (budget >= 6 && fit >= 6) {
+    parts.push('. La venta debe avanzar hacia propuesta concreta con caso de negocio cuantificado.');
+  } else if (fit >= 5) {
+    parts.push('. La venta no debe empujarse desde features sino desde riesgo operativo, visibilidad y acompañamiento.');
+  } else {
+    parts.push('. El foco debe estar en educación y construcción de relación antes de cualquier propuesta.');
+  }
+
+  return { paragraph: parts.join('') };
+}
+
+/* ── Account playbook ── */
+export function generateAccountPlaybook(
+  summary: SalesSessionSummary,
+  reading: CommercialReading,
+  pitch: SuggestedPitch,
+  clusters: FrictionCluster[],
+): AccountPlaybook {
+  const s = summary.session;
+  const topCluster = clusters[0];
+  const urgency = s?.score_urgency ?? 0;
+  const budget = s?.score_budget_readiness ?? 0;
+
+  const opening = pitch.angle;
+
+  const sequence: string[] = [
+    `Abrir con: ${pitch.angle.toLowerCase()}`,
+  ];
+  if (budget < 5) sequence.push('Validar capacidad presupuestaria antes de presentar alcance');
+  if (urgency < 5) sequence.push('Identificar evento gatillo que justifique actuar ahora');
+  if (topCluster) sequence.push(`Abordar fricción principal: ${topCluster.label.toLowerCase()}`);
+  sequence.push('Cerrar con siguiente paso concreto y fecha');
+
+  let biggestRisk = 'Pérdida de momentum por falta de urgencia o sponsor interno.';
+  if (topCluster?.key === 'competition') biggestRisk = 'Perder contra competidor o contra el status quo. El lead tiene alternativa activa.';
+  else if (topCluster?.key === 'budget_value') biggestRisk = 'Bloqueo financiero. El lead no logra justificar la inversión internamente.';
+  else if (topCluster?.key === 'timing_approval') biggestRisk = 'Ciclo de decisión largo. La venta muere por inercia organizacional.';
+
+  const mitigation: string[] = [];
+  if (topCluster?.key === 'budget_value') {
+    mitigation.push('Construir caso de negocio con ROI cuantificado');
+    mitigation.push('Proponer alcance mínimo para demostrar valor rápido');
+  } else if (topCluster?.key === 'timing_approval') {
+    mitigation.push('Identificar sponsor interno');
+    mitigation.push('Preparar resumen ejecutivo para decisor');
+    mitigation.push('Proponer fecha límite vinculada a evento real');
+  } else if (topCluster?.key === 'competition') {
+    mitigation.push('Diferenciarse por visión y acompañamiento, no por features');
+    mitigation.push('Ofrecer referencia verificable de cliente similar');
+  } else {
+    mitigation.push('Validar objeciones directamente con el lead');
+    mitigation.push('Reducir percepción de riesgo con evidencia concreta');
+  }
+
+  let bestNextQuestion = '¿Quién más participaría en esta decisión?';
+  if (budget < 4) bestNextQuestion = '¿Tienen presupuesto asignado o necesitan justificarlo internamente?';
+  else if (urgency < 4) bestNextQuestion = '¿Hay algún evento próximo que haga esto más urgente — auditoría, cosecha, regulación?';
+  else if (topCluster?.key === 'trust_credibility') bestNextQuestion = '¿Qué les daría confianza para avanzar — una referencia, un piloto, una conversación con otro cliente?';
+
+  return {
+    openingRecommendation: opening,
+    centralThesis: pitch.reasoning,
+    sequence,
+    biggestRisk,
+    riskMitigation: mitigation,
+    bestNextQuestion,
+  };
+}
+
+/* ── Meeting objective ── */
+export function generateMeetingObjective(reading: CommercialReading, clusters: FrictionCluster[]): MeetingObjective {
+  const topCluster = clusters[0];
+  switch (reading.readinessLevel) {
+    case 'ready_proposal':
+      return { objective: 'Confirmar decisor, presentar propuesta y definir siguiente paso formal.' };
+    case 'ready_discovery':
+      return { objective: topCluster ? `Validar hipótesis de ${topCluster.label.toLowerCase()} y construir caso de negocio.` : 'Profundizar dolor principal y aterrizar urgencia.' };
+    case 'ready_negotiation':
+      return { objective: 'Presentar propuesta modular y negociar alcance mínimo viable.' };
+    case 'nurture':
+      return { objective: 'Identificar sponsor interno y compartir material de credibilidad.' };
+    default:
+      return { objective: 'Educar al lead y evaluar si hay potencial real de avance.' };
+  }
 }
 
 export function classifyRecommendations(summary: SalesSessionSummary): ClassifiedRecommendation[] {
@@ -426,6 +654,10 @@ export function classifyRecommendations(summary: SalesSessionSummary): Classifie
     };
   });
 }
+
+/* ══════════════════════════════════════════════════
+   LABEL MAPS
+   ══════════════════════════════════════════════════ */
 
 export const SCORE_COMMERCIAL_LABELS: Record<string, string> = {
   score_pain: 'Dolor comercial',
