@@ -118,9 +118,9 @@ export function DiagnosticInterpretationPanel({ profile, interpretation, answere
 
         {/* OBJECTIONS */}
         {objections.length > 0 && (
-          <Card className="border-amber-500/20">
+          <Card className="border-destructive/20">
             <CardHeader className="pb-2 pt-3 px-4">
-              <CardTitle className="text-xs uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+              <CardTitle className="text-xs uppercase tracking-wider text-destructive flex items-center gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5" /> Objeciones Detectadas ({objections.length})
               </CardTitle>
             </CardHeader>
