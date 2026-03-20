@@ -212,7 +212,8 @@ function NavGroup({ group, onClick, isOpen, onToggle }: { group: NavGroupDef; on
 }
 
 function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
-  if (group.standalone && group.url) return pathname === group.url || pathname.startsWith(group.url + '/');
+  // Standalone items use EXACT match only — prevents /admin from capturing /admin/sales/*
+  if (group.standalone && group.url) return pathname === group.url;
   // For non-standalone groups, check if pathname matches any item OR any item's prefix tree
   return group.items.some(item => pathname === item.url || pathname.startsWith(item.url + '/'));
 }

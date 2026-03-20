@@ -104,7 +104,37 @@ export default function AdminBilling() {
         }
       />
 
-      <PendingIntegration feature="Backend de billing (invoices, pagos, suscripciones)" />
+      {/* ── Operational Status ── */}
+      <Card className="border-amber-500/20 bg-amber-500/5">
+        <CardContent className="py-3 px-4">
+          <p className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Estado operativo del módulo de billing</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              <span className="text-muted-foreground">Tabla billing_subscriptions:</span>
+              <span className="font-medium text-foreground">Pendiente de datos</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              <span className="text-muted-foreground">Cobros automáticos:</span>
+              <span className="font-medium text-foreground">No configurado</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              <span className="text-muted-foreground">Facturas reales:</span>
+              <span className="font-medium text-foreground">Pendiente</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="h-2 w-2 rounded-full bg-primary" />
+              <span className="text-muted-foreground">Simulador pricing:</span>
+              <span className="font-medium text-foreground">Operativo</span>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Los datos de suscripciones, facturas y pagos mostrados abajo son datos de referencia para planificación. Para activar billing real, conectar Stripe o sistema de facturación.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Revenue KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">

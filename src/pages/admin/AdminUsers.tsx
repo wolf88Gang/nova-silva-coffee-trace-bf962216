@@ -95,11 +95,31 @@ export default function AdminUsers() {
     return 'secondary' as const;
   };
 
+  // Group by role for summary
+  const roleCounts = allUsers.reduce((acc, u) => {
+    const r = u.role_global ?? 'sin_rol';
+    acc[r] = (acc[r] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const ROLE_DISPLAY: Record<string, string> = {
+    admin: 'Administración',
+    cooperativa: 'Cooperativas',
+    exportador: 'Exportadores',
+    productor: 'Productores',
+    tecnico: 'Técnicos',
+    certificadora: 'Certificadoras',
+    sin_rol: 'Sin rol asignado',
+  };
+
+  const activeCount = allUsers.filter(u => u.activo).length;
+  const inactiveCount = allUsers.filter(u => !u.activo).length;
+
   return (
     <div className="space-y-5 animate-fade-in">
       <SectionHeader
         title="Usuarios"
-        subtitle={`${filtered.length} usuarios en la plataforma`}
+        subtitle={`${allUsers.length} usuarios en la plataforma`}
         actions={
           <div className="flex gap-2 items-center">
             <DataSourceBadge source="real" />
@@ -108,6 +128,34 @@ export default function AdminUsers() {
           </div>
         }
       />
+
+      {/* Role summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1"><Users className="h-3.5 w-3.5 text-primary" /><span className="text-xs text-muted-foreground">Activos</span></div>
+            <p className="text-xl font-bold text-foreground">{activeCount}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1"><UserX className="h-3.5 w-3.5 text-destructive" /><span className="text-xs text-muted-foreground">Inactivos</span></div>
+            <p className="text-xl font-bold text-foreground">{inactiveCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="col-span-2">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-2"><Shield className="h-3.5 w-3.5 text-primary" /><span className="text-xs text-muted-foreground">Distribución por rol</span></div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(roleCounts).map(([role, count]) => (
+                <Badge key={role} variant="outline" className="text-xs gap-1">
+                  {ROLE_DISPLAY[role] ?? role} <span className="font-mono font-bold">{count}</span>
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput value={search} onChange={setSearch} placeholder="Buscar nombre, email u org..." />

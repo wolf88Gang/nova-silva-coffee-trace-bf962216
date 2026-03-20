@@ -1,7 +1,8 @@
 /**
  * Calibration Review — Overview
- * Executive summary: outcomes, active version, top signals.
+ * Executive summary: outcomes, active version, top signals, aggregate score radar.
  */
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalibrationShell } from '@/components/calibration/CalibrationShell';
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BackendStatus } from '@/types/calibration';
+import ScoreRadarChart from '@/components/calibration/ScoreRadarChart';
 
 export default function CalibrationOverview() {
   const sessions = useCalibrationSessions();
@@ -42,6 +44,24 @@ export default function CalibrationOverview() {
   const topObjections = computeObjectionAnalysis(objections.data, outcomesQ.data).slice(0, 5);
   const topRecs = computeRecommendationAnalysis(recommendations.data, outcomesQ.data).slice(0, 5);
   const activeVersion = versions.data?.find(v => v.is_active) ?? null;
+
+  // Aggregate average scores across all sessions for radar
+  const avgScores = useMemo(() => {
+    const s = sessions.data;
+    if (!s || s.length === 0) return null;
+    const avg = (key: string) => {
+      const vals = s.map(r => (r as any)[key]).filter((v: any) => v != null && v > 0) as number[];
+      return vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+    };
+    return {
+      pain: avg('score_pain'),
+      maturity: avg('score_maturity'),
+      urgency: avg('score_urgency'),
+      fit: avg('score_fit'),
+      budget_readiness: avg('score_budget_readiness'),
+      objection: avg('score_objection'),
+    };
+  }, [sessions.data]);
 
   return (
     <CalibrationShell>
@@ -110,6 +130,37 @@ export default function CalibrationOverview() {
                   <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-success/80" /> Won ({outcomes.won})</span>
                   <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-destructive/70" /> Lost ({outcomes.lost})</span>
                   <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted" /> No decision ({outcomes.no_decision})</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Aggregate score radar */}
+          {avgScores && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Perfil promedio de scores (todas las sesiones)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                  <ScoreRadarChart scores={avgScores} height={240} />
+                  <div className="space-y-2 text-xs">
+                    {Object.entries(avgScores).map(([key, val]) => {
+                      const labels: Record<string, string> = { pain: 'Dolor', maturity: 'Madurez', urgency: 'Urgencia', fit: 'Fit', budget_readiness: 'Presupuesto', objection: 'Objeción' };
+                      const isStrong = val != null && val >= 50;
+                      const isWeak = val != null && val < 25 && val > 0;
+                      return (
+                        <div key={key} className="flex items-center justify-between p-2 rounded bg-muted/40">
+                          <span className="text-muted-foreground">{labels[key] ?? key}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-foreground">{val ?? '—'}</span>
+                            {isStrong && <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">Fuerte</Badge>}
+                            {isWeak && <Badge variant="outline" className="text-[9px] border-destructive/30 text-destructive">Débil</Badge>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </CardContent>
             </Card>
