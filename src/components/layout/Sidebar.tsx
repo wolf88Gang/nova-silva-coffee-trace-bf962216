@@ -216,18 +216,17 @@ function groupContainsRoute(group: NavGroupDef, pathname: string): boolean {
   return group.items.some(item => pathname === item.url || pathname.startsWith(item.url + '/'));
 }
 
-/** Accordion-style nav: only one group open at a time */
+/** Accordion-style nav: clicking a sub-item keeps the group open */
 function SidebarNav({ groups, pathname, onItemClick }: { groups: NavGroupDef[]; pathname: string; onItemClick?: () => void }) {
-  // Find which group contains the active route
   const activeIndex = groups.findIndex(g => groupContainsRoute(g, pathname));
   const [openIndex, setOpenIndex] = useState<number | null>(activeIndex >= 0 ? activeIndex : null);
 
-  // Update open group when route changes
   const prevPathRef = useRef(pathname);
   if (prevPathRef.current !== pathname) {
     prevPathRef.current = pathname;
     const newActive = groups.findIndex(g => groupContainsRoute(g, pathname));
-    if (newActive >= 0 && newActive !== openIndex) {
+    if (newActive >= 0) {
+      // Always keep the active group open on navigation
       setOpenIndex(newActive);
     }
   }

@@ -4,10 +4,15 @@
  */
 
 export const ORG_TYPE_LABELS: Record<string, string> = {
-  cooperativa: 'Cooperativa',
+  finca_privada: 'Finca privada',
+  beneficio: 'Beneficio (compra + procesa)',
   exportador: 'Exportador',
-  beneficio_privado: 'Beneficio privado',
-  productor_empresarial: 'Productor empresarial',
+  exportador_red: 'Exportador con red de productores',
+  cooperativa: 'Cooperativa / Asociación',
+  trader: 'Comercializador / Trader',
+  // legacy fallbacks
+  productor_empresarial: 'Finca privada',
+  beneficio_privado: 'Beneficio (compra + procesa)',
   aggregator: 'Comercializador / Trader',
 };
 
