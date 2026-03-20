@@ -314,7 +314,6 @@ export const SalesSessionService = {
 
     console.debug('[Sales DEBUG] VITE_SUPABASE_URL', supabaseUrl);
     console.debug('[Sales DEBUG] session_user_id', authSession?.user?.id ?? null);
-    console.debug('[Sales DEBUG] supabase_auth_session', authSession);
 
     try {
       const debugAuth = await rpcFirstAvailable<unknown>(['fn_debug_sales_auth'], {}, true);
@@ -323,20 +322,24 @@ export const SalesSessionService = {
       console.debug('[Sales DEBUG] fn_debug_sales_auth', error);
     }
 
+    // Real RPC uses p_ prefixed params
     const payload = {
-      organization_id: input.organization_id,
-      lead_name: input.lead_name ?? null,
-      lead_company: input.lead_company ?? null,
-      lead_type: input.lead_type ?? null,
-      questionnaire_code: input.questionnaire_code,
-      questionnaire_version: input.questionnaire_version,
+      p_organization_id: input.organization_id,
+      p_owner_user_id: authSession?.user?.id ?? null,
+      p_lead_name: input.lead_name ?? null,
+      p_lead_company: input.lead_company ?? null,
+      p_lead_type: input.lead_type ?? null,
+      p_commercial_stage: 'lead',
+      p_questionnaire_code: input.questionnaire_code,
+      p_questionnaire_version: input.questionnaire_version,
+      p_metadata: {},
     };
 
     console.debug('[Sales DEBUG] fn_sales_create_session_payload', payload);
 
     try {
       const result = await rpcFirstAvailable<any>(['fn_sales_create_session'], payload);
-      console.debug('[Sales DEBUG] fn_sales_create_session result/error', { data: result.data, error: null });
+      console.debug('[Sales DEBUG] fn_sales_create_session result', result.data);
 
       const sessionId = getSessionIdFromCreateResponse(result.data);
       if (!sessionId) {
@@ -348,7 +351,7 @@ export const SalesSessionService = {
         raw: result.data,
       };
     } catch (error) {
-      console.debug('[Sales DEBUG] fn_sales_create_session result/error', { data: null, error });
+      console.debug('[Sales DEBUG] fn_sales_create_session error', error);
       throw error;
     }
   },

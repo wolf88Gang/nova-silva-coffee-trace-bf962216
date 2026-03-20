@@ -42,10 +42,13 @@ function isActiveRow(row: any): boolean {
 }
 
 async function loadOrganizationsFrom(source: 'v_admin_organizations_summary' | 'platform_organizations' | 'organizaciones') {
+  // platform_organizations uses 'name', organizaciones uses 'nombre'
+  const orderCol = source === 'platform_organizations' ? 'name' : 'nombre';
+
   const { data, error } = await supabase
     .from(source as any)
     .select('*')
-    .order('nombre', { ascending: true });
+    .order(orderCol, { ascending: true });
 
   if (error) throw error;
 
