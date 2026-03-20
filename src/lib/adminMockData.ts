@@ -150,7 +150,7 @@ export const SERVICE_REMEDIATIONS: ServiceRemediation[] = [
   },
   {
     service: 'Edge Functions',
-    remediation: 'La Edge Function no respondió correctamente. Posibles causas:\n\n1. Función no desplegada → Desplegar desde Supabase Dashboard > Edge Functions\n2. Error de red o configuración CORS → Verificar headers de la función\n3. Error interno → Revisar logs en Supabase Dashboard > Edge Functions > Logs\n4. Sesión expirada → Hacer logout y login nuevamente',
+    remediation: 'Guía de diagnóstico para Edge Functions:\n\n1. HTTP 200 = Operativo → No se requiere acción\n2. HTTP 404 = Función no desplegada → Desplegar desde Supabase Dashboard > Edge Functions\n3. Error de red / CORS → Verificar headers de la función (Access-Control-Allow-Origin)\n4. HTTP 500 = Error interno → Revisar logs en Supabase Dashboard > Edge Functions > Logs\n5. Timeout → Verificar que la función no exceda los límites de ejecución',
   },
 ];
 
