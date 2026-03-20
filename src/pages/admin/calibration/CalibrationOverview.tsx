@@ -135,6 +135,37 @@ export default function CalibrationOverview() {
             </Card>
           )}
 
+          {/* Aggregate score radar */}
+          {avgScores && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Perfil promedio de scores (todas las sesiones)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                  <ScoreRadarChart scores={avgScores} height={240} />
+                  <div className="space-y-2 text-xs">
+                    {Object.entries(avgScores).map(([key, val]) => {
+                      const labels: Record<string, string> = { pain: 'Dolor', maturity: 'Madurez', urgency: 'Urgencia', fit: 'Fit', budget_readiness: 'Presupuesto', objection: 'Objeción' };
+                      const isStrong = val != null && val >= 50;
+                      const isWeak = val != null && val < 25 && val > 0;
+                      return (
+                        <div key={key} className="flex items-center justify-between p-2 rounded bg-muted/40">
+                          <span className="text-muted-foreground">{labels[key] ?? key}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-foreground">{val ?? '—'}</span>
+                            {isStrong && <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">Fuerte</Badge>}
+                            {isWeak && <Badge variant="outline" className="text-[9px] border-destructive/30 text-destructive">Débil</Badge>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Two-column: top objections + top recs */}
           <div className="grid md:grid-cols-2 gap-4">
             <Card>
