@@ -18,7 +18,6 @@ import {
   Save,
   Shield,
   ShieldAlert,
-  Sparkles,
   Target,
   TrendingDown,
   TrendingUp,
@@ -38,18 +37,30 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { SalesSessionService, type SalesSessionSummary } from '@/lib/salesSessionService';
 import {
+  buildFrictionClusters,
   classifyObjections,
   classifyRecommendations,
   CLIENT_TYPE_LABELS,
   COMMERCIAL_PHASES,
+  generateAccountPlaybook,
   generateCommercialReading,
+  generateHypothesis,
+  generateMeetingObjective,
   generateNextAction,
   generateSuggestedPitch,
   READINESS_LABELS,
   SCORE_COMMERCIAL_LABELS,
+  type AccountPlaybook,
   type BattleCard,
+  type CommercialHypothesis,
+  type FrictionCluster,
+  type MeetingObjective,
 } from '@/lib/commercialBriefEngine';
 import { cn } from '@/lib/utils';
+
+/* ══════════════════════════════════════════════════
+   HOOKS
+   ══════════════════════════════════════════════════ */
 
 function useSessionSummary(sessionId: string) {
   return useQuery({
@@ -58,6 +69,10 @@ function useSessionSummary(sessionId: string) {
     staleTime: 1000 * 60 * 2,
   });
 }
+
+/* ══════════════════════════════════════════════════
+   CONSTANTS
+   ══════════════════════════════════════════════════ */
 
 const SCORE_KEYS = [
   { key: 'score_pain', short: 'Pain' },
@@ -94,70 +109,24 @@ const IMPACT_COLORS: Record<string, string> = {
   low_risk: 'text-muted-foreground',
 };
 
-/* ── Battle Card (always visible, structured) ── */
-function BattleCardComponent({ card, onOpenFull }: { card: BattleCard; onOpenFull: () => void }) {
-  return (
-    <div className={cn('rounded-lg border p-4 space-y-3', PRIORITY_COLORS[card.priority])}>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold text-foreground">{card.label}</p>
-            <Badge variant="outline" className={cn('text-[10px] shrink-0', CLASSIFICATION_COLORS[card.classification])}>
-              {card.classificationLabel}
-            </Badge>
-            <Badge variant="outline" className="text-[10px] shrink-0 border-border">
-              {card.priorityLabel}
-            </Badge>
-          </div>
-          <p className={cn('text-[11px] mt-0.5 font-medium', IMPACT_COLORS[card.impact])}>
-            {card.impactLabel}
-          </p>
-        </div>
-      </div>
+const SEVERITY_COLORS: Record<string, string> = {
+  alto: 'border-destructive/40 bg-destructive/5',
+  medio: 'border-amber-500/30 bg-amber-500/5',
+  bajo: 'border-border bg-muted/30',
+};
 
-      {/* What it really means */}
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Qué significa realmente</p>
-        <p className="text-xs text-foreground leading-relaxed">{card.realMeaning}</p>
-      </div>
+const SEVERITY_BADGE: Record<string, string> = {
+  alto: 'border-destructive/30 text-destructive bg-destructive/10',
+  medio: 'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10',
+  bajo: 'border-border text-muted-foreground bg-muted/50',
+};
 
-      {/* Evidence */}
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Evidencia</p>
-        <p className="text-[11px] text-muted-foreground">{card.evidence}</p>
-      </div>
+/* ══════════════════════════════════════════════════
+   FULL BATTLE MODE (overlay per objection)
+   ══════════════════════════════════════════════════ */
 
-      {/* Response script */}
-      <div className="rounded-md bg-primary/5 border border-primary/10 px-3 py-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-1 flex items-center gap-1">
-          <Crosshair className="h-3 w-3" /> Cómo responder
-        </p>
-        <p className="text-xs text-foreground leading-relaxed italic">{card.responseScript}</p>
-      </div>
-
-      {/* Strong argument */}
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Argumento fuerte</p>
-        <p className="text-xs text-foreground leading-relaxed">{card.strongArgument}</p>
-      </div>
-
-      {/* Do NOT */}
-      <div className="rounded-md bg-destructive/5 border border-destructive/10 px-3 py-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive mb-0.5">No hacer</p>
-        <p className="text-xs text-foreground leading-relaxed">{card.doNot}</p>
-      </div>
-
-      {/* Open full battle mode */}
-      <Button variant="outline" size="sm" className="w-full text-xs gap-1.5" onClick={onOpenFull}>
-        <Shield className="h-3 w-3" /> Abrir modo batalla completo
-      </Button>
-    </div>
-  );
-}
-
-/* ── Full Battle Mode (overlay) ── */
 function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => void }) {
+  // Persistence-ready: these fields should eventually save to sales_session_objection_actions
   const [sellerResponse, setSellerResponse] = useState('');
   const [followUpNotes, setFollowUpNotes] = useState('');
   const [status, setStatus] = useState<'pending' | 'in_progress' | 'resolved'>(card.status);
@@ -172,43 +141,31 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-y-auto">
       <div className="max-w-3xl mx-auto p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" /> {card.label}
             </h2>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className={cn('text-xs', CLASSIFICATION_COLORS[card.classification])}>
-                {card.classificationLabel}
-              </Badge>
-              <Badge variant="outline" className={cn('text-xs', statusColors[status])}>
-                {statusLabels[status]}
-              </Badge>
+              <Badge variant="outline" className={cn('text-xs', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
+              <Badge variant="outline" className={cn('text-xs', statusColors[status])}>{statusLabels[status]}</Badge>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
         </div>
 
         <Separator />
 
-        {/* Impact + meaning */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
-            <CardHeader className="pb-2 pt-4 px-5">
-              <CardTitle className="text-sm">Qué significa realmente</CardTitle>
-            </CardHeader>
+            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Qué significa realmente</CardTitle></CardHeader>
             <CardContent className="px-5 pb-4">
               <p className="text-sm text-foreground leading-relaxed">{card.realMeaning}</p>
               <p className={cn('text-xs font-medium mt-2', IMPACT_COLORS[card.impact])}>{card.impactLabel}</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2 pt-4 px-5">
-              <CardTitle className="text-sm">Evidencia</CardTitle>
-            </CardHeader>
+            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Evidencia</CardTitle></CardHeader>
             <CardContent className="px-5 pb-4">
               <p className="text-sm text-muted-foreground">{card.evidence}</p>
               <p className="text-xs text-muted-foreground mt-2">Confianza: {Math.round(card.confidence * 100)}%</p>
@@ -216,84 +173,51 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
           </Card>
         </div>
 
-        {/* Response script - prominent */}
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm flex items-center gap-1.5 text-primary">
-              <Crosshair className="h-4 w-4" /> Script de respuesta
-            </CardTitle>
+            <CardTitle className="text-sm flex items-center gap-1.5 text-primary"><Crosshair className="h-4 w-4" /> Script de respuesta</CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
             <p className="text-sm text-foreground leading-relaxed italic">{card.responseScript}</p>
           </CardContent>
         </Card>
 
-        {/* Three columns: argument, proof, validate */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs">Argumento fuerte</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <p className="text-xs text-foreground leading-relaxed">{card.strongArgument}</p>
-            </CardContent>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs">Argumento fuerte</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.strongArgument}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs">Prueba / evidencia a usar</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <p className="text-xs text-foreground leading-relaxed">{card.proofToUse}</p>
-            </CardContent>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs">Prueba / evidencia a usar</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.proofToUse}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs">Validar en próxima interacción</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <p className="text-xs text-foreground leading-relaxed">{card.validateNext}</p>
-            </CardContent>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs">Validar en próxima interacción</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.validateNext}</p></CardContent>
           </Card>
         </div>
 
-        {/* Do NOT */}
         <Card className="border-destructive/20 bg-destructive/5">
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm text-destructive">Qué NO hacer</CardTitle>
-          </CardHeader>
-          <CardContent className="px-5 pb-4">
-            <p className="text-sm text-foreground leading-relaxed">{card.doNot}</p>
-          </CardContent>
+          <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm text-destructive">Qué NO hacer</CardTitle></CardHeader>
+          <CardContent className="px-5 pb-4"><p className="text-sm text-foreground leading-relaxed">{card.doNot}</p></CardContent>
         </Card>
 
         <Separator />
 
-        {/* Seller editable fields */}
+        {/* Seller editable — persistence-ready for sales_session_objection_actions */}
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Respuesta refinada del vendedor</Label>
-            <Textarea
-              value={sellerResponse}
-              onChange={(e) => setSellerResponse(e.target.value)}
-              placeholder="Escribe tu versión personalizada del script de respuesta..."
-              className="min-h-[80px]"
-            />
+            <Textarea value={sellerResponse} onChange={(e) => setSellerResponse(e.target.value)} placeholder="Escribe tu versión personalizada del script de respuesta..." className="min-h-[80px]" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Notas de follow-up</Label>
-            <Textarea
-              value={followUpNotes}
-              onChange={(e) => setFollowUpNotes(e.target.value)}
-              placeholder="Qué validar, con quién hablar, qué preparar..."
-              className="min-h-[60px]"
-            />
+            <Textarea value={followUpNotes} onChange={(e) => setFollowUpNotes(e.target.value)} placeholder="Qué validar, con quién hablar, qué preparar..." className="min-h-[60px]" />
           </div>
           <div className="flex items-center gap-3">
             <Label className="text-sm font-semibold shrink-0">Estado:</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">Pendiente</SelectItem>
                 <SelectItem value="in_progress">En progreso</SelectItem>
@@ -304,76 +228,89 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
         </div>
 
         <div className="flex justify-end pt-2">
-          <Button onClick={onClose} className="gap-1.5">
-            <Check className="h-4 w-4" /> Cerrar batalla
-          </Button>
+          <Button onClick={onClose} className="gap-1.5"><Check className="h-4 w-4" /> Cerrar batalla</Button>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Meeting Mode ── */
-function MeetingMode({ cards, onExit }: { cards: BattleCard[]; onExit: () => void }) {
+/* ══════════════════════════════════════════════════
+   MEETING MODE — focused, large-type, minimal
+   ══════════════════════════════════════════════════ */
+
+function MeetingMode({
+  cards,
+  hypothesis,
+  playbook,
+  onExit,
+}: {
+  cards: BattleCard[];
+  hypothesis: CommercialHypothesis;
+  playbook: AccountPlaybook;
+  onExit: () => void;
+}) {
   const topCards = cards.filter(c => c.priority === 'critical').slice(0, 2);
   const fallback = topCards.length === 0 ? cards.slice(0, 2) : topCards;
 
   return (
     <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Phone className="h-5 w-5 text-primary" /> Modo llamada / reunión
+          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+            <Phone className="h-5 w-5 text-primary" /> Modo reunión activa
           </h2>
-          <Button variant="outline" size="sm" onClick={onExit} className="gap-1.5">
-            <X className="h-3.5 w-3.5" /> Salir
-          </Button>
+          <Button variant="outline" size="sm" onClick={onExit} className="gap-1.5"><X className="h-3.5 w-3.5" /> Salir</Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Top objeciones activas con scripts de respuesta rápida. Sin ruido.
-        </p>
+
+        {/* Account thesis — large */}
+        <p className="text-xl font-semibold text-foreground leading-snug tracking-tight">{hypothesis.paragraph}</p>
+
         <Separator />
+
+        {/* Top objection clusters with scripts */}
         {fallback.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">No hay objeciones detectadas para esta sesión.</p>
-            </CardContent>
-          </Card>
+          <p className="text-base text-muted-foreground text-center py-8">Sin objeciones activas para esta sesión.</p>
         ) : (
           fallback.map((card, i) => (
-            <div key={i} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className={cn('text-xs', CLASSIFICATION_COLORS[card.classification])}>
-                  {card.classificationLabel}
-                </Badge>
-                <h3 className="text-sm font-bold text-foreground">{card.label}</h3>
+            <div key={i} className="space-y-4">
+              <div>
+                <Badge variant="outline" className={cn('text-xs mb-1', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
+                <h3 className="text-lg font-bold text-foreground">{card.label}</h3>
               </div>
-              <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="py-3 px-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-1">Script de respuesta</p>
-                  <p className="text-sm text-foreground leading-relaxed italic">{card.responseScript}</p>
-                </CardContent>
-              </Card>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-md border border-border px-3 py-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Argumento fuerte</p>
-                  <p className="text-xs text-foreground leading-relaxed">{card.strongArgument}</p>
-                </div>
-                <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive mb-0.5">No hacer</p>
-                  <p className="text-xs text-foreground leading-relaxed">{card.doNot}</p>
-                </div>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">Cómo responder</p>
+                <p className="text-base text-foreground leading-relaxed italic">{card.responseScript}</p>
+              </div>
+              <div className="rounded-lg border border-border px-5 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Argumento fuerte</p>
+                <p className="text-sm text-foreground leading-relaxed">{card.strongArgument}</p>
+              </div>
+              <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-5 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive mb-1">No decir</p>
+                <p className="text-sm text-foreground leading-relaxed">{card.doNot}</p>
               </div>
               {i < fallback.length - 1 && <Separator />}
             </div>
           ))
         )}
+
+        <Separator />
+
+        {/* Best next question */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Pregunta clave para esta reunión</p>
+          <p className="text-lg font-semibold text-primary leading-snug">"{playbook.bestNextQuestion}"</p>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── Main Page ── */
+/* ══════════════════════════════════════════════════
+   MAIN PAGE
+   ══════════════════════════════════════════════════ */
+
 export default function SalesSessionDetail() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -386,6 +323,9 @@ export default function SalesSessionDetail() {
   const [showScores, setShowScores] = useState(false);
   const [battleCard, setBattleCard] = useState<BattleCard | null>(null);
   const [meetingMode, setMeetingMode] = useState(false);
+  // Persistence-ready: phase selection should save to sales_session_phase_updates
+  const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
+  const [phaseNote, setPhaseNote] = useState('');
 
   const session = data?.session ?? null;
   const existingOutcome = data?.outcome ?? null;
@@ -394,6 +334,10 @@ export default function SalesSessionDetail() {
   const nextAction = useMemo(() => (data && reading) ? generateNextAction(data, reading) : null, [data, reading]);
   const pitch = useMemo(() => data ? generateSuggestedPitch(data) : null, [data]);
   const battleCards = useMemo(() => data ? classifyObjections(data) : [], [data]);
+  const clusters = useMemo(() => buildFrictionClusters(battleCards), [battleCards]);
+  const hypothesis = useMemo(() => (data && reading) ? generateHypothesis(data, reading, clusters) : null, [data, reading, clusters]);
+  const playbook = useMemo(() => (data && reading && pitch) ? generateAccountPlaybook(data, reading, pitch, clusters) : null, [data, reading, pitch, clusters]);
+  const meetingObj = useMemo(() => (reading) ? generateMeetingObjective(reading, clusters) : null, [reading, clusters]);
   const classifiedRecs = useMemo(() => data ? classifyRecommendations(data) : [], [data]);
   const readinessInfo = reading ? READINESS_LABELS[reading.readinessLevel] : null;
 
@@ -401,6 +345,20 @@ export default function SalesSessionDetail() {
     setOutcome(existingOutcome?.outcome ?? '');
     setDealValue(existingOutcome?.deal_value?.toString() ?? '');
   }, [existingOutcome]);
+
+  // Initialize selected phase from readiness
+  useEffect(() => {
+    if (selectedPhase === null && reading) {
+      const map: Record<string, string> = {
+        ready_proposal: 'proposal',
+        ready_discovery: 'discovery',
+        ready_negotiation: 'negotiation',
+        nurture: 'follow_up',
+        immature: 'hold',
+      };
+      setSelectedPhase(map[reading.readinessLevel] ?? null);
+    }
+  }, [reading, selectedPhase]);
 
   const saveOutcomeMutation = useMutation({
     mutationFn: async () => {
@@ -420,6 +378,8 @@ export default function SalesSessionDetail() {
       toast.error(mutationError?.message || 'No se pudo guardar el resultado');
     },
   });
+
+  /* ── Loading / Error / Empty ── */
 
   if (isLoading) {
     return (
@@ -453,29 +413,24 @@ export default function SalesSessionDetail() {
           <CardContent className="py-10 text-center">
             <Target className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-sm font-medium text-foreground">Sesión no encontrada</p>
-            <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate('/admin/sales')}>
-              Volver a sesiones
-            </Button>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate('/admin/sales')}>Volver a sesiones</Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (battleCard) {
-    return <FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />;
-  }
-
-  if (meetingMode) {
-    return <MeetingMode cards={battleCards} onExit={() => setMeetingMode(false)} />;
-  }
+  /* ── Overlay modes ── */
+  if (battleCard) return <FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />;
+  if (meetingMode && hypothesis && playbook) return <MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />;
 
   const hasOutcome = Boolean(existingOutcome);
   const clientType = session.lead_type ? (CLIENT_TYPE_LABELS[session.lead_type] ?? session.lead_type) : null;
 
   return (
     <div className="max-w-5xl mx-auto space-y-5 p-4">
-      {/* HEADER */}
+
+      {/* ═══ HEADER ═══ */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/admin/sales')}>
           <ArrowLeft className="h-4 w-4" />
@@ -497,33 +452,70 @@ export default function SalesSessionDetail() {
             </Button>
           )}
           {readinessInfo && (
-            <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>
-              {readinessInfo.label}
-            </Badge>
+            <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>{readinessInfo.label}</Badge>
           )}
         </div>
       </div>
 
-      {/* A. LECTURA NOVA SILVA */}
-      {reading && (
-        <Card className="bg-primary/5 border-primary/15">
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm flex items-center gap-1.5 text-primary">
-              <Sparkles className="h-4 w-4" /> Lectura Nova Silva
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-5 pb-4 space-y-2">
-            {reading.bullets.map((b, i) => (
-              <p key={i} className="text-[13px] text-foreground leading-relaxed flex items-start gap-2">
-                <span className="text-primary mt-0.5 shrink-0">→</span>
-                <span>{b}</span>
-              </p>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {/* ═══ SECTION 1: RESUMEN ESTRATÉGICO ═══ */}
+      <Card className="border-primary/20 bg-primary/[0.03]">
+        <CardHeader className="pb-2 pt-4 px-5">
+          <CardTitle className="text-sm flex items-center gap-1.5 text-primary">
+            <Target className="h-4 w-4" /> Resumen estratégico de la cuenta
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-5 pb-5 space-y-4">
+          {/* A: Lectura ejecutiva */}
+          {reading && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Lectura ejecutiva Nova Silva</p>
+              {reading.bullets.map((b, i) => (
+                <p key={i} className="text-[13px] text-foreground leading-relaxed flex items-start gap-2">
+                  <span className="text-primary mt-0.5 shrink-0">→</span><span>{b}</span>
+                </p>
+              ))}
+            </div>
+          )}
 
-      {/* TWO COLUMN: Action + Pitch */}
+          {/* B: Hipótesis comercial */}
+          {hypothesis && (
+            <div className="rounded-md bg-muted/50 border border-border px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Hipótesis comercial central</p>
+              <p className="text-sm text-foreground leading-relaxed">{hypothesis.paragraph}</p>
+            </div>
+          )}
+
+          {/* C+D: Strategy + Objective in two cols */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {readinessInfo && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Estrategia sugerida</p>
+                <p className={cn('text-sm font-semibold', readinessInfo.color)}>{readinessInfo.label}</p>
+              </div>
+            )}
+            {meetingObj && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Objetivo próxima reunión</p>
+                <p className="text-sm text-foreground">{meetingObj.objective}</p>
+              </div>
+            )}
+          </div>
+
+          {/* E: Material recomendado */}
+          {nextAction && nextAction.materials.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Material recomendado</p>
+              <div className="flex flex-wrap gap-1.5">
+                {nextAction.materials.map((m, i) => (
+                  <Badge key={i} variant="outline" className="text-[11px] font-normal">{m}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ═══ TWO COLUMN: Action + Pitch ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {nextAction && (
           <Card>
@@ -545,18 +537,9 @@ export default function SalesSessionDetail() {
                   ))}
                 </div>
               )}
-              {nextAction.materials.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Material recomendado</p>
-                  {nextAction.materials.map((m, i) => (
-                    <p key={i} className="text-xs text-foreground">• {m}</p>
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
         )}
-
         {pitch && (
           <Card>
             <CardHeader className="pb-2 pt-4 px-5">
@@ -572,55 +555,91 @@ export default function SalesSessionDetail() {
         )}
       </div>
 
-      {/* D. BATTLE CARDS — always visible, no toggles */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-            <ShieldAlert className="h-4 w-4 text-destructive" /> Riesgos y bloqueadores
-          </h2>
-          {battleCards.length > 0 && (
-            <span className="text-[10px] text-muted-foreground">
-              {battleCards.filter(c => c.priority === 'critical').length} críticas · {battleCards.length} total
-            </span>
-          )}
-        </div>
-        {battleCards.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="py-4 text-center">
-              <p className="text-xs text-muted-foreground">Sin objeciones detectadas en esta sesión.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {battleCards.map((card, i) => (
-              <BattleCardComponent key={i} card={card} onOpenFull={() => setBattleCard(card)} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* E. RECOMENDACIONES */}
-      {classifiedRecs.length > 0 && (
+      {/* ═══ SECTION 3: ACCOUNT BATTLE PLAN ═══ */}
+      {playbook && (
         <Card>
           <CardHeader className="pb-2 pt-4 px-5">
             <CardTitle className="text-sm flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-primary" /> Próximos pasos sugeridos
+              <Zap className="h-4 w-4 text-primary" /> Plan de batalla de esta cuenta
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-5 pb-4">
-            <div className="space-y-2">
-              {classifiedRecs.map((rec, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span className="text-primary font-bold text-xs">{i + 1}.</span>
-                  <span className="font-medium text-foreground">{rec.label}</span>
+          <CardContent className="px-5 pb-5 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Secuencia recomendada</p>
+                <ol className="space-y-1">
+                  {playbook.sequence.map((step, i) => (
+                    <li key={i} className="text-xs text-foreground flex items-start gap-2">
+                      <span className="text-primary font-bold shrink-0">{i + 1}.</span><span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive mb-1">Riesgo mayor de perder la venta</p>
+                  <p className="text-xs text-foreground leading-relaxed">{playbook.biggestRisk}</p>
                 </div>
-              ))}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Cómo reducir ese riesgo</p>
+                  {playbook.riskMitigation.map((m, i) => (
+                    <p key={i} className="text-xs text-foreground flex items-start gap-1.5">
+                      <Check className="h-3 w-3 text-primary mt-0.5 shrink-0" /> {m}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="rounded-md bg-primary/5 border border-primary/10 px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-1">Pregunta clave para la próxima interacción</p>
+              <p className="text-sm text-foreground italic">"{playbook.bestNextQuestion}"</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* SCORES — collapsible */}
+      {/* ═══ SECTION 4: FRICTION MAP (clusters) ═══ */}
+      {clusters.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5 px-1">
+            <ShieldAlert className="h-4 w-4 text-destructive" /> Mapa de fricción comercial
+          </h2>
+          <div className="grid grid-cols-1 gap-3">
+            {clusters.map(cluster => (
+              <div key={cluster.key} className={cn('rounded-lg border p-4 space-y-3', SEVERITY_COLORS[cluster.severity])}>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">{cluster.label}</p>
+                  <Badge variant="outline" className={cn('text-[10px]', SEVERITY_BADGE[cluster.severity])}>{cluster.severity.charAt(0).toUpperCase() + cluster.severity.slice(1)}</Badge>
+                  <span className="text-[10px] text-muted-foreground">{cluster.cards.length} señal{cluster.cards.length !== 1 ? 'es' : ''}</span>
+                </div>
+                <p className="text-xs text-foreground leading-relaxed">{cluster.meaning}</p>
+                <div className="rounded-md bg-primary/5 border border-primary/10 px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">Cómo vender aquí</p>
+                  <p className="text-xs text-foreground leading-relaxed">{cluster.sellerStance}</p>
+                </div>
+
+                {/* Individual battle cards within cluster — compact */}
+                <div className="space-y-2 pt-1">
+                  {cluster.cards.map((card, ci) => (
+                    <div key={ci} className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Badge variant="outline" className={cn('text-[9px] shrink-0', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
+                        <span className="text-xs font-medium text-foreground truncate">{card.label}</span>
+                        <span className={cn('text-[10px]', IMPACT_COLORS[card.impact])}>{card.impactLabel}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 shrink-0" onClick={() => setBattleCard(card)}>
+                        <Shield className="h-3 w-3" /> Batalla
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ SCORES — collapsible, low weight ═══ */}
       <div className="space-y-1">
         <button
           onClick={() => setShowScores(!showScores)}
@@ -648,8 +667,59 @@ export default function SalesSessionDetail() {
         )}
       </div>
 
-      {/* SIGUIENTE FASE + OUTCOME */}
+      {/* ═══ NEXT PHASE + OUTCOME ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Next phase — interactive */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-sm">Siguiente fase comercial</CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              {readinessInfo
+                ? `Basado en el diagnóstico, este lead está: ${readinessInfo.label}.`
+                : 'Completa el diagnóstico para obtener una recomendación.'}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+              {COMMERCIAL_PHASES.map(phase => {
+                const isRecommended =
+                  (reading?.readinessLevel === 'ready_proposal' && phase.value === 'proposal') ||
+                  (reading?.readinessLevel === 'ready_discovery' && phase.value === 'discovery') ||
+                  (reading?.readinessLevel === 'ready_negotiation' && phase.value === 'negotiation') ||
+                  (reading?.readinessLevel === 'nurture' && phase.value === 'follow_up') ||
+                  (reading?.readinessLevel === 'immature' && phase.value === 'hold');
+                const isSelected = selectedPhase === phase.value;
+                return (
+                  <button
+                    key={phase.value}
+                    onClick={() => setSelectedPhase(phase.value)}
+                    className={cn(
+                      'rounded-md border px-3 py-2 text-xs text-center transition-colors cursor-pointer',
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary/30'
+                        : isRecommended
+                          ? 'border-primary/30 bg-primary/5 text-primary'
+                          : 'border-border text-muted-foreground hover:border-foreground/20',
+                    )}
+                  >
+                    {phase.label}
+                    {isRecommended && !isSelected && <span className="block text-[9px] text-primary/60 mt-0.5">Recomendada</span>}
+                    {isSelected && <Check className="h-3 w-3 mx-auto mt-0.5" />}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Persistence-ready: phase note for sales_session_phase_updates */}
+            <Textarea
+              value={phaseNote}
+              onChange={(e) => setPhaseNote(e.target.value)}
+              placeholder="Razón o nota sobre la fase seleccionada..."
+              className="min-h-[50px] text-xs"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Outcome */}
         <Card className={cn(hasOutcome && !editing ? 'border-primary/20' : '')}>
           <CardHeader className="pb-2 pt-4 px-5">
             <div className="flex items-center justify-between">
@@ -705,43 +775,6 @@ export default function SalesSessionDetail() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm">Siguiente fase comercial</CardTitle>
-          </CardHeader>
-          <CardContent className="px-5 pb-4">
-            <p className="text-xs text-muted-foreground mb-3">
-              {readinessInfo
-                ? `Basado en el diagnóstico, este lead está: ${readinessInfo.label}.`
-                : 'Completa el diagnóstico para obtener una recomendación.'}
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-              {COMMERCIAL_PHASES.map(phase => {
-                const isRecommended =
-                  (reading?.readinessLevel === 'ready_proposal' && phase.value === 'proposal') ||
-                  (reading?.readinessLevel === 'ready_discovery' && phase.value === 'discovery') ||
-                  (reading?.readinessLevel === 'ready_negotiation' && phase.value === 'negotiation') ||
-                  (reading?.readinessLevel === 'nurture' && phase.value === 'follow_up') ||
-                  (reading?.readinessLevel === 'immature' && phase.value === 'hold');
-                return (
-                  <div
-                    key={phase.value}
-                    className={cn(
-                      'rounded-md border px-3 py-2 text-xs text-center transition-colors',
-                      isRecommended
-                        ? 'border-primary bg-primary/10 text-primary font-semibold'
-                        : 'border-border text-muted-foreground',
-                    )}
-                  >
-                    {phase.label}
-                    {isRecommended && <Check className="h-3 w-3 mx-auto mt-0.5" />}
-                  </div>
-                );
-              })}
-            </div>
           </CardContent>
         </Card>
       </div>
