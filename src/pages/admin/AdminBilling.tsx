@@ -1,6 +1,6 @@
 /**
- * Admin Billing — Uses adapter layer with mock billing data.
- * TODO: Connect to billing_subscriptions, invoices, payments tables when ready.
+ * Admin Billing — Operational billing console.
+ * Shows real operational status with honest backend dependency indicators.
  */
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,14 +10,42 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DollarSign, TrendingUp, FileText, Zap, Calculator,
-  CreditCard, Wallet, Calendar, RefreshCw,
+  CreditCard, Wallet, Calendar, AlertCircle, CheckCircle2,
+  Clock, XCircle, Settings,
 } from 'lucide-react';
 import {
   MetricCard, SectionHeader, SearchInput, StatusBadge,
-  EmptyState, PendingIntegration, DataSourceBadge, LimitedDataNotice,
+  EmptyState, DataSourceBadge,
 } from '@/components/admin/shared/AdminComponents';
 import { useAdminBillingData } from '@/hooks/useAdminDataAdapters';
 import { getInvoiceStatusVariant, getStatusBadgeVariant } from '@/lib/adminMockData';
+
+/* ═══ Operational status definitions ═══ */
+
+interface ModuleStatus {
+  label: string;
+  status: 'operativo' | 'configurado' | 'pendiente' | 'incompleto';
+  dependency: string;
+  icon: typeof CheckCircle2;
+}
+
+const BILLING_MODULES: ModuleStatus[] = [
+  { label: 'Suscripciones', status: 'pendiente', dependency: 'billing_subscriptions', icon: CreditCard },
+  { label: 'Facturación', status: 'pendiente', dependency: 'billing_invoices', icon: FileText },
+  { label: 'Cobros automáticos', status: 'incompleto', dependency: 'Stripe / procesador de pagos', icon: Wallet },
+  { label: 'Registros de pago', status: 'pendiente', dependency: 'billing_payments', icon: DollarSign },
+  { label: 'Simulador pricing', status: 'operativo', dependency: 'Frontend only', icon: Calculator },
+  { label: 'Planes y precios', status: 'configurado', dependency: 'Configuración local', icon: Settings },
+];
+
+const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
+  operativo: { color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500', label: 'Operativo' },
+  configurado: { color: 'text-primary', bg: 'bg-primary', label: 'Configurado' },
+  pendiente: { color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500', label: 'Pendiente' },
+  incompleto: { color: 'text-destructive', bg: 'bg-destructive', label: 'Incompleto' },
+};
+
+/* ═══ Pricing Simulator ═══ */
 
 const MOCK_PLANS = ['lite', 'smart', 'plus', 'enterprise'];
 const PLAN_PRICES: Record<string, number> = { lite: 0, smart: 750, plus: 1400, enterprise: 2500 };
@@ -63,7 +91,7 @@ function PricingSimulator() {
         <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
           <div className="flex justify-between text-sm"><span>Plan base</span><span>${base}</span></div>
           <div className="flex justify-between text-sm"><span>Add-ons</span><span>${addonTotal}</span></div>
-          {overage > 0 && <div className="flex justify-between text-sm text-warning"><span>Exceso ({producers - 500} prod.)</span><span>${overage}</span></div>}
+          {overage > 0 && <div className="flex justify-between text-sm text-amber-600"><span>Exceso ({producers - 500} prod.)</span><span>${overage}</span></div>}
           <div className="flex justify-between text-base font-bold mt-2 pt-2 border-t border-primary/20">
             <span>Total mensual</span><span>${total}/mes</span>
           </div>
@@ -72,6 +100,8 @@ function PricingSimulator() {
     </Card>
   );
 }
+
+/* ═══ Main Component ═══ */
 
 export default function AdminBilling() {
   const billing = useAdminBillingData();
@@ -82,15 +112,16 @@ export default function AdminBilling() {
   const filteredSubs = billing.subscriptions.filter(s =>
     s.orgName.toLowerCase().includes(search.toLowerCase())
   );
-
   const filteredInvoices = billing.invoices.filter(inv =>
     inv.orgName.toLowerCase().includes(invSearch.toLowerCase()) ||
     inv.number.toLowerCase().includes(invSearch.toLowerCase())
   );
-
   const filteredPayments = billing.payments.filter(pay =>
     pay.orgName.toLowerCase().includes(paySearch.toLowerCase())
   );
+
+  const operativeCount = BILLING_MODULES.filter(m => m.status === 'operativo').length;
+  const pendingCount = BILLING_MODULES.filter(m => m.status === 'pendiente' || m.status === 'incompleto').length;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -104,34 +135,45 @@ export default function AdminBilling() {
         }
       />
 
-      {/* ── Operational Status ── */}
-      <Card className="border-amber-500/20 bg-amber-500/5">
-        <CardContent className="py-3 px-4">
-          <p className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Estado operativo del módulo de billing</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span className="text-muted-foreground">Tabla billing_subscriptions:</span>
-              <span className="font-medium text-foreground">Pendiente de datos</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span className="text-muted-foreground">Cobros automáticos:</span>
-              <span className="font-medium text-foreground">No configurado</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span className="text-muted-foreground">Facturas reales:</span>
-              <span className="font-medium text-foreground">Pendiente</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="h-2 w-2 rounded-full bg-primary" />
-              <span className="text-muted-foreground">Simulador pricing:</span>
-              <span className="font-medium text-foreground">Operativo</span>
+      {/* ── Operational Status Dashboard ── */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Settings className="h-4 w-4 text-primary" /> Estado operativo del módulo de billing
+            </CardTitle>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> {operativeCount} operativo{operativeCount !== 1 ? 's' : ''}</span>
+              <span className="flex items-center gap-1"><AlertCircle className="h-3 w-3 text-amber-500" /> {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}</span>
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2">
-            Los datos de suscripciones, facturas y pagos mostrados abajo son datos de referencia para planificación. Para activar billing real, conectar Stripe o sistema de facturación.
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {BILLING_MODULES.map(mod => {
+              const cfg = STATUS_CONFIG[mod.status];
+              return (
+                <div key={mod.label} className="rounded-lg border border-border p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <mod.icon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">{mod.label}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-2 w-2 rounded-full ${cfg.bg}`} />
+                      <span className={`text-[10px] font-semibold ${cfg.color}`}>{cfg.label}</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Dependencia: <code className="bg-muted px-1 rounded">{mod.dependency}</code>
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-3">
+            Los datos de suscripciones, facturas y pagos mostrados abajo son datos de referencia para planificación.
+            Para activar billing real, conectar Stripe o sistema de facturación y crear las tablas correspondientes.
           </p>
         </CardContent>
       </Card>
