@@ -1,6 +1,6 @@
 /**
  * Commercial-facing labels for the Sales Copilot.
- * Replaces all raw codes, enum values, and internal keys with seller-readable Spanish.
+ * All raw codes → seller-readable Spanish.
  */
 
 export const ORG_TYPE_LABELS: Record<string, string> = {
@@ -8,7 +8,7 @@ export const ORG_TYPE_LABELS: Record<string, string> = {
   exportador: 'Exportador',
   beneficio_privado: 'Beneficio privado',
   productor_empresarial: 'Productor empresarial',
-  aggregator: 'Aggregator / Trader',
+  aggregator: 'Comercializador / Trader',
 };
 
 export const SCALE_LABELS: Record<string, string> = {
@@ -49,7 +49,7 @@ export const SIGNAL_LABELS: Record<string, string> = {
 
 export const MATURITY_LABELS: Record<string, string> = {
   'Pre-digital': 'Pre-digital',
-  'Emergente': 'Emergente',
+  Emergente: 'Emergente',
   'En transición': 'En transición',
 };
 
@@ -65,6 +65,36 @@ export const TIMELINE_LABELS: Record<string, string> = {
   quarter: 'Este trimestre',
   semester: 'Este semestre',
   exploring: 'Solo explorando',
+};
+
+/** Aggregate map for humanizing any raw answer value */
+export const ALL_VALUE_LABELS: Record<string, string> = {
+  ...SCALE_LABELS,
+  ...COMMERCIALIZATION_LABELS,
+  ...PAIN_LABELS,
+  ...BUDGET_LABELS,
+  ...TIMELINE_LABELS,
+  // Tools
+  excel: 'Excel / hojas de cálculo',
+  erp: 'ERP',
+  whatsapp: 'WhatsApp',
+  paper: 'Registros en papel',
+  other_platform: 'Otra plataforma agtech',
+  none: 'Ninguna',
+  // Compliance
+  eudr: 'EUDR',
+  organic: 'Orgánico',
+  fairtrade: 'Fairtrade',
+  rainforest: 'Rainforest Alliance',
+  carbon: 'Carbono',
+  // Buyers
+  coop: 'Cooperativa',
+  exporter: 'Exportador directo',
+  intermediary_buyer: 'Intermediario local',
+  market: 'Mercado local',
+  // Boolean
+  true: 'Sí',
+  false: 'No',
 };
 
 export const QUESTION_WHY: Record<string, string> = {
@@ -95,13 +125,36 @@ export const QUESTION_IMPACT: Record<string, string> = {
   producer_buyers: 'Identifica presiones externas y oportunidades de diferenciación.',
 };
 
+/** Humanize objection trigger text for seller display */
+export const OBJECTION_TRIGGER_LABELS: Record<string, string> = {
+  'Respuesta directa a budget_readiness': 'El lead indicó que no tiene presupuesto asignado',
+  'Budget depende de donante': 'El presupuesto depende de financiamiento externo',
+  'Timeline = exploring': 'El lead aún está explorando sin urgencia de compra',
+};
+
+export function humanizeObjectionTrigger(raw: string): string {
+  // Check direct map
+  const mapped = OBJECTION_TRIGGER_LABELS[raw];
+  if (mapped) return mapped;
+  // Check if it contains decision_blockers quote
+  if (raw.includes('decision_blockers')) {
+    const quote = raw.match(/"(.+?)"/)?.[1];
+    return quote ? `El lead declaró: "${quote}"` : 'El lead mencionó un bloqueador específico';
+  }
+  // Fallback: strip technical prefixes
+  return raw
+    .replace(/^Respuesta directa a\s*/, '')
+    .replace(/^.*?=\s*/, '')
+    .replace(/_/g, ' ');
+}
+
 /** Compute suggested commercial route based on profile state */
 export function getSuggestedRoute(profile: {
   organization_type: string | null;
   pain_points: string[];
   signals: string[];
   raw_answers: Record<string, unknown>;
-}): { route: string; why: string; evidence: string[]; missing: string[] } {
+}): { route: string; why: string; evidence: string[]; missing: string[]; isDefault: boolean } {
   const { organization_type, pain_points, signals, raw_answers } = profile;
 
   const hasCompliance = pain_points.includes('traceability') || pain_points.includes('compliance_pressure') || signals.includes('eudr_pressure');
@@ -122,27 +175,26 @@ export function getSuggestedRoute(profile: {
   if (!timeline) missing.push('Confirmar ventana de decisión');
   if (!organization_type) missing.push('Definir tipo de organización');
 
-  // Route logic
   if (hasCompliance && hasUrgency) {
-    return { route: 'Demo EUDR-first', why: 'Presión regulatoria con urgencia alta → demostrar cumplimiento inmediato.', evidence, missing };
+    return { route: 'Demo EUDR-first', why: 'Presión regulatoria con urgencia alta → demostrar cumplimiento inmediato.', evidence, missing, isDefault: false };
   }
   if (hasCompliance && !hasUrgency) {
-    return { route: 'Discovery guiado', why: 'Hay presión pero no urgencia → educar y crear urgencia con casos reales.', evidence, missing };
+    return { route: 'Discovery guiado', why: 'Hay presión pero no urgencia → educar y crear urgencia con casos reales.', evidence, missing, isDefault: false };
   }
   if (organization_type === 'productor_empresarial') {
-    return { route: 'Ruta productor privado', why: 'Finca empresarial → enfocar en ROI directo y control operativo.', evidence, missing };
+    return { route: 'Ruta productor privado', why: 'Finca empresarial → enfocar en ROI directo y control operativo.', evidence, missing, isDefault: false };
   }
   if (organization_type === 'exportador') {
-    return { route: 'Ruta exportador', why: 'Exportador → diferenciación por trazabilidad y gestión de proveedores.', evidence, missing };
+    return { route: 'Ruta exportador', why: 'Exportador → diferenciación por trazabilidad y gestión de proveedores.', evidence, missing, isDefault: false };
   }
   if (!hasBudget && budget === 'no_budget') {
-    return { route: 'No empujar venta todavía', why: 'Sin presupuesto ni señales de urgencia → nutrir relación, no forzar cierre.', evidence, missing };
+    return { route: 'No empujar venta todavía', why: 'Sin presupuesto ni señales de urgencia → nutrir relación, no forzar cierre.', evidence, missing, isDefault: false };
   }
   if (hasBudget && hasUrgency) {
-    return { route: 'Propuesta directa', why: 'Presupuesto + urgencia → cerrar con propuesta concreta.', evidence, missing };
+    return { route: 'Propuesta directa', why: 'Presupuesto + urgencia → cerrar con propuesta concreta.', evidence, missing, isDefault: false };
   }
 
-  return { route: 'Piloto acotado', why: 'Perfil todavía en descubrimiento → proponer piloto de bajo riesgo.', evidence, missing };
+  return { route: 'Piloto acotado', why: 'Perfil todavía en descubrimiento → proponer piloto de bajo riesgo.', evidence, missing, isDefault: true };
 }
 
 /** Compute critical missing information */
@@ -165,7 +217,17 @@ export function getMissingInfo(profile: {
   if (!profile.raw_answers['decision_blockers'] && profile.raw_answers['budget_readiness']) {
     missing.push('Falta identificar bloqueadores de decisión');
   }
-  return missing.slice(0, 4); // top 4 most critical
+  return missing.slice(0, 4);
+}
+
+/** Humanize any raw value using all label maps */
+export function humanizeValue(raw: unknown): string {
+  if (raw == null) return '—';
+  if (Array.isArray(raw)) {
+    return raw.map(v => ALL_VALUE_LABELS[String(v)] ?? String(v)).join(', ');
+  }
+  const s = String(raw);
+  return ALL_VALUE_LABELS[s] ?? s;
 }
 
 export function label(map: Record<string, string>, key: string | null | undefined, fallback?: string): string {
