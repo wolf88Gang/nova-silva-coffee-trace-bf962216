@@ -227,16 +227,17 @@ function SidebarNav({ groups, pathname, onItemClick }: { groups: NavGroupDef[]; 
     return idx >= 0 ? idx : null;
   });
 
-  // Sync open group when pathname changes — useEffect avoids render-time setState issues
+  // Stable route-derived open state via useEffect — no setTimeout hacks
   const prevPathRef = useRef(pathname);
-  if (prevPathRef.current !== pathname) {
-    prevPathRef.current = pathname;
-    const newActive = findActive(pathname);
-    if (newActive >= 0 && newActive !== openIndex) {
-      // Schedule state update after render to avoid React warnings
-      setTimeout(() => setOpenIndex(newActive), 0);
+  React.useEffect(() => {
+    if (prevPathRef.current !== pathname) {
+      prevPathRef.current = pathname;
+      const newActive = findActive(pathname);
+      if (newActive >= 0 && newActive !== openIndex) {
+        setOpenIndex(newActive);
+      }
     }
-  }
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
