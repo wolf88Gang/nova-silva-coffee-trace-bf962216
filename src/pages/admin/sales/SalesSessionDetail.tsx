@@ -356,16 +356,26 @@ function MeetingMode({
                 <h3 className="text-lg font-bold text-foreground">{card.label}</h3>
               </div>
               <div className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">Cómo responder</p>
-                <p className="text-base text-foreground leading-relaxed italic">{card.responseScript}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">Respuesta rápida</p>
+                <p className="text-base text-foreground leading-relaxed italic">{card.shortScript}</p>
               </div>
               <div className="rounded-lg border border-border px-5 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Argumento fuerte</p>
-                <p className="text-sm text-foreground leading-relaxed">{card.strongArgument}</p>
+                <div className="space-y-1">
+                  {card.strongArguments.slice(0, 2).map((a, j) => (
+                    <p key={j} className="text-sm text-foreground leading-relaxed flex items-start gap-1.5">
+                      <Check className="h-3 w-3 text-primary mt-0.5 shrink-0" /> {a}
+                    </p>
+                  ))}
+                </div>
               </div>
               <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-5 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive mb-1">No decir</p>
-                <p className="text-sm text-foreground leading-relaxed">{card.doNot}</p>
+                <div className="space-y-0.5">
+                  {card.doNot.slice(0, 2).map((d, j) => (
+                    <p key={j} className="text-sm text-foreground leading-relaxed">{d}</p>
+                  ))}
+                </div>
               </div>
               {i < fallback.length - 1 && <Separator />}
             </div>
