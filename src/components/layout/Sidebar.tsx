@@ -16,7 +16,7 @@ import {
   Boxes, ShoppingCart,
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface NavItemDef { title: string; url: string; icon: LucideIcon; }
 interface NavGroupDef { label: string; icon: LucideIcon; items: NavItemDef[]; standalone?: boolean; url?: string; }

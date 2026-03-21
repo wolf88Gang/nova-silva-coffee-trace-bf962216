@@ -153,7 +153,7 @@ export default function AdminUsers() {
         actions={
           <div className="flex gap-2 items-center">
             <DataSourceBadge source="real" />
-            <Button variant="outline" size="sm" className="gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Invitar usuario</Button>
+            <Button variant="outline" size="sm" className="gap-1.5" title="Crea una invitación pendiente para staff interno o usuario de organización"><UserPlus className="h-3.5 w-3.5" /> Invitar usuario</Button>
             <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
           </div>
         }
