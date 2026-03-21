@@ -128,7 +128,6 @@ const SEVERITY_BADGE: Record<string, string> = {
    ══════════════════════════════════════════════════ */
 
 function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => void }) {
-  // Persistence-ready: these fields should eventually save to sales_session_objection_actions
   const [sellerResponse, setSellerResponse] = useState('');
   const [followUpNotes, setFollowUpNotes] = useState('');
   const [status, setStatus] = useState<'pending' | 'in_progress' | 'resolved'>(card.status);
@@ -142,15 +141,17 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm overflow-y-auto">
-      <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <div className="max-w-4xl mx-auto p-6 md:p-8 space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" /> {card.label}
             </h2>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1.5">
               <Badge variant="outline" className={cn('text-xs', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
               <Badge variant="outline" className={cn('text-xs', statusColors[status])}>{statusLabels[status]}</Badge>
+              <span className={cn('text-xs font-medium', IMPACT_COLORS[card.impact])}>{card.impactLabel}</span>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
@@ -158,55 +159,129 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
 
         <Separator />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Qué significa realmente</CardTitle></CardHeader>
-            <CardContent className="px-5 pb-4">
-              <p className="text-sm text-foreground leading-relaxed">{card.realMeaning}</p>
-              <p className={cn('text-xs font-medium mt-2', IMPACT_COLORS[card.impact])}>{card.impactLabel}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Evidencia</CardTitle></CardHeader>
-            <CardContent className="px-5 pb-4">
-              <p className="text-sm text-muted-foreground">{card.evidence}</p>
-              <p className="text-xs text-muted-foreground mt-2">Confianza: {Math.round(card.confidence * 100)}%</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="border-primary/20 bg-primary/5">
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm flex items-center gap-1.5 text-primary"><Crosshair className="h-4 w-4" /> Script de respuesta</CardTitle>
+        {/* BLOCK 1: Qué responder ahora — MOST PROMINENT */}
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-2 pt-5 px-6">
+            <CardTitle className="text-base flex items-center gap-2 text-primary">
+              <Crosshair className="h-4.5 w-4.5" /> Qué responder al cliente ahora
+            </CardTitle>
           </CardHeader>
-          <CardContent className="px-5 pb-4">
-            <p className="text-sm text-foreground leading-relaxed italic">{card.responseScript}</p>
+          <CardContent className="px-6 pb-5 space-y-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary/70 mb-1.5">Respuesta corta para llamada</p>
+              <p className="text-base text-foreground leading-relaxed italic">{card.shortScript}</p>
+            </div>
+            <Separator className="opacity-30" />
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary/70 mb-1.5">Respuesta desarrollada para reunión</p>
+              <p className="text-sm text-foreground leading-relaxed italic">{card.fullScript}</p>
+            </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* BLOCK 2: Si insiste */}
+        <Card className="border-amber-500/20 bg-amber-500/5">
+          <CardHeader className="pb-2 pt-4 px-6">
+            <CardTitle className="text-sm flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <ArrowRightIcon className="h-4 w-4" /> Si el cliente insiste, segunda línea de respuesta
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-4">
+            <p className="text-sm text-foreground leading-relaxed italic">{card.secondResponse}</p>
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 3: Cómo reposicionar Nova Silva */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-6">
+            <CardTitle className="text-sm">Cómo reposicionar Nova Silva frente a esta objeción</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-4 space-y-2">
+            <p className="text-xs text-muted-foreground mb-1">Objetivo del vendedor:</p>
+            <p className="text-sm text-foreground leading-relaxed font-medium">{card.sellerObjective}</p>
+            <Separator className="my-2 opacity-30" />
+            <p className="text-xs text-muted-foreground mb-1">Ángulo Nova Silva:</p>
+            <p className="text-sm text-foreground leading-relaxed">{card.novaSilvaAngle}</p>
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 4 & 5: Arguments + Proof side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs">Argumento fuerte</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.strongArgument}</p></CardContent>
+            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Argumentos fuertes</CardTitle></CardHeader>
+            <CardContent className="px-5 pb-4 space-y-1.5">
+              {card.strongArguments.map((arg, i) => (
+                <p key={i} className="text-xs text-foreground leading-relaxed flex items-start gap-1.5">
+                  <Check className="h-3 w-3 text-primary mt-0.5 shrink-0" /> {arg}
+                </p>
+              ))}
+            </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs">Prueba / evidencia a usar</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.proofToUse}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs">Validar en próxima interacción</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.validateNext}</p></CardContent>
+            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Evidencia / material a preparar</CardTitle></CardHeader>
+            <CardContent className="px-5 pb-4 space-y-1.5">
+              {card.proofAssets.map((p, i) => (
+                <p key={i} className="text-xs text-foreground leading-relaxed flex items-start gap-1.5">
+                  <Eye className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" /> {p}
+                </p>
+              ))}
+            </CardContent>
           </Card>
         </div>
 
+        {/* BLOCK 6: Tactical question */}
+        <Card className="border-primary/15">
+          <CardHeader className="pb-2 pt-4 px-6">
+            <CardTitle className="text-sm text-primary">Pregunta táctica para avanzar</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-4">
+            <p className="text-base text-foreground leading-relaxed italic">{card.tacticalQuestion}</p>
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 7: Qué NO decir */}
         <Card className="border-destructive/20 bg-destructive/5">
-          <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm text-destructive">Qué NO hacer</CardTitle></CardHeader>
-          <CardContent className="px-5 pb-4"><p className="text-sm text-foreground leading-relaxed">{card.doNot}</p></CardContent>
+          <CardHeader className="pb-2 pt-4 px-6"><CardTitle className="text-sm text-destructive">Qué NO decir</CardTitle></CardHeader>
+          <CardContent className="px-6 pb-4 space-y-1">
+            {card.doNot.map((d, i) => (
+              <p key={i} className="text-sm text-foreground leading-relaxed flex items-start gap-1.5">
+                <X className="h-3 w-3 text-destructive mt-0.5 shrink-0" /> {d}
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 8: Meaning + Variations + Escalation — lower weight */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground">Qué significa realmente</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.realMeaning}</p></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground">Cómo puede sonar del cliente</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4 space-y-0.5">
+              {card.clientVariations.length > 0 ? card.clientVariations.map((v, i) => (
+                <p key={i} className="text-xs text-foreground italic">{v}</p>
+              )) : <p className="text-xs text-muted-foreground">—</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground">Si no se resuelve hoy</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.escalationPath}</p></CardContent>
+          </Card>
+        </div>
+
+        {/* Follow-up draft */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-6"><CardTitle className="text-sm">Mensaje de follow-up sugerido</CardTitle></CardHeader>
+          <CardContent className="px-6 pb-4">
+            <p className="text-xs text-foreground leading-relaxed bg-muted/50 rounded-md px-4 py-3 italic">{card.followUpDraft}</p>
+          </CardContent>
         </Card>
 
         <Separator />
 
-        {/* Seller editable — persistence-ready for sales_session_objection_actions */}
+        {/* Seller editable — persistence-ready */}
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Respuesta refinada del vendedor</Label>
@@ -281,16 +356,26 @@ function MeetingMode({
                 <h3 className="text-lg font-bold text-foreground">{card.label}</h3>
               </div>
               <div className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">Cómo responder</p>
-                <p className="text-base text-foreground leading-relaxed italic">{card.responseScript}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">Respuesta rápida</p>
+                <p className="text-base text-foreground leading-relaxed italic">{card.shortScript}</p>
               </div>
               <div className="rounded-lg border border-border px-5 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Argumento fuerte</p>
-                <p className="text-sm text-foreground leading-relaxed">{card.strongArgument}</p>
+                <div className="space-y-1">
+                  {card.strongArguments.slice(0, 2).map((a, j) => (
+                    <p key={j} className="text-sm text-foreground leading-relaxed flex items-start gap-1.5">
+                      <Check className="h-3 w-3 text-primary mt-0.5 shrink-0" /> {a}
+                    </p>
+                  ))}
+                </div>
               </div>
               <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-5 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive mb-1">No decir</p>
-                <p className="text-sm text-foreground leading-relaxed">{card.doNot}</p>
+                <div className="space-y-0.5">
+                  {card.doNot.slice(0, 2).map((d, j) => (
+                    <p key={j} className="text-sm text-foreground leading-relaxed">{d}</p>
+                  ))}
+                </div>
               </div>
               {i < fallback.length - 1 && <Separator />}
             </div>
