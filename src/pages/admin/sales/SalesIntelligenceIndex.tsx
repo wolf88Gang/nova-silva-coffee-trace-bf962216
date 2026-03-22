@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Plus, ArrowRight, AlertCircle, Inbox, Target, TrendingUp, TrendingDown,
-  Minus, FileText, Clock, CheckCircle2, User, Calendar, Filter,
+  Minus, FileText, Clock, CheckCircle2, User, Calendar, Filter, Archive, Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CLIENT_TYPE_LABELS } from '@/lib/commercialBriefEngine';
