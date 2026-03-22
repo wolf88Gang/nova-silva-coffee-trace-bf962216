@@ -210,6 +210,15 @@ const App = () => (
               <Route path="/cumplimiento/data-room" element={<DL><DocumentosIndex /></DL>} />
               <Route path="/cumplimiento/auditorias" element={<DL><CertificadoraAuditorias /></DL>} />
 
+              {/* CERTIFICACIÓN */}
+              <Route path="/certificacion" element={<DL><CertificacionHome /></DL>} />
+              <Route path="/certificacion/esquema/:schemeKey" element={<DL><CertificacionSchemeDetail /></DL>} />
+              <Route path="/certificacion/evidencia" element={<DL><CertificacionEvidenceCenter /></DL>} />
+              <Route path="/certificacion/correctivas" element={<DL><CertificacionCorrectiveActions /></DL>} />
+              <Route path="/certificacion/cruzada" element={<DL><CertificacionCrossScheme /></DL>} />
+              <Route path="/certificacion/dossier" element={<DL><CertificacionAuditDossier /></DL>} />
+              <Route path="/certificacion/wizard" element={<DL><CertificacionWizard /></DL>} />
+
               {/* CALIDAD / NOVA CUP */}
               <Route path="/calidad" element={<DL><CalidadIndex /></DL>} />
               <Route path="/calidad/lotes" element={<DL><CalidadIndex /></DL>} />

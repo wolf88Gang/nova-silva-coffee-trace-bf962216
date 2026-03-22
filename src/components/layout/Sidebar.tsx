@@ -126,6 +126,7 @@ function getNavGroups(orgType: string, role: string): NavGroupDef[] {
     if (v.canSeeEudr) items.push({ title: 'Dossiers EUDR', url: '/cumplimiento/eudr', icon: ShieldCheck });
     if (v.canSeeDataRoom) items.push({ title: 'Data Room', url: '/cumplimiento/data-room', icon: FolderOpen });
     if (v.canSeeAudits) items.push({ title: 'Auditorías', url: '/cumplimiento/auditorias', icon: FileText });
+    items.push({ title: 'Motor de certificación', url: '/certificacion', icon: Award });
     groups.push({ label: 'Cumplimiento', icon: ShieldCheck, items });
   }
 
