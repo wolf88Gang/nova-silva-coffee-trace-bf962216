@@ -72,11 +72,13 @@ export default function SalesDiagnostic() {
   const discoveryStarted = entryMode === 'new_lead' ? orgTypeSelected : orgSelected;
 
   const createSessionIfNeeded = useCallback(async (updatedProfile: LeadProfile) => {
-    if (sessionId || !updatedProfile.organization_id || !updatedProfile.organization_type) return;
+    if (sessionId || !updatedProfile.organization_type) return;
+    // For new leads, use placeholder org if no real org_id
+    const orgId = updatedProfile.organization_id || NOVA_SILVA_ADMIN_ORG_ID;
     setSessionCreating(true);
     try {
       const result = await SalesSessionService.createSession({
-        organization_id: updatedProfile.organization_id,
+        organization_id: orgId,
         lead_name: updatedProfile.notes.find(n => n.startsWith('[lead_name]'))?.replace('[lead_name] ', '') ?? null,
         lead_company: updatedProfile.organization_name,
         lead_type: updatedProfile.organization_type,
@@ -84,6 +86,7 @@ export default function SalesDiagnostic() {
         questionnaire_version: 1,
       });
       setSessionId(result.sessionId);
+      toast.success('Sesión creada correctamente');
     } catch (err: any) {
       console.error('[Copilot] Session creation failed:', err);
       toast.error(`Error creando sesión: ${err.message}`);
@@ -95,10 +98,9 @@ export default function SalesDiagnostic() {
   const handleOrgTypeSelect = useCallback((orgType: string) => {
     const updated = { ...profile, organization_type: orgType };
     setProfile(updated);
-    if (entryMode === 'existing') {
-      createSessionIfNeeded(updated);
-    }
-  }, [profile, createSessionIfNeeded, entryMode]);
+    // Always attempt session creation when org type is selected
+    createSessionIfNeeded(updated);
+  }, [profile, createSessionIfNeeded]);
 
   const handleOrgSelect = useCallback((orgId: string) => {
     const org = organizations?.items.find(o => o.id === orgId);
