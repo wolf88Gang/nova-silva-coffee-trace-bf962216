@@ -823,6 +823,7 @@ export default function SalesSessionDetail() {
   }
 
   /* ── Overlay modes ── */
+  if (fullEditMode && session) return <FullSessionEditMode session={session} onClose={() => setFullEditMode(false)} onSaved={() => queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] })} />;
   if (battleCard) return createPortal(<FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />, document.body);
   if (meetingMode && hypothesis && playbook) return createPortal(<MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />, document.body);
 
