@@ -671,6 +671,56 @@ export default function SalesSessionDetail() {
         </CardContent>
       </Card>
 
+      {/* ═══ 4 ACCOUNT ACTION BLOCKS ═══ */}
+      {accountActions && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-primary/15">
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <MessageSquare className="h-4 w-4 text-primary" /> Cómo abrir la próxima conversación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4">
+              <p className="text-sm text-foreground leading-relaxed italic">{accountActions.conversationOpener}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Target className="h-4 w-4 text-primary" /> Tesis comercial para esta cuenta
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4">
+              <p className="text-xs text-foreground leading-relaxed">{accountActions.commercialThesis}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Eye className="h-4 w-4 text-primary" /> Qué material llevar a la reunión
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4 space-y-1">
+              {accountActions.meetingAssets.map((asset, i) => (
+                <p key={i} className="text-xs text-foreground flex items-start gap-1.5">
+                  <Check className="h-3 w-3 text-primary mt-0.5 shrink-0" /> {asset}
+                </p>
+              ))}
+            </CardContent>
+          </Card>
+          <Card className="border-primary/15">
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Crosshair className="h-4 w-4 text-primary" /> Qué resultado buscar en la próxima interacción
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4">
+              <p className="text-sm text-foreground font-medium">{accountActions.meetingTarget}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* ═══ TWO COLUMN: Action + Pitch ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {nextAction && (
