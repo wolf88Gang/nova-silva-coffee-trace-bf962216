@@ -1,29 +1,29 @@
 /**
  * Certification Home — Compliance engine dashboard.
  * Shows scheme readiness, risk alerts, critical gaps, and evidence status.
+ * Connected to real Supabase data via useCertificationReadiness.
  */
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Shield, AlertTriangle, CheckCircle2, FileWarning,
   ChevronRight, ArrowRight, Clock, XCircle,
-  Leaf, Users, Coffee, Award, Globe, Sprout,
+  Leaf, Users, Coffee, Award, Globe, Sprout, Database,
 } from 'lucide-react';
 import {
   CERTIFICATION_SCHEMES,
-  generateDemoReadiness,
-  generateDemoGaps,
-  generateDemoCorrectiveActions,
   getSeverityLabel,
   getSeverityColor,
   RISK_ITEMS,
   type SchemeReadiness,
   type SchemeKey,
 } from '@/lib/certificationEngine';
+import { useCertificationReadiness } from '@/hooks/useCertificationData';
 import { cn } from '@/lib/utils';
 
 const SCHEME_ICONS: Record<string, React.ElementType> = {
@@ -50,23 +50,43 @@ const RISK_LABELS: Record<string, string> = {
 
 export default function CertificacionHome() {
   const navigate = useNavigate();
-  const readiness = useMemo(() => generateDemoReadiness(), []);
-  const gaps = useMemo(() => generateDemoGaps(), []);
-  const correctives = useMemo(() => generateDemoCorrectiveActions(), []);
+  const { data, isLoading } = useCertificationReadiness();
+
+  const readiness = data?.readiness ?? [];
+  const gaps = data?.gaps ?? [];
+  const correctives = data?.correctives ?? [];
+  const dataSource = data?.dataSource ?? 'demo';
 
   const totalSchemes = readiness.length;
-  const avgReadiness = Math.round(readiness.reduce((a, r) => a + r.readinessPercent, 0) / totalSchemes);
+  const avgReadiness = totalSchemes > 0 ? Math.round(readiness.reduce((a, r) => a + r.readinessPercent, 0) / totalSchemes) : 0;
   const criticalCount = correctives.filter(c => c.severity === 'tolerancia_cero' || c.status === 'vencido' || c.status === 'escalado').length;
   const pendingActions = correctives.filter(c => c.status !== 'resuelto').length;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}
+        </div>
+        <Skeleton className="h-48 w-full rounded-lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Shield className="h-6 w-6 text-primary" />
-          Motor de Certificación
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary" />
+            Motor de Certificación
+          </h1>
+          {dataSource === 'demo' && (
+            <Badge variant="outline" className="text-[10px] text-muted-foreground gap-1"><Database className="h-2.5 w-2.5" /> Datos demo</Badge>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground mt-1">
           Gestión de evidencia, detección de brechas y preparación de auditoría para todos los esquemas activos
         </p>

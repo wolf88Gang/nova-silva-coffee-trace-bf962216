@@ -984,9 +984,9 @@ export function generateHypothesis(summary: SalesSessionSummary, reading: Commer
   else if (pain >= 3) parts.push('El lead identifica problemas pero no los percibe como urgentes');
   else parts.push('El lead aún no articula un dolor claro');
 
-  // Urgency
-  if (urgency >= 6) parts.push('y tiene ventana de decisión activa');
-  else parts.push('pero no hay urgencia definida');
+  // Urgency — add comma separator to avoid word concatenation
+  if (urgency >= 6) parts.push(', y tiene ventana de decisión activa');
+  else parts.push(', pero no hay urgencia definida');
 
   // What's blocking
   const topCluster = clusters[0];

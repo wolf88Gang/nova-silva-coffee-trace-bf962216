@@ -468,6 +468,13 @@ export default function SalesSessionDetail() {
   // Persistence-ready: phase selection should save to sales_session_phase_updates
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [phaseNote, setPhaseNote] = useState('');
+  // Session header editing
+  const [editingHeader, setEditingHeader] = useState(false);
+  const [editLeadCompany, setEditLeadCompany] = useState('');
+  const [editLeadName, setEditLeadName] = useState('');
+  const [editLeadType, setEditLeadType] = useState('');
+  // Phase save tracking
+  const [phaseSaved, setPhaseSaved] = useState(false);
 
   const session = data?.session ?? null;
   const existingOutcome = data?.outcome ?? null;
@@ -489,6 +496,15 @@ export default function SalesSessionDetail() {
     setDealValue(existingOutcome?.deal_value?.toString() ?? '');
   }, [existingOutcome]);
 
+  // Initialize header edit fields from session
+  useEffect(() => {
+    if (session) {
+      setEditLeadCompany(session.lead_company ?? '');
+      setEditLeadName(session.lead_name ?? '');
+      setEditLeadType(session.lead_type ?? '');
+    }
+  }, [session]);
+
   // Initialize selected phase from readiness
   useEffect(() => {
     if (selectedPhase === null && reading) {
@@ -503,9 +519,50 @@ export default function SalesSessionDetail() {
     }
   }, [reading, selectedPhase]);
 
+  // Save header mutation — updates sales_sessions directly
+  const saveHeaderMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId) throw new Error('No session');
+      const { error: updateError } = await (await import('@/integrations/supabase/client')).supabase
+        .from('sales_sessions' as any)
+        .update({
+          lead_company: editLeadCompany.trim() || null,
+          lead_name: editLeadName.trim() || null,
+          lead_type: editLeadType || null,
+        } as any)
+        .eq('id', sessionId);
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      toast.success('Datos del lead actualizados');
+      setEditingHeader(false);
+      queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] });
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo actualizar'),
+  });
+
+  // Save phase mutation — updates sales_sessions.commercial_stage
+  const savePhaseMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId || !selectedPhase) throw new Error('Selecciona una fase');
+      const { error: updateError } = await (await import('@/integrations/supabase/client')).supabase
+        .from('sales_sessions' as any)
+        .update({ commercial_stage: selectedPhase } as any)
+        .eq('id', sessionId);
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      toast.success('Fase comercial actualizada');
+      setPhaseSaved(true);
+      queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] });
+      setTimeout(() => setPhaseSaved(false), 3000);
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo guardar la fase'),
+  });
+
   const saveOutcomeMutation = useMutation({
     mutationFn: async () => {
-      if (!sessionId || !outcome) throw new Error('Selecciona un outcome');
+      if (!sessionId || !outcome) throw new Error('Selecciona un resultado');
       await SalesSessionService.saveOutcome({
         sessionId,
         outcome,
@@ -570,6 +627,15 @@ export default function SalesSessionDetail() {
   const hasOutcome = Boolean(existingOutcome);
   const clientType = session.lead_type ? (CLIENT_TYPE_LABELS[session.lead_type] ?? session.lead_type) : null;
 
+  const LEAD_TYPES_MAP: Record<string, string> = {
+    cooperativa: 'Cooperativa / Asociación',
+    exportador: 'Exportador',
+    exportador_red: 'Exportador con red de productores',
+    beneficio_privado: 'Beneficio (compra + procesa)',
+    finca_privada: 'Finca privada',
+    trader: 'Comercializador / Trader',
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-5 p-4">
 
@@ -579,17 +645,54 @@ export default function SalesSessionDetail() {
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/admin/sales')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-foreground truncate">
-              {session.lead_company || session.lead_name || 'Sesión comercial'}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {clientType ? `${clientType} · ` : ''}
-              {new Date(session.created_at).toLocaleDateString('es')}
-              {session.lead_name && session.lead_company ? ` · ${session.lead_name}` : ''}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+          {editingHeader ? (
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Empresa / Lead</Label>
+                  <Input value={editLeadCompany} onChange={(e) => setEditLeadCompany(e.target.value)} placeholder="Nombre de la empresa" className="h-8 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Contacto</Label>
+                  <Input value={editLeadName} onChange={(e) => setEditLeadName(e.target.value)} placeholder="Nombre del contacto" className="h-8 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Tipo</Label>
+                  <Select value={editLeadType} onValueChange={setEditLeadType}>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(LEAD_TYPES_MAP).map(([val, lab]) => (
+                        <SelectItem key={val} value={val}>{lab}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" className="h-7 text-xs gap-1" onClick={() => saveHeaderMutation.mutate()} disabled={saveHeaderMutation.isPending}>
+                  <Save className="h-3 w-3" /> {saveHeaderMutation.isPending ? 'Guardando…' : 'Guardar'}
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditingHeader(false)}>Cancelar</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-foreground truncate">
+                  {session.lead_company || session.lead_name || 'Sin nombre'}
+                </h1>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setEditingHeader(true)}>
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {clientType ? `${clientType} · ` : ''}
+                {new Date(session.created_at).toLocaleDateString('es')}
+                {session.lead_name && session.lead_company ? ` · ${session.lead_name}` : ''}
+              </p>
+            </div>
+          )}
+          <div className="flex items-center gap-2 shrink-0">
             {battleCards.length > 0 && (
               <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
                 <Phone className="h-3.5 w-3.5" /> Modo reunión
@@ -611,10 +714,6 @@ export default function SalesSessionDetail() {
           {session.updated_at && (
             <span>Última actividad: <span className="font-medium text-foreground">{new Date(session.updated_at).toLocaleDateString('es')}</span></span>
           )}
-          {/* Persistence-ready: owner would come from sales_sessions.owner_user_id */}
-          <span className="text-[10px] text-muted-foreground/60">
-            ID: {session.id.slice(0, 8)}
-          </span>
         </div>
       </div>
 
@@ -941,13 +1040,25 @@ export default function SalesSessionDetail() {
                 );
               })}
             </div>
-            {/* Persistence-ready: phase note for sales_session_phase_updates */}
             <Textarea
               value={phaseNote}
               onChange={(e) => setPhaseNote(e.target.value)}
               placeholder="Razón o nota sobre la fase seleccionada..."
               className="min-h-[50px] text-xs"
             />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                className="h-7 text-xs gap-1"
+                disabled={!selectedPhase || savePhaseMutation.isPending}
+                onClick={() => savePhaseMutation.mutate()}
+              >
+                <Save className="h-3 w-3" /> {savePhaseMutation.isPending ? 'Guardando…' : 'Guardar fase'}
+              </Button>
+              {phaseSaved && (
+                <span className="text-xs text-primary flex items-center gap-1"><Check className="h-3 w-3" /> Guardado</span>
+              )}
+            </div>
           </CardContent>
         </Card>
 
