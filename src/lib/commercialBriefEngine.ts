@@ -41,34 +41,32 @@ export interface BattleCard {
   evidence: string;
   impact: ObjectionImpact;
   impactLabel: string;
-  /** Seller's commercial objective when handling this objection */
   sellerObjective: string;
-  /** How to position Nova Silva specifically against this objection */
   novaSilvaAngle: string;
-  /** Short script for live calls */
   shortScript: string;
-  /** Developed script for meetings */
   fullScript: string;
-  /** What to say if client pushes back again */
   secondResponse: string;
-  /** Concrete supporting arguments */
   strongArguments: string[];
-  /** Specific proof/material to prepare */
   proofAssets: string[];
-  /** Tactical question to regain control */
   tacticalQuestion: string;
-  /** Explicit anti-patterns */
   doNot: string[];
-  /** How client may phrase this objection */
   clientVariations: string[];
-  /** What to do if unresolved in-call */
   escalationPath: string;
-  /** Draft follow-up message */
   followUpDraft: string;
   priority: ObjectionPriority;
   priorityLabel: string;
   status: 'pending' | 'in_progress' | 'resolved';
   cluster: FrictionClusterKey;
+  /* ── Account-context fields ── */
+  accountRelevance: string;
+  whyThisMattersForThisAccount: string;
+  sellerWinCondition: string;
+  novaSilvaPositioningForThisAccount: string;
+  meetingNarrative: string[];
+  closingMoveScript: string;
+  assetsToOpenNow: string[];
+  likelyVariationsForThisAccount: string[];
+  ifUnresolvedNextStep: string;
 }
 
 export interface ClassifiedRecommendation {
@@ -640,8 +638,232 @@ export function generateSuggestedPitch(summary: SalesSessionSummary): SuggestedP
   return { angle: 'Abrir por caso de éxito similar', reasoning: 'Perfil aún en exploración — usar evidencia de clientes similares para construir credibilidad.' };
 }
 
-/* ── Objection classification with cluster assignment ── */
+/* ── Account-context overlay maps ── */
+interface AccountContextOverlay {
+  relevance: string;
+  whyMatters: string;
+  winCondition: string;
+  positioning: string;
+  narrative: string[];
+  closingMove: string;
+  assetsNow: string[];
+  variationsForType: string[];
+  unresolvedStep: string;
+}
+
+const LEAD_TYPE_POSITIONING: Record<string, Record<string, Partial<AccountContextOverlay>>> = {
+  trust: {
+    exportador: {
+      relevance: 'Alta — los exportadores evalúan proveedores de tecnología como evalúan proveedores de café: por fiabilidad y resultados verificables.',
+      positioning: 'Para este exportador, Nova Silva debe posicionarse como infraestructura operativa confiable para trazabilidad y compliance, no como plataforma innovadora.',
+      closingMove: '"¿Qué les parece si hacemos una prueba sobre un lote de exportación real? Así evalúan con su propia operación, no con la nuestra."',
+      variationsForType: ['"Necesitamos algo probado, no un experimento"', '"¿Quién más del sector exportador lo usa?"', '"No podemos arriesgar nuestra cadena de suministro"'],
+      assetsNow: ['Caso de exportador verificable', 'Demo de flujo de trazabilidad EUDR sobre lote real', 'Referencia directa con exportador similar'],
+    },
+    cooperativa: {
+      relevance: 'Alta — las cooperativas toman decisiones colectivas y necesitan consenso. La confianza se construye con evidencia visible para múltiples stakeholders.',
+      positioning: 'Para esta cooperativa, Nova Silva debe mostrarse como herramienta para fortalecer la gestión ante socios y compradores, no como gasto tecnológico.',
+      closingMove: '"¿Qué tal si presentamos un caso similar a su consejo directivo? Así la decisión se toma con información, no con suposiciones."',
+      variationsForType: ['"La asamblea no va a aprobar algo que no entiende"', '"Ya nos ofrecieron algo parecido y no funcionó"', '"Nuestros socios son desconfiados con la tecnología"'],
+      assetsNow: ['Caso de cooperativa verificable', 'Resumen visual para presentar a consejo', 'Piloto con métricas claras para reportar a socios'],
+    },
+    beneficio: {
+      relevance: 'Media-alta — los beneficios evalúan por eficiencia operativa. La confianza se gana demostrando impacto en sus procesos de compra y procesamiento.',
+      positioning: 'Para este beneficio, Nova Silva es control operativo sobre la cadena de compra: trazabilidad de origen, calidad por lote, y cumplimiento ante compradores.',
+      closingMove: '"¿Podemos probar Nova Silva sobre un flujo de recepción de café durante una semana? Así ven el impacto real sin compromiso."',
+      variationsForType: ['"Ya tenemos nuestro sistema y funciona"', '"¿Esto no va a complicar nuestro proceso?"'],
+      assetsNow: ['Demo de flujo de recepción y trazabilidad', 'Caso de beneficio que mejoró control de calidad'],
+    },
+    finca_privada: {
+      relevance: 'Media — las fincas privadas son más ágiles en decisión pero más escépticas con tecnología que no resuelve problemas inmediatos de campo.',
+      positioning: 'Para esta finca, Nova Silva es visibilidad y control sobre su propia operación: parcelas, nutrición, costos, y cumplimiento para acceder a mercados premium.',
+      closingMove: '"¿Qué parte de su operación les genera más incertidumbre hoy? Empecemos por ahí y medimos resultados en 30 días."',
+      variationsForType: ['"En el campo la tecnología nunca funciona"', '"Ya tengo mi cuaderno y funciona"'],
+      assetsNow: ['Demo del flujo de campo offline', 'Caso de finca que mejoró trazabilidad y accedió a mercado premium'],
+    },
+  },
+  budget: {
+    exportador: {
+      relevance: 'Alta — los exportadores manejan márgenes estrechos y evalúan inversiones por impacto en acceso a mercados y eficiencia de cadena.',
+      positioning: 'Para este exportador, Nova Silva no es costo de tecnología — es costo de mantener acceso a mercados europeos y reducir riesgo de incumplimiento EUDR.',
+      closingMove: '"Si un solo comprador europeo les pide trazabilidad y no la tienen, ¿cuánto vale ese contrato? Ese es el ROI real."',
+      variationsForType: ['"Nuestros márgenes no permiten otro software"', '"¿Cuánto nos ahorra esto realmente?"'],
+      assetsNow: ['ROI estimado por volumen de exportación', 'Costo de perder acceso a mercado europeo'],
+    },
+    cooperativa: {
+      relevance: 'Muy alta — las cooperativas manejan presupuestos colectivos y necesitan justificar cada gasto ante socios.',
+      positioning: 'Para esta cooperativa, Nova Silva debe presentarse como inversión que se paga con eficiencia operativa y acceso a mercados premium para sus socios.',
+      closingMove: '"¿Podemos armar juntos un caso de negocio que su consejo pueda evaluar con números reales?"',
+      variationsForType: ['"La cooperativa no tiene presupuesto para tecnología"', '"Tenemos que pedirle a los socios"'],
+      assetsNow: ['Caso de negocio para cooperativa con ROI por socio', 'Propuesta modular con inversión mínima'],
+    },
+    beneficio: {
+      relevance: 'Alta — los beneficios evalúan por costo-beneficio directo en su operación de procesamiento.',
+      positioning: 'Para este beneficio, Nova Silva reduce costos ocultos: errores de registro, pérdida de trazabilidad, y riesgo de no-conformidad.',
+      closingMove: '"¿Cuántas horas-persona a la semana invierten en consolidar datos? Ese costo oculto generalmente sorprende."',
+      variationsForType: ['"Es caro para lo que hacemos"', '"No vemos el retorno claro"'],
+      assetsNow: ['Calculadora de costo de procesos manuales', 'ROI estimado para beneficio'],
+    },
+    finca_privada: {
+      relevance: 'Media — las fincas privadas tienen presupuestos limitados pero valoran inversiones que impactan directamente productividad y acceso a mercado.',
+      positioning: 'Para esta finca, Nova Silva es inversión mínima que abre puertas: trazabilidad para mercados premium y visibilidad sobre costos reales.',
+      closingMove: '"¿Qué pasaría si el módulo de trazabilidad les abre acceso a un comprador que paga 15% más? ¿Cómo se compara eso con la inversión?"',
+      variationsForType: ['"Soy productor, no tengo presupuesto para software"', '"¿No hay algo más barato?"'],
+      assetsNow: ['Propuesta de módulo mínimo con precio transparente', 'Caso de finca que accedió a mercado premium'],
+    },
+  },
+  complexity: {
+    exportador: {
+      relevance: 'Media — los exportadores tienen equipos más estructurados pero temen disrupciones en sus procesos de cadena.',
+      positioning: 'Nova Silva se integra con procesos existentes del exportador. No reemplaza su ERP ni su flujo de embarque — complementa con trazabilidad de origen.',
+      closingMove: '"¿Puedo mostrarles cómo Nova Silva se conecta con lo que ya usan, sin reemplazar nada?"',
+      variationsForType: ['"Ya tenemos sistemas y no queremos otro más"', '"¿Esto se integra con lo que ya usamos?"'],
+      assetsNow: ['Diagrama de integración con flujos existentes', 'Demo de trazabilidad sin disrumpir operación actual'],
+    },
+    cooperativa: {
+      relevance: 'Muy alta — las cooperativas tienen personal de campo con baja formación técnica. La complejidad es el miedo #1.',
+      positioning: 'Nova Silva se diseñó para técnicos de campo de cooperativas — funciona offline, interfaz simple, capacitación en finca. No requiere equipo de TI.',
+      closingMove: '"¿Qué tal si probamos con 3 técnicos de campo durante 2 semanas? Si ellos lo adoptan, funciona. Si no, paramos."',
+      variationsForType: ['"Nuestros técnicos apenas usan WhatsApp"', '"No tenemos departamento de sistemas"', '"En el campo no hay internet"'],
+      assetsNow: ['Demo del flujo offline en campo', 'Video de técnico real usando Nova Silva', 'Plan de onboarding para cooperativa'],
+    },
+    beneficio: {
+      relevance: 'Media — los beneficios tienen procesos establecidos y temen que nueva tecnología los desorganice.',
+      positioning: 'Nova Silva se acopla al flujo de recepción y procesamiento del beneficio sin cambiarlo. Añade capa de trazabilidad sobre lo que ya hacen.',
+      closingMove: '"¿Puedo mostrarles cómo funciona sobre su proceso de recepción actual, sin cambiarlo?"',
+      variationsForType: ['"Ya tenemos nuestro sistema de pesaje y calidad"', '"No queremos cambiar cómo trabajamos"'],
+      assetsNow: ['Demo de integración con flujo de recepción', 'Caso de beneficio que adoptó sin disrumpir operación'],
+    },
+    finca_privada: {
+      relevance: 'Alta — los productores privados son prácticos. Si no es simple y útil en el primer uso, lo abandonan.',
+      positioning: 'Nova Silva funciona offline, se usa con el teléfono en la parcela, y en 5 minutos ya están registrando. No hay nada que instalar ni configurar.',
+      closingMove: '"¿Tiene 10 minutos? Le muestro el sistema funcionando en una parcela como la suya, sin internet."',
+      variationsForType: ['"Yo no soy de computadoras"', '"¿Esto funciona sin señal?"'],
+      assetsNow: ['Demo rápida del flujo de campo offline', 'Video de productor real usando el sistema'],
+    },
+  },
+  internal_approval: {
+    exportador: {
+      relevance: 'Alta — los exportadores tienen estructura de directorio y presupuesto requiere aprobación de gerencia general o junta.',
+      positioning: 'Nova Silva prepara material board-ready para la junta del exportador: ROI sobre exportaciones, riesgo EUDR cuantificado, timeline de implementación.',
+      closingMove: '"¿Cuándo es la próxima reunión de directorio? Le preparo un resumen ejecutivo con los números que ellos necesitan ver."',
+      variationsForType: ['"La gerencia general tiene que aprobarlo"', '"Esto tiene que ir al directorio"'],
+      assetsNow: ['Resumen ejecutivo enfocado en riesgo exportador', 'ROI por volumen de exportación', 'One-pager para directorio'],
+    },
+    cooperativa: {
+      relevance: 'Muy alta — las cooperativas requieren aprobación de consejo directivo o asamblea. El ciclo es largo y necesita consenso.',
+      positioning: 'Nova Silva prepara material visual y simple para que el gerente presente al consejo con confianza. Incluye caso de negocio por socio.',
+      closingMove: '"¿Puedo preparar una presentación corta para su consejo? Con números por socio y un plan de implementación que ellos puedan evaluar."',
+      variationsForType: ['"El consejo se reúne cada 3 meses"', '"La asamblea tiene que aprobarlo"', '"Necesito convencer a los directivos"'],
+      assetsNow: ['Presentación visual para consejo directivo', 'Caso de negocio por socio', 'Comparativa de costo de no actuar'],
+    },
+    beneficio: {
+      relevance: 'Media — los beneficios privados tienen decisión más centralizada pero el dueño quiere ver números claros.',
+      positioning: 'Para este beneficio, Nova Silva provee un caso de negocio directo: cuánto cuesta la ineficiencia actual vs la inversión en control operativo.',
+      closingMove: '"¿El dueño prefiere ver números o una demo? Puedo preparar lo que más le convenza."',
+      variationsForType: ['"Tengo que hablarlo con el dueño"', '"No tomo esa decisión yo"'],
+      assetsNow: ['Caso de negocio para beneficio privado', 'Demo ejecutiva de 15 min'],
+    },
+    finca_privada: {
+      relevance: 'Baja-media — las fincas privadas suelen tener decisión rápida si el productor es el dueño.',
+      positioning: 'Si hay un socio o familiar que decide, Nova Silva provee un resumen simple de inversión vs retorno para una conversación rápida.',
+      closingMove: '"¿Quiere que preparemos un resumen de una página para compartir con quien decide?"',
+      variationsForType: ['"Tengo que hablarlo con mi socio"', '"Mi esposa/o maneja las finanzas"'],
+      assetsNow: ['One-pager de inversión vs retorno', 'Demo rápida grabada para compartir'],
+    },
+  },
+  timing: {
+    exportador: {
+      relevance: 'Alta — los exportadores tienen ventanas de embarque, contratos con fecha, y regulaciones con deadline. El timing es cuantificable.',
+      positioning: 'Para este exportador, el timing no es abstracto: EUDR tiene fecha, los contratos de compra tienen temporada, y prepararse tarde cuesta más.',
+      closingMove: '"¿Cuándo es su próximo embarque a Europa? Si EUDR requiere trazabilidad para ese momento, el timeline de implementación empieza ahora."',
+      variationsForType: ['"Lo vemos después de la cosecha"', '"El próximo año lo evaluamos"'],
+      assetsNow: ['Timeline EUDR vs calendario de embarques', 'Costo de implementar con urgencia vs planificado'],
+    },
+    cooperativa: {
+      relevance: 'Alta — las cooperativas tienen ciclo agrícola, auditorías de certificación, y asambleas con calendario fijo.',
+      positioning: 'El timing para esta cooperativa se ancla en eventos reales: cosecha, auditoría de certificación, renovación de contratos con compradores.',
+      closingMove: '"¿Cuándo es la próxima auditoría de certificación? Si necesitan trazabilidad para entonces, hay que arrancar ahora."',
+      variationsForType: ['"Después de la cosecha vemos"', '"Este año ya no se puede"'],
+      assetsNow: ['Calendario de implementación vs ciclo agrícola', 'Caso de cooperativa que se preparó antes de auditoría'],
+    },
+    beneficio: {
+      relevance: 'Media — el timing en beneficios se vincula a temporada de compra y compromisos con exportadores.',
+      positioning: 'Para este beneficio, el timing importa porque los exportadores ya están pidiendo trazabilidad. Perder proveedor por no tenerla es riesgo real.',
+      closingMove: '"¿Sus compradores ya les están pidiendo trazabilidad? Si la respuesta es sí, el momento es ahora."',
+      variationsForType: ['"No es temporada de compra todavía"', '"Cuando empiece la cosecha lo vemos"'],
+      assetsNow: ['Timeline de implementación vs temporada de compra'],
+    },
+    finca_privada: {
+      relevance: 'Media — el timing se vincula a cosecha, certificación, o nuevo comprador.',
+      positioning: 'Para esta finca, prepararse antes de la cosecha es la ventaja. Empezar a registrar durante la cosecha es llegar tarde.',
+      closingMove: '"¿Cuándo empieza su cosecha? Si quiere trazabilidad para ese lote, hay que arrancar antes."',
+      variationsForType: ['"Cuando termine la cosecha veo"', '"Ahora estoy muy ocupado"'],
+      assetsNow: ['Plan de arranque rápido pre-cosecha'],
+    },
+  },
+};
+
+function getAccountOverlay(objectionKey: string, leadType: string | null, session: any): AccountContextOverlay {
+  const type = leadType ?? '';
+  const normalizedType = type === 'productor_empresarial' ? 'finca_privada'
+    : type === 'beneficio_privado' ? 'beneficio'
+    : type === 'aggregator' ? 'trader'
+    : type === 'exportador_red' ? 'exportador'
+    : type;
+
+  const overlay = LEAD_TYPE_POSITIONING[objectionKey]?.[normalizedType];
+
+  const pain = session?.score_pain ?? 0;
+  const urgency = session?.score_urgency ?? 0;
+  const budget = session?.score_budget_readiness ?? 0;
+  const fit = session?.score_fit ?? 0;
+  const maturity = session?.score_maturity ?? 0;
+  const typeLabel = CLIENT_TYPE_LABELS[type] ?? type ?? 'esta cuenta';
+
+  // Build context-aware defaults if no specific overlay
+  const scoreContext = [];
+  if (pain >= 7) scoreContext.push('dolor alto');
+  else if (pain < 4) scoreContext.push('dolor bajo');
+  if (urgency >= 7) scoreContext.push('urgencia activa');
+  else if (urgency < 4) scoreContext.push('sin urgencia');
+  if (budget >= 7) scoreContext.push('presupuesto probable');
+  else if (budget < 4) scoreContext.push('presupuesto no confirmado');
+  if (maturity < 4) scoreContext.push('madurez digital baja');
+
+  const contextStr = scoreContext.length > 0 ? ` (${scoreContext.join(', ')})` : '';
+
+  let winCondition = 'Validar esta objeción directamente y definir siguiente paso concreto.';
+  if (budget < 4 && objectionKey === 'budget') winCondition = 'Construir caso de negocio cuantificado que justifique la inversión ante quien aprueba.';
+  else if (urgency < 4 && (objectionKey === 'timing' || objectionKey === 'no_urgency')) winCondition = 'Conectar la inacción con un evento real que el lead reconozca como riesgo.';
+  else if (objectionKey === 'trust') winCondition = 'Ganar permiso para un alcance controlado donde Nova Silva demuestre valor con evidencia operativa.';
+  else if (objectionKey === 'internal_approval' || objectionKey === 'authority') winCondition = 'Armar al contacto con material suficiente para vender internamente y ganar acceso al decisor.';
+  else if (objectionKey === 'complexity' || objectionKey === 'adoption_risk') winCondition = 'Reducir la percepción de riesgo mostrando arranque gradual y acompañamiento incluido.';
+  else if (objectionKey === 'competition') winCondition = 'Diferenciar por acompañamiento y diseño para café, no por lista de features.';
+
+  return {
+    relevance: overlay?.relevance ?? `Relevancia contextual para ${typeLabel}${contextStr}.`,
+    whyMatters: overlay?.positioning ?? `Esta objeción debe abordarse considerando que ${typeLabel} tiene perfil${contextStr}.`,
+    winCondition,
+    positioning: overlay?.positioning ?? `Posicionar Nova Silva como solución práctica y de bajo riesgo para ${typeLabel}.`,
+    narrative: [
+      'Validar la preocupación sin minimizarla',
+      'Reducir riesgo percibido con evidencia concreta',
+      'Mostrar alcance controlado como siguiente paso',
+      'Definir acción concreta con fecha',
+    ],
+    closingMove: overlay?.closingMove ?? '"¿Cuál sería el siguiente paso concreto que les haría sentido para avanzar?"',
+    assetsNow: overlay?.assetsNow ?? ['Caso de cliente del mismo segmento', 'Propuesta de alcance mínimo', 'Resumen ejecutivo'],
+    variationsForType: overlay?.variationsForType ?? [],
+    unresolvedStep: overlay
+      ? `Enviar material específico para ${typeLabel} y agendar follow-up en 5-7 días.`
+      : 'Enviar resumen ejecutivo y agendar follow-up para validar la objeción directamente.',
+  };
+}
+
+/* ── Objection classification with cluster + account-context ── */
 export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
+  const s = summary.session;
   return summary.objections.map(o => {
     const raw = o.objection_type ?? 'unknown';
     const label = OBJECTION_LABELS[raw] ?? raw.replace(/_/g, ' ');
@@ -655,8 +877,6 @@ export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
     const pb = OBJECTION_PLAYBOOKS[raw] ?? {
       realMeaning: 'Fricción detectada por el sistema. Validar directamente con el lead.',
       impact: 'delays_decision' as ObjectionImpact,
-      responseScript: '"¿Puedes contarme más sobre qué les preocupa en este tema?"',
-      strongArgument: 'Validar con el lead antes de construir argumento específico.',
       sellerObjective: 'Validar la objeción directamente con el lead antes de construir respuesta.',
       novaSilvaAngle: 'Posicionar Nova Silva como solución práctica y adaptada al contexto del lead.',
       shortScript: '"¿Puedes contarme más sobre qué les preocupa en este tema?"',
@@ -670,6 +890,9 @@ export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
       escalationPath: 'Confirmar si esta objeción es real o solo percepción antes de invertir más tiempo.',
       followUpDraft: 'Hola [nombre], quedo atento a cualquier duda adicional. ¿Podemos agendar una conversación para profundizar?',
     };
+
+    // Get account-context overlay
+    const ctx = getAccountOverlay(raw, s?.lead_type ?? null, s);
 
     let priority: ObjectionPriority = 'low';
     if (conf >= 0.7 || pb.impact === 'blocks_decision') priority = 'critical';
@@ -700,6 +923,16 @@ export function classifyObjections(summary: SalesSessionSummary): BattleCard[] {
       priorityLabel: PRIORITY_LABELS[priority],
       status: 'pending' as const,
       cluster: OBJECTION_TO_CLUSTER[raw] ?? 'complexity_adoption',
+      // Account-context fields
+      accountRelevance: ctx.relevance,
+      whyThisMattersForThisAccount: ctx.whyMatters,
+      sellerWinCondition: ctx.winCondition,
+      novaSilvaPositioningForThisAccount: ctx.positioning,
+      meetingNarrative: ctx.narrative,
+      closingMoveScript: ctx.closingMove,
+      assetsToOpenNow: ctx.assetsNow,
+      likelyVariationsForThisAccount: ctx.variationsForType.length > 0 ? ctx.variationsForType : pb.clientVariations,
+      ifUnresolvedNextStep: ctx.unresolvedStep,
     };
   }).sort((a, b) => {
     const pOrder = { critical: 0, medium: 1, low: 2 };
@@ -881,3 +1114,84 @@ export const READINESS_LABELS: Record<CommercialReading['readinessLevel'], { lab
   immature: { label: 'Lead aún inmaduro', color: 'text-destructive' },
   unknown: { label: 'Sin información suficiente', color: 'text-muted-foreground' },
 };
+
+/* ══════════════════════════════════════════════════
+   ACCOUNT-LEVEL COMMERCIAL ACTION GENERATORS
+   ══════════════════════════════════════════════════ */
+
+export interface AccountActionBlocks {
+  conversationOpener: string;
+  commercialThesis: string;
+  meetingAssets: string[];
+  meetingTarget: string;
+}
+
+export function generateAccountActionBlocks(
+  summary: SalesSessionSummary,
+  reading: CommercialReading,
+  pitch: SuggestedPitch,
+  clusters: FrictionCluster[],
+): AccountActionBlocks {
+  const s = summary.session;
+  const typeLabel = s?.lead_type ? (CLIENT_TYPE_LABELS[s.lead_type] ?? s.lead_type) : 'este lead';
+  const topCluster = clusters[0];
+  const pain = s?.score_pain ?? 0;
+  const urgency = s?.score_urgency ?? 0;
+  const budget = s?.score_budget_readiness ?? 0;
+  const fit = s?.score_fit ?? 0;
+
+  // 1. Conversation opener
+  let conversationOpener = '';
+  if (pain >= 7 && urgency >= 6) {
+    conversationOpener = `"${s?.lead_company ?? typeLabel}, la última vez que hablamos detectamos presión real en [frente principal]. Hoy quiero aterrizar exactamente cómo resolvemos eso con un alcance concreto y medible."`;
+  } else if (fit >= 6 && budget < 5) {
+    conversationOpener = `"Quiero compartirles algo que hemos visto en organizaciones como la suya: el costo de no actuar en [trazabilidad/operaciones] es mucho mayor de lo que parece. ¿Puedo mostrarles los números?"`;
+  } else if (topCluster?.key === 'trust_credibility') {
+    conversationOpener = `"Entiendo que están evaluando con cuidado. Hoy no vengo a vender — vengo a mostrarles evidencia concreta de cómo funciona esto en una organización similar a la suya."`;
+  } else if (topCluster?.key === 'compliance_risk') {
+    conversationOpener = `"Hay un tema que está presionando a todo el sector y quiero asegurarme de que ustedes estén preparados antes de que se vuelva urgente: el cumplimiento regulatorio EUDR."`;
+  } else {
+    conversationOpener = `"Gracias por el tiempo. Hoy me gustaría entender mejor [frente principal] y compartirles cómo organizaciones similares están resolviendo exactamente eso."`;
+  }
+
+  // 2. Commercial thesis
+  let thesis = '';
+  if (reading.readinessLevel === 'ready_proposal') {
+    thesis = `${typeLabel} tiene fit alto con Nova Silva, dolor reconocido y ventana de decisión activa. La venta debe cerrarse con propuesta concreta enfocada en ${pitch.angle.toLowerCase()}.`;
+  } else if (reading.readinessLevel === 'ready_discovery') {
+    thesis = `${typeLabel} reconoce problemas pero falta aterrizar urgencia o presupuesto. El objetivo no es vender todavía — es construir un caso de negocio que justifique la inversión internamente.`;
+  } else if (reading.readinessLevel === 'nurture') {
+    thesis = `${typeLabel} no está listo para comprar. La prioridad es educar, construir relación y preparar el terreno para cuando haya evento gatillo.`;
+  } else {
+    thesis = `${typeLabel} está en fase de evaluación. La conversación debe enfocarse en entender dolor real, validar fit, y construir credibilidad antes de proponer alcance.`;
+  }
+
+  // 3. Meeting assets
+  const assets: string[] = [];
+  if (topCluster?.key === 'compliance_risk') assets.push('Flujo EUDR paso a paso');
+  if (topCluster?.key === 'budget_value') assets.push('ROI estimado por módulo');
+  if (topCluster?.key === 'trust_credibility') assets.push('Caso de cliente verificable del segmento');
+  if (topCluster?.key === 'timing_approval') assets.push('Resumen ejecutivo para decisor');
+  if (budget < 5) assets.push('Caso de negocio cuantificado');
+  if (urgency < 5) assets.push('Timeline regulatorio / auditorías');
+  assets.push('Propuesta modular con alcance mínimo');
+  if (s?.lead_type === 'cooperativa') assets.push('Material visual para consejo directivo');
+  if (s?.lead_type === 'exportador' || s?.lead_type === 'exportador_red') assets.push('Demo de trazabilidad EUDR sobre lote real');
+
+  // 4. Meeting target
+  let target = '';
+  switch (reading.readinessLevel) {
+    case 'ready_proposal': target = 'Confirmar decisor y entregar propuesta con fecha de respuesta.'; break;
+    case 'ready_discovery': target = 'Aterrizar dolor principal y construir caso de negocio con el lead.'; break;
+    case 'ready_negotiation': target = 'Presentar alcance mínimo y acordar piloto o propuesta acotada.'; break;
+    case 'nurture': target = 'Identificar sponsor interno y dejar material de credibilidad.'; break;
+    default: target = 'Validar si hay potencial real y definir si vale la pena invertir más tiempo.';
+  }
+
+  return {
+    conversationOpener,
+    commercialThesis: thesis,
+    meetingAssets: [...new Set(assets)],
+    meetingTarget: target,
+  };
+}

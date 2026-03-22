@@ -43,6 +43,7 @@ import {
   classifyRecommendations,
   CLIENT_TYPE_LABELS,
   COMMERCIAL_PHASES,
+  generateAccountActionBlocks,
   generateAccountPlaybook,
   generateCommercialReading,
   generateHypothesis,
@@ -51,6 +52,7 @@ import {
   generateSuggestedPitch,
   READINESS_LABELS,
   SCORE_COMMERCIAL_LABELS,
+  type AccountActionBlocks,
   type AccountPlaybook,
   type BattleCard,
   type CommercialHypothesis,
@@ -141,17 +143,18 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm overflow-y-auto">
-      <div className="max-w-4xl mx-auto p-6 md:p-8 space-y-6">
+      <div className="max-w-4xl mx-auto p-6 md:p-8 space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" /> {card.label}
             </h2>
-            <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <Badge variant="outline" className={cn('text-xs', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
               <Badge variant="outline" className={cn('text-xs', statusColors[status])}>{statusLabels[status]}</Badge>
               <span className={cn('text-xs font-medium', IMPACT_COLORS[card.impact])}>{card.impactLabel}</span>
+              <Badge variant="outline" className="text-[10px] font-normal">{card.priorityLabel}</Badge>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
@@ -159,11 +162,55 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
 
         <Separator />
 
-        {/* BLOCK 1: Qué responder ahora — MOST PROMINENT */}
+        {/* BLOCK 1: Por qué importa EN ESTA CUENTA */}
+        <Card className="border-primary/20 bg-primary/[0.03]">
+          <CardHeader className="pb-2 pt-4 px-6">
+            <CardTitle className="text-sm text-primary">Por qué esta objeción importa en esta cuenta</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-4 space-y-3">
+            <p className="text-sm text-foreground leading-relaxed">{card.accountRelevance}</p>
+            <div className="rounded-md bg-muted/50 border border-border px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Qué significa para esta cuenta</p>
+              <p className="text-xs text-foreground leading-relaxed">{card.whyThisMattersForThisAccount}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 2: Objetivo del vendedor + Win condition */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-6">
+            <CardTitle className="text-sm">Objetivo del vendedor en esta conversación</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-4 space-y-2">
+            <p className="text-sm text-foreground leading-relaxed font-medium">{card.sellerWinCondition}</p>
+            <Separator className="opacity-30" />
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Cómo posicionar Nova Silva aquí</p>
+            <p className="text-sm text-foreground leading-relaxed">{card.novaSilvaPositioningForThisAccount}</p>
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 3: Narrativa recomendada */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-6">
+            <CardTitle className="text-sm">Narrativa recomendada para esta reunión</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-4">
+            <ol className="space-y-1.5">
+              {card.meetingNarrative.map((step, i) => (
+                <li key={i} className="text-sm text-foreground flex items-start gap-2.5">
+                  <span className="text-primary font-bold shrink-0 text-xs bg-primary/10 rounded-full w-5 h-5 flex items-center justify-center mt-0.5">{i + 1}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 4: Qué decir primero — MOST PROMINENT */}
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader className="pb-2 pt-5 px-6">
             <CardTitle className="text-base flex items-center gap-2 text-primary">
-              <Crosshair className="h-4.5 w-4.5" /> Qué responder al cliente ahora
+              <Crosshair className="h-4.5 w-4.5" /> Qué decir primero
             </CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-5 space-y-4">
@@ -179,11 +226,11 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
           </CardContent>
         </Card>
 
-        {/* BLOCK 2: Si insiste */}
+        {/* BLOCK 5: Si insiste */}
         <Card className="border-amber-500/20 bg-amber-500/5">
           <CardHeader className="pb-2 pt-4 px-6">
             <CardTitle className="text-sm flex items-center gap-2 text-amber-700 dark:text-amber-400">
-              <ArrowRightIcon className="h-4 w-4" /> Si el cliente insiste, segunda línea de respuesta
+              <ArrowRightIcon className="h-4 w-4" /> Si el cliente insiste
             </CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
@@ -191,24 +238,22 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
           </CardContent>
         </Card>
 
-        {/* BLOCK 3: Cómo reposicionar Nova Silva */}
-        <Card>
+        {/* BLOCK 6: Cómo cerrar y avanzar */}
+        <Card className="border-primary/15 bg-primary/[0.03]">
           <CardHeader className="pb-2 pt-4 px-6">
-            <CardTitle className="text-sm">Cómo reposicionar Nova Silva frente a esta objeción</CardTitle>
+            <CardTitle className="text-sm text-primary flex items-center gap-2">
+              <Target className="h-4 w-4" /> Cómo cerrar esta parte y avanzar
+            </CardTitle>
           </CardHeader>
-          <CardContent className="px-6 pb-4 space-y-2">
-            <p className="text-xs text-muted-foreground mb-1">Objetivo del vendedor:</p>
-            <p className="text-sm text-foreground leading-relaxed font-medium">{card.sellerObjective}</p>
-            <Separator className="my-2 opacity-30" />
-            <p className="text-xs text-muted-foreground mb-1">Ángulo Nova Silva:</p>
-            <p className="text-sm text-foreground leading-relaxed">{card.novaSilvaAngle}</p>
+          <CardContent className="px-6 pb-4">
+            <p className="text-base text-foreground leading-relaxed italic">{card.closingMoveScript}</p>
           </CardContent>
         </Card>
 
-        {/* BLOCK 4 & 5: Arguments + Proof side by side */}
+        {/* BLOCK 7 & 8: Arguments + Assets side by side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
-            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Argumentos fuertes</CardTitle></CardHeader>
+            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Argumentos de apoyo</CardTitle></CardHeader>
             <CardContent className="px-5 pb-4 space-y-1.5">
               {card.strongArguments.map((arg, i) => (
                 <p key={i} className="text-xs text-foreground leading-relaxed flex items-start gap-1.5">
@@ -218,28 +263,28 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Evidencia / material a preparar</CardTitle></CardHeader>
+            <CardHeader className="pb-2 pt-4 px-5"><CardTitle className="text-sm">Material que debes abrir ahora</CardTitle></CardHeader>
             <CardContent className="px-5 pb-4 space-y-1.5">
-              {card.proofAssets.map((p, i) => (
+              {card.assetsToOpenNow.map((p, i) => (
                 <p key={i} className="text-xs text-foreground leading-relaxed flex items-start gap-1.5">
-                  <Eye className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" /> {p}
+                  <Eye className="h-3 w-3 text-primary mt-0.5 shrink-0" /> {p}
                 </p>
               ))}
             </CardContent>
           </Card>
         </div>
 
-        {/* BLOCK 6: Tactical question */}
+        {/* BLOCK 9: Tactical question */}
         <Card className="border-primary/15">
           <CardHeader className="pb-2 pt-4 px-6">
-            <CardTitle className="text-sm text-primary">Pregunta táctica para avanzar</CardTitle>
+            <CardTitle className="text-sm text-primary">Pregunta táctica siguiente</CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <p className="text-base text-foreground leading-relaxed italic">{card.tacticalQuestion}</p>
           </CardContent>
         </Card>
 
-        {/* BLOCK 7: Qué NO decir */}
+        {/* BLOCK 10: Qué NO decir */}
         <Card className="border-destructive/20 bg-destructive/5">
           <CardHeader className="pb-2 pt-4 px-6"><CardTitle className="text-sm text-destructive">Qué NO decir</CardTitle></CardHeader>
           <CardContent className="px-6 pb-4 space-y-1">
@@ -251,7 +296,20 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
           </CardContent>
         </Card>
 
-        {/* BLOCK 8: Meaning + Variations + Escalation — lower weight */}
+        {/* BLOCK 11: Si no se resuelve hoy */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-6"><CardTitle className="text-sm">Si esto no se resuelve hoy</CardTitle></CardHeader>
+          <CardContent className="px-6 pb-4 space-y-3">
+            <p className="text-xs text-foreground leading-relaxed">{card.ifUnresolvedNextStep}</p>
+            <Separator className="opacity-30" />
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Mensaje de follow-up sugerido</p>
+              <p className="text-xs text-foreground leading-relaxed bg-muted/50 rounded-md px-4 py-3 italic">{card.followUpDraft}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* BLOCK 12: Metadata — lower weight */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground">Qué significa realmente</CardTitle></CardHeader>
@@ -260,24 +318,16 @@ function FullBattleMode({ card, onClose }: { card: BattleCard; onClose: () => vo
           <Card>
             <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground">Cómo puede sonar del cliente</CardTitle></CardHeader>
             <CardContent className="px-4 pb-4 space-y-0.5">
-              {card.clientVariations.length > 0 ? card.clientVariations.map((v, i) => (
+              {card.likelyVariationsForThisAccount.length > 0 ? card.likelyVariationsForThisAccount.map((v, i) => (
                 <p key={i} className="text-xs text-foreground italic">{v}</p>
               )) : <p className="text-xs text-muted-foreground">—</p>}
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground">Si no se resuelve hoy</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.escalationPath}</p></CardContent>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-xs text-muted-foreground">Evidencia</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4"><p className="text-xs text-foreground leading-relaxed">{card.evidence}</p></CardContent>
           </Card>
         </div>
-
-        {/* Follow-up draft */}
-        <Card>
-          <CardHeader className="pb-2 pt-4 px-6"><CardTitle className="text-sm">Mensaje de follow-up sugerido</CardTitle></CardHeader>
-          <CardContent className="px-6 pb-4">
-            <p className="text-xs text-foreground leading-relaxed bg-muted/50 rounded-md px-4 py-3 italic">{card.followUpDraft}</p>
-          </CardContent>
-        </Card>
 
         <Separator />
 
@@ -354,10 +404,15 @@ function MeetingMode({
               <div>
                 <Badge variant="outline" className={cn('text-xs mb-1', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
                 <h3 className="text-lg font-bold text-foreground">{card.label}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{card.sellerWinCondition}</p>
               </div>
               <div className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">Respuesta rápida</p>
                 <p className="text-base text-foreground leading-relaxed italic">{card.shortScript}</p>
+              </div>
+              <div className="rounded-lg border border-primary/10 bg-primary/[0.03] px-5 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary/70 mb-1">Cierre sugerido</p>
+                <p className="text-sm text-foreground leading-relaxed italic">{card.closingMoveScript}</p>
               </div>
               <div className="rounded-lg border border-border px-5 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Argumento fuerte</p>
@@ -426,6 +481,7 @@ export default function SalesSessionDetail() {
   const playbook = useMemo(() => (data && reading && pitch) ? generateAccountPlaybook(data, reading, pitch, clusters) : null, [data, reading, pitch, clusters]);
   const meetingObj = useMemo(() => (reading) ? generateMeetingObjective(reading, clusters) : null, [reading, clusters]);
   const classifiedRecs = useMemo(() => data ? classifyRecommendations(data) : [], [data]);
+  const accountActions = useMemo(() => (data && reading && pitch) ? generateAccountActionBlocks(data, reading, pitch, clusters) : null, [data, reading, pitch, clusters]);
   const readinessInfo = reading ? READINESS_LABELS[reading.readinessLevel] : null;
 
   useEffect(() => {
@@ -620,6 +676,56 @@ export default function SalesSessionDetail() {
         </CardContent>
       </Card>
 
+      {/* ═══ 4 ACCOUNT ACTION BLOCKS ═══ */}
+      {accountActions && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-primary/15">
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <MessageSquare className="h-4 w-4 text-primary" /> Cómo abrir la próxima conversación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4">
+              <p className="text-sm text-foreground leading-relaxed italic">{accountActions.conversationOpener}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Target className="h-4 w-4 text-primary" /> Tesis comercial para esta cuenta
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4">
+              <p className="text-xs text-foreground leading-relaxed">{accountActions.commercialThesis}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Eye className="h-4 w-4 text-primary" /> Qué material llevar a la reunión
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4 space-y-1">
+              {accountActions.meetingAssets.map((asset, i) => (
+                <p key={i} className="text-xs text-foreground flex items-start gap-1.5">
+                  <Check className="h-3 w-3 text-primary mt-0.5 shrink-0" /> {asset}
+                </p>
+              ))}
+            </CardContent>
+          </Card>
+          <Card className="border-primary/15">
+            <CardHeader className="pb-2 pt-4 px-5">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Crosshair className="h-4 w-4 text-primary" /> Qué resultado buscar en la próxima interacción
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-4">
+              <p className="text-sm text-foreground font-medium">{accountActions.meetingTarget}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* ═══ TWO COLUMN: Action + Pitch ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {nextAction && (
@@ -726,15 +832,19 @@ export default function SalesSessionDetail() {
                 {/* Individual battle cards within cluster — compact */}
                 <div className="space-y-2 pt-1">
                   {cluster.cards.map((card, ci) => (
-                    <div key={ci} className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Badge variant="outline" className={cn('text-[9px] shrink-0', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
-                        <span className="text-xs font-medium text-foreground truncate">{card.label}</span>
-                        <span className={cn('text-[10px]', IMPACT_COLORS[card.impact])}>{card.impactLabel}</span>
+                    <div key={ci} className="rounded-md border border-border bg-background px-3 py-2.5 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Badge variant="outline" className={cn('text-[9px] shrink-0', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
+                          <span className="text-xs font-medium text-foreground truncate">{card.label}</span>
+                          <span className={cn('text-[10px]', IMPACT_COLORS[card.impact])}>{card.impactLabel}</span>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 shrink-0" onClick={() => setBattleCard(card)}>
+                          <Shield className="h-3 w-3" /> Batalla
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 shrink-0" onClick={() => setBattleCard(card)}>
-                        <Shield className="h-3 w-3" /> Batalla
-                      </Button>
+                      <p className="text-[11px] text-muted-foreground leading-snug pl-1">{card.sellerWinCondition}</p>
+                      <p className="text-[10px] text-foreground italic leading-snug pl-1 truncate">{card.shortScript.slice(0, 120)}{card.shortScript.length > 120 ? '…' : ''}</p>
                     </div>
                   ))}
                 </div>
