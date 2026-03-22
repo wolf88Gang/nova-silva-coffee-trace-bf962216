@@ -832,15 +832,19 @@ export default function SalesSessionDetail() {
                 {/* Individual battle cards within cluster — compact */}
                 <div className="space-y-2 pt-1">
                   {cluster.cards.map((card, ci) => (
-                    <div key={ci} className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Badge variant="outline" className={cn('text-[9px] shrink-0', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
-                        <span className="text-xs font-medium text-foreground truncate">{card.label}</span>
-                        <span className={cn('text-[10px]', IMPACT_COLORS[card.impact])}>{card.impactLabel}</span>
+                    <div key={ci} className="rounded-md border border-border bg-background px-3 py-2.5 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Badge variant="outline" className={cn('text-[9px] shrink-0', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
+                          <span className="text-xs font-medium text-foreground truncate">{card.label}</span>
+                          <span className={cn('text-[10px]', IMPACT_COLORS[card.impact])}>{card.impactLabel}</span>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 shrink-0" onClick={() => setBattleCard(card)}>
+                          <Shield className="h-3 w-3" /> Batalla
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 shrink-0" onClick={() => setBattleCard(card)}>
-                        <Shield className="h-3 w-3" /> Batalla
-                      </Button>
+                      <p className="text-[11px] text-muted-foreground leading-snug pl-1">{card.sellerWinCondition}</p>
+                      <p className="text-[10px] text-foreground italic leading-snug pl-1 truncate">{card.shortScript.slice(0, 120)}{card.shortScript.length > 120 ? '…' : ''}</p>
                     </div>
                   ))}
                 </div>
