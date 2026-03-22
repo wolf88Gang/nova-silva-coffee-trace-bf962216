@@ -404,10 +404,15 @@ function MeetingMode({
               <div>
                 <Badge variant="outline" className={cn('text-xs mb-1', CLASSIFICATION_COLORS[card.classification])}>{card.classificationLabel}</Badge>
                 <h3 className="text-lg font-bold text-foreground">{card.label}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{card.sellerWinCondition}</p>
               </div>
               <div className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">Respuesta rápida</p>
                 <p className="text-base text-foreground leading-relaxed italic">{card.shortScript}</p>
+              </div>
+              <div className="rounded-lg border border-primary/10 bg-primary/[0.03] px-5 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary/70 mb-1">Cierre sugerido</p>
+                <p className="text-sm text-foreground leading-relaxed italic">{card.closingMoveScript}</p>
               </div>
               <div className="rounded-lg border border-border px-5 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Argumento fuerte</p>
