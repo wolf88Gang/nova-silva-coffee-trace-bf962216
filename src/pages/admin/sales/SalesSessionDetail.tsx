@@ -945,6 +945,24 @@ export default function SalesSessionDetail() {
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
               <Phone className="h-3.5 w-3.5" /> Modo reunión
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs text-muted-foreground"
+              onClick={() => { if (confirm('¿Archivar esta sesión? Se ocultará del listado activo.')) archiveMutation.mutate(); }}
+              disabled={archiveMutation.isPending}
+            >
+              <X className="h-3.5 w-3.5" /> Archivar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs text-destructive hover:text-destructive"
+              onClick={() => { if (confirm('¿Eliminar esta sesión permanentemente? Esta acción no se puede deshacer.')) deleteMutation.mutate(); }}
+              disabled={deleteMutation.isPending}
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Eliminar
+            </Button>
             {readinessInfo && (
               <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>{readinessInfo.label}</Badge>
             )}
