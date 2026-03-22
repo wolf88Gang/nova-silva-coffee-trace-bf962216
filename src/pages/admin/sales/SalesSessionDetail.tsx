@@ -476,6 +476,7 @@ export default function SalesSessionDetail() {
   const playbook = useMemo(() => (data && reading && pitch) ? generateAccountPlaybook(data, reading, pitch, clusters) : null, [data, reading, pitch, clusters]);
   const meetingObj = useMemo(() => (reading) ? generateMeetingObjective(reading, clusters) : null, [reading, clusters]);
   const classifiedRecs = useMemo(() => data ? classifyRecommendations(data) : [], [data]);
+  const accountActions = useMemo(() => (data && reading && pitch) ? generateAccountActionBlocks(data, reading, pitch, clusters) : null, [data, reading, pitch, clusters]);
   const readinessInfo = reading ? READINESS_LABELS[reading.readinessLevel] : null;
 
   useEffect(() => {
