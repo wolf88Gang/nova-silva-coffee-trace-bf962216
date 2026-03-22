@@ -98,7 +98,7 @@ const STAGE_LABELS: Record<string, string> = {
   hold: 'En pausa',
 };
 
-type FilterStatus = 'all' | 'draft' | 'in_progress' | 'completed' | 'won' | 'lost';
+type FilterStatus = 'all' | 'draft' | 'in_progress' | 'completed' | 'won' | 'lost' | 'archived';
 
 export default function SalesIntelligenceIndex() {
   const { data: result, isLoading, isError } = useSalesSessions();
