@@ -102,6 +102,13 @@ import BillingReadOnly from "./pages/billing/BillingReadOnly";
 import AlertasPage from "./pages/alertas/AlertasPage";
 import ReportesHub from "./pages/reportes/ReportesHub";
 import CreditCommitteeDashboard from "./components/creditos/CreditCommitteeDashboard";
+import CertificacionHome from "./pages/certificacion/CertificacionHome";
+import CertificacionSchemeDetail from "./pages/certificacion/CertificacionSchemeDetail";
+import CertificacionEvidenceCenter from "./pages/certificacion/CertificacionEvidenceCenter";
+import CertificacionCorrectiveActions from "./pages/certificacion/CertificacionCorrectiveActions";
+import CertificacionCrossScheme from "./pages/certificacion/CertificacionCrossScheme";
+import CertificacionAuditDossier from "./pages/certificacion/CertificacionAuditDossier";
+import CertificacionWizard from "./pages/certificacion/CertificacionWizard";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
