@@ -102,6 +102,13 @@ import BillingReadOnly from "./pages/billing/BillingReadOnly";
 import AlertasPage from "./pages/alertas/AlertasPage";
 import ReportesHub from "./pages/reportes/ReportesHub";
 import CreditCommitteeDashboard from "./components/creditos/CreditCommitteeDashboard";
+import CertificacionHome from "./pages/certificacion/CertificacionHome";
+import CertificacionSchemeDetail from "./pages/certificacion/CertificacionSchemeDetail";
+import CertificacionEvidenceCenter from "./pages/certificacion/CertificacionEvidenceCenter";
+import CertificacionCorrectiveActions from "./pages/certificacion/CertificacionCorrectiveActions";
+import CertificacionCrossScheme from "./pages/certificacion/CertificacionCrossScheme";
+import CertificacionAuditDossier from "./pages/certificacion/CertificacionAuditDossier";
+import CertificacionWizard from "./pages/certificacion/CertificacionWizard";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } },
@@ -202,6 +209,15 @@ const App = () => (
               <Route path="/cumplimiento/eudr" element={<DL><ExportadorEUDR /></DL>} />
               <Route path="/cumplimiento/data-room" element={<DL><DocumentosIndex /></DL>} />
               <Route path="/cumplimiento/auditorias" element={<DL><CertificadoraAuditorias /></DL>} />
+
+              {/* CERTIFICACIÓN */}
+              <Route path="/certificacion" element={<DL><CertificacionHome /></DL>} />
+              <Route path="/certificacion/esquema/:schemeKey" element={<DL><CertificacionSchemeDetail /></DL>} />
+              <Route path="/certificacion/evidencia" element={<DL><CertificacionEvidenceCenter /></DL>} />
+              <Route path="/certificacion/correctivas" element={<DL><CertificacionCorrectiveActions /></DL>} />
+              <Route path="/certificacion/cruzada" element={<DL><CertificacionCrossScheme /></DL>} />
+              <Route path="/certificacion/dossier" element={<DL><CertificacionAuditDossier /></DL>} />
+              <Route path="/certificacion/wizard" element={<DL><CertificacionWizard /></DL>} />
 
               {/* CALIDAD / NOVA CUP */}
               <Route path="/calidad" element={<DL><CalidadIndex /></DL>} />
