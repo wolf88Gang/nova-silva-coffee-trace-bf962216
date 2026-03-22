@@ -826,8 +826,8 @@ export default function SalesSessionDetail() {
   if (fullEditMode && session) return <FullSessionEditMode session={session} onClose={() => setFullEditMode(false)} onSaved={() => queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] })} />;
   if (battleCard) return createPortal(<FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />, document.body);
   if (meetingMode) {
-    const fallbackHypothesis: CommercialHypothesis = hypothesis ?? { paragraph: session?.lead_company ? `Cuenta: ${session.lead_company}` : 'Sin información suficiente para generar hipótesis comercial.', bullets: [] };
-    const fallbackPlaybook: AccountPlaybook = playbook ?? { openingRecommendation: '', commercialThesis: '', sequence: ['Completar diagnóstico para obtener secuencia recomendada'], biggestRisk: 'Información insuficiente', riskMitigation: ['Completar el diagnóstico'], bestNextQuestion: '¿Cuál es el principal dolor operativo hoy?' };
+    const fallbackHypothesis: CommercialHypothesis = hypothesis ?? { paragraph: session?.lead_company ? `Cuenta: ${session.lead_company}` : 'Sin información suficiente para generar hipótesis comercial.' };
+    const fallbackPlaybook: AccountPlaybook = playbook ?? { openingRecommendation: '', centralThesis: '', sequence: ['Completar diagnóstico para obtener secuencia recomendada'], biggestRisk: 'Información insuficiente', riskMitigation: ['Completar el diagnóstico'], bestNextQuestion: '¿Cuál es el principal dolor operativo hoy?' };
     return createPortal(<MeetingMode cards={battleCards} hypothesis={fallbackHypothesis} playbook={fallbackPlaybook} onExit={() => setMeetingMode(false)} />, document.body);
   }
 
