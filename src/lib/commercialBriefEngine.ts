@@ -41,34 +41,32 @@ export interface BattleCard {
   evidence: string;
   impact: ObjectionImpact;
   impactLabel: string;
-  /** Seller's commercial objective when handling this objection */
   sellerObjective: string;
-  /** How to position Nova Silva specifically against this objection */
   novaSilvaAngle: string;
-  /** Short script for live calls */
   shortScript: string;
-  /** Developed script for meetings */
   fullScript: string;
-  /** What to say if client pushes back again */
   secondResponse: string;
-  /** Concrete supporting arguments */
   strongArguments: string[];
-  /** Specific proof/material to prepare */
   proofAssets: string[];
-  /** Tactical question to regain control */
   tacticalQuestion: string;
-  /** Explicit anti-patterns */
   doNot: string[];
-  /** How client may phrase this objection */
   clientVariations: string[];
-  /** What to do if unresolved in-call */
   escalationPath: string;
-  /** Draft follow-up message */
   followUpDraft: string;
   priority: ObjectionPriority;
   priorityLabel: string;
   status: 'pending' | 'in_progress' | 'resolved';
   cluster: FrictionClusterKey;
+  /* ── Account-context fields ── */
+  accountRelevance: string;
+  whyThisMattersForThisAccount: string;
+  sellerWinCondition: string;
+  novaSilvaPositioningForThisAccount: string;
+  meetingNarrative: string[];
+  closingMoveScript: string;
+  assetsToOpenNow: string[];
+  likelyVariationsForThisAccount: string[];
+  ifUnresolvedNextStep: string;
 }
 
 export interface ClassifiedRecommendation {
