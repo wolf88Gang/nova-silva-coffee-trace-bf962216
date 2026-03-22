@@ -1040,13 +1040,25 @@ export default function SalesSessionDetail() {
                 );
               })}
             </div>
-            {/* Persistence-ready: phase note for sales_session_phase_updates */}
             <Textarea
               value={phaseNote}
               onChange={(e) => setPhaseNote(e.target.value)}
               placeholder="Razón o nota sobre la fase seleccionada..."
               className="min-h-[50px] text-xs"
             />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                className="h-7 text-xs gap-1"
+                disabled={!selectedPhase || savePhaseMutation.isPending}
+                onClick={() => savePhaseMutation.mutate()}
+              >
+                <Save className="h-3 w-3" /> {savePhaseMutation.isPending ? 'Guardando…' : 'Guardar fase'}
+              </Button>
+              {phaseSaved && (
+                <span className="text-xs text-primary flex items-center gap-1"><Check className="h-3 w-3" /> Guardado</span>
+              )}
+            </div>
           </CardContent>
         </Card>
 
