@@ -101,15 +101,17 @@ const STAGE_LABELS: Record<string, string> = {
 type FilterStatus = 'all' | 'draft' | 'in_progress' | 'completed' | 'won' | 'lost' | 'archived';
 
 export default function SalesIntelligenceIndex() {
-  const { data: result, isLoading, isError } = useSalesSessions();
+  const { data: result, isLoading, isError, refetch } = useSalesSessions();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterStatus>('all');
 
   const sessions = result?.sessions ?? [];
   const outcomes = result?.outcomes ?? new Map<string, SessionOutcome>();
 
-  // Filter
+  // Filter — 'all' hides archived by default
   const filtered = sessions.filter(s => {
+    if (filter === 'archived') return s.status === 'archived';
+    if (s.status === 'archived' && filter !== 'archived') return false;
     if (filter === 'all') return true;
     if (filter === 'won' || filter === 'lost') {
       const o = outcomes.get(s.id);
@@ -118,13 +120,36 @@ export default function SalesIntelligenceIndex() {
     return s.status === filter;
   });
 
-  // Summary counts
+  const handleArchive = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('¿Archivar esta sesión?')) return;
+    const { error } = await supabase.from('sales_sessions' as any).update({ status: 'archived' } as any).eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Sesión archivada');
+    refetch();
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('¿Eliminar permanentemente? No se puede deshacer.')) return;
+    await supabase.from('sales_session_outcomes' as any).delete().eq('session_id', id);
+    await supabase.from('sales_session_objections' as any).delete().eq('session_id', id);
+    await supabase.from('sales_session_recommendations' as any).delete().eq('session_id', id);
+    const { error } = await supabase.from('sales_sessions' as any).delete().eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Sesión eliminada');
+    refetch();
+  };
+
+  // Summary counts (excluding archived)
+  const activeSessions = sessions.filter(s => s.status !== 'archived');
   const counts = {
-    total: sessions.length,
-    active: sessions.filter(s => s.status !== 'completed' && !outcomes.has(s.id)).length,
-    completed: sessions.filter(s => s.status === 'completed').length,
-    won: sessions.filter(s => outcomes.get(s.id)?.outcome === 'won').length,
-    lost: sessions.filter(s => outcomes.get(s.id)?.outcome === 'lost').length,
+    total: activeSessions.length,
+    active: activeSessions.filter(s => s.status !== 'completed' && !outcomes.has(s.id)).length,
+    completed: activeSessions.filter(s => s.status === 'completed').length,
+    won: activeSessions.filter(s => outcomes.get(s.id)?.outcome === 'won').length,
+    lost: activeSessions.filter(s => outcomes.get(s.id)?.outcome === 'lost').length,
+    archived: sessions.filter(s => s.status === 'archived').length,
   };
 
   return (
