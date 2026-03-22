@@ -496,6 +496,15 @@ export default function SalesSessionDetail() {
     setDealValue(existingOutcome?.deal_value?.toString() ?? '');
   }, [existingOutcome]);
 
+  // Initialize header edit fields from session
+  useEffect(() => {
+    if (session) {
+      setEditLeadCompany(session.lead_company ?? '');
+      setEditLeadName(session.lead_name ?? '');
+      setEditLeadType(session.lead_type ?? '');
+    }
+  }, [session]);
+
   // Initialize selected phase from readiness
   useEffect(() => {
     if (selectedPhase === null && reading) {
@@ -510,9 +519,50 @@ export default function SalesSessionDetail() {
     }
   }, [reading, selectedPhase]);
 
+  // Save header mutation — updates sales_sessions directly
+  const saveHeaderMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId) throw new Error('No session');
+      const { error: updateError } = await (await import('@/integrations/supabase/client')).supabase
+        .from('sales_sessions' as any)
+        .update({
+          lead_company: editLeadCompany.trim() || null,
+          lead_name: editLeadName.trim() || null,
+          lead_type: editLeadType || null,
+        } as any)
+        .eq('id', sessionId);
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      toast.success('Datos del lead actualizados');
+      setEditingHeader(false);
+      queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] });
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo actualizar'),
+  });
+
+  // Save phase mutation — updates sales_sessions.commercial_stage
+  const savePhaseMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId || !selectedPhase) throw new Error('Selecciona una fase');
+      const { error: updateError } = await (await import('@/integrations/supabase/client')).supabase
+        .from('sales_sessions' as any)
+        .update({ commercial_stage: selectedPhase } as any)
+        .eq('id', sessionId);
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      toast.success('Fase comercial actualizada');
+      setPhaseSaved(true);
+      queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] });
+      setTimeout(() => setPhaseSaved(false), 3000);
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo guardar la fase'),
+  });
+
   const saveOutcomeMutation = useMutation({
     mutationFn: async () => {
-      if (!sessionId || !outcome) throw new Error('Selecciona un outcome');
+      if (!sessionId || !outcome) throw new Error('Selecciona un resultado');
       await SalesSessionService.saveOutcome({
         sessionId,
         outcome,
