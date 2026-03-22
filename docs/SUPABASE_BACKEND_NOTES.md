@@ -90,3 +90,9 @@ Para que el login demo use datos reales:
 1. Marcar orgs en `platform_organizations` con `is_demo = true`.
 2. Rellenar `org_type`, `operating_model`, `modules`.
 3. Insertar filas en `demo_profiles` por organización.
+
+---
+
+## Sales Intelligence (diagnóstico comercial)
+
+Contrato unificado con el código y migraciones: **`docs/SALES_INTELLIGENCE_MASTER.md`** (rutas, tablas reales, RPCs `p_*`, Copilot vs legacy).

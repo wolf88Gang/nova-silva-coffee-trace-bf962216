@@ -1,13 +1,13 @@
 /**
- * useSalesWizard — LEGACY hook for SalesWizardPage only.
- *
 <<<<<<< Current (Your changes)
+ * useSalesWizard — state and actions for the Sales Intelligence diagnostic flow.
+ *
  * ACTIVE FLOW: createSession → loop (getNextStep → saveAnswer/skipQuestion) until is_complete → finalizeSession
  * LEGACY REMOVED: useAdaptiveDiagnostic
  * BACKEND CONTRACT: SalesSessionService (createSession, saveAnswer, skipQuestion, getNextStep, finalizeSession)
 =======
- * // LEGACY FLOW — to be removed after copilot stabilization
- * PRIMARY: useCopilotDiagnostic (recalculateScores + getDiagnosticBundle)
+ * useSalesWizard — LEGACY / FROZEN. Solo SalesWizardPage (/admin/sales/legacy-wizard).
+ * No nuevas funciones. PRIMARY: useCopilotDiagnostic.
 >>>>>>> Incoming (Background Agent changes)
  */
 

@@ -4,7 +4,6 @@
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { AdminPageHeader } from '@/components/admin/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -91,11 +90,6 @@ function SalesCopilotInner() {
       <AdminPageHeader
         title="Sales Intelligence"
         description="Copilot comercial — diagnóstico con interpretación en vivo"
-        actions={
-          <Button asChild variant="outline" size="sm">
-            <Link to="/admin/sales/legacy-wizard">Vista legado</Link>
-          </Button>
-        }
       />
 
       {isFallbackOrgs && orgs.length > 0 && (

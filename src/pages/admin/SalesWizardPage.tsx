@@ -7,11 +7,8 @@
  * LEGACY REMOVED: SalesDiagnosticPage, useAdaptiveDiagnostic, DiagnosticConversationPanel
  * BACKEND CONTRACT: SalesSessionService (fn_sales_create_session, fn_sales_save_answer, fn_sales_finalize_session)
 =======
- * SalesWizardPage — LEGACY fallback UI (route /admin/sales/legacy-wizard).
- *
- * // LEGACY FLOW — to be removed after copilot stabilization
- * PRIMARY: SalesCopilotPage + CopilotLayout + useCopilotDiagnostic
- * BACKEND CONTRACT: SalesSessionService (unchanged)
+ * SalesWizardPage — LEGACY / FROZEN. URL only: /admin/sales/legacy-wizard (no sidebar, no links from copilot).
+ * Do not add features here. PRIMARY: SalesCopilotPage + CopilotLayout + useCopilotDiagnostic.
 >>>>>>> Incoming (Background Agent changes)
  */
 
@@ -134,9 +131,17 @@ export default function SalesWizardPage() {
 
   return (
     <div className="space-y-4">
+      <Alert variant="destructive" className="border-amber-600/50 bg-amber-950/20 text-amber-100 [&>svg]:text-amber-500">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription className="font-medium">
+          Flujo legado. No usar para ventas nuevas. El diagnóstico activo está en <strong>/admin/sales/new</strong> (copilot).
+          Esta pantalla solo existe como respaldo de emergencia vía URL directa.
+        </AlertDescription>
+      </Alert>
+
       <AdminPageHeader
-        title="Sales Intelligence"
-        description="Diagnóstico comercial"
+        title="Sales Intelligence (legado)"
+        description="Diagnóstico comercial — flujo congelado"
       />
 
       {isFallbackOrgs && orgs.length > 0 && (

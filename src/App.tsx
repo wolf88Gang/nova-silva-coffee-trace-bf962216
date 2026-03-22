@@ -267,6 +267,7 @@ const App = () => (
               <Route path="/admin/growth" element={<RequireAdmin><AdminLayout><AdminGrowthPage /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/sales" element={<RequireAdmin><AdminLayout><Navigate to="/admin/sales/new" replace /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/sales/new" element={<RequireAdmin><AdminLayout><SalesCopilotPage /></AdminLayout></RequireAdmin>} />
+              {/* Legacy fallback: URL directa únicamente — sin enlaces en UI ni sidebar */}
               <Route path="/admin/sales/legacy-wizard" element={<RequireAdmin><AdminLayout><SalesWizardPage /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/sales/sessions/:sessionId" element={<RequireAdmin><AdminLayout><SalesSessionResultsPage /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/sales/calibration" element={<RequireAdmin><AdminLayout><CalibrationReviewPage /></AdminLayout></RequireAdmin>} />

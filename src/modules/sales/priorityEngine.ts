@@ -1,8 +1,10 @@
+<<<<<<< Current (Your changes)
+=======
 /**
- * Priority Engine — signal-driven question selection.
+ * Priority Engine — único selector de siguiente pregunta (vía FlowEngineLoader).
  *
- * Replaces question-driven (order-based) flow with relevance-based selection.
- * Sections 1–6 of the adaptive diagnostic upgrade spec.
+ * RIESGO A AUDITAR (docs/COPILOT_FUNCIONAL_AUDIT.md §C): ¿el score refleja valor comercial
+ * real o cobertura disfrazada? Revisar pesos, gap_targets, ANSWER_TO_PROFILE y reglas productor.
  */
 
 import type { LoadedQuestion, LoadedAnswer, LoadedOption } from './FlowEngine.types';
@@ -333,3 +335,4 @@ export function getNextPriorityQuestion(
     skipped_count: skippedQuestions.size,
   };
 }
+>>>>>>> Incoming (Background Agent changes)
