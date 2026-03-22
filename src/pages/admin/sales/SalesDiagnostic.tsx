@@ -35,6 +35,10 @@ import { cn } from '@/lib/utils';
 
 type EntryMode = null | 'existing' | 'new_lead';
 
+// Nova Silva Admin org used as placeholder for new-lead sessions
+// Backend requires non-null organization_id
+const NOVA_SILVA_ADMIN_ORG_ID = '66666666-6666-6666-6666-666666666666';
+
 interface AnsweredEntry {
   questionId: string;
   questionTitle: string;
