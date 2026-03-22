@@ -1,29 +1,29 @@
 /**
  * Certification Home — Compliance engine dashboard.
  * Shows scheme readiness, risk alerts, critical gaps, and evidence status.
+ * Connected to real Supabase data via useCertificationReadiness.
  */
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Shield, AlertTriangle, CheckCircle2, FileWarning,
   ChevronRight, ArrowRight, Clock, XCircle,
-  Leaf, Users, Coffee, Award, Globe, Sprout,
+  Leaf, Users, Coffee, Award, Globe, Sprout, Database,
 } from 'lucide-react';
 import {
   CERTIFICATION_SCHEMES,
-  generateDemoReadiness,
-  generateDemoGaps,
-  generateDemoCorrectiveActions,
   getSeverityLabel,
   getSeverityColor,
   RISK_ITEMS,
   type SchemeReadiness,
   type SchemeKey,
 } from '@/lib/certificationEngine';
+import { useCertificationReadiness } from '@/hooks/useCertificationData';
 import { cn } from '@/lib/utils';
 
 const SCHEME_ICONS: Record<string, React.ElementType> = {
@@ -50,12 +50,15 @@ const RISK_LABELS: Record<string, string> = {
 
 export default function CertificacionHome() {
   const navigate = useNavigate();
-  const readiness = useMemo(() => generateDemoReadiness(), []);
-  const gaps = useMemo(() => generateDemoGaps(), []);
-  const correctives = useMemo(() => generateDemoCorrectiveActions(), []);
+  const { data, isLoading } = useCertificationReadiness();
+
+  const readiness = data?.readiness ?? [];
+  const gaps = data?.gaps ?? [];
+  const correctives = data?.correctives ?? [];
+  const dataSource = data?.dataSource ?? 'demo';
 
   const totalSchemes = readiness.length;
-  const avgReadiness = Math.round(readiness.reduce((a, r) => a + r.readinessPercent, 0) / totalSchemes);
+  const avgReadiness = totalSchemes > 0 ? Math.round(readiness.reduce((a, r) => a + r.readinessPercent, 0) / totalSchemes) : 0;
   const criticalCount = correctives.filter(c => c.severity === 'tolerancia_cero' || c.status === 'vencido' || c.status === 'escalado').length;
   const pendingActions = correctives.filter(c => c.status !== 'resuelto').length;
 
