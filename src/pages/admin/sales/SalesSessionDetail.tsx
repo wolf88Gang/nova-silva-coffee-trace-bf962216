@@ -468,6 +468,13 @@ export default function SalesSessionDetail() {
   // Persistence-ready: phase selection should save to sales_session_phase_updates
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [phaseNote, setPhaseNote] = useState('');
+  // Session header editing
+  const [editingHeader, setEditingHeader] = useState(false);
+  const [editLeadCompany, setEditLeadCompany] = useState('');
+  const [editLeadName, setEditLeadName] = useState('');
+  const [editLeadType, setEditLeadType] = useState('');
+  // Phase save tracking
+  const [phaseSaved, setPhaseSaved] = useState(false);
 
   const session = data?.session ?? null;
   const existingOutcome = data?.outcome ?? null;
