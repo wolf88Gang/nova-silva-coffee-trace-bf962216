@@ -277,7 +277,7 @@ export default function SalesIntelligenceIndex() {
                           <statusInfo.icon className="h-2.5 w-2.5" /> {statusInfo.label}
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">Pendiente</Badge>
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground">Sin decisión</Badge>
                       )}
                       <Button variant="ghost" size="icon" className="h-7 w-7">
                         <ArrowRight className="h-3.5 w-3.5" />
