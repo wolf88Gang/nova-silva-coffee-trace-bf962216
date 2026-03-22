@@ -49,12 +49,13 @@ BEGIN
   ELSIF v_var_pct <= v_rec.tolerance_pct * 1.5 THEN
     -- Within 150% of tolerance → warning
     v_result := 'warning';
-    v_reason  := format('Variance %.2f%% exceeds tolerance %.2f%% but below critical threshold',
-                        v_var_pct, v_rec.tolerance_pct);
+    v_reason  := 'Variance ' || ROUND(v_var_pct, 2)::text || '% exceeds tolerance '
+                 || ROUND(v_rec.tolerance_pct, 2)::text || '% but below critical threshold';
   ELSE
     v_result := 'fail';
-    v_reason  := format('Mass balance variance %.4f kg (%.2f%%) exceeds tolerance of %.2f%%',
-                        ABS(v_rec.variance_kg), v_var_pct, v_rec.tolerance_pct);
+    v_reason  := 'Mass balance variance ' || ROUND(ABS(v_rec.variance_kg), 4)::text
+                 || ' kg (' || ROUND(v_var_pct, 2)::text || '%) exceeds tolerance of '
+                 || ROUND(v_rec.tolerance_pct, 2)::text || '%';
   END IF;
 
   -- Update record
@@ -127,14 +128,16 @@ BEGIN
   ELSIF v_deviation <= v_rec.max_deviation_pct THEN
     -- Within tolerance but high: warning
     v_result := 'warning';
-    v_reason  := format('Declared yield %.2f kg/ha is %.1f%% above biological ceiling %.2f kg/ha',
-                        v_rec.declared_yield_kg_ha, v_deviation, v_rec.nova_yield_ceiling_kg_ha);
+    v_reason  := 'Declared yield ' || ROUND(v_rec.declared_yield_kg_ha, 2)::text
+                 || ' kg/ha is ' || ROUND(v_deviation, 1)::text
+                 || '% above biological ceiling ' || ROUND(v_rec.nova_yield_ceiling_kg_ha, 2)::text || ' kg/ha';
   ELSE
     -- Exceeds max deviation: fail
     v_result := 'fail';
-    v_reason  := format('Declared yield %.2f kg/ha exceeds biological ceiling %.2f kg/ha by %.1f%% (max allowed: %.1f%%)',
-                        v_rec.declared_yield_kg_ha, v_rec.nova_yield_ceiling_kg_ha,
-                        v_deviation, v_rec.max_deviation_pct);
+    v_reason  := 'Declared yield ' || ROUND(v_rec.declared_yield_kg_ha, 2)::text
+                 || ' kg/ha exceeds biological ceiling ' || ROUND(v_rec.nova_yield_ceiling_kg_ha, 2)::text
+                 || ' kg/ha by ' || ROUND(v_deviation, 1)::text
+                 || '% (max allowed: ' || ROUND(v_rec.max_deviation_pct, 1)::text || '%)';
   END IF;
 
   UPDATE public.certification_plausibility_checks
@@ -167,21 +170,19 @@ BEGIN
   -- Rule 1 (ZERO TOLERANCE): Deforestation after EUDR cutoff date
   IF NEW.deforestation_alert = true AND NEW.false_positive_flag = false THEN
     v_result   := 'fail';
-    v_failures := v_failures || format(
-      'Deforestation detected post-%s (source: %s, area: %.4f ha, confidence: %.1f%%)',
-      NEW.eudr_reference_date,
-      COALESCE(NEW.alert_source, 'unknown'),
-      COALESCE(NEW.alert_area_ha, 0),
-      COALESCE(NEW.alert_confidence_pct, 0)
+    v_failures := v_failures || (
+      'Deforestation detected post-' || NEW.eudr_reference_date::text
+      || ' (source: ' || COALESCE(NEW.alert_source, 'unknown')
+      || ', area: ' || ROUND(COALESCE(NEW.alert_area_ha, 0), 4)::text
+      || ' ha, confidence: ' || ROUND(COALESCE(NEW.alert_confidence_pct, 0), 1)::text || '%)'
     );
   END IF;
 
   -- Rule 2: Overlap with protected areas
   IF NEW.overlap_protected_area = true THEN
     v_result   := 'fail';
-    v_failures := v_failures || format(
-      'Parcel overlaps protected area (%.4f ha)',
-      COALESCE(NEW.overlap_area_ha, 0)
+    v_failures := v_failures || (
+      'Parcel overlaps protected area (' || ROUND(COALESCE(NEW.overlap_area_ha, 0), 4)::text || ' ha)'
     );
   END IF;
 
@@ -195,12 +196,12 @@ BEGIN
   IF NEW.area_deviation_pct IS NOT NULL AND ABS(NEW.area_deviation_pct) > 20 THEN
     IF ABS(NEW.area_deviation_pct) > 50 THEN
       v_result   := 'fail';
-      v_failures := v_failures || format(
-        'Area deviation %.1f%% exceeds critical threshold (±50%%)', NEW.area_deviation_pct
+      v_failures := v_failures || (
+        'Area deviation ' || ROUND(NEW.area_deviation_pct, 1)::text || '% exceeds critical threshold (±50%)'
       );
     ELSE
-      v_warnings := v_warnings || format(
-        'Area deviation %.1f%% exceeds warning threshold (±20%%)', NEW.area_deviation_pct
+      v_warnings := v_warnings || (
+        'Area deviation ' || ROUND(NEW.area_deviation_pct, 1)::text || '% exceeds warning threshold (±20%)'
       );
       IF v_result = 'pass' THEN v_result := 'warning'; END IF;
     END IF;
@@ -208,8 +209,8 @@ BEGIN
 
   -- Rule 5: GPS precision (Section I risk: GPS precision errors)
   IF NEW.gps_precision_m IS NOT NULL AND NEW.gps_precision_m > 30 THEN
-    v_warnings := v_warnings || format(
-      'GPS precision %.1fm exceeds recommended maximum (30m)', NEW.gps_precision_m
+    v_warnings := v_warnings || (
+      'GPS precision ' || ROUND(NEW.gps_precision_m, 1)::text || 'm exceeds recommended maximum (30m)'
     );
     IF v_result = 'pass' THEN v_result := 'warning'; END IF;
   END IF;

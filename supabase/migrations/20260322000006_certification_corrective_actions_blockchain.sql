@@ -42,11 +42,7 @@ CREATE TABLE IF NOT EXISTS public.certification_corrective_actions (
 
   -- Timeline
   due_date             date,
-  days_to_resolve      integer     GENERATED ALWAYS AS (
-                         CASE WHEN due_date IS NOT NULL
-                         THEN (due_date - CURRENT_DATE)::integer
-                         ELSE NULL END
-                       ) STORED,
+  days_to_resolve      integer,    -- Computed by application layer: (due_date - today). Not GENERATED (CURRENT_DATE is volatile).
 
   -- Resolution
   resolution_description text,
@@ -211,26 +207,40 @@ CREATE OR REPLACE RULE blockchain_anchors_no_delete AS
 -- Add blockchain_anchor_id FK constraints AFTER anchor table is created
 -- (Tables in migrations 3-5 reference blockchain_anchors but it was not yet created)
 -- ---------------------------------------------------------------------------
-ALTER TABLE public.certification_evidence_records
-  ADD CONSTRAINT fk_evidence_blockchain
-  FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+-- Add blockchain FK constraints with idempotent DO/EXCEPTION blocks
+-- (Tables were created before blockchain_anchors existed in migration order)
+DO $$ BEGIN
+  ALTER TABLE public.certification_evidence_records
+    ADD CONSTRAINT fk_evidence_blockchain
+    FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE public.certification_requirement_evaluations
-  ADD CONSTRAINT fk_evaluation_blockchain
-  FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+DO $$ BEGIN
+  ALTER TABLE public.certification_requirement_evaluations
+    ADD CONSTRAINT fk_evaluation_blockchain
+    FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE public.certification_mass_balance_checks
-  ADD CONSTRAINT fk_mb_blockchain
-  FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+DO $$ BEGIN
+  ALTER TABLE public.certification_mass_balance_checks
+    ADD CONSTRAINT fk_mb_blockchain
+    FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE public.certification_plausibility_checks
-  ADD CONSTRAINT fk_plaus_blockchain
-  FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+DO $$ BEGIN
+  ALTER TABLE public.certification_plausibility_checks
+    ADD CONSTRAINT fk_plaus_blockchain
+    FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE public.certification_geospatial_validations
-  ADD CONSTRAINT fk_geo_blockchain
-  FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+DO $$ BEGIN
+  ALTER TABLE public.certification_geospatial_validations
+    ADD CONSTRAINT fk_geo_blockchain
+    FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE public.certification_traceback_checks
-  ADD CONSTRAINT fk_tb_blockchain
-  FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+DO $$ BEGIN
+  ALTER TABLE public.certification_traceback_checks
+    ADD CONSTRAINT fk_tb_blockchain
+    FOREIGN KEY (blockchain_anchor_id) REFERENCES public.blockchain_anchors(id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
