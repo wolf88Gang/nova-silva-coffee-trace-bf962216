@@ -26,20 +26,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-  Eye,
-  Loader2,
-  MessageSquare,
-  Minus,
-  Phone,
-  Save,
-  Shield,
-  ShieldAlert,
-  Target,
-  TrendingDown,
-  TrendingUp,
-  X,
-  Zap,
-} from 'lucide-react';
+import { toast } from 'sonner';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
