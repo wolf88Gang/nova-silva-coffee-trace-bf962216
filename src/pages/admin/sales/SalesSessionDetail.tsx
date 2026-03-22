@@ -899,11 +899,9 @@ export default function SalesSessionDetail() {
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setFullEditMode(true)}>
               <Edit2 className="h-3.5 w-3.5" /> Editar todo
             </Button>
-            {battleCards.length > 0 && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
-                <Phone className="h-3.5 w-3.5" /> Modo reunión
-              </Button>
-            )}
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
+              <Phone className="h-3.5 w-3.5" /> Modo reunión
+            </Button>
             {readinessInfo && (
               <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>{readinessInfo.label}</Badge>
             )}
