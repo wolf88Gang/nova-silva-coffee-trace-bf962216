@@ -1114,3 +1114,84 @@ export const READINESS_LABELS: Record<CommercialReading['readinessLevel'], { lab
   immature: { label: 'Lead aún inmaduro', color: 'text-destructive' },
   unknown: { label: 'Sin información suficiente', color: 'text-muted-foreground' },
 };
+
+/* ══════════════════════════════════════════════════
+   ACCOUNT-LEVEL COMMERCIAL ACTION GENERATORS
+   ══════════════════════════════════════════════════ */
+
+export interface AccountActionBlocks {
+  conversationOpener: string;
+  commercialThesis: string;
+  meetingAssets: string[];
+  meetingTarget: string;
+}
+
+export function generateAccountActionBlocks(
+  summary: SalesSessionSummary,
+  reading: CommercialReading,
+  pitch: SuggestedPitch,
+  clusters: FrictionCluster[],
+): AccountActionBlocks {
+  const s = summary.session;
+  const typeLabel = s?.lead_type ? (CLIENT_TYPE_LABELS[s.lead_type] ?? s.lead_type) : 'este lead';
+  const topCluster = clusters[0];
+  const pain = s?.score_pain ?? 0;
+  const urgency = s?.score_urgency ?? 0;
+  const budget = s?.score_budget_readiness ?? 0;
+  const fit = s?.score_fit ?? 0;
+
+  // 1. Conversation opener
+  let conversationOpener = '';
+  if (pain >= 7 && urgency >= 6) {
+    conversationOpener = `"${s?.lead_company ?? typeLabel}, la última vez que hablamos detectamos presión real en [frente principal]. Hoy quiero aterrizar exactamente cómo resolvemos eso con un alcance concreto y medible."`;
+  } else if (fit >= 6 && budget < 5) {
+    conversationOpener = `"Quiero compartirles algo que hemos visto en organizaciones como la suya: el costo de no actuar en [trazabilidad/operaciones] es mucho mayor de lo que parece. ¿Puedo mostrarles los números?"`;
+  } else if (topCluster?.key === 'trust_credibility') {
+    conversationOpener = `"Entiendo que están evaluando con cuidado. Hoy no vengo a vender — vengo a mostrarles evidencia concreta de cómo funciona esto en una organización similar a la suya."`;
+  } else if (topCluster?.key === 'compliance_risk') {
+    conversationOpener = `"Hay un tema que está presionando a todo el sector y quiero asegurarme de que ustedes estén preparados antes de que se vuelva urgente: el cumplimiento regulatorio EUDR."`;
+  } else {
+    conversationOpener = `"Gracias por el tiempo. Hoy me gustaría entender mejor [frente principal] y compartirles cómo organizaciones similares están resolviendo exactamente eso."`;
+  }
+
+  // 2. Commercial thesis
+  let thesis = '';
+  if (reading.readinessLevel === 'ready_proposal') {
+    thesis = `${typeLabel} tiene fit alto con Nova Silva, dolor reconocido y ventana de decisión activa. La venta debe cerrarse con propuesta concreta enfocada en ${pitch.angle.toLowerCase()}.`;
+  } else if (reading.readinessLevel === 'ready_discovery') {
+    thesis = `${typeLabel} reconoce problemas pero falta aterrizar urgencia o presupuesto. El objetivo no es vender todavía — es construir un caso de negocio que justifique la inversión internamente.`;
+  } else if (reading.readinessLevel === 'nurture') {
+    thesis = `${typeLabel} no está listo para comprar. La prioridad es educar, construir relación y preparar el terreno para cuando haya evento gatillo.`;
+  } else {
+    thesis = `${typeLabel} está en fase de evaluación. La conversación debe enfocarse en entender dolor real, validar fit, y construir credibilidad antes de proponer alcance.`;
+  }
+
+  // 3. Meeting assets
+  const assets: string[] = [];
+  if (topCluster?.key === 'compliance_risk') assets.push('Flujo EUDR paso a paso');
+  if (topCluster?.key === 'budget_value') assets.push('ROI estimado por módulo');
+  if (topCluster?.key === 'trust_credibility') assets.push('Caso de cliente verificable del segmento');
+  if (topCluster?.key === 'timing_approval') assets.push('Resumen ejecutivo para decisor');
+  if (budget < 5) assets.push('Caso de negocio cuantificado');
+  if (urgency < 5) assets.push('Timeline regulatorio / auditorías');
+  assets.push('Propuesta modular con alcance mínimo');
+  if (s?.lead_type === 'cooperativa') assets.push('Material visual para consejo directivo');
+  if (s?.lead_type === 'exportador' || s?.lead_type === 'exportador_red') assets.push('Demo de trazabilidad EUDR sobre lote real');
+
+  // 4. Meeting target
+  let target = '';
+  switch (reading.readinessLevel) {
+    case 'ready_proposal': target = 'Confirmar decisor y entregar propuesta con fecha de respuesta.'; break;
+    case 'ready_discovery': target = 'Aterrizar dolor principal y construir caso de negocio con el lead.'; break;
+    case 'ready_negotiation': target = 'Presentar alcance mínimo y acordar piloto o propuesta acotada.'; break;
+    case 'nurture': target = 'Identificar sponsor interno y dejar material de credibilidad.'; break;
+    default: target = 'Validar si hay potencial real y definir si vale la pena invertir más tiempo.';
+  }
+
+  return {
+    conversationOpener,
+    commercialThesis: thesis,
+    meetingAssets: [...new Set(assets)],
+    meetingTarget: target,
+  };
+}
