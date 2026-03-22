@@ -307,6 +307,14 @@ export default function SalesIntelligenceIndex() {
                       ) : (
                         <Badge variant="outline" className="text-[10px] text-muted-foreground">Sin decisión</Badge>
                       )}
+                      {s.status !== 'archived' && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Archivar" onClick={(e) => handleArchive(e, s.id)}>
+                          <Archive className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="Eliminar" onClick={(e) => handleDelete(e, s.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7">
                         <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
