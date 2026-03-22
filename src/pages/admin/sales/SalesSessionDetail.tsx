@@ -782,6 +782,44 @@ export default function SalesSessionDetail() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId) throw new Error('No session');
+      const { supabase } = await import('@/integrations/supabase/client');
+      // Delete related records first, then the session
+      await supabase.from('sales_session_outcomes' as any).delete().eq('session_id', sessionId);
+      await supabase.from('sales_session_objections' as any).delete().eq('session_id', sessionId);
+      await supabase.from('sales_session_recommendations' as any).delete().eq('session_id', sessionId);
+      const { error } = await supabase.from('sales_sessions' as any).delete().eq('id', sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Sesión eliminada');
+      queryClient.invalidateQueries({ queryKey: ['sales-sessions-list'] });
+      navigate('/admin/sales');
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo eliminar'),
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId) throw new Error('No session');
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error } = await supabase
+        .from('sales_sessions' as any)
+        .update({ status: 'archived' } as any)
+        .eq('id', sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Sesión archivada');
+      queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['sales-sessions-list'] });
+      navigate('/admin/sales');
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo archivar'),
+  });
+
   /* ── Loading / Error / Empty ── */
 
   if (isLoading) {
