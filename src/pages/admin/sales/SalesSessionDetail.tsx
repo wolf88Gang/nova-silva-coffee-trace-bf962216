@@ -627,6 +627,15 @@ export default function SalesSessionDetail() {
   const hasOutcome = Boolean(existingOutcome);
   const clientType = session.lead_type ? (CLIENT_TYPE_LABELS[session.lead_type] ?? session.lead_type) : null;
 
+  const LEAD_TYPES_MAP: Record<string, string> = {
+    cooperativa: 'Cooperativa / Asociación',
+    exportador: 'Exportador',
+    exportador_red: 'Exportador con red de productores',
+    beneficio_privado: 'Beneficio (compra + procesa)',
+    finca_privada: 'Finca privada',
+    trader: 'Comercializador / Trader',
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-5 p-4">
 
@@ -636,17 +645,54 @@ export default function SalesSessionDetail() {
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/admin/sales')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-foreground truncate">
-              {session.lead_company || session.lead_name || 'Sesión comercial'}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {clientType ? `${clientType} · ` : ''}
-              {new Date(session.created_at).toLocaleDateString('es')}
-              {session.lead_name && session.lead_company ? ` · ${session.lead_name}` : ''}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+          {editingHeader ? (
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Empresa / Lead</Label>
+                  <Input value={editLeadCompany} onChange={(e) => setEditLeadCompany(e.target.value)} placeholder="Nombre de la empresa" className="h-8 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Contacto</Label>
+                  <Input value={editLeadName} onChange={(e) => setEditLeadName(e.target.value)} placeholder="Nombre del contacto" className="h-8 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Tipo</Label>
+                  <Select value={editLeadType} onValueChange={setEditLeadType}>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(LEAD_TYPES_MAP).map(([val, lab]) => (
+                        <SelectItem key={val} value={val}>{lab}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" className="h-7 text-xs gap-1" onClick={() => saveHeaderMutation.mutate()} disabled={saveHeaderMutation.isPending}>
+                  <Save className="h-3 w-3" /> {saveHeaderMutation.isPending ? 'Guardando…' : 'Guardar'}
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditingHeader(false)}>Cancelar</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-foreground truncate">
+                  {session.lead_company || session.lead_name || 'Sin nombre'}
+                </h1>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setEditingHeader(true)}>
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {clientType ? `${clientType} · ` : ''}
+                {new Date(session.created_at).toLocaleDateString('es')}
+                {session.lead_name && session.lead_company ? ` · ${session.lead_name}` : ''}
+              </p>
+            </div>
+          )}
+          <div className="flex items-center gap-2 shrink-0">
             {battleCards.length > 0 && (
               <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
                 <Phone className="h-3.5 w-3.5" /> Modo reunión
@@ -668,10 +714,6 @@ export default function SalesSessionDetail() {
           {session.updated_at && (
             <span>Última actividad: <span className="font-medium text-foreground">{new Date(session.updated_at).toLocaleDateString('es')}</span></span>
           )}
-          {/* Persistence-ready: owner would come from sales_sessions.owner_user_id */}
-          <span className="text-[10px] text-muted-foreground/60">
-            ID: {session.id.slice(0, 8)}
-          </span>
         </div>
       </div>
 
