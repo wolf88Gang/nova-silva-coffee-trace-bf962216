@@ -184,6 +184,7 @@ export default function SalesIntelligenceIndex() {
             ['completed', 'Completados'],
             ['won', 'Ganados'],
             ['lost', 'Perdidos'],
+            ['archived', `Archivados (${counts.archived})`],
           ] as [FilterStatus, string][]).map(([value, label]) => (
             <Button
               key={value}
