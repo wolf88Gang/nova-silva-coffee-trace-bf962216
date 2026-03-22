@@ -20,6 +20,7 @@ import {
   Shield,
   ShieldAlert,
   Target,
+  Trash2,
   TrendingDown,
   TrendingUp,
   X,
@@ -781,6 +782,44 @@ export default function SalesSessionDetail() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId) throw new Error('No session');
+      const { supabase } = await import('@/integrations/supabase/client');
+      // Delete related records first, then the session
+      await supabase.from('sales_session_outcomes' as any).delete().eq('session_id', sessionId);
+      await supabase.from('sales_session_objections' as any).delete().eq('session_id', sessionId);
+      await supabase.from('sales_session_recommendations' as any).delete().eq('session_id', sessionId);
+      const { error } = await supabase.from('sales_sessions' as any).delete().eq('id', sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Sesión eliminada');
+      queryClient.invalidateQueries({ queryKey: ['sales-sessions-list'] });
+      navigate('/admin/sales');
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo eliminar'),
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: async () => {
+      if (!sessionId) throw new Error('No session');
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error } = await supabase
+        .from('sales_sessions' as any)
+        .update({ status: 'archived' } as any)
+        .eq('id', sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Sesión archivada');
+      queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['sales-sessions-list'] });
+      navigate('/admin/sales');
+    },
+    onError: (e: any) => toast.error(e?.message || 'No se pudo archivar'),
+  });
+
   /* ── Loading / Error / Empty ── */
 
   if (isLoading) {
@@ -825,7 +864,11 @@ export default function SalesSessionDetail() {
   /* ── Overlay modes ── */
   if (fullEditMode && session) return <FullSessionEditMode session={session} onClose={() => setFullEditMode(false)} onSaved={() => queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] })} />;
   if (battleCard) return createPortal(<FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />, document.body);
-  if (meetingMode && hypothesis && playbook) return createPortal(<MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />, document.body);
+  if (meetingMode) {
+    const fallbackHypothesis: CommercialHypothesis = hypothesis ?? { paragraph: session?.lead_company ? `Cuenta: ${session.lead_company}` : 'Sin información suficiente para generar hipótesis comercial.' };
+    const fallbackPlaybook: AccountPlaybook = playbook ?? { openingRecommendation: '', centralThesis: '', sequence: ['Completar diagnóstico para obtener secuencia recomendada'], biggestRisk: 'Información insuficiente', riskMitigation: ['Completar el diagnóstico'], bestNextQuestion: '¿Cuál es el principal dolor operativo hoy?' };
+    return createPortal(<MeetingMode cards={battleCards} hypothesis={fallbackHypothesis} playbook={fallbackPlaybook} onExit={() => setMeetingMode(false)} />, document.body);
+  }
 
   const hasOutcome = Boolean(existingOutcome);
   const clientType = session.lead_type ? (CLIENT_TYPE_LABELS[session.lead_type] ?? session.lead_type) : null;
@@ -899,11 +942,27 @@ export default function SalesSessionDetail() {
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setFullEditMode(true)}>
               <Edit2 className="h-3.5 w-3.5" /> Editar todo
             </Button>
-            {battleCards.length > 0 && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
-                <Phone className="h-3.5 w-3.5" /> Modo reunión
-              </Button>
-            )}
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
+              <Phone className="h-3.5 w-3.5" /> Modo reunión
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs text-muted-foreground"
+              onClick={() => { if (confirm('¿Archivar esta sesión? Se ocultará del listado activo.')) archiveMutation.mutate(); }}
+              disabled={archiveMutation.isPending}
+            >
+              <X className="h-3.5 w-3.5" /> Archivar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs text-destructive hover:text-destructive"
+              onClick={() => { if (confirm('¿Eliminar esta sesión permanentemente? Esta acción no se puede deshacer.')) deleteMutation.mutate(); }}
+              disabled={deleteMutation.isPending}
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Eliminar
+            </Button>
             {readinessInfo && (
               <Badge variant="outline" className={cn('text-xs font-semibold', readinessInfo.color)}>{readinessInfo.label}</Badge>
             )}

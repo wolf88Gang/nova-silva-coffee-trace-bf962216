@@ -6,13 +6,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Plus, ArrowRight, AlertCircle, Inbox, Target, TrendingUp, TrendingDown,
-  Minus, FileText, Clock, CheckCircle2, User, Calendar, Filter,
+  Minus, FileText, Clock, CheckCircle2, User, Calendar, Filter, Archive, Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CLIENT_TYPE_LABELS } from '@/lib/commercialBriefEngine';
@@ -80,6 +81,7 @@ const STATUS_LABELS: Record<string, { label: string; className: string; icon: ty
   draft: { label: 'Borrador', className: 'border-muted-foreground/30 text-muted-foreground', icon: FileText },
   in_progress: { label: 'En progreso', className: 'border-amber-500/30 text-amber-600 dark:text-amber-400', icon: Clock },
   completed: { label: 'Diagnóstico completado', className: 'border-primary/30 text-primary', icon: CheckCircle2 },
+  archived: { label: 'Archivado', className: 'border-muted-foreground/20 text-muted-foreground/60', icon: Archive },
 };
 
 const OUTCOME_BADGE: Record<string, { label: string; className: string; icon: typeof TrendingUp }> = {
@@ -97,18 +99,20 @@ const STAGE_LABELS: Record<string, string> = {
   hold: 'En pausa',
 };
 
-type FilterStatus = 'all' | 'draft' | 'in_progress' | 'completed' | 'won' | 'lost';
+type FilterStatus = 'all' | 'draft' | 'in_progress' | 'completed' | 'won' | 'lost' | 'archived';
 
 export default function SalesIntelligenceIndex() {
-  const { data: result, isLoading, isError } = useSalesSessions();
+  const { data: result, isLoading, isError, refetch } = useSalesSessions();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterStatus>('all');
 
   const sessions = result?.sessions ?? [];
   const outcomes = result?.outcomes ?? new Map<string, SessionOutcome>();
 
-  // Filter
+  // Filter — 'all' hides archived by default
   const filtered = sessions.filter(s => {
+    if (filter === 'archived') return s.status === 'archived';
+    if (s.status === 'archived') return false;
     if (filter === 'all') return true;
     if (filter === 'won' || filter === 'lost') {
       const o = outcomes.get(s.id);
@@ -117,13 +121,36 @@ export default function SalesIntelligenceIndex() {
     return s.status === filter;
   });
 
-  // Summary counts
+  const handleArchive = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('¿Archivar esta sesión?')) return;
+    const { error } = await supabase.from('sales_sessions' as any).update({ status: 'archived' } as any).eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Sesión archivada');
+    refetch();
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('¿Eliminar permanentemente? No se puede deshacer.')) return;
+    await supabase.from('sales_session_outcomes' as any).delete().eq('session_id', id);
+    await supabase.from('sales_session_objections' as any).delete().eq('session_id', id);
+    await supabase.from('sales_session_recommendations' as any).delete().eq('session_id', id);
+    const { error } = await supabase.from('sales_sessions' as any).delete().eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Sesión eliminada');
+    refetch();
+  };
+
+  // Summary counts (excluding archived)
+  const activeSessions = sessions.filter(s => s.status !== 'archived');
   const counts = {
-    total: sessions.length,
-    active: sessions.filter(s => s.status !== 'completed' && !outcomes.has(s.id)).length,
-    completed: sessions.filter(s => s.status === 'completed').length,
-    won: sessions.filter(s => outcomes.get(s.id)?.outcome === 'won').length,
-    lost: sessions.filter(s => outcomes.get(s.id)?.outcome === 'lost').length,
+    total: activeSessions.length,
+    active: activeSessions.filter(s => s.status !== 'completed' && !outcomes.has(s.id)).length,
+    completed: activeSessions.filter(s => s.status === 'completed').length,
+    won: activeSessions.filter(s => outcomes.get(s.id)?.outcome === 'won').length,
+    lost: activeSessions.filter(s => outcomes.get(s.id)?.outcome === 'lost').length,
+    archived: sessions.filter(s => s.status === 'archived').length,
   };
 
   return (
@@ -157,6 +184,7 @@ export default function SalesIntelligenceIndex() {
             ['completed', 'Completados'],
             ['won', 'Ganados'],
             ['lost', 'Perdidos'],
+            ['archived', `Archivados (${counts.archived})`],
           ] as [FilterStatus, string][]).map(([value, label]) => (
             <Button
               key={value}
@@ -279,6 +307,14 @@ export default function SalesIntelligenceIndex() {
                       ) : (
                         <Badge variant="outline" className="text-[10px] text-muted-foreground">Sin decisión</Badge>
                       )}
+                      {s.status !== 'archived' && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" title="Archivar" onClick={(e) => handleArchive(e, s.id)}>
+                          <Archive className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="Eliminar" onClick={(e) => handleDelete(e, s.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7">
                         <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
