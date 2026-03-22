@@ -112,7 +112,7 @@ export default function SalesIntelligenceIndex() {
   // Filter — 'all' hides archived by default
   const filtered = sessions.filter(s => {
     if (filter === 'archived') return s.status === 'archived';
-    if (s.status === 'archived' && filter !== 'archived') return false;
+    if (s.status === 'archived') return false;
     if (filter === 'all') return true;
     if (filter === 'won' || filter === 'lost') {
       const o = outcomes.get(s.id);
