@@ -62,14 +62,31 @@ export default function CertificacionHome() {
   const criticalCount = correctives.filter(c => c.severity === 'tolerancia_cero' || c.status === 'vencido' || c.status === 'escalado').length;
   const pendingActions = correctives.filter(c => c.status !== 'resuelto').length;
 
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}
+        </div>
+        <Skeleton className="h-48 w-full rounded-lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Shield className="h-6 w-6 text-primary" />
-          Motor de Certificación
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary" />
+            Motor de Certificación
+          </h1>
+          {dataSource === 'demo' && (
+            <Badge variant="outline" className="text-[10px] text-muted-foreground gap-1"><Database className="h-2.5 w-2.5" /> Datos demo</Badge>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground mt-1">
           Gestión de evidencia, detección de brechas y preparación de auditoría para todos los esquemas activos
         </p>
