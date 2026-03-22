@@ -450,6 +450,212 @@ function MeetingMode({
 }
 
 /* ══════════════════════════════════════════════════
+   FULL SESSION EDIT MODE
+   ══════════════════════════════════════════════════ */
+
+function FullSessionEditMode({
+  session,
+  onClose,
+  onSaved,
+}: {
+  session: NonNullable<SalesSessionSummary['session']>;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [leadCompany, setLeadCompany] = useState(session.lead_company ?? '');
+  const [leadName, setLeadName] = useState(session.lead_name ?? '');
+  const [leadType, setLeadType] = useState(session.lead_type ?? '');
+  const [status, setStatus] = useState(session.status ?? '');
+  const [stage, setStage] = useState(session.commercial_stage ?? '');
+  const [scorePain, setScorePain] = useState(session.score_pain?.toString() ?? '');
+  const [scoreMaturity, setScoreMaturity] = useState(session.score_maturity?.toString() ?? '');
+  const [scoreUrgency, setScoreUrgency] = useState(session.score_urgency?.toString() ?? '');
+  const [scoreFit, setScoreFit] = useState(session.score_fit?.toString() ?? '');
+  const [scoreBudget, setScoreBudget] = useState(session.score_budget_readiness?.toString() ?? '');
+  const [scoreObjection, setScoreObjection] = useState(session.score_objection?.toString() ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const LEAD_TYPES_MAP: Record<string, string> = {
+    cooperativa: 'Cooperativa / Asociación',
+    exportador: 'Exportador',
+    exportador_red: 'Exportador con red de productores',
+    beneficio_privado: 'Beneficio (compra + procesa)',
+    finca_privada: 'Finca privada',
+    trader: 'Comercializador / Trader',
+  };
+
+  const STATUS_OPTIONS: Record<string, string> = {
+    draft: 'Borrador',
+    in_progress: 'En progreso',
+    completed: 'Diagnóstico completado',
+  };
+
+  const STAGE_OPTIONS: Record<string, string> = {
+    lead: 'Lead',
+    discovery: 'Discovery',
+    proposal: 'Propuesta',
+    negotiation: 'Negociación',
+    follow_up: 'Seguimiento',
+    hold: 'En pausa',
+  };
+
+  const parseScore = (v: string): number | null => {
+    if (!v.trim()) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.min(10, n)) : null;
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const scoreTotal = [scorePain, scoreMaturity, scoreUrgency, scoreFit, scoreBudget, scoreObjection]
+        .map(parseScore)
+        .filter((v): v is number => v !== null);
+      const avg = scoreTotal.length > 0 ? Math.round(scoreTotal.reduce((a, b) => a + b, 0) / scoreTotal.length * 10) / 10 : null;
+
+      const { error } = await supabase
+        .from('sales_sessions' as any)
+        .update({
+          lead_company: leadCompany.trim() || null,
+          lead_name: leadName.trim() || null,
+          lead_type: leadType || null,
+          status: status || null,
+          commercial_stage: stage || null,
+          score_pain: parseScore(scorePain),
+          score_maturity: parseScore(scoreMaturity),
+          score_urgency: parseScore(scoreUrgency),
+          score_fit: parseScore(scoreFit),
+          score_budget_readiness: parseScore(scoreBudget),
+          score_objection: parseScore(scoreObjection),
+          score_total: avg,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', session.id);
+      if (error) throw error;
+      toast.success('Sesión actualizada completamente');
+      onSaved();
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message || 'Error al guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm overflow-y-auto">
+      <div className="max-w-3xl mx-auto p-6 md:p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <Edit2 className="h-5 w-5 text-primary" /> Editar sesión comercial
+          </h2>
+          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+        </div>
+
+        <Separator />
+
+        {/* Identity */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-sm">Identidad del lead</CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Empresa / Lead</Label>
+                <Input value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Nombre de la empresa" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Contacto principal</Label>
+                <Input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Nombre del contacto" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Tipo de organización</Label>
+              <Select value={leadType} onValueChange={setLeadType}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(LEAD_TYPES_MAP).map(([val, lab]) => (
+                    <SelectItem key={val} value={val}>{lab}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Status & Stage */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-sm">Estado y fase comercial</CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Estado del diagnóstico</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STATUS_OPTIONS).map(([val, lab]) => (
+                      <SelectItem key={val} value={val}>{lab}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Fase comercial</Label>
+                <Select value={stage} onValueChange={setStage}>
+                  <SelectTrigger><SelectValue placeholder="Fase" /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STAGE_OPTIONS).map(([val, lab]) => (
+                      <SelectItem key={val} value={val}>{lab}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Scores */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-sm">Scores de diagnóstico (0–10)</CardTitle>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Ajusta los scores manualmente si las respuestas del diagnóstico no reflejan la realidad comercial.</p>
+          </CardHeader>
+          <CardContent className="px-5 pb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[
+                { label: 'Dolor', value: scorePain, set: setScorePain },
+                { label: 'Madurez', value: scoreMaturity, set: setScoreMaturity },
+                { label: 'Urgencia', value: scoreUrgency, set: setScoreUrgency },
+                { label: 'Fit', value: scoreFit, set: setScoreFit },
+                { label: 'Capacidad presupuestaria', value: scoreBudget, set: setScoreBudget },
+                { label: 'Riesgo de objeción', value: scoreObjection, set: setScoreObjection },
+              ].map((s) => (
+                <div key={s.label} className="space-y-1">
+                  <Label className="text-xs">{s.label}</Label>
+                  <Input type="number" min={0} max={10} step={0.5} value={s.value} onChange={(e) => s.set(e.target.value)} placeholder="—" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving} className="gap-1.5">
+            <Save className="h-4 w-4" /> {saving ? 'Guardando…' : 'Guardar todo'}
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+/* ══════════════════════════════════════════════════
    MAIN PAGE
    ══════════════════════════════════════════════════ */
 
@@ -465,16 +671,14 @@ export default function SalesSessionDetail() {
   const [showScores, setShowScores] = useState(false);
   const [battleCard, setBattleCard] = useState<BattleCard | null>(null);
   const [meetingMode, setMeetingMode] = useState(false);
-  // Persistence-ready: phase selection should save to sales_session_phase_updates
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [phaseNote, setPhaseNote] = useState('');
-  // Session header editing
   const [editingHeader, setEditingHeader] = useState(false);
   const [editLeadCompany, setEditLeadCompany] = useState('');
   const [editLeadName, setEditLeadName] = useState('');
   const [editLeadType, setEditLeadType] = useState('');
-  // Phase save tracking
   const [phaseSaved, setPhaseSaved] = useState(false);
+  const [fullEditMode, setFullEditMode] = useState(false);
 
   const session = data?.session ?? null;
   const existingOutcome = data?.outcome ?? null;
@@ -496,7 +700,6 @@ export default function SalesSessionDetail() {
     setDealValue(existingOutcome?.deal_value?.toString() ?? '');
   }, [existingOutcome]);
 
-  // Initialize header edit fields from session
   useEffect(() => {
     if (session) {
       setEditLeadCompany(session.lead_company ?? '');
@@ -505,7 +708,6 @@ export default function SalesSessionDetail() {
     }
   }, [session]);
 
-  // Initialize selected phase from readiness
   useEffect(() => {
     if (selectedPhase === null && reading) {
       const map: Record<string, string> = {
@@ -519,11 +721,11 @@ export default function SalesSessionDetail() {
     }
   }, [reading, selectedPhase]);
 
-  // Save header mutation — updates sales_sessions directly
   const saveHeaderMutation = useMutation({
     mutationFn: async () => {
       if (!sessionId) throw new Error('No session');
-      const { error: updateError } = await (await import('@/integrations/supabase/client')).supabase
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error: updateError } = await supabase
         .from('sales_sessions' as any)
         .update({
           lead_company: editLeadCompany.trim() || null,
@@ -541,11 +743,11 @@ export default function SalesSessionDetail() {
     onError: (e: any) => toast.error(e?.message || 'No se pudo actualizar'),
   });
 
-  // Save phase mutation — updates sales_sessions.commercial_stage
   const savePhaseMutation = useMutation({
     mutationFn: async () => {
       if (!sessionId || !selectedPhase) throw new Error('Selecciona una fase');
-      const { error: updateError } = await (await import('@/integrations/supabase/client')).supabase
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error: updateError } = await supabase
         .from('sales_sessions' as any)
         .update({ commercial_stage: selectedPhase } as any)
         .eq('id', sessionId);
@@ -621,6 +823,7 @@ export default function SalesSessionDetail() {
   }
 
   /* ── Overlay modes ── */
+  if (fullEditMode && session) return <FullSessionEditMode session={session} onClose={() => setFullEditMode(false)} onSaved={() => queryClient.invalidateQueries({ queryKey: ['sales-session-summary', sessionId] })} />;
   if (battleCard) return createPortal(<FullBattleMode card={battleCard} onClose={() => setBattleCard(null)} />, document.body);
   if (meetingMode && hypothesis && playbook) return createPortal(<MeetingMode cards={battleCards} hypothesis={hypothesis} playbook={playbook} onExit={() => setMeetingMode(false)} />, document.body);
 
@@ -693,6 +896,9 @@ export default function SalesSessionDetail() {
             </div>
           )}
           <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setFullEditMode(true)}>
+              <Edit2 className="h-3.5 w-3.5" /> Editar todo
+            </Button>
             {battleCards.length > 0 && (
               <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setMeetingMode(true)}>
                 <Phone className="h-3.5 w-3.5" /> Modo reunión
