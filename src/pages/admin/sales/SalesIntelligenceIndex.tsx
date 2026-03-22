@@ -80,6 +80,7 @@ const STATUS_LABELS: Record<string, { label: string; className: string; icon: ty
   draft: { label: 'Borrador', className: 'border-muted-foreground/30 text-muted-foreground', icon: FileText },
   in_progress: { label: 'En progreso', className: 'border-amber-500/30 text-amber-600 dark:text-amber-400', icon: Clock },
   completed: { label: 'Diagnóstico completado', className: 'border-primary/30 text-primary', icon: CheckCircle2 },
+  archived: { label: 'Archivado', className: 'border-muted-foreground/20 text-muted-foreground/60', icon: Archive },
 };
 
 const OUTCOME_BADGE: Record<string, { label: string; className: string; icon: typeof TrendingUp }> = {
