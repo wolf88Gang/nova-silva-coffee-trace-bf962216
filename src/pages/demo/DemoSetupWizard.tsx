@@ -2,7 +2,7 @@
  * DemoSetupWizard — 6-step premium wizard for prospects.
  * Captures org profile → maps to closest demo archetype → shows plan recommendation → enters personalized demo.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -591,21 +591,34 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
     hasInventory: state.hasInventory,
     hasExports: state.hasExports,
   };
-  const recPacks = recommendPacks(setupConfig);
+  // interestPacks — derived from user's declared interests and toggles (labor/inventory/exports).
+  // These are INDEPENDENT of plan tier: plan determines scale limits, packs are feature add-ons.
+  // Renaming from recPacks to interestPacks to avoid confusion with recommendedPlan.
+  const interestPacks = recommendPacks(setupConfig);
 
-  // recommendedPlan — engine suggestion, informational only, never used for pricing
+  // recommendedPlan — engine suggestion based on scale inputs (producers/plots).
+  // Informational only. Never drives pricing, card highlight, or CTA.
   const recommendedPlan = recommendPlan(setupConfig);
 
-  // selectedPlan — real user selection; initialised from recommendation but fully independent
+  // selectedPlan — the user's actual decision.
+  // Initialized from recommendedPlan on first mount only (useRef guard prevents
+  // re-sync if recommendedPlan ever changes while this step is active).
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>(recommendedPlan);
+  const planInitialized = useRef(false);
+  useEffect(() => {
+    if (!planInitialized.current) {
+      setSelectedPlan(recommendedPlan);
+      planInitialized.current = true;
+    }
+  }, [recommendedPlan]);
 
   // Farmer pricing
   const plotCount = parseInt(state.scalePlots?.match(/(\d+)/)?.[1] || '5');
-  const farmerEst = estimateFarmerPrice(plotCount, recPacks.filter(k => FARMER_PACKS.some(p => p.key === k)));
-  const farmerPacks = recPacks.filter(k => FARMER_PACKS.some(p => p.key === k));
+  const farmerEst = estimateFarmerPrice(plotCount, interestPacks.filter(k => FARMER_PACKS.some(p => p.key === k)));
+  const farmerPacks = interestPacks.filter(k => FARMER_PACKS.some(p => p.key === k));
 
-  // Aggregator pricing — ALWAYS uses selectedPlan, never recommendedPlan
-  const aggEst = estimateAggregatorPrice(selectedPlan, recPacks);
+  // Aggregator pricing — base price from selectedPlan, add-ons from interestPacks
+  const aggEst = estimateAggregatorPrice(selectedPlan, interestPacks);
 
   const PACK_ICONS_MAP: Record<string, typeof Bug> = {
     agronomia: Bug, cumplimiento: Shield, calidad: Award,
@@ -613,7 +626,7 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   };
 
   const activePacks = isFarmer ? FARMER_PACKS : AGGREGATOR_PACKS;
-  const displayPacks = isFarmer ? farmerPacks : recPacks;
+  const displayPacks = isFarmer ? farmerPacks : interestPacks;
 
   return (
     <WizardCard className="max-w-3xl">
