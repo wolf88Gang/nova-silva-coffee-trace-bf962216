@@ -2,14 +2,13 @@
  * DemoSetupWizard — 6-step premium wizard for prospects.
  * Captures org profile → maps to closest demo archetype → shows plan recommendation → enters personalized demo.
  */
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { ensureDemoUser } from '@/lib/ensureDemoUser';
-import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
+import { interpretDemoError } from '@/lib/demoErrors';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -111,7 +110,13 @@ function deriveModel(state: SetupState): string {
 
 // ── Map to closest archetype ──
 
-function mapToArchetype(state: SetupState): { orgId: string; email: string; role: string; redirectPath: string; orgName: string; modules: string[] } {
+// platformOrgId must match platform_organizations.id — seeded by migration 20260323000002.
+// cooperativa/estate/farm → org 001 | exportador → org 002 | certificadora → org 003
+function mapToArchetype(state: SetupState): {
+  orgId: string; platformOrgId: string;
+  email: string; role: string;
+  redirectPath: string; orgName: string; modules: string[];
+} {
   const model = deriveModel(state);
   const moduleMap: Record<string, string[]> = {
     production: ['Producción'],
@@ -124,23 +129,22 @@ function mapToArchetype(state: SetupState): { orgId: string; email: string; role
     supply: ['Abastecimiento', 'Lotes'],
   };
   const modules = state.interests.flatMap(i => moduleMap[i] || []);
-  // Always add VITAL and Finanzas
   if (!modules.includes('VITAL')) modules.push('VITAL');
   if (!modules.includes('Finanzas')) modules.push('Finanzas');
 
   switch (model) {
     case 'auditor':
-      return { orgId: 'cert_demo', email: 'demo.certificadora@novasilva.com', role: 'certificadora', redirectPath: '/cumplimiento', orgName: 'Certificadora', modules: ['Auditorías', 'Data Room', 'Dossiers', ...modules] };
+      return { orgId: 'cert_demo', platformOrgId: '00000000-0000-0000-0000-000000000003', email: 'demo.certificadora@novasilva.com', role: 'certificadora', redirectPath: '/cumplimiento', orgName: 'Certificadora', modules: ['Auditorías', 'Data Room', 'Dossiers', ...modules] };
     case 'trader':
-      return { orgId: 'exporter_demo', email: 'demo.exportador@novasilva.com', role: 'exportador', redirectPath: '/origenes', orgName: 'Exportador de Origen', modules: ['Orígenes', ...modules] };
+      return { orgId: 'exporter_demo', platformOrgId: '00000000-0000-0000-0000-000000000002', email: 'demo.exportador@novasilva.com', role: 'exportador', redirectPath: '/origenes', orgName: 'Exportador de Origen', modules: ['Orígenes', ...modules] };
     case 'aggregator':
-      return { orgId: 'coop_demo', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Cooperativa Regional', modules: ['Producción', 'Agronomía', ...modules] };
+      return { orgId: 'coop_demo', platformOrgId: '00000000-0000-0000-0000-000000000001', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Cooperativa Regional', modules: ['Producción', 'Agronomía', ...modules] };
     case 'estate_hybrid':
-      return { orgId: 'estate_demo', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Finca Empresarial', modules: ['Producción', 'Abastecimiento', ...modules] };
+      return { orgId: 'estate_demo', platformOrgId: '00000000-0000-0000-0000-000000000001', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Finca Empresarial', modules: ['Producción', 'Abastecimiento', ...modules] };
     case 'estate':
-      return { orgId: 'estate_demo', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Finca Empresarial', modules: ['Producción', 'Agronomía', 'Jornales', ...modules] };
+      return { orgId: 'estate_demo', platformOrgId: '00000000-0000-0000-0000-000000000001', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Finca Empresarial', modules: ['Producción', 'Agronomía', 'Jornales', ...modules] };
     default: // single_farm
-      return { orgId: 'farm_demo', email: 'demo.productor@novasilva.com', role: 'productor', redirectPath: '/produccion', orgName: 'Finca Privada', modules: ['Producción', 'Agronomía', 'Jornales', ...modules] };
+      return { orgId: 'farm_demo', platformOrgId: '00000000-0000-0000-0000-000000000001', email: 'demo.productor@novasilva.com', role: 'productor', redirectPath: '/produccion', orgName: 'Finca Privada', modules: ['Producción', 'Agronomía', 'Jornales', ...modules] };
   }
 }
 
@@ -163,35 +167,22 @@ function getNarrative(state: SetupState): string {
 
 export default function DemoSetupWizard() {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState<Step>(0);
   const [state, setState] = useState<SetupState>(INITIAL);
   const [entering, setEntering] = useState(false);
   const [enterError, setEnterError] = useState<{ title: string; description: string } | null>(null);
-  const pendingRedirect = useRef<string | null>(null);
 
   const update = (partial: Partial<SetupState>) => setState(prev => ({ ...prev, ...partial }));
   const model = deriveModel(state);
   const archetype = useMemo(() => mapToArchetype(state), [state]);
   const progressValue = ((step + 1) / TOTAL_STEPS) * 100;
 
-  useEffect(() => {
-    if (isAuthenticated && user && pendingRedirect.current) {
-      const dest = pendingRedirect.current;
-      pendingRedirect.current = null;
-      setEntering(false);
-      navigate(dest);
-    }
-  }, [isAuthenticated, user, navigate]);
-
-  const handleEnterDemo = async () => {
+  const handleEnterDemo = async (selectedPlan: PlanTier) => {
     if (entering) return;
     setEntering(true);
     setEnterError(null);
     const arch = archetype;
-
-    // Deduplicate modules
     const uniqueModules = [...new Set(arch.modules)];
 
     setDemoConfig({
@@ -203,47 +194,52 @@ export default function DemoSetupWizard() {
       profileLabel: 'Demo personalizado',
     });
 
-    // Store extended setup in sessionStorage for potential use
-    sessionStorage.setItem('novasilva_demo_setup', JSON.stringify({
-      ...state,
-      operatingModel: model,
-      modulesEnabled: uniqueModules,
-      scaleProfile: { plots: state.scalePlots, producers: state.scaleProducers, users: state.scaleUsers },
-    }));
-
     try {
-      const result = await ensureDemoUser(arch.role);
-      if (!result.ok) {
-        const errInfo = interpretDemoError(result);
-        console.error('ensure-demo-user failed:', result.error, result.status);
-        setEnterError({ title: errInfo.title, description: errInfo.description });
-        toast({
-          title: errInfo.title,
-          description: errInfo.description,
-          variant: 'destructive',
-        });
+      // ── Step 1: authenticate ────────────────────────────────────────────
+      const { data: authData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: arch.email,
+        password: 'demo123456',
+      });
+
+      if (signInErr) {
+        setEnterError({ title: 'Error de autenticación', description: signInErr.message });
+        toast({ title: 'Error de autenticación', description: signInErr.message, variant: 'destructive' });
         setEntering(false);
         return;
       }
 
-      if (isNoOrgResult(result)) {
-        toast({
-          title: 'Demo sin organización',
-          description: 'Algunas funciones pueden estar limitadas.',
-        });
-      }
-
-      pendingRedirect.current = arch.redirectPath;
-      const { error } = await supabase.auth.signInWithPassword({ email: arch.email, password: 'demo123456' });
-
-      if (error) {
-        pendingRedirect.current = null;
-        setEnterError({ title: 'Error de autenticación', description: error.message });
+      if (!authData.session) {
+        setEnterError({ title: 'Error de sesión', description: 'No se pudo establecer sesión.' });
         setEntering(false);
-        console.error('Demo auth error:', error.message);
+        return;
       }
+
+      // ── Step 2: ensure demo state with authenticated session ────────────
+      const result = await ensureDemoUser(arch.role, arch.platformOrgId);
+      if (!result.ok) {
+        await supabase.auth.signOut();
+        const errInfo = interpretDemoError(result);
+        console.error('ensure-demo-user failed:', result.error, result.status);
+        setEnterError({ title: errInfo.title, description: errInfo.description });
+        toast({ title: errInfo.title, description: errInfo.description, variant: 'destructive' });
+        setEntering(false);
+        return;
+      }
+
+      // ── Step 3: persist setup context + navigate ────────────────────────
+      sessionStorage.setItem('novasilva_demo_setup', JSON.stringify({
+        ...state,
+        operatingModel: model,
+        modulesEnabled: uniqueModules,
+        selectedPlan,
+        scaleProfile: { plots: state.scalePlots, producers: state.scaleProducers, users: state.scaleUsers },
+      }));
+
+      setEntering(false);
+      navigate(arch.redirectPath);
+
     } catch (err: any) {
-      pendingRedirect.current = null;
+      await supabase.auth.signOut();
       setEnterError({
         title: 'Sin conexión',
         description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
@@ -575,7 +571,7 @@ function StepScale({ state, update, onNext, onBack }: { state: SetupState; updat
 
 function StepSummary({ state, model, archetype, narrative, onEnter, onBack, entering, enterError }: {
   state: SetupState; model: string; archetype: ReturnType<typeof mapToArchetype>; narrative: string;
-  onEnter: () => void; onBack: () => void; entering: boolean;
+  onEnter: (plan: PlanTier) => void; onBack: () => void; entering: boolean;
   enterError: { title: string; description: string } | null;
 }) {
   const orgLabel = ORG_TYPES.find(o => o.value === state.orgType)?.label || state.orgType;
@@ -584,7 +580,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   const pricingModel = getPricingModel(state.orgType || 'cooperativa');
   const isFarmer = pricingModel === 'farmer';
 
-  // Pricing recommendation
   const setupConfig: DemoSetupConfig = {
     orgType: state.orgType || 'cooperativa',
     operatingModel: model,
@@ -598,14 +593,19 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   };
   const recPacks = recommendPacks(setupConfig);
 
+  // recommendedPlan — engine suggestion, informational only, never used for pricing
+  const recommendedPlan = recommendPlan(setupConfig);
+
+  // selectedPlan — real user selection; initialised from recommendation but fully independent
+  const [selectedPlan, setSelectedPlan] = useState<PlanTier>(recommendedPlan);
+
   // Farmer pricing
   const plotCount = parseInt(state.scalePlots?.match(/(\d+)/)?.[1] || '5');
   const farmerEst = estimateFarmerPrice(plotCount, recPacks.filter(k => FARMER_PACKS.some(p => p.key === k)));
   const farmerPacks = recPacks.filter(k => FARMER_PACKS.some(p => p.key === k));
 
-  // Aggregator pricing
-  const recPlan = recommendPlan(setupConfig);
-  const aggEst = estimateAggregatorPrice(recPlan, recPacks);
+  // Aggregator pricing — ALWAYS uses selectedPlan, never recommendedPlan
+  const aggEst = estimateAggregatorPrice(selectedPlan, recPacks);
 
   const PACK_ICONS_MAP: Record<string, typeof Bug> = {
     agronomia: Bug, cumplimiento: Shield, calidad: Award,
@@ -685,28 +685,47 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
               </div>
             </>
           ) : (
-            /* ── AGGREGATOR PLAN CARDS ── */
+            /* ── AGGREGATOR PLAN CARDS (interactive) ── */
             <div>
-              <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Plan recomendado</p>
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold">Selecciona tu plan</p>
+                {selectedPlan !== recommendedPlan && (
+                  <span className="text-[9px] text-white/30">
+                    Recomendado: <span className="text-[hsl(var(--accent-orange))]">{recommendedPlan}</span>
+                  </span>
+                )}
+              </div>
               <div className="space-y-2">
-                {AGGREGATOR_PLANS.map(p => (
-                  <div key={p.tier} className={cn(
-                    'flex items-center justify-between p-3 rounded-xl border transition-all',
-                    p.tier === recPlan
-                      ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
-                      : 'border-white/8 bg-white/3'
-                  )}>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white">{p.label}</span>
-                        {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))] font-bold">{p.badge}</span>}
-                        {p.tier === recPlan && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))] text-white font-bold">RECOMENDADO</span>}
+                {AGGREGATOR_PLANS.map(p => {
+                  const isSelected    = selectedPlan    === p.tier;
+                  const isRecommended = recommendedPlan === p.tier;
+                  return (
+                    <button
+                      key={p.tier}
+                      type="button"
+                      onClick={() => setSelectedPlan(p.tier)}
+                      className={cn(
+                        'w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left',
+                        isSelected
+                          ? 'border-[hsl(var(--accent-orange))]/60 bg-[hsl(var(--accent-orange))]/12 ring-1 ring-[hsl(var(--accent-orange))]/30'
+                          : 'border-white/8 bg-white/3 hover:border-white/20 hover:bg-white/6 cursor-pointer'
+                      )}
+                    >
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={cn('text-sm font-semibold', isSelected ? 'text-white' : 'text-white/70')}>{p.label}</span>
+                          {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))] font-bold">{p.badge}</span>}
+                          {isRecommended && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/50 font-semibold">RECOMENDADO</span>}
+                          {isSelected && !isRecommended && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/25 text-[hsl(var(--accent-orange))] font-semibold">SELECCIONADO</span>}
+                        </div>
+                        <p className="text-[10px] text-white/30 mt-0.5">{p.limit}</p>
                       </div>
-                      <p className="text-[10px] text-white/30 mt-0.5">{p.limit}</p>
-                    </div>
-                    <span className="text-base font-bold text-white">${p.base}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
-                  </div>
-                ))}
+                      <span className={cn('text-base font-bold', isSelected ? 'text-[hsl(var(--accent-orange))]' : 'text-white/50')}>
+                        ${p.base}<span className="text-[10px] font-normal text-white/30">/mes</span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -765,7 +784,7 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
             ) : (
               <>
                 <div className="flex justify-between text-xs">
-                  <span className="text-white/40">Plan {recPlan}</span>
+                  <span className="text-white/40">Plan {selectedPlan}</span>
                   <span className="text-white font-mono">${aggEst.base}</span>
                 </div>
                 {aggEst.packs > 0 && (
@@ -796,7 +815,7 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
       {/* CTA */}
       <div className="mt-4">
         <button
-          onClick={onEnter}
+          onClick={() => onEnter(selectedPlan)}
           disabled={entering}
           className={cn(
             'w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-semibold transition-all text-sm',
