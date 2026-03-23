@@ -13,6 +13,50 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   })
 }
 
+// =============================================================================
+// DEMO TENANT CONSTANTS
+// These values are hardcoded and intentionally match the demo_data_fix migration.
+// The edge function never touches non-demo users or non-demo orgs.
+// =============================================================================
+
+// Valid roles for the demo environment
+const DEMO_ROLES = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico'] as const
+type DemoRole = typeof DEMO_ROLES[number]
+
+// Display names per role
+const DEMO_NAMES: Record<DemoRole, string> = {
+  cooperativa: 'María García',
+  exportador:  'Carlos Mendoza',
+  certificadora: 'Ana Certificadora',
+  productor:   'Juan Pérez',
+  tecnico:     'Pedro Técnico',
+}
+
+// platform_organizations.id — referenced by profiles.organization_id (FK)
+const PLATFORM_ORG_ID: Record<DemoRole, string> = {
+  cooperativa:   '00000000-0000-0000-0000-000000000001',
+  productor:     '00000000-0000-0000-0000-000000000001',
+  tecnico:       '00000000-0000-0000-0000-000000000001',
+  exportador:    '00000000-0000-0000-0000-000000000002',
+  certificadora: '00000000-0000-0000-0000-000000000003',
+}
+
+// organizaciones.id — referenced by organizacion_usuarios.organizacion_id (FK)
+// Used by cert_user_org_id() RLS fallback.
+const APP_ORG_ID: Record<DemoRole, string> = {
+  cooperativa:   '00000000-0000-0000-0000-000000000001',
+  productor:     '00000000-0000-0000-0000-000000000001',
+  tecnico:       '00000000-0000-0000-0000-000000000001',
+  exportador:    '00000000-0000-0000-0000-000000000002',
+  certificadora: '00000000-0000-0000-0000-000000000003',
+}
+
+const DEMO_PASSWORD = 'demo123456'
+
+// =============================================================================
+// HANDLER
+// =============================================================================
+
 serve(async (req) => {
   console.log('=== ENSURE-DEMO-USER START ===')
 
@@ -20,164 +64,130 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  // ── Parse and validate body ──
+  let role: string | undefined
   try {
-    const rawBody = await req.text()
-    console.log('Raw body:', rawBody)
+    const parsed = JSON.parse(await req.text())
+    role = parsed.role
+  } catch (e) {
+    return jsonResponse({ ok: false, error: 'Invalid JSON body' }, 400)
+  }
 
-    let role: string | undefined
-    let bodyOrgId: string | undefined
+  if (!role || !(DEMO_ROLES as readonly string[]).includes(role)) {
+    return jsonResponse({
+      ok: false,
+      error: 'Invalid role',
+      details: `received: ${role}, valid: ${DEMO_ROLES.join(', ')}`,
+    }, 400)
+  }
 
-    try {
-      const parsed = JSON.parse(rawBody)
-      role = parsed.role
-      bodyOrgId = parsed.organization_id
-    } catch (parseErr) {
-      return jsonResponse({ ok: false, error: 'Invalid JSON body', details: (parseErr as Error).message }, 400)
-    }
+  const demoRole = role as DemoRole
+  const email    = `demo.${demoRole}@novasilva.com`
+  const platformOrgId = PLATFORM_ORG_ID[demoRole]
+  const appOrgId      = APP_ORG_ID[demoRole]
 
-    const validRoles = ['cooperativa', 'exportador', 'certificadora', 'productor', 'tecnico']
+  console.log('Role:', demoRole, '| email:', email, '| org:', platformOrgId)
 
-    if (!role) {
-      return jsonResponse({ ok: false, error: 'Role is required', details: `received: ${role}` }, 400)
-    }
-    if (!validRoles.includes(role)) {
-      return jsonResponse({ ok: false, error: 'Invalid role', details: `received: ${role}, valid: ${validRoles.join(', ')}` }, 400)
-    }
+  // ── Service-role client (no RLS) ──
+  // Security: this client operates only on the hardcoded demo email/orgs above.
+  // It never reads or writes data for non-demo users.
+  const admin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    { auth: { persistSession: false } }
+  )
 
-    console.log('Role:', role, 'bodyOrgId:', bodyOrgId)
+  try {
+    // ── 1. Ensure auth user exists ──
+    let userId: string
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const email = `demo.${role}@novasilva.com`
-    const password = 'demo123456'
-
-    const names: Record<string, string> = {
-      cooperativa: 'María García',
-      exportador: 'Carlos Mendoza',
-      certificadora: 'Ana Certificadora',
-      productor: 'Juan Pérez',
-      tecnico: 'Pedro Técnico',
-    }
-
-    // ── Resolve organization_id ──
-    let resolvedOrgId: string | null = null
-
-    if (bodyOrgId) {
-      // Validate that it exists in platform_organizations
-      const { data: orgRow, error: orgErr } = await supabaseAdmin
-        .from('platform_organizations')
-        .select('id')
-        .eq('id', bodyOrgId)
-        .maybeSingle()
-
-      if (orgErr) {
-        console.warn('Error checking platform_organizations:', orgErr.message)
-      }
-
-      if (orgRow) {
-        resolvedOrgId = orgRow.id
-        console.log('Validated organization_id from body:', resolvedOrgId)
-      } else {
-        console.warn('organization_id from body not found in platform_organizations:', bodyOrgId)
-      }
-    }
-
-    // ── Create or find auth user ──
-    console.log('Creating/finding user:', email)
-
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
-      password,
+      password: DEMO_PASSWORD,
       email_confirm: true,
-      user_metadata: {
-        name: names[role],
-        role,
-      }
+      user_metadata: { name: DEMO_NAMES[demoRole], role: demoRole },
     })
 
-    let userId: string | undefined
-
-    if (authError) {
-      console.log('Auth error:', authError.message)
-
-      if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
-        const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({ email, password })
-        if (signInError) {
-          return jsonResponse({ ok: false, error: 'Cannot sign in existing demo user', details: signInError.message }, 500)
+    if (createErr) {
+      if (
+        createErr.message.includes('already registered') ||
+        createErr.message.includes('already been registered')
+      ) {
+        // User exists — resolve their ID via admin list
+        const { data: { users }, error: listErr } = await admin.auth.admin.listUsers()
+        if (listErr) {
+          return jsonResponse({ ok: false, error: 'Cannot list users', details: listErr.message }, 500)
         }
-        userId = signInData?.user?.id
-
-        // If no bodyOrgId, try to get from existing profile
-        if (!resolvedOrgId && userId) {
-          const { data: existingProfile } = await supabaseAdmin
-            .from('profiles')
-            .select('organization_id')
-            .eq('user_id', userId)
-            .maybeSingle()
-          if (existingProfile?.organization_id) {
-            resolvedOrgId = existingProfile.organization_id
-            console.log('Resolved organization_id from existing profile:', resolvedOrgId)
-          }
+        const existing = users.find(u => u.email === email)
+        if (!existing) {
+          return jsonResponse({ ok: false, error: `Demo user ${email} not found after create conflict` }, 500)
         }
+        userId = existing.id
+        console.log('User already exists:', userId)
       } else {
-        return jsonResponse({ ok: false, error: 'Auth error', details: authError.message }, 500)
+        return jsonResponse({ ok: false, error: 'Auth create error', details: createErr.message }, 500)
       }
     } else {
-      userId = authData?.user?.id
-      console.log('Created new user:', userId)
+      userId = created.user.id
+      console.log('Created user:', userId)
     }
 
-    if (!userId) {
-      return jsonResponse({ ok: false, error: 'Could not resolve user ID' }, 500)
-    }
-
-    // ── Upsert profile ──
-    console.log('Upserting profile for:', userId, 'org:', resolvedOrgId)
-    const { error: profileErr } = await supabaseAdmin.from('profiles').upsert({
-      user_id: userId,
-      full_name: names[role],
-      email,
-      organization_id: resolvedOrgId,
-      is_active: true,
-    }, { onConflict: 'user_id' })
+    // ── 2. Upsert profile ──
+    // Columns: user_id (PK conflict target), name, organization_id
+    // Does NOT write: full_name (doesn't exist), email (doesn't exist), is_active (doesn't exist)
+    const { error: profileErr } = await admin
+      .from('profiles')
+      .upsert(
+        { user_id: userId, name: DEMO_NAMES[demoRole], organization_id: platformOrgId },
+        { onConflict: 'user_id' }
+      )
 
     if (profileErr) {
-      console.error('Profile upsert error:', profileErr.message)
-      // Non-fatal: continue but log
+      // Non-fatal: log but continue. Profile may already be correctly populated.
+      console.warn('Profile upsert warning:', profileErr.message)
     }
 
-    // ── Insert role only if org is valid ──
-    if (resolvedOrgId) {
-      const { data: existingRole } = await supabaseAdmin
+    // ── 3. Ensure user_roles entry ──
+    // user_roles has no organization_id column — it is a global role assignment.
+    const { data: existingRole } = await admin
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (!existingRole) {
+      const { error: roleErr } = await admin
         .from('user_roles')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle()
-
-      if (!existingRole) {
-        console.log('Inserting role:', role)
-        const { error: roleErr } = await supabaseAdmin
-          .from('user_roles')
-          .insert({ user_id: userId, role })
-
-        if (roleErr) {
-          console.error('Role insert error:', roleErr.message)
-        }
-      } else {
-        console.log('Role already exists, skipping insert')
+        .insert({ user_id: userId, role: demoRole })
+      if (roleErr) {
+        console.warn('user_roles insert warning:', roleErr.message)
       }
-    } else {
-      console.log('No valid organization_id — skipping user_roles insert')
     }
 
-    console.log('SUCCESS:', email, 'org:', resolvedOrgId)
-    return jsonResponse({ ok: true, user_id: userId, organization_id: resolvedOrgId })
+    // ── 4. Ensure organizacion_usuarios entry ──
+    // Required for cert_user_org_id() RLS fallback in certification pages.
+    // Unique constraint: (organizacion_id, user_id)
+    const { error: ouErr } = await admin
+      .from('organizacion_usuarios')
+      .upsert(
+        {
+          organizacion_id: appOrgId,
+          user_id: userId,
+          rol: demoRole,
+          activo: true,
+        },
+        { onConflict: 'organizacion_id,user_id' }
+      )
 
-  } catch (error) {
-    console.error('FATAL:', error)
-    return jsonResponse({ ok: false, error: (error as Error).message }, 500)
+    if (ouErr) {
+      console.warn('organizacion_usuarios upsert warning:', ouErr.message)
+    }
+
+    console.log('SUCCESS:', email, '| userId:', userId, '| org:', platformOrgId)
+    return jsonResponse({ ok: true, user_id: userId, organization_id: platformOrgId })
+
+  } catch (err) {
+    console.error('FATAL:', err)
+    return jsonResponse({ ok: false, error: (err as Error).message }, 500)
   }
 })
