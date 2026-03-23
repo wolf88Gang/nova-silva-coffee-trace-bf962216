@@ -11,7 +11,7 @@ import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgHillside from '@/assets/bg-hillside-farm.jpg';
 import { cn } from '@/lib/utils';
 import { ensureDemoUser } from '@/lib/ensureDemoUser';
-import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
+import { interpretDemoError } from '@/lib/demoErrors';
 import { DemoConversionCTA } from '@/components/demo/DemoConversionCTA';
 
 // ── FALLBACK DATA (used when views don't exist) ──
@@ -27,6 +27,9 @@ interface DemoProfile {
 
 interface DemoOrganization {
   id: string;
+  /** platform_organizations.id — sent to ensure-demo-user as organization_id.
+   *  For DB-loaded orgs this equals `id`. For fallback orgs it is set explicitly. */
+  platformOrgId: string;
   name: string;
   orgType: string;
   operatingModel: string;
@@ -40,9 +43,13 @@ interface DemoOrganization {
   redirectPath: string;
 }
 
+// platformOrgId values must match platform_organizations.id in the live DB.
+// These are seeded by migrations 20260323000001 + 20260323000002.
 const FALLBACK_ORGS: DemoOrganization[] = [
   {
-    id: 'coop_demo', name: 'Cooperativa Regional', orgType: 'cooperativa',
+    id: 'coop_demo',
+    platformOrgId: '00000000-0000-0000-0000-000000000001',
+    name: 'Cooperativa Regional', orgType: 'cooperativa',
     operatingModel: 'aggregator', typeLabel: 'Cooperativa', country: 'Costa Rica',
     description: 'Gestiona productores, trazabilidad, cumplimiento EUDR y soporte tecnico de campo.',
     stats: ['420 socios', '860 parcelas', '12 tecnicos'],
@@ -55,7 +62,9 @@ const FALLBACK_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'estate_demo', name: 'Finca Empresarial', orgType: 'finca_empresarial',
+    id: 'estate_demo',
+    platformOrgId: '00000000-0000-0000-0000-000000000001',
+    name: 'Finca Empresarial', orgType: 'finca_empresarial',
     operatingModel: 'estate_hybrid', typeLabel: 'Finca empresarial', country: 'Costa Rica',
     description: 'Opera parcelas propias con agronomia intensiva y compra cafe a proveedores externos.',
     stats: ['74 ha propias', '82 proveedores', '6 cuadrillas'],
@@ -68,7 +77,9 @@ const FALLBACK_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'exporter_demo', name: 'Exportador de Origen', orgType: 'exportador',
+    id: 'exporter_demo',
+    platformOrgId: '00000000-0000-0000-0000-000000000002',
+    name: 'Exportador de Origen', orgType: 'exportador',
     operatingModel: 'trader', typeLabel: 'Exportador', country: 'Centroamerica',
     description: 'Controla riesgos, cumplimiento EUDR, lotes comerciales y supply chain de cafe.',
     stats: ['4,200 proveedores', '12 regiones', '38 contratos'],
@@ -80,7 +91,9 @@ const FALLBACK_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'farm_demo', name: 'Finca Privada', orgType: 'productor_privado',
+    id: 'farm_demo',
+    platformOrgId: '00000000-0000-0000-0000-000000000001',
+    name: 'Finca Privada', orgType: 'productor_privado',
     operatingModel: 'single_farm', typeLabel: 'Productor privado', country: 'Costa Rica',
     description: 'Finca tecnificada con agronomia intensiva, jornales y control de calidad.',
     stats: ['48 ha', '14 parcelas', '3 variedades'],
@@ -91,7 +104,9 @@ const FALLBACK_ORGS: DemoOrganization[] = [
     ],
   },
   {
-    id: 'cert_demo', name: 'Certificadora', orgType: 'certificadora',
+    id: 'cert_demo',
+    platformOrgId: '00000000-0000-0000-0000-000000000003',
+    name: 'Certificadora', orgType: 'certificadora',
     operatingModel: 'auditor', typeLabel: 'Certificadora', country: 'Regional',
     description: 'Acceso read-only para auditoria, verificacion de evidencia y dossiers.',
     stats: ['24 organizaciones auditadas'],
@@ -122,7 +137,9 @@ const ORG_TYPE_LABELS: Record<string, string> = {
 function rowToOrg(row: DemoOrgRow): DemoOrganization {
   const orgType = row.org_type || 'cooperativa';
   return {
+    // For DB-loaded orgs, id IS the platform_organizations.id UUID.
     id: row.id,
+    platformOrgId: row.id,
     name: row.display_name,
     orgType,
     operatingModel: row.operating_model || '',
@@ -383,43 +400,48 @@ const DemoLogin = () => {
 
     try {
       if (selectedProfile.role !== 'admin') {
-        const result = await ensureDemoUser(selectedProfile.role);
-        if (!result.ok) {
-          const errInfo = interpretDemoError(result);
-          console.error('ensure-demo-user failed:', result.error, result.status);
-          toast({
-            title: errInfo.title,
-            description: errInfo.description,
-            variant: 'destructive',
-          });
+        // ── Step 1: authenticate first ──────────────────────────────────────
+        // ensure-demo-user requires a real authenticated session.
+        // We sign in before calling the function.
+        const { data: authData, error: signInErr } = await supabase.auth.signInWithPassword({
+          email: selectedProfile.email,
+          password: 'demo123456',
+        });
+
+        if (signInErr) {
+          toast({ title: 'Error de autenticación', description: signInErr.message, variant: 'destructive' });
           setLoadingRole(null);
           return;
         }
 
-        // Check for no-org warning
-        if (isNoOrgResult(result)) {
-          toast({
-            title: 'Demo sin organización',
-            description: 'Estás en modo demo sin organización. Algunas funciones pueden estar limitadas.',
-          });
+        if (!authData.session) {
+          toast({ title: 'Error de sesión', description: 'No se pudo establecer sesión. Intenta de nuevo.', variant: 'destructive' });
+          setLoadingRole(null);
+          return;
         }
-      }
 
-      pendingRedirect.current = selectedOrg.redirectPath;
+        // ── Step 2: ensure demo state with authenticated session ─────────────
+        // platformOrgId is the platform_organizations.id for the selected org.
+        const orgId = selectedOrg.platformOrgId;
+        const result = await ensureDemoUser(selectedProfile.role, orgId);
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: selectedProfile.email,
-        password: 'demo123456',
-      });
+        if (!result.ok) {
+          // Sign out on failure — auth succeeded but provisioning failed.
+          await supabase.auth.signOut();
+          const errInfo = interpretDemoError(result);
+          console.error('ensure-demo-user failed:', result.error, result.status);
+          toast({ title: errInfo.title, description: errInfo.description, variant: 'destructive' });
+          setLoadingRole(null);
+          return;
+        }
 
-      if (error) {
-        pendingRedirect.current = null;
-        toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
+        // ── Step 3: navigate to app ─────────────────────────────────────────
         setLoadingRole(null);
+        navigate(selectedOrg.redirectPath);
       }
     } catch (err: any) {
       console.error('Demo login error:', err);
-      pendingRedirect.current = null;
+      await supabase.auth.signOut();
       toast({
         title: 'Sin conexión',
         description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
