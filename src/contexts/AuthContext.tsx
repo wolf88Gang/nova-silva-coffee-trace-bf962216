@@ -52,13 +52,12 @@ export type { User as AppUser, UserRole as AppRole };
 async function getUserProfile(userId: string) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('name, organization_name, organization_id, productor_id')
+    .select('full_name, email, organization_id, productor_id')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) { console.error('Error fetching profile:', error); return null; }
   return data ? {
-    name: data.name,
-    organizationName: data.organization_name,
+    name: (data as any).full_name || (data as any).name || data.email || 'Usuario',
     organizationId: data.organization_id,
     productorId: data.productor_id,
   } : null;
@@ -138,7 +137,7 @@ async function buildUserFromSession(session: Session): Promise<User | null> {
       ...baseUser,
       name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
       role: metadataRole,
-      organizationName: orgInfo?.orgName || profile?.organizationName || supabaseUser.user_metadata?.organization_name || undefined,
+      organizationName: orgInfo?.orgName || supabaseUser.user_metadata?.organization_name || undefined,
       orgTipo: baseUser.orgTipo || (metadataRole as OrgTipo) || undefined,
     };
   }
@@ -147,7 +146,7 @@ async function buildUserFromSession(session: Session): Promise<User | null> {
     ...baseUser,
     name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
     role,
-    organizationName: orgInfo?.orgName || profile?.organizationName || undefined,
+    organizationName: orgInfo?.orgName || undefined,
     orgTipo: baseUser.orgTipo || (role as string as OrgTipo) || undefined,
   };
 }
