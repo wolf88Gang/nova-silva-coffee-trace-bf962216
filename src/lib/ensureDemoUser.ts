@@ -16,38 +16,30 @@ export interface EnsureDemoResult {
 }
 
 export async function ensureDemoUser(role: string): Promise<EnsureDemoResult> {
+  // Get active session for auth propagation
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  // Build headers — use real session token if available, fallback to anon key
   const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
 
-  const runRequest = async (bearerToken: string) => {
-    return fetch(FUNCTION_URL, {
+  try {
+    const res = await fetch(FUNCTION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: anonKey,
-        Authorization: `Bearer ${bearerToken}`,
+        'apikey': anonKey,
+        'Authorization': `Bearer ${token || anonKey}`,
       },
       body: JSON.stringify({ role }),
     });
-  };
-
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-
-    // Demo access must work even when there is a stale/expired local session.
-    // Prefer the anon key for pre-login bootstrap and only retry with session token if needed.
-    let res = await runRequest(anonKey);
-
-    if (res.status === 401 && token) {
-      res = await runRequest(token);
-    }
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       const status = res.status;
 
       if (status === 401) {
-        return { ok: false, status, error: 'No fue posible preparar la cuenta demo' };
+        return { ok: false, status, error: 'Sesión inválida o expirada' };
       }
       if (status === 404) {
         return { ok: false, status, error: 'La función ensure-demo-user no está desplegada' };
@@ -58,6 +50,7 @@ export async function ensureDemoUser(role: string): Promise<EnsureDemoResult> {
       return { ok: false, status, error: `Error HTTP ${status}: ${body}` };
     }
 
+    // Parse response body for message/details
     try {
       const body = await res.json();
       return { ok: body.ok !== false, status: res.status, message: body.message, error: body.error };
@@ -65,6 +58,7 @@ export async function ensureDemoUser(role: string): Promise<EnsureDemoResult> {
       return { ok: true, status: res.status };
     }
   } catch (err: any) {
+    // Network or CORS failure — no HTTP status available
     return {
       ok: false,
       error: `No se pudo conectar con la función: ${err.message || 'error de red'}`,
