@@ -382,8 +382,24 @@ const DemoLogin = () => {
     });
 
     try {
+      // STEP 1: LOGIN FIRST — obtain real session
+      pendingRedirect.current = selectedOrg.redirectPath;
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: selectedProfile.email,
+        password: 'demo123456',
+      });
+
+      if (signInError) {
+        pendingRedirect.current = null;
+        toast({ title: 'Error de autenticación', description: signInError.message, variant: 'destructive' });
+        setLoadingRole(null);
+        return;
+      }
+
+      // STEP 2: NOW call ensure-demo-user with real authenticated session
       if (selectedProfile.role !== 'admin') {
-        const result = await ensureDemoUser(selectedProfile.role);
+        const result = await ensureDemoUser(selectedProfile.role, selectedOrg.id);
         if (!result.ok) {
           const errInfo = interpretDemoError(result);
           console.error('ensure-demo-user failed:', result.error, result.status);
@@ -392,11 +408,9 @@ const DemoLogin = () => {
             description: errInfo.description,
             variant: 'destructive',
           });
-          setLoadingRole(null);
-          return;
+          // Don't block — user is already logged in, profile may already exist
         }
 
-        // Check for no-org warning
         if (isNoOrgResult(result)) {
           toast({
             title: 'Demo sin organización',
@@ -405,18 +419,7 @@ const DemoLogin = () => {
         }
       }
 
-      pendingRedirect.current = selectedOrg.redirectPath;
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: selectedProfile.email,
-        password: 'demo123456',
-      });
-
-      if (error) {
-        pendingRedirect.current = null;
-        toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
-        setLoadingRole(null);
-      }
+      // Auth state change listener will handle redirect via pendingRedirect
     } catch (err: any) {
       console.error('Demo login error:', err);
       pendingRedirect.current = null;

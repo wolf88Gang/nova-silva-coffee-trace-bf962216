@@ -212,18 +212,33 @@ export default function DemoSetupWizard() {
     }));
 
     try {
-      const result = await ensureDemoUser(arch.role);
+      // STEP 1: LOGIN FIRST — obtain real session
+      pendingRedirect.current = arch.redirectPath;
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: arch.email,
+        password: 'demo123456',
+      });
+
+      if (signInError) {
+        pendingRedirect.current = null;
+        setEnterError({ title: 'Error de autenticación', description: signInError.message });
+        setEntering(false);
+        console.error('Demo auth error:', signInError.message);
+        return;
+      }
+
+      // STEP 2: NOW call ensure-demo-user with real authenticated session
+      const result = await ensureDemoUser(arch.role, arch.orgId);
       if (!result.ok) {
         const errInfo = interpretDemoError(result);
         console.error('ensure-demo-user failed:', result.error, result.status);
-        setEnterError({ title: errInfo.title, description: errInfo.description });
+        // Non-blocking: user is already logged in
         toast({
           title: errInfo.title,
           description: errInfo.description,
           variant: 'destructive',
         });
-        setEntering(false);
-        return;
       }
 
       if (isNoOrgResult(result)) {
@@ -233,15 +248,7 @@ export default function DemoSetupWizard() {
         });
       }
 
-      pendingRedirect.current = arch.redirectPath;
-      const { error } = await supabase.auth.signInWithPassword({ email: arch.email, password: 'demo123456' });
-
-      if (error) {
-        pendingRedirect.current = null;
-        setEnterError({ title: 'Error de autenticación', description: error.message });
-        setEntering(false);
-        console.error('Demo auth error:', error.message);
-      }
+      // Auth state change listener handles redirect
     } catch (err: any) {
       pendingRedirect.current = null;
       setEnterError({

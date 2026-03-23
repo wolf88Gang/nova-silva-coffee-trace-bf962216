@@ -1,64 +1,96 @@
 /**
- * Calls the ensure-demo-user Edge Function with proper error handling.
- * Uses fetch with explicit session propagation (not supabase.functions.invoke
- * per project convention for external Supabase).
+ * Calls the ensure-demo-user Edge Function.
+ * SECURITY: Requires authenticated session. Will NOT fall back to anon key.
+ * Flow: signInWithPassword FIRST → then call this function.
  */
 import { supabase } from '@/integrations/supabase/client';
 
 const FUNCTION_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co/functions/v1/ensure-demo-user';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
 
 export interface EnsureDemoResult {
   ok: boolean;
   error?: string;
   message?: string;
-  /** HTTP status code if available */
+  user_id?: string;
+  organization_id?: string | null;
   status?: number;
 }
 
-export async function ensureDemoUser(role: string): Promise<EnsureDemoResult> {
-  // Get active session for auth propagation
+/**
+ * Ensure demo user profile, role, and org linkage.
+ * MUST be called AFTER successful signInWithPassword.
+ * @param role - one of cooperativa, exportador, certificadora, productor, tecnico
+ * @param organizationId - optional UUID from platform_organizations
+ */
+export async function ensureDemoUser(
+  role: string,
+  organizationId?: string
+): Promise<EnsureDemoResult> {
+  // SECURITY: Require real authenticated session — NO anon fallback
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
 
-  // Build headers — use real session token if available, fallback to anon key
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
+  if (!token) {
+    return {
+      ok: false,
+      error: 'No hay sesión activa. Debes iniciar sesión antes de llamar ensure-demo-user.',
+      status: 401,
+    };
+  }
 
   try {
+    const body: Record<string, string> = { role };
+    if (organizationId) {
+      body.organization_id = organizationId;
+    }
+
     const res = await fetch(FUNCTION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': anonKey,
-        'Authorization': `Bearer ${token || anonKey}`,
+        'apikey': ANON_KEY,
+        'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ role }),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
-      const body = await res.text().catch(() => '');
+      const responseBody = await res.text().catch(() => '');
       const status = res.status;
 
       if (status === 401) {
-        return { ok: false, status, error: 'Sesión inválida o expirada' };
+        return { ok: false, status, error: 'Sesión inválida o expirada. Recarga e intenta de nuevo.' };
       }
       if (status === 404) {
-        return { ok: false, status, error: 'La función ensure-demo-user no está desplegada' };
+        return { ok: false, status, error: 'La función ensure-demo-user no está desplegada.' };
       }
       if (status >= 500) {
-        return { ok: false, status, error: `La función respondió con error interno (${status}): ${body}` };
+        return { ok: false, status, error: `Error interno del servidor (${status}): ${responseBody}` };
       }
-      return { ok: false, status, error: `Error HTTP ${status}: ${body}` };
+      // Parse structured error if possible
+      try {
+        const parsed = JSON.parse(responseBody);
+        return { ok: false, status, error: parsed.error || `Error HTTP ${status}` };
+      } catch {
+        return { ok: false, status, error: `Error HTTP ${status}: ${responseBody}` };
+      }
     }
 
-    // Parse response body for message/details
     try {
-      const body = await res.json();
-      return { ok: body.ok !== false, status: res.status, message: body.message, error: body.error };
+      const responseJson = await res.json();
+      return {
+        ok: responseJson.ok !== false,
+        status: res.status,
+        message: responseJson.message,
+        error: responseJson.error,
+        user_id: responseJson.user_id,
+        organization_id: responseJson.organization_id,
+      };
     } catch {
       return { ok: true, status: res.status };
     }
   } catch (err: any) {
-    // Network or CORS failure — no HTTP status available
     return {
       ok: false,
       error: `No se pudo conectar con la función: ${err.message || 'error de red'}`,
@@ -67,8 +99,7 @@ export async function ensureDemoUser(role: string): Promise<EnsureDemoResult> {
 }
 
 /**
- * Ping Edge Functions availability (for admin health check).
- * Uses HEAD/OPTIONS to check reachability without triggering business logic.
+ * Ping Edge Functions availability (admin health check).
  */
 export async function pingEdgeFunction(): Promise<{
   status: 'ok' | 'error';
