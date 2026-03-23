@@ -52,13 +52,12 @@ export type { User as AppUser, UserRole as AppRole };
 async function getUserProfile(userId: string) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('name, organization_name, organization_id, productor_id')
+    .select('full_name, email, organization_id, productor_id')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) { console.error('Error fetching profile:', error); return null; }
   return data ? {
-    name: data.name,
-    organizationName: data.organization_name,
+    name: (data as any).full_name || (data as any).name || data.email || 'Usuario',
     organizationId: data.organization_id,
     productorId: data.productor_id,
   } : null;
