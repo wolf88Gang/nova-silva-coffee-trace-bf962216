@@ -196,6 +196,9 @@ export async function applyInferenceRules(
     const sourceReq = overlap.certification_requirements as { scheme_version_id: string } | null;
     if (!sourceReq) continue;
 
+    // Guard: only process overlaps where the source requirement belongs to the requested scheme
+    if (sourceReq.scheme_version_id !== schemeVersionId) continue;
+
     // Check if source requirement is compliant for this org
     const { data: sourceEval } = await supabase
       .from('certification_requirement_evaluations')
@@ -297,12 +300,33 @@ export async function getCrossSchemeOpportunityReport(
     for (const [sourceReqId, items] of byScheme) {
       opportunities.push({
         source_requirement_id: sourceReqId,
-        source_scheme_name: items[0].evidence_type,  // Will be enriched by caller
+        source_scheme_name: '',  // Enriched below via batch lookup
         overlap_type: items[0].overlap_type,
         coverage_pct: Math.min(100, items.reduce((sum, i) => sum + i.effective_coverage_pct, 0)),
         reusable_evidence_count: items.length,
         inference_rule: items[0].inference_rule,
       });
+    }
+  }
+
+  // Batch-enrich source_scheme_name from DB — source_requirement_id → scheme name
+  if (opportunities.length) {
+    const sourceReqIds = [...new Set(opportunities.map((o) => o.source_requirement_id))];
+    const { data: reqSchemeRows } = await supabase
+      .from('certification_requirements')
+      .select('id, certification_scheme_versions (certification_schemes (name))')
+      .in('id', sourceReqIds);
+
+    const schemeNameByReqId = new Map<string, string>(
+      (reqSchemeRows ?? []).map((r) => [
+        r.id,
+        (r.certification_scheme_versions as { certification_schemes: { name: string } } | null)
+          ?.certification_schemes?.name ?? 'Unknown',
+      ]),
+    );
+
+    for (const opp of opportunities) {
+      opp.source_scheme_name = schemeNameByReqId.get(opp.source_requirement_id) ?? 'Unknown';
     }
   }
 
@@ -360,6 +384,16 @@ export async function registerOverlap(
 export async function getSchemeOverlapMatrix(
   schemeVersionId: string,
 ): Promise<OverlapMatrixEntry[]> {
+  // Fetch requirement IDs for this scheme first — avoids raw SQL interpolation in .or()
+  const { data: reqRows, error: reqErr } = await supabase
+    .from('certification_requirements')
+    .select('id')
+    .eq('scheme_version_id', schemeVersionId);
+
+  if (reqErr) throw new Error(reqErr.message);
+  const reqIds = (reqRows ?? []).map((r) => r.id);
+  if (!reqIds.length) return [];
+
   const { data, error } = await supabase
     .from('certification_requirement_overlaps')
     .select(`
@@ -376,10 +410,7 @@ export async function getSchemeOverlapMatrix(
         certification_scheme_versions (version_code, certification_schemes (name))
       )
     `)
-    .or(
-      `req_source_id.in.(select id from certification_requirements where scheme_version_id = '${schemeVersionId}'),` +
-      `req_target_id.in.(select id from certification_requirements where scheme_version_id = '${schemeVersionId}')`,
-    );
+    .or(`req_source_id.in.(${reqIds.join(',')}),req_target_id.in.(${reqIds.join(',')})`);
 
   if (error) throw new Error(error.message);
 

@@ -140,34 +140,36 @@ export function useSchemeCompliance(
     setError(null);
 
     try {
-      const [schemeRes, evalsRes] = await Promise.all([
-        supabase
-          .from('organization_certification_schemes')
-          .select(`
+      // Load the scheme first to get scheme_version_id, then filter evaluations to that version.
+      const schemeRes = await supabase
+        .from('organization_certification_schemes')
+        .select(`
+          *,
+          certification_scheme_versions (
             *,
-            certification_scheme_versions (
-              *,
-              certification_schemes (*)
-            )
-          `)
-          .eq('id', orgSchemeId)
-          .eq('organization_id', organizationId)
-          .single(),
-
-        supabase
-          .from('certification_requirement_evaluations')
-          .select(`
-            *,
-            certification_requirements (
-              id, code, title, severity, audit_logic_type, blocks_certification,
-              certification_requirement_groups (code, name)
-            )
-          `)
-          .eq('organization_id', organizationId)
-          .order('evaluated_at', { ascending: false }),
-      ]);
+            certification_schemes (*)
+          )
+        `)
+        .eq('id', orgSchemeId)
+        .eq('organization_id', organizationId)
+        .single();
 
       if (schemeRes.error) throw new Error(schemeRes.error.message);
+      const schemeVersionId = schemeRes.data.scheme_version_id as string;
+
+      const evalsRes = await supabase
+        .from('certification_requirement_evaluations')
+        .select(`
+          *,
+          certification_requirements!inner (
+            id, code, title, severity, audit_logic_type, blocks_certification,
+            certification_requirement_groups (code, name)
+          )
+        `)
+        .eq('organization_id', organizationId)
+        .eq('certification_requirements.scheme_version_id', schemeVersionId)
+        .order('evaluated_at', { ascending: false });
+
       if (evalsRes.error) throw new Error(evalsRes.error.message);
 
       setScheme(schemeRes.data as OrganizationCertificationScheme);

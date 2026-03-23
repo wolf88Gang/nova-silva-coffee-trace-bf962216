@@ -328,8 +328,12 @@ export function bufferOfflineEvidence(input: CreateEvidenceInput): string {
     CreateEvidenceInput & { offline_id: string; buffered_at: string }
   >;
 
+  // Strip `file` — File objects are not JSON-serializable; file attachments require online submission.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { file: _file, ...serializableInput } = input;
+
   existing.push({
-    ...input,
+    ...serializableInput,
     offline_id: offlineId,
     buffered_at: new Date().toISOString(),
     is_offline_created: true,
@@ -469,6 +473,7 @@ export async function getEvidenceStats(organizationId: string): Promise<{
   const byStatus = {} as Record<EvidenceLifecycleStatus, number>;
   let offlinePending = 0;
   let expiringSoon = 0;
+  const now = new Date();
   const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   for (const r of records) {
@@ -477,7 +482,11 @@ export async function getEvidenceStats(organizationId: string): Promise<{
       (byStatus[r.lifecycle_status as EvidenceLifecycleStatus] ?? 0) + 1;
 
     if (r.is_offline_created && !r.synced_at) offlinePending++;
-    if (r.valid_until && new Date(r.valid_until) <= thirtyDaysFromNow) expiringSoon++;
+    // 30-day lookahead: must not yet be expired (> now) and expire within 30 days (<= thirtyDaysFromNow)
+    if (r.valid_until) {
+      const expiry = new Date(r.valid_until);
+      if (expiry > now && expiry <= thirtyDaysFromNow) expiringSoon++;
+    }
   }
 
   return {

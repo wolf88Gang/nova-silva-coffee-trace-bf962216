@@ -399,31 +399,29 @@ const DemoLogin = () => {
     });
 
     try {
+      // ── Step 1: authenticate first ──────────────────────────────────────
+      // All roles (including admin) require authentication.
+      const { data: authData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: selectedProfile.email,
+        password: 'demo123456',
+      });
+
+      if (signInErr) {
+        toast({ title: 'Error de autenticación', description: signInErr.message, variant: 'destructive' });
+        setLoadingRole(null);
+        return;
+      }
+
+      if (!authData.session) {
+        toast({ title: 'Error de sesión', description: 'No se pudo establecer sesión. Intenta de nuevo.', variant: 'destructive' });
+        setLoadingRole(null);
+        return;
+      }
+
       if (selectedProfile.role !== 'admin') {
-        // ── Step 1: authenticate first ──────────────────────────────────────
-        // ensure-demo-user requires a real authenticated session.
-        // We sign in before calling the function.
-        const { data: authData, error: signInErr } = await supabase.auth.signInWithPassword({
-          email: selectedProfile.email,
-          password: 'demo123456',
-        });
-
-        if (signInErr) {
-          toast({ title: 'Error de autenticación', description: signInErr.message, variant: 'destructive' });
-          setLoadingRole(null);
-          return;
-        }
-
-        if (!authData.session) {
-          toast({ title: 'Error de sesión', description: 'No se pudo establecer sesión. Intenta de nuevo.', variant: 'destructive' });
-          setLoadingRole(null);
-          return;
-        }
-
-        // ── Step 2: ensure demo state with authenticated session ─────────────
-        // platformOrgId is the platform_organizations.id for the selected org.
-        const orgId = selectedOrg.platformOrgId;
-        const result = await ensureDemoUser(selectedProfile.role, orgId);
+        // ── Step 2: ensure demo profile/roles are provisioned ──────────────
+        // Admin accounts are pre-provisioned; skip ensure-demo-user for them.
+        const result = await ensureDemoUser(selectedProfile.role, selectedOrg.platformOrgId);
 
         if (!result.ok) {
           // Sign out on failure — auth succeeded but provisioning failed.
@@ -434,11 +432,11 @@ const DemoLogin = () => {
           setLoadingRole(null);
           return;
         }
-
-        // ── Step 3: navigate to app ─────────────────────────────────────────
-        setLoadingRole(null);
-        navigate(selectedOrg.redirectPath);
       }
+
+      // ── Step 3: navigate to app ─────────────────────────────────────────
+      setLoadingRole(null);
+      navigate(selectedOrg.redirectPath);
     } catch (err: any) {
       console.error('Demo login error:', err);
       await supabase.auth.signOut();
