@@ -146,7 +146,7 @@ async function buildUserFromSession(session: Session): Promise<User | null> {
     ...baseUser,
     name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
     role,
-    organizationName: orgInfo?.orgName || profile?.organizationName || undefined,
+    organizationName: orgInfo?.orgName || undefined,
     orgTipo: baseUser.orgTipo || (role as string as OrgTipo) || undefined,
   };
 }
