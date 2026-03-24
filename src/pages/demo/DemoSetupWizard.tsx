@@ -578,7 +578,22 @@ function StepScale({ state, update, onNext, onBack }: { state: SetupState; updat
   );
 }
 
-// ── Step 5: Summary ──
+// ── Step 5: Summary with interactive plan selection ──
+
+const PLAN_FEATURES: Record<string, { focus: string; highlights: string[] }> = {
+  Smart: {
+    focus: 'Operación real para cooperativas y beneficios medianos',
+    highlights: ['Hasta 500 parcelas', 'Hasta 20 usuarios', 'Módulos core incluidos', 'Soporte estándar'],
+  },
+  Plus: {
+    focus: 'Operaciones grandes con múltiples módulos y volumen',
+    highlights: ['Hasta 2,000 parcelas', 'Hasta 50 usuarios', 'Módulos avanzados', 'Reportes personalizados'],
+  },
+  Enterprise: {
+    focus: 'Exportadores y cadenas complejas sin límites',
+    highlights: ['Sin límite de parcelas', 'Sin límite de usuarios', 'API dedicada', 'Soporte prioritario 24/7'],
+  },
+};
 
 function StepSummary({ state, model, archetype, narrative, onEnter, onBack, entering, enterError }: {
   state: SetupState; model: string; archetype: ReturnType<typeof mapToArchetype>; narrative: string;
@@ -591,7 +606,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   const pricingModel = getPricingModel(state.orgType || 'cooperativa');
   const isFarmer = pricingModel === 'farmer';
 
-  // Pricing recommendation
   const setupConfig: DemoSetupConfig = {
     orgType: state.orgType || 'cooperativa',
     operatingModel: model,
@@ -604,15 +618,16 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
     hasExports: state.hasExports,
   };
   const recPacks = recommendPacks(setupConfig);
+  const recommendedPlan = recommendPlan(setupConfig);
 
-  // Farmer pricing
+  // ── Interactive plan state ──
+  const [selectedPlan, setSelectedPlan] = useState<PlanTier>(recommendedPlan);
+
+  // Recompute pricing reactively based on selectedPlan
   const plotCount = parseInt(state.scalePlots?.match(/(\d+)/)?.[1] || '5');
-  const farmerEst = estimateFarmerPrice(plotCount, recPacks.filter(k => FARMER_PACKS.some(p => p.key === k)));
   const farmerPacks = recPacks.filter(k => FARMER_PACKS.some(p => p.key === k));
-
-  // Aggregator pricing
-  const recPlan = recommendPlan(setupConfig);
-  const aggEst = estimateAggregatorPrice(recPlan, recPacks);
+  const farmerEst = estimateFarmerPrice(plotCount, farmerPacks);
+  const aggEst = estimateAggregatorPrice(selectedPlan, recPacks);
 
   const PACK_ICONS_MAP: Record<string, typeof Bug> = {
     agronomia: Bug, cumplimiento: Shield, calidad: Award,
@@ -622,14 +637,18 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   const activePacks = isFarmer ? FARMER_PACKS : AGGREGATOR_PACKS;
   const displayPacks = isFarmer ? farmerPacks : recPacks;
 
+  // Persist selectedPlan in sessionStorage for downstream use
+  useEffect(() => {
+    sessionStorage.setItem('novasilva_selected_plan', selectedPlan);
+  }, [selectedPlan]);
+
   return (
     <WizardCard className="max-w-3xl">
-      <StepTitle title="Tu demo personalizado está listo" subtitle="Resumen de tu configuración y plan recomendado." />
+      <StepTitle title="Tu demo personalizado está listo" subtitle="Selecciona tu plan y entra al entorno interactivo." />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Left: Configuration */}
+        {/* Left: Configuration summary */}
         <div className="space-y-5">
-          {/* Org + Model */}
           <div className="flex flex-wrap gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
               <Building2 className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
@@ -640,7 +659,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
             </div>
           </div>
 
-          {/* Modules */}
           <div>
             <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Módulos activados</p>
             <div className="flex flex-wrap gap-1.5">
@@ -652,7 +670,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
             </div>
           </div>
 
-          {/* Scale badges */}
           {(state.scalePlots || state.scaleProducers || state.scaleUsers) && (
             <div className="flex flex-wrap gap-2">
               {state.scalePlots && <Badge variant="outline" className="border-white/15 text-white/50 text-[10px]">📍 {state.scalePlots} parcelas</Badge>}
@@ -661,62 +678,9 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
             </div>
           )}
 
-          {/* Narrative */}
           <div className="p-3 rounded-xl bg-white/5 border border-white/10">
             <p className="text-xs text-white/50 leading-relaxed">{narrative}</p>
           </div>
-        </div>
-
-        {/* Right: Plan recommendation */}
-        <div className="space-y-4">
-          {isFarmer ? (
-            /* ── FARMER PRICING ── */
-            <>
-              <div>
-                <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Tu plan de finca</p>
-                <div className="p-3 rounded-xl border border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-semibold text-white">Suscripción base</span>
-                      <p className="text-[10px] text-white/30 mt-0.5">Producción · Parcelas · Registros · 2 usuarios</p>
-                    </div>
-                    <span className="text-base font-bold text-white">${FARMER_BASE}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
-                  </div>
-                  {farmerEst.scaleSurcharge > 0 && (
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/8">
-                      <span className="text-[10px] text-white/40">Escala ({FARMER_SCALE[getFarmerScaleTierIndex(plotCount)].label})</span>
-                      <span className="text-xs text-white font-mono">+${farmerEst.scaleSurcharge}/mes</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          ) : (
-            /* ── AGGREGATOR PLAN CARDS ── */
-            <div>
-              <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Plan recomendado</p>
-              <div className="space-y-2">
-                {AGGREGATOR_PLANS.map(p => (
-                  <div key={p.tier} className={cn(
-                    'flex items-center justify-between p-3 rounded-xl border transition-all',
-                    p.tier === recPlan
-                      ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
-                      : 'border-white/8 bg-white/3'
-                  )}>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white">{p.label}</span>
-                        {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))] font-bold">{p.badge}</span>}
-                        {p.tier === recPlan && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))] text-white font-bold">RECOMENDADO</span>}
-                      </div>
-                      <p className="text-[10px] text-white/30 mt-0.5">{p.limit}</p>
-                    </div>
-                    <span className="text-base font-bold text-white">${p.base}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Packs */}
           {displayPacks.length > 0 && (
@@ -739,8 +703,95 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
               </div>
             </div>
           )}
+        </div>
 
-          {/* Total */}
+        {/* Right: Plan selection + pricing */}
+        <div className="space-y-4">
+          {isFarmer ? (
+            <>
+              <div>
+                <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Tu plan de finca</p>
+                <div className="p-3 rounded-xl border border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-semibold text-white">Suscripción base</span>
+                      <p className="text-[10px] text-white/30 mt-0.5">Producción · Parcelas · Registros · 2 usuarios</p>
+                    </div>
+                    <span className="text-base font-bold text-white">${FARMER_BASE}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                  </div>
+                  {farmerEst.scaleSurcharge > 0 && (
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/8">
+                      <span className="text-[10px] text-white/40">Escala ({FARMER_SCALE[getFarmerScaleTierIndex(plotCount)].label})</span>
+                      <span className="text-xs text-white font-mono">+${farmerEst.scaleSurcharge}/mes</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            /* ── INTERACTIVE AGGREGATOR PLAN CARDS ── */
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold">Selecciona tu plan</p>
+                {selectedPlan !== recommendedPlan && (
+                  <span className="text-[9px] text-white/25">
+                    Recomendado: {recommendedPlan} · Seleccionado: {selectedPlan}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-2">
+                {AGGREGATOR_PLANS.map(p => {
+                  const isSelected = p.tier === selectedPlan;
+                  const isRecommended = p.tier === recommendedPlan;
+                  const features = PLAN_FEATURES[p.tier];
+                  return (
+                    <button
+                      key={p.tier}
+                      onClick={() => setSelectedPlan(p.tier)}
+                      className={cn(
+                        'w-full text-left p-3 rounded-xl border transition-all cursor-pointer',
+                        isSelected
+                          ? 'border-[hsl(var(--accent-orange))]/60 bg-[hsl(var(--accent-orange))]/10 ring-1 ring-[hsl(var(--accent-orange))]/30'
+                          : 'border-white/8 bg-white/3 hover:border-white/20 hover:bg-white/5'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            'w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
+                            isSelected
+                              ? 'border-[hsl(var(--accent-orange))] bg-[hsl(var(--accent-orange))]'
+                              : 'border-white/25'
+                          )}>
+                            {isSelected && <CheckCircle className="h-3 w-3 text-white" />}
+                          </div>
+                          <span className="text-sm font-semibold text-white">{p.label}</span>
+                          {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))] font-bold">{p.badge}</span>}
+                          {isRecommended && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">RECOMENDADO</span>
+                          )}
+                        </div>
+                        <span className="text-base font-bold text-white">${p.base}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                      </div>
+                      <p className="text-[10px] text-white/30 mt-1 ml-6">{p.limit}</p>
+                      {isSelected && features && (
+                        <div className="mt-2 ml-6 space-y-1">
+                          <p className="text-[10px] text-white/50 font-medium">{features.focus}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {features.highlights.map(h => (
+                              <span key={h} className="text-[9px] px-2 py-0.5 rounded-full bg-white/8 text-white/40">{h}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Pricing total */}
           <div className="border-t border-white/10 pt-3 space-y-1.5">
             {isFarmer ? (
               <>
@@ -772,7 +823,7 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
             ) : (
               <>
                 <div className="flex justify-between text-xs">
-                  <span className="text-white/40">Plan {recPlan}</span>
+                  <span className="text-white/40">Plan {selectedPlan}</span>
                   <span className="text-white font-mono">${aggEst.base}</span>
                 </div>
                 {aggEst.packs > 0 && (
@@ -784,6 +835,10 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
                 <div className="border-t border-white/10 pt-2 flex justify-between items-end">
                   <span className="text-white text-xs font-semibold">Estimado mensual</span>
                   <span className="text-xl font-bold text-[hsl(var(--accent-orange))]">${aggEst.monthly}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+                </div>
+                <div className="flex justify-between text-[10px] text-white/25">
+                  <span>Estimado anual (15% desc.)</span>
+                  <span>${Math.round(aggEst.monthly * 12 * 0.85)}/año</span>
                 </div>
               </>
             )}
@@ -817,7 +872,7 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
           ) : enterError ? (
             <><Play className="h-4 w-4" /> Reintentar</>
           ) : (
-            <><Play className="h-4 w-4" /> Entrar al demo</>
+            <><Play className="h-4 w-4" /> Entrar al demo con plan {isFarmer ? 'Finca' : selectedPlan}</>
           )}
         </button>
       </div>
