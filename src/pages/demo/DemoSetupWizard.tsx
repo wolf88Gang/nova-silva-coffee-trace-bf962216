@@ -1,5 +1,6 @@
 /**
  * DemoSetupWizard — 6-step premium wizard for prospects.
+ * Step 1 uses DemoArchetypes with lead/admin mode toggle.
  * Captures org profile → maps to closest demo archetype → shows plan recommendation → enters personalized demo.
  */
 import { useState, useMemo, useRef, useEffect } from 'react';
@@ -17,6 +18,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
+  type DemoArchetype, type DemoMode,
+  getArchetypesForMode, mapArchetypeToDemoOrg,
+} from '@/config/demoArchetypes';
+import {
   recommendPlan, recommendPacks, estimatePrice,
   PLANS, PACKS, getOrgTypeLabel, getModelLabel,
   getPricingModel, FARMER_BASE, FARMER_SCALE, FARMER_PACKS,
@@ -29,7 +34,7 @@ import {
   Building2, Sprout, Truck, ShieldCheck, Factory, Ship, Coffee,
   MapPin, Bug, TrendingUp, Heart, Shield, Award, Briefcase,
   Boxes, ShoppingCart, Package, ChevronRight, Play,
-  Users, Eye, FileCheck, DollarSign, CheckCircle,
+  Users, Eye, FileCheck, DollarSign, CheckCircle, Settings2,
 } from 'lucide-react';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgForest from '@/assets/bg-forest-network.png';
@@ -39,10 +44,8 @@ import bgForest from '@/assets/bg-forest-network.png';
 type Step = 0 | 1 | 2 | 3 | 4 | 5;
 const TOTAL_STEPS = 6;
 
-type OrgType = 'productor_privado' | 'finca_empresarial' | 'cooperativa' | 'beneficio' | 'exportador' | 'certificadora' | 'otro';
-
 interface SetupState {
-  orgType: OrgType | null;
+  archetype: DemoArchetype | null;
   operations: string[];
   interests: string[];
   scalePlots: string;
@@ -54,7 +57,7 @@ interface SetupState {
 }
 
 const INITIAL: SetupState = {
-  orgType: null,
+  archetype: null,
   operations: [],
   interests: [],
   scalePlots: '',
@@ -66,16 +69,6 @@ const INITIAL: SetupState = {
 };
 
 // ── Config data ──
-
-const ORG_TYPES: { value: OrgType; label: string; icon: typeof Users; desc: string }[] = [
-  { value: 'productor_privado', label: 'Finca privada', icon: Leaf, desc: 'Productor independiente con parcelas propias' },
-  { value: 'finca_empresarial', label: 'Finca empresarial', icon: Factory, desc: 'Operación grande con manejo intensivo' },
-  { value: 'cooperativa', label: 'Cooperativa', icon: Building2, desc: 'Agrupa productores y coordina operación' },
-  { value: 'beneficio', label: 'Beneficio / Procesador', icon: Package, desc: 'Compra, procesa y prepara café' },
-  { value: 'exportador', label: 'Exportador', icon: Ship, desc: 'Compra y exporta café a mercados internacionales' },
-  { value: 'certificadora', label: 'Certificadora', icon: ShieldCheck, desc: 'Audita y verifica cumplimiento de estándares' },
-  { value: 'otro', label: 'Otro', icon: Sprout, desc: 'Otro tipo de organización agrícola' },
-];
 
 const OPERATIONS = [
   { value: 'produce_own', label: 'Solo producimos café propio', icon: Sprout },
@@ -97,22 +90,37 @@ const INTERESTS = [
   { value: 'supply', label: 'Compras y abastecimiento', icon: Truck, desc: 'Proveedores de café, recepción, lotes' },
 ];
 
-// ── Derive operating model ──
+// ── Derive operating model from archetype ──
 
 function deriveModel(state: SetupState): string {
-  if (state.orgType === 'certificadora') return 'auditor';
-  if (state.orgType === 'exportador') return 'trader';
-  if (state.orgType === 'cooperativa' || state.orgType === 'beneficio') return 'aggregator';
-  if (state.orgType === 'finca_empresarial') {
-    return state.operations.includes('produce_and_buy') || state.operations.includes('trade') ? 'estate_hybrid' : 'estate';
-  }
+  if (state.archetype) return state.archetype.operatingModel;
   return 'single_farm';
 }
 
-// ── Map to closest archetype ──
+// ── Narrative ──
 
-function mapToArchetype(state: SetupState): { orgId: string; email: string; role: string; redirectPath: string; orgName: string; modules: string[] } {
-  const model = deriveModel(state);
+function getNarrative(state: SetupState): string {
+  if (!state.archetype) return '';
+  const narratives: Record<string, string> = {
+    single_farm: 'Explorarás una finca tecnificada con manejo agronómico intensivo, jornales y resultados de calidad.',
+    estate: 'Verás una finca empresarial con operación propia, agronomía avanzada y gestión de costos.',
+    estate_hybrid: 'Explorarás una finca que combina producción propia con abastecimiento externo, ideal para operaciones mixtas.',
+    aggregator: 'Accederás a una cooperativa con cientos de productores, trazabilidad completa y módulos de cumplimiento.',
+    trader: 'Verás la perspectiva de un exportador: proveedores, riesgo de origen, lotes y cumplimiento EUDR.',
+    auditor: 'Explorarás el data room de una certificadora: auditorías, evidencia y dossiers de cumplimiento.',
+    platform: 'Accederás a la consola administrativa interna de Nova Silva.',
+  };
+  return narratives[state.archetype.operatingModel] || narratives.single_farm;
+}
+
+// ── Build archetype mapping for enter ──
+
+function buildArchetypeMapping(state: SetupState) {
+  if (!state.archetype) {
+    return { orgId: 'coop_demo', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Cooperativa', modules: ['Producción'], operatingModel: 'aggregator', orgType: 'cooperativa' };
+  }
+  const base = mapArchetypeToDemoOrg(state.archetype);
+  // Merge interest-based modules
   const moduleMap: Record<string, string[]> = {
     production: ['Producción'],
     agronomy: ['Agronomía', 'Nova Guard', 'Nova Yield'],
@@ -123,40 +131,9 @@ function mapToArchetype(state: SetupState): { orgId: string; email: string; role
     catalog: ['Catálogo de insumos'],
     supply: ['Abastecimiento', 'Lotes'],
   };
-  const modules = state.interests.flatMap(i => moduleMap[i] || []);
-  // Always add VITAL and Finanzas
-  if (!modules.includes('VITAL')) modules.push('VITAL');
-  if (!modules.includes('Finanzas')) modules.push('Finanzas');
-
-  switch (model) {
-    case 'auditor':
-      return { orgId: 'cert_demo', email: 'demo.certificadora@novasilva.com', role: 'certificadora', redirectPath: '/cumplimiento', orgName: 'Certificadora', modules: ['Auditorías', 'Data Room', 'Dossiers', ...modules] };
-    case 'trader':
-      return { orgId: 'exporter_demo', email: 'demo.exportador@novasilva.com', role: 'exportador', redirectPath: '/origenes', orgName: 'Exportador de Origen', modules: ['Orígenes', ...modules] };
-    case 'aggregator':
-      return { orgId: 'coop_demo', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Cooperativa Regional', modules: ['Producción', 'Agronomía', ...modules] };
-    case 'estate_hybrid':
-      return { orgId: 'estate_demo', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Finca Empresarial', modules: ['Producción', 'Abastecimiento', ...modules] };
-    case 'estate':
-      return { orgId: 'estate_demo', email: 'demo.cooperativa@novasilva.com', role: 'cooperativa', redirectPath: '/produccion', orgName: 'Finca Empresarial', modules: ['Producción', 'Agronomía', 'Jornales', ...modules] };
-    default: // single_farm
-      return { orgId: 'farm_demo', email: 'demo.productor@novasilva.com', role: 'productor', redirectPath: '/produccion', orgName: 'Finca Privada', modules: ['Producción', 'Agronomía', 'Jornales', ...modules] };
-  }
-}
-
-// ── Narrative ──
-
-function getNarrative(state: SetupState): string {
-  const model = deriveModel(state);
-  const narratives: Record<string, string> = {
-    single_farm: 'Explorarás una finca tecnificada con manejo agronómico intensivo, jornales y resultados de calidad.',
-    estate: 'Verás una finca empresarial con operación propia, agronomía avanzada y gestión de costos.',
-    estate_hybrid: 'Explorarás una finca que combina producción propia con abastecimiento externo, ideal para operaciones mixtas.',
-    aggregator: 'Accederás a una cooperativa con cientos de productores, trazabilidad completa y módulos de cumplimiento.',
-    trader: 'Verás la perspectiva de un exportador: proveedores, riesgo de origen, lotes y cumplimiento EUDR.',
-    auditor: 'Explorarás el data room de una certificadora: auditorías, evidencia y dossiers de cumplimiento.',
-  };
-  return narratives[model] || narratives.single_farm;
+  const extra = state.interests.flatMap(i => moduleMap[i] || []);
+  const allModules = [...new Set([...base.modules, ...extra, 'VITAL', 'Finanzas'])];
+  return { ...base, modules: allModules };
 }
 
 // ── Main Component ──
@@ -170,10 +147,11 @@ export default function DemoSetupWizard() {
   const [entering, setEntering] = useState(false);
   const [enterError, setEnterError] = useState<{ title: string; description: string } | null>(null);
   const pendingRedirect = useRef<string | null>(null);
+  const [demoMode, setDemoMode] = useState<DemoMode>('lead');
 
   const update = (partial: Partial<SetupState>) => setState(prev => ({ ...prev, ...partial }));
   const model = deriveModel(state);
-  const archetype = useMemo(() => mapToArchetype(state), [state]);
+  const archMapping = useMemo(() => buildArchetypeMapping(state), [state]);
   const progressValue = ((step + 1) / TOTAL_STEPS) * 100;
 
   useEffect(() => {
@@ -189,30 +167,33 @@ export default function DemoSetupWizard() {
     if (entering) return;
     setEntering(true);
     setEnterError(null);
-    const arch = archetype;
-
-    // Deduplicate modules
+    const arch = archMapping;
     const uniqueModules = [...new Set(arch.modules)];
 
     setDemoConfig({
       orgId: arch.orgId,
       orgName: arch.orgName,
-      orgType: state.orgType || 'cooperativa',
-      operatingModel: model,
+      orgType: arch.orgType,
+      operatingModel: arch.operatingModel,
       modules: uniqueModules,
       profileLabel: 'Demo personalizado',
     });
 
-    // Store extended setup in sessionStorage for potential use
     sessionStorage.setItem('novasilva_demo_setup', JSON.stringify({
-      ...state,
+      archetypeKey: state.archetype?.key,
+      operations: state.operations,
+      interests: state.interests,
+      scalePlots: state.scalePlots,
+      scaleProducers: state.scaleProducers,
+      scaleUsers: state.scaleUsers,
+      hasLabor: state.hasLabor,
+      hasInventory: state.hasInventory,
+      hasExports: state.hasExports,
       operatingModel: model,
       modulesEnabled: uniqueModules,
-      scaleProfile: { plots: state.scalePlots, producers: state.scaleProducers, users: state.scaleUsers },
     }));
 
     try {
-      // STEP 1: LOGIN FIRST — obtain real session
       pendingRedirect.current = arch.redirectPath;
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -224,51 +205,45 @@ export default function DemoSetupWizard() {
         pendingRedirect.current = null;
         setEnterError({ title: 'Error de autenticación', description: signInError.message });
         setEntering(false);
-        console.error('Demo auth error:', signInError.message);
         return;
       }
 
-      // STEP 2: NOW call ensure-demo-user with real authenticated session
+      // ensure-demo-user with real authenticated session
       const result = await ensureDemoUser(arch.role, arch.orgId);
       if (!result.ok) {
         const errInfo = interpretDemoError(result);
         console.error('ensure-demo-user failed:', result.error, result.status);
-        // Non-blocking: user is already logged in
-        toast({
-          title: errInfo.title,
-          description: errInfo.description,
-          variant: 'destructive',
-        });
+        toast({ title: errInfo.title, description: errInfo.description, variant: 'destructive' });
       }
 
       if (isNoOrgResult(result)) {
-        toast({
-          title: 'Demo sin organización',
-          description: 'Algunas funciones pueden estar limitadas.',
-        });
+        toast({ title: 'Demo sin organización', description: 'Algunas funciones pueden estar limitadas.' });
       }
-
-      // Auth state change listener handles redirect
     } catch (err: any) {
       pendingRedirect.current = null;
-      setEnterError({
-        title: 'Sin conexión',
-        description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
-      });
+      setEnterError({ title: 'Sin conexión', description: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.' });
       setEntering(false);
+    }
+  };
+
+  // Admin archetype can skip to summary directly
+  const isAdminArchetype = state.archetype?.key === 'admin_novasilva';
+  const handleStep1Next = () => {
+    if (isAdminArchetype) {
+      setStep(5); // skip to summary
+    } else {
+      setStep(2);
     }
   };
 
   return (
     <div className="min-h-screen relative flex flex-col">
-      {/* Background */}
       <div className="absolute inset-0 z-0">
         <img src={bgForest} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-black/75 to-black/85" />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col">
-        {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-white/8">
           <div className="flex items-center gap-3">
             <img src={logoNovasilva} alt="Nova Silva" className="h-8 w-8 object-contain" />
@@ -290,15 +265,33 @@ export default function DemoSetupWizard() {
           </div>
         )}
 
-        {/* Content */}
         <main className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-2xl">
             {step === 0 && <StepWelcome onStart={() => setStep(1)} />}
-            {step === 1 && <StepOrgType state={state} update={update} onNext={() => setStep(2)} />}
+            {step === 1 && (
+              <StepArchetype
+                state={state}
+                update={update}
+                demoMode={demoMode}
+                setDemoMode={setDemoMode}
+                onNext={handleStep1Next}
+              />
+            )}
             {step === 2 && <StepOperations state={state} update={update} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
             {step === 3 && <StepInterests state={state} update={update} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
-            {step === 4 && <StepScale state={state} update={update} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
-            {step === 5 && <StepSummary state={state} model={model} archetype={archetype} narrative={getNarrative(state)} onEnter={handleEnterDemo} onBack={() => setStep(4)} entering={entering} enterError={enterError} />}
+            {step === 4 && <StepScale state={state} update={update} onNext={() => setStep(5)} onBack={() => setStep(3)} model={model} />}
+            {step === 5 && (
+              <StepSummary
+                state={state}
+                model={model}
+                archMapping={archMapping}
+                narrative={getNarrative(state)}
+                onEnter={handleEnterDemo}
+                onBack={() => isAdminArchetype ? setStep(1) : setStep(4)}
+                entering={entering}
+                enterError={enterError}
+              />
+            )}
           </div>
         </main>
       </div>
@@ -371,38 +364,90 @@ function StepWelcome({ onStart }: { onStart: () => void }) {
   );
 }
 
-// ── Step 1: Org Type ──
+// ── Step 1: Archetype Selection (NEW — with lead/admin mode) ──
 
-function StepOrgType({ state, update, onNext }: { state: SetupState; update: (p: Partial<SetupState>) => void; onNext: () => void }) {
+function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
+  state: SetupState;
+  update: (p: Partial<SetupState>) => void;
+  demoMode: DemoMode;
+  setDemoMode: (m: DemoMode) => void;
+  onNext: () => void;
+}) {
+  const archetypes = getArchetypesForMode(demoMode);
+
   return (
-    <WizardCard>
-      <StepTitle title="¿Qué tipo de organización eres?" subtitle="Selecciona la opción que mejor describe tu operación." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {ORG_TYPES.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => update({ orgType: opt.value })}
-            className={cn(
-              'group flex items-start gap-3 p-4 rounded-xl border text-left transition-all',
-              state.orgType === opt.value
-                ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
-                : 'border-white/10 hover:border-white/20 hover:bg-white/5'
-            )}
-          >
-            <div className={cn(
-              'h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
-              state.orgType === opt.value ? 'bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))]' : 'bg-white/8 text-white/40'
-            )}>
-              <opt.icon className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">{opt.label}</p>
-              <p className="text-xs text-white/30 mt-0.5">{opt.desc}</p>
-            </div>
-          </button>
-        ))}
+    <WizardCard className="max-w-3xl">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white">¿Qué tipo de operación quieres explorar?</h2>
+          <p className="text-white/40 text-sm mt-1.5">Selecciona el perfil que mejor describe a tu cliente o tu organización.</p>
+        </div>
+        {/* Mode toggle */}
+        <button
+          onClick={() => setDemoMode(demoMode === 'lead' ? 'admin' : 'lead')}
+          className={cn(
+            'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all border',
+            demoMode === 'admin'
+              ? 'bg-[hsl(var(--accent-orange))]/15 border-[hsl(var(--accent-orange))]/30 text-[hsl(var(--accent-orange))]'
+              : 'bg-white/5 border-white/10 text-white/30 hover:text-white/50'
+          )}
+        >
+          <Settings2 className="h-3 w-3" />
+          {demoMode === 'admin' ? 'Modo admin' : 'Modo lead'}
+        </button>
       </div>
-      <NavBar onNext={onNext} disabled={!state.orgType} />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {archetypes.map(arch => {
+          const isSelected = state.archetype?.key === arch.key;
+          const Icon = arch.icon;
+          return (
+            <button
+              key={arch.key}
+              onClick={() => update({ archetype: arch })}
+              className={cn(
+                'group flex flex-col p-4 rounded-xl border text-left transition-all relative',
+                isSelected
+                  ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10 ring-1 ring-[hsl(var(--accent-orange))]/20'
+                  : 'border-white/10 hover:border-white/20 hover:bg-white/5'
+              )}
+            >
+              {isSelected && (
+                <div className="absolute top-3 right-3">
+                  <div className="w-5 h-5 rounded-full bg-[hsl(var(--accent-orange))] flex items-center justify-center">
+                    <CheckCircle className="h-3 w-3 text-white" />
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className={cn(
+                  'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                  isSelected ? 'bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))]' : 'bg-white/8 text-white/40'
+                )}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <p className="text-sm font-medium text-white leading-tight">{arch.label}</p>
+              </div>
+              <p className="text-[11px] text-white/35 leading-relaxed">{arch.subtitle}</p>
+              {arch.country && (
+                <span className="text-[9px] text-white/20 mt-2">{arch.country}</span>
+              )}
+              {/* Admin-only badge */}
+              {!arch.modes.includes('lead') && (
+                <span className="absolute top-3 left-3 text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 font-semibold uppercase">Admin</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {demoMode === 'admin' && (
+        <p className="text-[10px] text-white/20 mt-3 text-center">
+          Modo admin: {archetypes.length} arquetipos disponibles · Incluye demos internos y especializados
+        </p>
+      )}
+
+      <NavBar onNext={onNext} disabled={!state.archetype} />
     </WizardCard>
   );
 }
@@ -488,8 +533,7 @@ function StepInterests({ state, update, onNext, onBack }: { state: SetupState; u
 
 // ── Step 4: Scale ──
 
-function StepScale({ state, update, onNext, onBack }: { state: SetupState; update: (p: Partial<SetupState>) => void; onNext: () => void; onBack: () => void }) {
-  const model = deriveModel(state);
+function StepScale({ state, update, onNext, onBack, model }: { state: SetupState; update: (p: Partial<SetupState>) => void; onNext: () => void; onBack: () => void; model: string }) {
   const showProducers = ['aggregator', 'trader', 'estate_hybrid'].includes(model);
 
   return (
@@ -595,19 +639,21 @@ const PLAN_FEATURES: Record<string, { focus: string; highlights: string[] }> = {
   },
 };
 
-function StepSummary({ state, model, archetype, narrative, onEnter, onBack, entering, enterError }: {
-  state: SetupState; model: string; archetype: ReturnType<typeof mapToArchetype>; narrative: string;
+function StepSummary({ state, model, archMapping, narrative, onEnter, onBack, entering, enterError }: {
+  state: SetupState; model: string;
+  archMapping: ReturnType<typeof buildArchetypeMapping>;
+  narrative: string;
   onEnter: () => void; onBack: () => void; entering: boolean;
   enterError: { title: string; description: string } | null;
 }) {
-  const orgLabel = ORG_TYPES.find(o => o.value === state.orgType)?.label || state.orgType;
-  const uniqueModules = [...new Set(archetype.modules)];
+  const orgLabel = state.archetype?.label || 'Organización';
+  const uniqueModules = [...new Set(archMapping.modules)];
 
-  const pricingModel = getPricingModel(state.orgType || 'cooperativa');
+  const pricingModel = getPricingModel(archMapping.orgType);
   const isFarmer = pricingModel === 'farmer';
 
   const setupConfig: DemoSetupConfig = {
-    orgType: state.orgType || 'cooperativa',
+    orgType: archMapping.orgType,
     operatingModel: model,
     interests: state.interests,
     scalePlots: state.scalePlots,
@@ -620,10 +666,8 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   const recPacks = recommendPacks(setupConfig);
   const recommendedPlan = recommendPlan(setupConfig);
 
-  // ── Interactive plan state ──
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>(recommendedPlan);
 
-  // Recompute pricing reactively based on selectedPlan
   const plotCount = parseInt(state.scalePlots?.match(/(\d+)/)?.[1] || '5');
   const farmerPacks = recPacks.filter(k => FARMER_PACKS.some(p => p.key === k));
   const farmerEst = estimateFarmerPrice(plotCount, farmerPacks);
@@ -637,7 +681,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
   const activePacks = isFarmer ? FARMER_PACKS : AGGREGATOR_PACKS;
   const displayPacks = isFarmer ? farmerPacks : recPacks;
 
-  // Persist selectedPlan in sessionStorage for downstream use
   useEffect(() => {
     sessionStorage.setItem('novasilva_selected_plan', selectedPlan);
   }, [selectedPlan]);
@@ -651,7 +694,7 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         <div className="space-y-5">
           <div className="flex flex-wrap gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
-              <Building2 className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />
+              {state.archetype && <state.archetype.icon className="h-3.5 w-3.5 text-[hsl(var(--accent-orange))]" />}
               <span className="text-xs text-white font-medium">{orgLabel}</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/8 border border-white/10">
@@ -682,7 +725,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
             <p className="text-xs text-white/50 leading-relaxed">{narrative}</p>
           </div>
 
-          {/* Packs */}
           {displayPacks.length > 0 && (
             <div>
               <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2">Packs incluidos</p>
@@ -708,28 +750,25 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         {/* Right: Plan selection + pricing */}
         <div className="space-y-4">
           {isFarmer ? (
-            <>
-              <div>
-                <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Tu plan de finca</p>
-                <div className="p-3 rounded-xl border border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-semibold text-white">Suscripción base</span>
-                      <p className="text-[10px] text-white/30 mt-0.5">Producción · Parcelas · Registros · 2 usuarios</p>
-                    </div>
-                    <span className="text-base font-bold text-white">${FARMER_BASE}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
+            <div>
+              <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold mb-2.5">Tu plan de finca</p>
+              <div className="p-3 rounded-xl border border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-semibold text-white">Suscripción base</span>
+                    <p className="text-[10px] text-white/30 mt-0.5">Producción · Parcelas · Registros · 2 usuarios</p>
                   </div>
-                  {farmerEst.scaleSurcharge > 0 && (
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/8">
-                      <span className="text-[10px] text-white/40">Escala ({FARMER_SCALE[getFarmerScaleTierIndex(plotCount)].label})</span>
-                      <span className="text-xs text-white font-mono">+${farmerEst.scaleSurcharge}/mes</span>
-                    </div>
-                  )}
+                  <span className="text-base font-bold text-white">${FARMER_BASE}<span className="text-[10px] text-white/30 font-normal">/mes</span></span>
                 </div>
+                {farmerEst.scaleSurcharge > 0 && (
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/8">
+                    <span className="text-[10px] text-white/40">Escala ({FARMER_SCALE[getFarmerScaleTierIndex(plotCount)].label})</span>
+                    <span className="text-xs text-white font-mono">+${farmerEst.scaleSurcharge}/mes</span>
+                  </div>
+                )}
               </div>
-            </>
+            </div>
           ) : (
-            /* ── INTERACTIVE AGGREGATOR PLAN CARDS ── */
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <p className="text-white/30 text-[10px] uppercase tracking-wider font-semibold">Selecciona tu plan</p>
@@ -847,7 +886,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         </div>
       </div>
 
-      {/* Error display */}
       {enterError && (
         <div className="mt-4 p-4 rounded-xl border border-destructive/40 bg-destructive/10 space-y-2">
           <p className="text-sm font-semibold text-destructive">{enterError.title}</p>
@@ -855,7 +893,6 @@ function StepSummary({ state, model, archetype, narrative, onEnter, onBack, ente
         </div>
       )}
 
-      {/* CTA */}
       <div className="mt-4">
         <button
           onClick={onEnter}
