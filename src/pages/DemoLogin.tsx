@@ -121,9 +121,13 @@ const ORG_TYPE_LABELS: Record<string, string> = {
 
 function rowToOrg(row: DemoOrgRow): DemoOrganization {
   const orgType = row.org_type || 'cooperativa';
+  // If display_name looks like a UUID, use a human-readable fallback
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(row.display_name || '');
+  const fallbackName = ORG_TYPE_LABELS[orgType] || orgType;
+  const name = (!row.display_name || isUuid) ? fallbackName : row.display_name;
   return {
     id: row.id,
-    name: row.display_name,
+    name,
     orgType,
     operatingModel: row.operating_model || '',
     typeLabel: ORG_TYPE_LABELS[orgType] || orgType,
