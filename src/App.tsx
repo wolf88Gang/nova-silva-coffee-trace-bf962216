@@ -132,6 +132,7 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <ScrollToTop />
+            <Routes>
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/demo" element={<DemoLogin />} />
