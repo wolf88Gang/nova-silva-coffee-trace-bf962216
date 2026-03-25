@@ -87,7 +87,7 @@ export default function AgronomiaIndex() {
           <CardTitle className="text-sm">Indicadores cruzados</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 sm:grid-cols-4">
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {[
               { label: 'Parcelas con plan activo', value: '312', badge: 'success' },
               { label: 'Alertas Guard activas', value: '5', badge: 'destructive' },

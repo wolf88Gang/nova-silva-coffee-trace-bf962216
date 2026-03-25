@@ -242,7 +242,7 @@ export default function SostenibilidadHub() {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="border border-border">
                   <CardContent className="pt-4 pb-3 text-center">
                     <p className="text-xs text-muted-foreground mb-1">Puntaje IGRN</p>

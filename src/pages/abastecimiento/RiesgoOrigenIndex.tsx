@@ -47,7 +47,7 @@ export default function RiesgoOrigenIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Users className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{scores.length}</p><p className="text-xs text-muted-foreground">Proveedores evaluados</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><TrendingUp className="h-5 w-5 text-accent" /><div><p className="text-2xl font-bold">{scoreProm}</p><p className="text-xs text-muted-foreground">Score promedio</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><AlertTriangle className="h-5 w-5 text-destructive" /><div><p className="text-2xl font-bold">{altoRiesgo}</p><p className="text-xs text-muted-foreground">Alto riesgo</p></div></div></CardContent></Card>

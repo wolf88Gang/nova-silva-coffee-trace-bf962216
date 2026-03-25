@@ -202,7 +202,7 @@ export default function GuardTreatmentPlan({ parcelaFilter, onGeneratePlan }: Pr
                         </div>
                         <Badge variant={t.estado === 'Completado' ? 'outline' : t.estado === 'En curso' ? 'default' : 'secondary'} className="text-xs">{t.estado}</Badge>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-muted-foreground mt-2">
+                      <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-2 text-xs text-muted-foreground mt-2">
                         <div><span className="font-medium text-foreground">Dosis:</span> {t.dosis}</div>
                         <div><span className="font-medium text-foreground">Frecuencia:</span> {t.frecuencia}</div>
                         <div><span className="font-medium text-foreground">Inicio:</span> {t.fechaInicio}</div>

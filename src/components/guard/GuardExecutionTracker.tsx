@@ -63,7 +63,7 @@ export default function GuardExecutionTracker({ parcelaFilter }: Props) {
   return (
     <div className="space-y-4">
       {/* KPIs */}
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="pt-4 text-center">
             <p className="text-2xl font-bold text-primary">{aplicados}</p>

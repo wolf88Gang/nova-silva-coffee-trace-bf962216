@@ -49,7 +49,7 @@ export default function GuardIndex() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {kpis.map(k => (
           <Card key={k.label}>
             <CardContent className="pt-5">

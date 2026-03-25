@@ -270,7 +270,7 @@ export default function AnalisisTab() {
                     {(h.fe_ppm != null || h.mn_ppm != null || h.zn_ppm != null) && (
                       <>
                         <p className="text-[10px] text-muted-foreground mt-2 mb-1.5">Micronutrientes</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs">
+                        <div className="grid grid-cols-3 grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
                           <Metric label="Fe ppm" value={h.fe_ppm ?? null} />
                           <Metric label="Mn ppm" value={h.mn_ppm ?? null} />
                           <Metric label="Zn ppm" value={h.zn_ppm ?? null} />

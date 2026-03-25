@@ -56,7 +56,7 @@ export default function TecnicoProductores() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 grid-cols-2 lg:grid-cols-4 gap-4">
         <Card><CardContent className="pt-4 pb-3">
           <p className="text-xs text-muted-foreground">Asignados</p>
           <p className="text-2xl font-bold text-foreground">{DEMO_PRODUCTORES.length}</p>
@@ -153,7 +153,7 @@ export default function TecnicoProductores() {
             const entregas = DEMO_ENTREGAS.filter(e => e.productorNombre === selectedProductor.nombre);
             return (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="p-3 rounded-lg border border-border text-center">
                     <p className="text-xs text-muted-foreground">VITAL</p>
                     <p className="text-xl font-bold text-foreground">{selectedProductor.puntajeVITAL}</p>
