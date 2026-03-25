@@ -377,16 +377,15 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
 
   return (
     <WizardCard className="max-w-3xl">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-white">¿Qué tipo de operación quieres explorar?</h2>
-          <p className="text-white/40 text-sm mt-1.5">Selecciona el perfil que mejor describe a tu cliente o tu organización.</p>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">¿Qué tipo de operación quieres explorar?</h2>
+          <p className="text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5">Selecciona el perfil que mejor describe a tu cliente o tu organización.</p>
         </div>
-        {/* Mode toggle */}
         <button
           onClick={() => setDemoMode(demoMode === 'lead' ? 'admin' : 'lead')}
           className={cn(
-            'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all border',
+            'shrink-0 self-start flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider transition-all border',
             demoMode === 'admin'
               ? 'bg-[hsl(var(--accent-orange))]/15 border-[hsl(var(--accent-orange))]/30 text-[hsl(var(--accent-orange))]'
               : 'bg-white/5 border-white/10 text-white/30 hover:text-white/50'
@@ -397,7 +396,7 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
         {archetypes.map(arch => {
           const isSelected = state.archetype?.key === arch.key;
           const Icon = arch.icon;
@@ -406,35 +405,34 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
               key={arch.key}
               onClick={() => update({ archetype: arch })}
               className={cn(
-                'group flex flex-col p-4 rounded-xl border text-left transition-all relative',
+                'group flex flex-col p-3 sm:p-4 rounded-xl border text-left transition-all relative',
                 isSelected
                   ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10 ring-1 ring-[hsl(var(--accent-orange))]/20'
                   : 'border-white/10 hover:border-white/20 hover:bg-white/5'
               )}
             >
               {isSelected && (
-                <div className="absolute top-3 right-3">
-                  <div className="w-5 h-5 rounded-full bg-[hsl(var(--accent-orange))] flex items-center justify-center">
-                    <CheckCircle className="h-3 w-3 text-white" />
+                <div className="absolute top-2.5 right-2.5">
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[hsl(var(--accent-orange))] flex items-center justify-center">
+                    <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
                   </div>
                 </div>
               )}
-              <div className="flex items-center gap-2.5 mb-2">
+              <div className="flex items-center gap-2 sm:gap-2.5 mb-1.5 sm:mb-2">
                 <div className={cn(
-                  'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                  'h-7 w-7 sm:h-8 sm:w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
                   isSelected ? 'bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))]' : 'bg-white/8 text-white/40'
                 )}>
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
-                <p className="text-sm font-medium text-white leading-tight">{arch.label}</p>
+                <p className="text-xs sm:text-sm font-medium text-white leading-tight pr-4">{arch.label}</p>
               </div>
-              <p className="text-[11px] text-white/35 leading-relaxed">{arch.subtitle}</p>
+              <p className="text-[10px] sm:text-[11px] text-white/35 leading-relaxed">{arch.subtitle}</p>
               {arch.country && (
-                <span className="text-[9px] text-white/20 mt-2">{arch.country}</span>
+                <span className="text-[9px] text-white/20 mt-1.5 sm:mt-2">{arch.country}</span>
               )}
-              {/* Admin-only badge */}
               {!arch.modes.includes('lead') && (
-                <span className="absolute top-3 left-3 text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 font-semibold uppercase">Admin</span>
+                <span className="absolute top-2.5 left-2.5 text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 font-semibold uppercase">Admin</span>
               )}
             </button>
           );
@@ -442,8 +440,8 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
       </div>
 
       {demoMode === 'admin' && (
-        <p className="text-[10px] text-white/20 mt-3 text-center">
-          Modo admin: {archetypes.length} arquetipos disponibles · Incluye demos internos y especializados
+        <p className="text-[9px] sm:text-[10px] text-white/20 mt-3 text-center">
+          Modo admin: {archetypes.length} arquetipos disponibles
         </p>
       )}
 
