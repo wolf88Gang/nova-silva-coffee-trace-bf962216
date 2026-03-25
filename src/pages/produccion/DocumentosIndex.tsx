@@ -42,19 +42,19 @@ export default function DocumentosIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><FolderOpen className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{docs.length}</p><p className="text-xs text-muted-foreground">Documentos totales</p></div></div></CardContent></Card>
-        <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{docs.filter(d => d.estado === 'Vigente').length}</p><p className="text-xs text-muted-foreground">Vigentes</p></div></div></CardContent></Card>
-        <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><FileText className="h-5 w-5 text-warning" /><div><p className="text-2xl font-bold">{pendientes}</p><p className="text-xs text-muted-foreground">Pendientes revisión</p></div></div></CardContent></Card>
-        <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><AlertTriangle className="h-5 w-5 text-destructive" /><div><p className="text-2xl font-bold">{vencidos}</p><p className="text-xs text-muted-foreground">Vencidos</p></div></div></CardContent></Card>
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2"><FolderOpen className="h-4 w-4 text-primary shrink-0" /><div><p className="text-xl font-bold">{docs.length}</p><p className="text-xs text-muted-foreground">Total</p></div></div></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /><div><p className="text-xl font-bold">{docs.filter(d => d.estado === 'Vigente').length}</p><p className="text-xs text-muted-foreground">Vigentes</p></div></div></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2"><FileText className="h-4 w-4 text-warning shrink-0" /><div><p className="text-xl font-bold">{pendientes}</p><p className="text-xs text-muted-foreground">Pendientes</p></div></div></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-destructive shrink-0" /><div><p className="text-xl font-bold">{vencidos}</p><p className="text-xs text-muted-foreground">Vencidos</p></div></div></CardContent></Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader className="pb-2"><CardTitle className="text-sm">Distribución por tipo</CardTitle></CardHeader>
-          <CardContent><div className="h-48">
+          <CardContent><div className="h-48 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart><Pie data={porTipo} cx="50%" cy="50%" innerRadius={35} outerRadius={70} dataKey="value" label={({ name, value }) => `${name.split(' ')[0]}: ${value}`} labelLine={false}>{porTipo.map((d, i) => <Cell key={i} fill={d.fill} />)}</Pie><Tooltip contentStyle={chartTooltip} /></PieChart>
+              <PieChart><Pie data={porTipo} cx="50%" cy="50%" innerRadius={30} outerRadius={60} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>{porTipo.map((d, i) => <Cell key={i} fill={d.fill} />)}</Pie><Tooltip contentStyle={chartTooltip} /></PieChart>
             </ResponsiveContainer>
           </div></CardContent>
         </Card>

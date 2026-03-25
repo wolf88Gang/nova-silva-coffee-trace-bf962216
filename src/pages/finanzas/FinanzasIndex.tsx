@@ -29,7 +29,7 @@ export default function FinanzasIndex() {
       </div>
 
       {/* KPI summary */}
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {[
           { label: 'Ingresos (mes)', value: kpis.ingresos_mes },
           { label: 'Costos (mes)', value: kpis.costos_mes },
@@ -39,7 +39,7 @@ export default function FinanzasIndex() {
         ].map(k => (
           <Card key={k.label}>
             <CardContent className="pt-5 text-center">
-              <p className="text-2xl font-bold">{String(k.value)}</p>
+              <p className="text-lg sm:text-2xl font-bold">{String(k.value)}</p>
               <p className="text-xs text-muted-foreground">{k.label}</p>
             </CardContent>
           </Card>
@@ -47,7 +47,7 @@ export default function FinanzasIndex() {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader><CardTitle className="text-sm">Ingresos vs Costos (12 meses, $K)</CardTitle></CardHeader>
           <CardContent>
@@ -72,7 +72,7 @@ export default function FinanzasIndex() {
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={gastos} dataKey="valor" nameKey="categoria" cx="50%" cy="50%" outerRadius={80} label={({ categoria, valor }) => `${categoria}: ${valor}%`}>
+                  <Pie data={gastos} dataKey="valor" nameKey="categoria" cx="50%" cy="50%" outerRadius={70} label={({ categoria, valor }) => `${categoria} ${valor}%`}>
                     {gastos.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                   </Pie>
                   <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
