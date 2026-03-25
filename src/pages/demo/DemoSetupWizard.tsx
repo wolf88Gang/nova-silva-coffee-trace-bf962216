@@ -461,13 +461,13 @@ function StepOperations({ state, update, onNext, onBack }: { state: SetupState; 
   return (
     <WizardCard>
       <StepTitle title="¿Cómo opera tu organización hoy?" subtitle="Selecciona todas las actividades que apliquen." />
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         {OPERATIONS.map(op => (
           <button
             key={op.value}
             onClick={() => toggle(op.value)}
             className={cn(
-              'w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all',
+              'w-full flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-xl border text-left transition-all',
               state.operations.includes(op.value)
                 ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
                 : 'border-white/10 hover:border-white/20 hover:bg-white/5'
@@ -479,7 +479,7 @@ function StepOperations({ state, update, onNext, onBack }: { state: SetupState; 
               className="border-white/30 data-[state=checked]:bg-[hsl(var(--accent-orange))] data-[state=checked]:border-[hsl(var(--accent-orange))]"
             />
             <op.icon className={cn('h-4 w-4 shrink-0', state.operations.includes(op.value) ? 'text-[hsl(var(--accent-orange))]' : 'text-white/40')} />
-            <span className="text-sm text-white">{op.label}</span>
+            <span className="text-xs sm:text-sm text-white">{op.label}</span>
           </button>
         ))}
       </div>
