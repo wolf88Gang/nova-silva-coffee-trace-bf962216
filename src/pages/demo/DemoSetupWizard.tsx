@@ -499,27 +499,27 @@ function StepInterests({ state, update, onNext, onBack }: { state: SetupState; u
   return (
     <WizardCard>
       <StepTitle title="¿Qué quieres ver en el demo?" subtitle="Selecciona los bloques que más te interesan." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
         {INTERESTS.map(item => (
           <button
             key={item.value}
             onClick={() => toggle(item.value)}
             className={cn(
-              'flex items-start gap-3 p-4 rounded-xl border text-left transition-all',
+              'flex items-start gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-xl border text-left transition-all',
               state.interests.includes(item.value)
                 ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
                 : 'border-white/10 hover:border-white/20 hover:bg-white/5'
             )}
           >
             <div className={cn(
-              'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5',
+              'h-7 w-7 sm:h-8 sm:w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5',
               state.interests.includes(item.value) ? 'bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))]' : 'bg-white/8 text-white/40'
             )}>
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-white">{item.label}</p>
-              <p className="text-[11px] text-white/30 mt-0.5">{item.desc}</p>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-white">{item.label}</p>
+              <p className="text-[10px] sm:text-[11px] text-white/30 mt-0.5">{item.desc}</p>
             </div>
           </button>
         ))}
