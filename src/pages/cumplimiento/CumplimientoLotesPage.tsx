@@ -41,7 +41,7 @@ export default function CumplimientoLotesPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Package className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{lotes.length}</p><p className="text-xs text-muted-foreground">Lotes totales</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{verde}</p><p className="text-xs text-muted-foreground">Cumple EUDR</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><AlertTriangle className="h-5 w-5 text-warning" /><div><p className="text-2xl font-bold">{ambar}</p><p className="text-xs text-muted-foreground">Pendientes</p></div></div></CardContent></Card>

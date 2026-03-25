@@ -23,7 +23,7 @@ export default function ComercialIndex() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5 text-center"><p className="text-2xl font-bold">{lotes.length}</p><p className="text-xs text-muted-foreground">Lotes comerciales</p></CardContent></Card>
         <Card><CardContent className="pt-5 text-center"><p className="text-2xl font-bold">{exportaciones.length}</p><p className="text-xs text-muted-foreground">Exportaciones</p></CardContent></Card>
         <Card><CardContent className="pt-5 text-center"><p className="text-2xl font-bold">{lotes.filter(l => l.estado === 'Disponible').length}</p><p className="text-xs text-muted-foreground">Lotes disponibles</p></CardContent></Card>

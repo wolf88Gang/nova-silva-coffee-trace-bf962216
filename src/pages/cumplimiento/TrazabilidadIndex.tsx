@@ -34,7 +34,7 @@ function ProducerTraceability() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><MapPin className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{demoParcelas.length}</p><p className="text-xs text-muted-foreground">Parcelas registradas</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{parcelasAprobadas}/{demoParcelas.length}</p><p className="text-xs text-muted-foreground">EUDR aprobadas</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Package className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{demoEntregas.length}</p><p className="text-xs text-muted-foreground">Entregas trazadas</p></div></div></CardContent></Card>
@@ -142,7 +142,7 @@ export default function TrazabilidadIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Package className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{traces.length}</p><p className="text-xs text-muted-foreground">Lotes trazables</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{trazados}</p><p className="text-xs text-muted-foreground">Trazabilidad completa</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Clock className="h-5 w-5 text-warning" /><div><p className="text-2xl font-bold">{enProceso}</p><p className="text-xs text-muted-foreground">En proceso</p></div></div></CardContent></Card>

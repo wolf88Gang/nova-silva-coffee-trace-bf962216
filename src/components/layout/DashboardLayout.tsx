@@ -85,7 +85,7 @@ export function DashboardLayout({ children, requiredRole }: DashboardLayoutProps
           </header>
           <div className="lg:hidden h-14" />
 
-          <main className="p-4 md:p-6 lg:p-8 animate-fade-in">
+          <main className="p-3 sm:p-4 md:p-6 lg:p-8 animate-fade-in max-w-full overflow-x-hidden">
             <DemoModeBanner />
             <DemoBanner />
             <DemoTourHint />

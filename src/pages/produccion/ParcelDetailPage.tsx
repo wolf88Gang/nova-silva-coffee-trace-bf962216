@@ -75,7 +75,7 @@ export default function ParcelDetailPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 grid-cols-2 lg:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
         </div>
         <Skeleton className="h-64" />

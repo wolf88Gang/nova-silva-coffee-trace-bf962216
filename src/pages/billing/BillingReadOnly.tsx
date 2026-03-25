@@ -63,10 +63,10 @@ export default function BillingReadOnly() {
   if (loading) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Mi Plan</h1>
-        <div className="grid gap-4 md:grid-cols-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Mi Plan</h1>
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
           {[1, 2, 3].map(i => (
-            <Card key={i}><CardContent className="pt-6"><Skeleton className="h-20 w-full" /></CardContent></Card>
+            <Card key={i}><CardContent className="pt-5"><Skeleton className="h-16 w-full" /></CardContent></Card>
           ))}
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function BillingReadOnly() {
   if (error || !subscription) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Mi Plan</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Mi Plan</h1>
         <Card>
           <CardContent className="py-12 text-center space-y-3">
             <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground/50" />
@@ -102,12 +102,12 @@ export default function BillingReadOnly() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Mi Plan</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Mi Plan</h1>
         <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
         <Card>
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-2 mb-2">

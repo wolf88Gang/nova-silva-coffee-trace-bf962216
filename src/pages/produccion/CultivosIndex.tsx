@@ -47,7 +47,7 @@ export default function CultivosIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Sprout className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{parcelas.length}</p><p className="text-xs text-muted-foreground">Parcelas activas</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Leaf className="h-5 w-5 text-accent" /><div><p className="text-2xl font-bold">{variedades.length}</p><p className="text-xs text-muted-foreground">Variedades</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Map className="h-5 w-5 text-warning" /><div><p className="text-2xl font-bold">{totalArea.toFixed(0)} ha</p><p className="text-xs text-muted-foreground">Área total</p></div></div></CardContent></Card>

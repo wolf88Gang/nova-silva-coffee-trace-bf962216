@@ -21,7 +21,7 @@ export default function ComercialLotesPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Package className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{lotes.length}</p><p className="text-xs text-muted-foreground">Lotes comerciales</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Ship className="h-5 w-5 text-accent" /><div><p className="text-2xl font-bold">{exportaciones.length}</p><p className="text-xs text-muted-foreground">Embarques</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Globe className="h-5 w-5 text-warning" /><div><p className="text-2xl font-bold">{new Set(exportaciones.map(e => e.destino)).size}</p><p className="text-xs text-muted-foreground">Destinos</p></div></div></CardContent></Card>

@@ -48,7 +48,7 @@ export default function FinanzasDashboard() {
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Finanzas</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {kpis.map((k) => (
           <Card key={k.label}>
             <CardContent className="pt-5 pb-4">

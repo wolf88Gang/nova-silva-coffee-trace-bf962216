@@ -303,7 +303,7 @@ export default function ExportadoresAsociados() {
                   )}
 
                   {/* KPIs */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="rounded-lg border border-border p-3 text-center">
                       <p className="text-2xl font-bold text-foreground">{selectedRelacion.exportacionesPrevias ?? 0}</p>
                       <p className="text-xs text-muted-foreground">Compras previas</p>

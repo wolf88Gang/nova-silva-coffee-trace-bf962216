@@ -63,14 +63,14 @@ export default function ProveedoresInsumosIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2 mb-2"><ShoppingCart className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Proveedores</span></div><p className="text-2xl font-bold">{suppliers.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2 mb-2"><CheckCircle2 className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Activos</span></div><p className="text-2xl font-bold">{activos}</p></CardContent></Card>
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2 mb-2"><TrendingUp className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Productos registrados</span></div><p className="text-2xl font-bold">{totalProductos}</p></CardContent></Card>
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2 mb-2"><AlertTriangle className="h-4 w-4 text-destructive" /><span className="text-xs text-muted-foreground">Inactivos</span></div><p className="text-2xl font-bold">{suppliers.length - activos}</p></CardContent></Card>
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><ShoppingCart className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Proveedores</span></div><p className="text-xl font-bold">{suppliers.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><CheckCircle2 className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Activos</span></div><p className="text-xl font-bold">{activos}</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><TrendingUp className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Productos</span></div><p className="text-xl font-bold">{totalProductos}</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><div className="flex items-center gap-2 mb-1"><AlertTriangle className="h-4 w-4 text-destructive" /><span className="text-xs text-muted-foreground">Inactivos</span></div><p className="text-xl font-bold">{suppliers.length - activos}</p></CardContent></Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2"><CardTitle className="text-base">Directorio de proveedores</CardTitle></CardHeader>
           <CardContent>

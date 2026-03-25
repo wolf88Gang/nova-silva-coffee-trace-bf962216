@@ -399,7 +399,7 @@ function EconomiaSection({ economia }: { economia?: PlanResult['economia'] }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-3">
           <EconCard label="Fertilizantes" value={`$${economia.costo_fertilizantes_usd.toFixed(0)}`} />
           <EconCard label="Mano de obra" value={`$${economia.costo_mano_obra_usd.toFixed(0)}`} />
           <EconCard label="Costo total" value={`$${economia.costo_total_usd.toFixed(0)}`} bold />

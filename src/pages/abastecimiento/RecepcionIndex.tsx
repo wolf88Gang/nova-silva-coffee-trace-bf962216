@@ -31,7 +31,7 @@ export default function RecepcionIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Package className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{recepciones.length}</p><p className="text-xs text-muted-foreground">Recepciones</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><TrendingUp className="h-5 w-5 text-accent" /><div><p className="text-2xl font-bold">{volTotal} qq</p><p className="text-xs text-muted-foreground">Volumen total</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Users className="h-5 w-5 text-warning" /><div><p className="text-2xl font-bold">{proveedoresUnicos}</p><p className="text-xs text-muted-foreground">Proveedores</p></div></div></CardContent></Card>

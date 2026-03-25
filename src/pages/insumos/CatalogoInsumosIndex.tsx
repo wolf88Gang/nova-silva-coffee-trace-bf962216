@@ -66,7 +66,7 @@ export default function CatalogoInsumosIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2 mb-2"><Boxes className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Total productos</span></div><p className="text-2xl font-bold">{items.length}</p></CardContent></Card>
         <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2 mb-2"><Leaf className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Disponibles</span></div><p className="text-2xl font-bold">{disponibles}</p></CardContent></Card>
         <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2 mb-2"><Bug className="h-4 w-4 text-primary" /><span className="text-xs text-muted-foreground">Categorías</span></div><p className="text-2xl font-bold">{categorias.length}</p></CardContent></Card>

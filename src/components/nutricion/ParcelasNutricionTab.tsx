@@ -452,7 +452,7 @@ export default function ParcelasNutricionTab() {
                 <CardContent className="pt-0 pb-3">
                   {/* Context pills */}
                   {(row.densidad_plantas_ha || row.sombra_pct != null || row.pendiente_pct != null || row.altitud_msnm) && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                    <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
                       {row.densidad_plantas_ha && (
                         <div className="text-center p-2 rounded-md bg-muted/50">
                           <p className="text-[10px] text-muted-foreground">Densidad</p>
@@ -589,7 +589,7 @@ export default function ParcelasNutricionTab() {
                             {new Date(row.foliar_fecha).toLocaleDateString('es')}
                           </span>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div className="grid grid-cols-3 grid-cols-2 lg:grid-cols-5 gap-2">
                           <FoliarMetric label="N" value={row.n_pct} unit="%" />
                           <FoliarMetric label="P" value={row.f_p_pct} unit="%" />
                           <FoliarMetric label="K" value={row.k_pct} unit="%" />

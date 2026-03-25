@@ -50,7 +50,7 @@ export default function EvidenciasIndex() {
         <DemoBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><FileText className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{evidencias.length}</p><p className="text-xs text-muted-foreground">Documentos</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><Users className="h-5 w-5 text-accent" /><div><p className="text-2xl font-bold">{proveedoresUnicos}</p><p className="text-xs text-muted-foreground">Proveedores</p></div></div></CardContent></Card>
         <Card><CardContent className="pt-5"><div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-primary" /><div><p className="text-2xl font-bold">{completos}</p><p className="text-xs text-muted-foreground">Completos</p></div></div></CardContent></Card>

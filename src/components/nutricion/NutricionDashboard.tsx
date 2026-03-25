@@ -35,16 +35,18 @@ export default function NutricionDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full sm:w-auto overflow-x-auto">
-            <TabsTrigger value="parcelas"><Sprout className="h-4 w-4 mr-1" /> Estado y Análisis</TabsTrigger>
-            <TabsTrigger value="suelo"><Layers className="h-4 w-4 mr-1" /> Suelo</TabsTrigger>
-            <TabsTrigger value="demanda"><Calculator className="h-4 w-4 mr-1" /> Demanda</TabsTrigger>
-            <TabsTrigger value="planes"><FileText className="h-4 w-4 mr-1" /> Planes</TabsTrigger>
-            <TabsTrigger value="ejecucion"><Activity className="h-4 w-4 mr-1" /> Ejecución</TabsTrigger>
-            <TabsTrigger value="analisis"><Beaker className="h-4 w-4 mr-1" /> Análisis</TabsTrigger>
-            <TabsTrigger value="protocolo"><ClipboardCheck className="h-4 w-4 mr-1" /> Protocolo</TabsTrigger>
-            <TabsTrigger value="historial"><History className="h-4 w-4 mr-1" /> Historial</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+            <TabsList className="w-max sm:w-auto">
+              <TabsTrigger value="parcelas" className="text-xs sm:text-sm"><Sprout className="h-3.5 w-3.5 mr-1 shrink-0" /><span className="hidden sm:inline">Estado y </span>Análisis</TabsTrigger>
+              <TabsTrigger value="suelo" className="text-xs sm:text-sm"><Layers className="h-3.5 w-3.5 mr-1 shrink-0" /> Suelo</TabsTrigger>
+              <TabsTrigger value="demanda" className="text-xs sm:text-sm"><Calculator className="h-3.5 w-3.5 mr-1 shrink-0" /> Demanda</TabsTrigger>
+              <TabsTrigger value="planes" className="text-xs sm:text-sm"><FileText className="h-3.5 w-3.5 mr-1 shrink-0" /> Planes</TabsTrigger>
+              <TabsTrigger value="ejecucion" className="text-xs sm:text-sm"><Activity className="h-3.5 w-3.5 mr-1 shrink-0" /> Ejecución</TabsTrigger>
+              <TabsTrigger value="analisis" className="text-xs sm:text-sm"><Beaker className="h-3.5 w-3.5 mr-1 shrink-0" /> Análisis</TabsTrigger>
+              <TabsTrigger value="protocolo" className="text-xs sm:text-sm"><ClipboardCheck className="h-3.5 w-3.5 mr-1 shrink-0" /> Protocolo</TabsTrigger>
+              <TabsTrigger value="historial" className="text-xs sm:text-sm"><History className="h-3.5 w-3.5 mr-1 shrink-0" /> Historial</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="parcelas" className="mt-4"><ParcelasNutricionTab /></TabsContent>
           <TabsContent value="suelo" className="mt-4"><SoilHealthTab /></TabsContent>

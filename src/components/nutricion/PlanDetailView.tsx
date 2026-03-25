@@ -252,7 +252,7 @@ export default function PlanDetailView({ planId, parcelaName, onBack }: Props) {
             <div className="flex items-center gap-2"><Sprout className="h-4 w-4 text-primary" /> Resumen</div>
           </AccordionTrigger>
           <AccordionContent className="px-4 pb-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
               <InfoCell label="Motor" value={plan.engine_version || 'v2'} />
               <InfoCell label="Modo" value={plan.modo_calculo || '—'} />
               <InfoCell label="Confianza" value={plan.nivel_confianza || '—'} />
@@ -326,7 +326,7 @@ export default function PlanDetailView({ planId, parcelaName, onBack }: Props) {
           </AccordionTrigger>
           <AccordionContent className="px-4 pb-4">
             {plan.nutrients?.length ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-2">
                 {plan.nutrients.map((n) => (
                   <div key={n.nutrient_code} className="p-3 rounded-lg border border-border text-center space-y-1">
                     <p className="text-xs text-muted-foreground">{n.source}</p>
@@ -403,7 +403,7 @@ export default function PlanDetailView({ planId, parcelaName, onBack }: Props) {
           <AccordionContent className="px-4 pb-4">
             {planJson?.economia ? (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                <div className="grid grid-cols-2 grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
                   <InfoCell label="Fertilizantes" value={`$${planJson.economia.costo_fertilizantes_usd?.toFixed(0) ?? '—'}`} />
                   <InfoCell label="Mano de obra" value={`$${planJson.economia.costo_mano_obra_usd?.toFixed(0) ?? '—'}`} />
                   <InfoCell label="Total" value={`$${planJson.economia.costo_total_usd?.toFixed(0) ?? '—'}`} />
