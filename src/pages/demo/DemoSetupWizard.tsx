@@ -347,19 +347,19 @@ function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; 
 function StepWelcome({ onStart }: { onStart: () => void }) {
   return (
     <WizardCard className="text-center max-w-lg mx-auto">
-      <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3">
         Configura un demo adaptado a tu operación
       </h1>
-      <p className="text-white/40 text-sm leading-relaxed mb-8 max-w-md mx-auto">
+      <p className="text-white/40 text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8 max-w-md mx-auto">
         En menos de 2 minutos te mostraremos una versión de Nova Silva alineada con la forma en que opera tu organización.
       </p>
       <button
         onClick={onStart}
-        className="inline-flex items-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3 px-8 rounded-xl transition-colors text-sm"
+        className="inline-flex items-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl transition-colors text-xs sm:text-sm"
       >
         <Play className="h-4 w-4" /> Comenzar
       </button>
-      <p className="text-white/15 text-xs mt-6">Sin registro · Sin compromiso · 100% interactivo</p>
+      <p className="text-white/15 text-[10px] sm:text-xs mt-4 sm:mt-6">Sin registro · Sin compromiso · 100% interactivo</p>
     </WizardCard>
   );
 }
