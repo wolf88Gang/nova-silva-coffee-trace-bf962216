@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { assertSupabaseHost } from "@/lib/assertSupabaseHost";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
 assertSupabaseHost();
 
