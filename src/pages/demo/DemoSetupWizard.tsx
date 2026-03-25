@@ -244,28 +244,28 @@ export default function DemoSetupWizard() {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col">
-        <header className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-          <div className="flex items-center gap-3">
-            <img src={logoNovasilva} alt="Nova Silva" className="h-8 w-8 object-contain" />
-            <span className="text-white font-bold text-lg tracking-tight">Nova Silva</span>
+        <header className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/8">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <img src={logoNovasilva} alt="Nova Silva" className="h-7 w-7 sm:h-8 sm:w-8 object-contain" />
+            <span className="text-white font-bold text-base sm:text-lg tracking-tight">Nova Silva</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {step > 0 && (
-              <span className="text-white/30 text-xs">Paso {step} de {TOTAL_STEPS - 1}</span>
+              <span className="text-white/30 text-[10px] sm:text-xs">Paso {step} de {TOTAL_STEPS - 1}</span>
             )}
-            <Link to="/demo" className="text-white/30 hover:text-white text-xs transition-colors">
+            <Link to="/demo" className="text-white/30 hover:text-white text-[10px] sm:text-xs transition-colors">
               Demo directo →
             </Link>
           </div>
         </header>
 
         {step > 0 && (
-          <div className="px-6 pt-3">
+          <div className="px-4 sm:px-6 pt-3">
             <Progress value={progressValue} className="h-1 bg-white/10 [&>div]:bg-[hsl(var(--accent-orange))]" />
           </div>
         )}
 
-        <main className="flex-1 flex items-center justify-center p-6">
+        <main className="flex-1 flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto">
           <div className="w-full max-w-2xl">
             {step === 0 && <StepWelcome onStart={() => setStep(1)} />}
             {step === 1 && (
@@ -303,7 +303,7 @@ export default function DemoSetupWizard() {
 
 function WizardCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('bg-white/6 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8', className)}>
+    <div className={cn('bg-white/6 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8', className)}>
       {children}
     </div>
   );
@@ -311,18 +311,18 @@ function WizardCard({ children, className }: { children: React.ReactNode; classN
 
 function StepTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="mb-6">
-      <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
-      {subtitle && <p className="text-white/40 text-sm mt-1.5">{subtitle}</p>}
+    <div className="mb-4 sm:mb-6">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">{title}</h2>
+      {subtitle && <p className="text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5">{subtitle}</p>}
     </div>
   );
 }
 
 function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; onNext: () => void; nextLabel?: string; disabled?: boolean }) {
   return (
-    <div className="flex items-center justify-between mt-6">
+    <div className="flex items-center justify-between mt-4 sm:mt-6">
       {onBack ? (
-        <button onClick={onBack} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm transition-colors">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-white/40 hover:text-white text-xs transition-colors">
           <ArrowLeft className="h-4 w-4" /> Atrás
         </button>
       ) : <div />}
@@ -330,7 +330,7 @@ function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; 
         onClick={onNext}
         disabled={disabled}
         className={cn(
-          'flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all',
+          'flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all',
           disabled
             ? 'bg-white/10 text-white/30 cursor-not-allowed'
             : 'bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white'
@@ -347,19 +347,19 @@ function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; 
 function StepWelcome({ onStart }: { onStart: () => void }) {
   return (
     <WizardCard className="text-center max-w-lg mx-auto">
-      <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3">
         Configura un demo adaptado a tu operación
       </h1>
-      <p className="text-white/40 text-sm leading-relaxed mb-8 max-w-md mx-auto">
+      <p className="text-white/40 text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8 max-w-md mx-auto">
         En menos de 2 minutos te mostraremos una versión de Nova Silva alineada con la forma en que opera tu organización.
       </p>
       <button
         onClick={onStart}
-        className="inline-flex items-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-3 px-8 rounded-xl transition-colors text-sm"
+        className="inline-flex items-center gap-2 bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white font-semibold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl transition-colors text-xs sm:text-sm"
       >
         <Play className="h-4 w-4" /> Comenzar
       </button>
-      <p className="text-white/15 text-xs mt-6">Sin registro · Sin compromiso · 100% interactivo</p>
+      <p className="text-white/15 text-[10px] sm:text-xs mt-4 sm:mt-6">Sin registro · Sin compromiso · 100% interactivo</p>
     </WizardCard>
   );
 }
@@ -377,16 +377,15 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
 
   return (
     <WizardCard className="max-w-3xl">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-white">¿Qué tipo de operación quieres explorar?</h2>
-          <p className="text-white/40 text-sm mt-1.5">Selecciona el perfil que mejor describe a tu cliente o tu organización.</p>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">¿Qué tipo de operación quieres explorar?</h2>
+          <p className="text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5">Selecciona el perfil que mejor describe a tu cliente o tu organización.</p>
         </div>
-        {/* Mode toggle */}
         <button
           onClick={() => setDemoMode(demoMode === 'lead' ? 'admin' : 'lead')}
           className={cn(
-            'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all border',
+            'shrink-0 self-start flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider transition-all border',
             demoMode === 'admin'
               ? 'bg-[hsl(var(--accent-orange))]/15 border-[hsl(var(--accent-orange))]/30 text-[hsl(var(--accent-orange))]'
               : 'bg-white/5 border-white/10 text-white/30 hover:text-white/50'
@@ -397,7 +396,7 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
         {archetypes.map(arch => {
           const isSelected = state.archetype?.key === arch.key;
           const Icon = arch.icon;
@@ -406,35 +405,34 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
               key={arch.key}
               onClick={() => update({ archetype: arch })}
               className={cn(
-                'group flex flex-col p-4 rounded-xl border text-left transition-all relative',
+                'group flex flex-col p-3 sm:p-4 rounded-xl border text-left transition-all relative',
                 isSelected
                   ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10 ring-1 ring-[hsl(var(--accent-orange))]/20'
                   : 'border-white/10 hover:border-white/20 hover:bg-white/5'
               )}
             >
               {isSelected && (
-                <div className="absolute top-3 right-3">
-                  <div className="w-5 h-5 rounded-full bg-[hsl(var(--accent-orange))] flex items-center justify-center">
-                    <CheckCircle className="h-3 w-3 text-white" />
+                <div className="absolute top-2.5 right-2.5">
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[hsl(var(--accent-orange))] flex items-center justify-center">
+                    <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
                   </div>
                 </div>
               )}
-              <div className="flex items-center gap-2.5 mb-2">
+              <div className="flex items-center gap-2 sm:gap-2.5 mb-1.5 sm:mb-2">
                 <div className={cn(
-                  'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                  'h-7 w-7 sm:h-8 sm:w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
                   isSelected ? 'bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))]' : 'bg-white/8 text-white/40'
                 )}>
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
-                <p className="text-sm font-medium text-white leading-tight">{arch.label}</p>
+                <p className="text-xs sm:text-sm font-medium text-white leading-tight pr-4">{arch.label}</p>
               </div>
-              <p className="text-[11px] text-white/35 leading-relaxed">{arch.subtitle}</p>
+              <p className="text-[10px] sm:text-[11px] text-white/35 leading-relaxed">{arch.subtitle}</p>
               {arch.country && (
-                <span className="text-[9px] text-white/20 mt-2">{arch.country}</span>
+                <span className="text-[9px] text-white/20 mt-1.5 sm:mt-2">{arch.country}</span>
               )}
-              {/* Admin-only badge */}
               {!arch.modes.includes('lead') && (
-                <span className="absolute top-3 left-3 text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 font-semibold uppercase">Admin</span>
+                <span className="absolute top-2.5 left-2.5 text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 font-semibold uppercase">Admin</span>
               )}
             </button>
           );
@@ -442,8 +440,8 @@ function StepArchetype({ state, update, demoMode, setDemoMode, onNext }: {
       </div>
 
       {demoMode === 'admin' && (
-        <p className="text-[10px] text-white/20 mt-3 text-center">
-          Modo admin: {archetypes.length} arquetipos disponibles · Incluye demos internos y especializados
+        <p className="text-[9px] sm:text-[10px] text-white/20 mt-3 text-center">
+          Modo admin: {archetypes.length} arquetipos disponibles
         </p>
       )}
 
@@ -463,13 +461,13 @@ function StepOperations({ state, update, onNext, onBack }: { state: SetupState; 
   return (
     <WizardCard>
       <StepTitle title="¿Cómo opera tu organización hoy?" subtitle="Selecciona todas las actividades que apliquen." />
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         {OPERATIONS.map(op => (
           <button
             key={op.value}
             onClick={() => toggle(op.value)}
             className={cn(
-              'w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all',
+              'w-full flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-xl border text-left transition-all',
               state.operations.includes(op.value)
                 ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
                 : 'border-white/10 hover:border-white/20 hover:bg-white/5'
@@ -481,7 +479,7 @@ function StepOperations({ state, update, onNext, onBack }: { state: SetupState; 
               className="border-white/30 data-[state=checked]:bg-[hsl(var(--accent-orange))] data-[state=checked]:border-[hsl(var(--accent-orange))]"
             />
             <op.icon className={cn('h-4 w-4 shrink-0', state.operations.includes(op.value) ? 'text-[hsl(var(--accent-orange))]' : 'text-white/40')} />
-            <span className="text-sm text-white">{op.label}</span>
+            <span className="text-xs sm:text-sm text-white">{op.label}</span>
           </button>
         ))}
       </div>
@@ -501,27 +499,27 @@ function StepInterests({ state, update, onNext, onBack }: { state: SetupState; u
   return (
     <WizardCard>
       <StepTitle title="¿Qué quieres ver en el demo?" subtitle="Selecciona los bloques que más te interesan." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
         {INTERESTS.map(item => (
           <button
             key={item.value}
             onClick={() => toggle(item.value)}
             className={cn(
-              'flex items-start gap-3 p-4 rounded-xl border text-left transition-all',
+              'flex items-start gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-xl border text-left transition-all',
               state.interests.includes(item.value)
                 ? 'border-[hsl(var(--accent-orange))]/50 bg-[hsl(var(--accent-orange))]/10'
                 : 'border-white/10 hover:border-white/20 hover:bg-white/5'
             )}
           >
             <div className={cn(
-              'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5',
+              'h-7 w-7 sm:h-8 sm:w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5',
               state.interests.includes(item.value) ? 'bg-[hsl(var(--accent-orange))]/20 text-[hsl(var(--accent-orange))]' : 'bg-white/8 text-white/40'
             )}>
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-white">{item.label}</p>
-              <p className="text-[11px] text-white/30 mt-0.5">{item.desc}</p>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-white">{item.label}</p>
+              <p className="text-[10px] sm:text-[11px] text-white/30 mt-0.5">{item.desc}</p>
             </div>
           </button>
         ))}
