@@ -303,7 +303,7 @@ export default function DemoSetupWizard() {
 
 function WizardCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('bg-white/6 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8', className)}>
+    <div className={cn('bg-white/6 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8', className)}>
       {children}
     </div>
   );
@@ -311,18 +311,18 @@ function WizardCard({ children, className }: { children: React.ReactNode; classN
 
 function StepTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="mb-6">
-      <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
-      {subtitle && <p className="text-white/40 text-sm mt-1.5">{subtitle}</p>}
+    <div className="mb-4 sm:mb-6">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">{title}</h2>
+      {subtitle && <p className="text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5">{subtitle}</p>}
     </div>
   );
 }
 
 function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; onNext: () => void; nextLabel?: string; disabled?: boolean }) {
   return (
-    <div className="flex items-center justify-between mt-6">
+    <div className="flex items-center justify-between mt-4 sm:mt-6">
       {onBack ? (
-        <button onClick={onBack} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm transition-colors">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-white/40 hover:text-white text-xs transition-colors">
           <ArrowLeft className="h-4 w-4" /> Atrás
         </button>
       ) : <div />}
@@ -330,7 +330,7 @@ function NavBar({ onBack, onNext, nextLabel, disabled }: { onBack?: () => void; 
         onClick={onNext}
         disabled={disabled}
         className={cn(
-          'flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all',
+          'flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all',
           disabled
             ? 'bg-white/10 text-white/30 cursor-not-allowed'
             : 'bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))]/90 text-white'
