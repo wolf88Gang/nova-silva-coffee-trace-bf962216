@@ -244,28 +244,28 @@ export default function DemoSetupWizard() {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col">
-        <header className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-          <div className="flex items-center gap-3">
-            <img src={logoNovasilva} alt="Nova Silva" className="h-8 w-8 object-contain" />
-            <span className="text-white font-bold text-lg tracking-tight">Nova Silva</span>
+        <header className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/8">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <img src={logoNovasilva} alt="Nova Silva" className="h-7 w-7 sm:h-8 sm:w-8 object-contain" />
+            <span className="text-white font-bold text-base sm:text-lg tracking-tight">Nova Silva</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {step > 0 && (
-              <span className="text-white/30 text-xs">Paso {step} de {TOTAL_STEPS - 1}</span>
+              <span className="text-white/30 text-[10px] sm:text-xs">Paso {step} de {TOTAL_STEPS - 1}</span>
             )}
-            <Link to="/demo" className="text-white/30 hover:text-white text-xs transition-colors">
+            <Link to="/demo" className="text-white/30 hover:text-white text-[10px] sm:text-xs transition-colors">
               Demo directo →
             </Link>
           </div>
         </header>
 
         {step > 0 && (
-          <div className="px-6 pt-3">
+          <div className="px-4 sm:px-6 pt-3">
             <Progress value={progressValue} className="h-1 bg-white/10 [&>div]:bg-[hsl(var(--accent-orange))]" />
           </div>
         )}
 
-        <main className="flex-1 flex items-center justify-center p-6">
+        <main className="flex-1 flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto">
           <div className="w-full max-w-2xl">
             {step === 0 && <StepWelcome onStart={() => setStep(1)} />}
             {step === 1 && (
