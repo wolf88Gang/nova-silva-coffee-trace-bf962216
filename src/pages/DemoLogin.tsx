@@ -271,7 +271,9 @@ const DemoLogin = () => {
       }
 
       if (selectedProfile.role !== 'admin') {
-        const result = await ensureDemoUser(selectedProfile.role, mapping.orgId);
+        // Only pass organization_id if it's a real UUID, not a slug
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mapping.orgId);
+        const result = await ensureDemoUser(selectedProfile.role, isUuid ? mapping.orgId : undefined);
         if (!result.ok) {
           const errInfo = interpretDemoError(result);
           console.error('ensure-demo-user failed:', result.error, result.status);
