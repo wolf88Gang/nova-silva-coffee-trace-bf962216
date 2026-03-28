@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { setDemoConfig } from '@/hooks/useDemoConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import { ensureDemoUser } from '@/lib/ensureDemoUser';
+import { ensureDemoUser, isUuidOrganizationId } from '@/lib/ensureDemoUser';
 import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
@@ -209,7 +209,10 @@ export default function DemoSetupWizard() {
       }
 
       // ensure-demo-user with real authenticated session
-      const result = await ensureDemoUser(arch.role, arch.orgId);
+      const result = await ensureDemoUser(
+        arch.role,
+        isUuidOrganizationId(arch.orgId) ? arch.orgId : undefined,
+      );
       if (!result.ok) {
         const errInfo = interpretDemoError(result);
         console.error('ensure-demo-user failed:', result.error, result.status);
