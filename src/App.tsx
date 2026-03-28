@@ -17,6 +17,7 @@ import Register from "./pages/Register";
 import DemoLogin from "./pages/DemoLogin";
 import DemoSetupWizard from "./pages/demo/DemoSetupWizard";
 import CrearCuenta from "./pages/demo/CrearCuenta";
+import ResetPassword from "./pages/auth/ResetPassword";
 import RoleBasedRedirect from "./components/RoleBasedRedirect";
 import NotFound from "./pages/NotFound";
 import PlaceholderPage from "./pages/PlaceholderPage";
@@ -139,6 +140,7 @@ const App = () => (
               <Route path="/demo/setup" element={<DemoSetupWizard />} />
               <Route path="/crear-cuenta" element={<CrearCuenta />} />
               <Route path="/registro" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
               <Route path="/onboarding/organization" element={<OnboardingOrganization />} />
 
