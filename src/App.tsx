@@ -140,6 +140,7 @@ const App = () => (
               <Route path="/demo/setup" element={<DemoSetupWizard />} />
               <Route path="/crear-cuenta" element={<CrearCuenta />} />
               <Route path="/registro" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/app" element={<RoleBasedRedirect />} />
               <Route path="/onboarding/organization" element={<OnboardingOrganization />} />
 
