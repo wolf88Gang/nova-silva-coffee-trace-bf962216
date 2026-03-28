@@ -9,7 +9,7 @@ import { UserRole } from '@/types';
 import logoNovasilva from '@/assets/logo-novasilva.png';
 import bgHillside from '@/assets/bg-hillside-farm.jpg';
 import { cn } from '@/lib/utils';
-import { ensureDemoUser } from '@/lib/ensureDemoUser';
+import { ensureDemoUser, isUuidOrganizationId } from '@/lib/ensureDemoUser';
 import { interpretDemoError, isNoOrgResult } from '@/lib/demoErrors';
 import { DemoConversionCTA } from '@/components/demo/DemoConversionCTA';
 import {
@@ -271,9 +271,10 @@ const DemoLogin = () => {
       }
 
       if (selectedProfile.role !== 'admin') {
-        // Only pass organization_id if it's a real UUID, not a slug
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mapping.orgId);
-        const result = await ensureDemoUser(selectedProfile.role, isUuid ? mapping.orgId : undefined);
+        const result = await ensureDemoUser(
+          selectedProfile.role,
+          isUuidOrganizationId(mapping.orgId) ? mapping.orgId : undefined,
+        );
         if (!result.ok) {
           const errInfo = interpretDemoError(result);
           console.error('ensure-demo-user failed:', result.error, result.status);

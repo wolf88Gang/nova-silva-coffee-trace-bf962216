@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const FUNCTION_URL = 'https://qbwmsarqewxjuwgkdfmg.supabase.co/functions/v1/ensure-demo-user';
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid21zYXJxZXd4anV3Z2tkZm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NDgyMjEsImV4cCI6MjA4MTMyNDIyMX0.fU8aFFLy07GaPZn_7namja1LLL2pCk4ohP-eJjEJUps';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface EnsureDemoResult {
   ok: boolean;
@@ -15,6 +16,10 @@ export interface EnsureDemoResult {
   user_id?: string;
   organization_id?: string | null;
   status?: number;
+}
+
+export function isUuidOrganizationId(value?: string | null): value is string {
+  return Boolean(value && UUID_REGEX.test(value));
 }
 
 /**
@@ -41,7 +46,7 @@ export async function ensureDemoUser(
 
   try {
     const body: Record<string, string> = { role };
-    if (organizationId) {
+    if (isUuidOrganizationId(organizationId)) {
       body.organization_id = organizationId;
     }
 
