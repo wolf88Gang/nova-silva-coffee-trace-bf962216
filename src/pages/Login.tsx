@@ -142,7 +142,16 @@ const Login = () => {
                   Crear cuenta
                 </Link>
               </p>
-              {/* Demo accesible via Ctrl+Shift+D */}
+              <Link
+                to="/demo"
+                className="inline-flex items-center gap-2 text-white/40 hover:text-[hsl(var(--accent-orange))] text-xs transition-colors"
+              >
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--accent-orange))] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[hsl(var(--accent-orange))]" />
+                </span>
+                Explorar demo interactivo →
+              </Link>
             </div>
           </>
         ) : (
